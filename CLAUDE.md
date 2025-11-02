@@ -298,6 +298,9 @@ MIT + file LICENSE
 
 - interpret_fa(): local input token usage not correctly tracked
 - interpret_fa(): session_chat and provider/model need to be disambiguated for potential conflict
+- interpret_fa(): formatting issues:
+  - Number of significant loadings: 5 nVariance explained: 7.71% nFactor Correlations: ML2 = -0.18, ML1 = -0.22, ML5 = .19, nnML4 = .19, ML6 = -0.03
+  - leading zeros for negative values, check prompt and report!
 - add tests/ directory with testthat tests
 - export functions need debugging and reduction to useful formats, i.e., .txt and .md
 
