@@ -265,7 +265,9 @@ interpret(
 )
 ```
 
+# Cluster Analysis
 
+Coming soon ...
 
 ## Total Usage of the Chat Session
 
