@@ -17,8 +17,8 @@
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="LLM-powered interpretation of factor and cluster analyses">
-<meta name="description" content="We provide functions to automate the naming and describing of factors in exploratory factor analysis and clusters in cluster analysis using the large language models (LLMs) via the ellmer package. We further provide wrapper functions to interface with commonly used packages, such as psych, lavaan, and mclust.">
-<meta property="og:description" content="We provide functions to automate the naming and describing of factors in exploratory factor analysis and clusters in cluster analysis using the large language models (LLMs) via the ellmer package. We further provide wrapper functions to interface with commonly used packages, such as psych, lavaan, and mclust.">
+<meta name="description" content="We provide functions to automate the naming and describing of factors in exploratory factor analysis and clusters in cluster analysis using the large language models (LLMs) via the ellmer package. We further provide S3 methods to interface with commonly used packages, such as psych, lavaan, and mirt.">
+<meta property="og:description" content="We provide functions to automate the naming and describing of factors in exploratory factor analysis and clusters in cluster analysis using the large language models (LLMs) via the ellmer package. We further provide S3 methods to interface with commonly used packages, such as psych, lavaan, and mirt.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -41,7 +41,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/01-Basic_Usage.html">Basic usage of the 'psychinterpreter' Package</a></li>
+<li><a class="dropdown-item" href="articles/01-Basic_Usage.html">psychinterpreter: Getting Started</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -71,17 +71,30 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>Automate the interpretation of exploratory factor analysis (EFA) and cluster analysis results using Large Language Models (LLMs) via the <a href="https://ellmer.tidyverse.org/" class="external-link">ellmer</a> package.</p>
+<p><strong>LLM-powered interpretation of factor and cluster analyses.</strong></p>
+<p><strong>Disclaimer:</strong> This package is in early development and should be used with caution. Always review and validate LLM-generated interpretations.</p>
 <div class="section level2">
 <h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h2>
 <ul>
-<li>🤖 <strong>LLM-Powered Interpretation</strong>: Generate human-readable factor names and interpretations using state-of-the-art language models</li>
-<li>🔄 <strong>Persistent Chat Sessions</strong>: Reuse LLM sessions across multiple analyses to save tokens and reduce costs</li>
+<li>🤖 <strong>LLM-Powered Interpretation</strong>: Generate human-readable factor names and interpretations using state-of-the-art language models via the <a href="https://ellmer.tidyverse.org/" class="external-link">‘ellmer’</a> package</li>
+<li>🔌 <strong>Seamless Integration</strong>: S3 methods for popular packages - just pass your fitted model objects directly
+<ul>
+<li>
+<code><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">psych::fa()</a></code> and <code><a href="https://rdrr.io/pkg/psych/man/principal.html" class="external-link">psych::principal()</a></code> results</li>
+<li>
+<code><a href="https://rdrr.io/pkg/lavaan/man/cfa.html" class="external-link">lavaan::cfa()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/sem.html" class="external-link">lavaan::sem()</a></code>, and <code><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">lavaan::efa()</a></code> results</li>
+<li>
+<code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt::mirt()</a></code> multidimensional IRT results</li>
+<li>Auto-extracts loadings and factor correlations</li>
+</ul>
+</li>
 <li>📊 <strong>Comprehensive Reports</strong>: Automatically generate detailed reports in text or markdown format</li>
 <li>📈 <strong>Visualizations</strong>: Create publication-ready heatmaps of factor loadings with suggested factor names</li>
-<li>💾 <strong>Multi-Format Export</strong>: Export results to CSV, JSON, RDS, or TXT formats</li>
-<li>🎯 <strong>Provider Agnostic</strong>: Works with OpenAI, Anthropic, Ollama, Gemini, and Azure</li>
+<li>💾 <strong>Multi-Format Export</strong>: Export results to TXT and MD formats</li>
+<li>🎯 <strong>Provider Agnostic</strong>: Works with OpenAI, Anthropic, Google Gemini, Azure, Ollama, and more via <a href="https://ellmer.tidyverse.org/" class="external-link">‘ellmer’</a>
+</li>
+<li>🔄 <strong>Persistent Chat Sessions</strong>: Reuse LLM sessions across multiple analyses to save tokens and reduce costs</li>
 </ul>
 </div>
 <div class="section level2">
@@ -90,50 +103,53 @@
 <p>You can install the development version of psychinterpreter from GitHub:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"https://github.com/matthiaskloft/psychinterpreter"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
+<div class="section level3">
+<h3 id="simple-s3-method-recommended">Simple S3 Method (Recommended)<a class="anchor" aria-label="anchor" href="#simple-s3-method-recommended"></a>
+</h3>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://matthiaskloft.github.io/psychinterpreter/" class="external-link">psychinterpreter</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://personality-project.org/r/psych/" class="external-link">psych</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Run factor analysis (using psych package or similar)</span></span>
-<span><span class="va">fa_result</span> <span class="op">&lt;-</span> <span class="fu">psych</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">fa</a></span><span class="op">(</span><span class="va">data</span>, nfactors <span class="op">=</span> <span class="fl">5</span>, rotate <span class="op">=</span> <span class="st">"oblimin"</span><span class="op">)</span></span>
+<span><span class="co"># Run factor analysis</span></span>
+<span><span class="va">fa_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">fa</a></span><span class="op">(</span><span class="va">bfi</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">]</span>, nfactors <span class="op">=</span> <span class="fl">5</span>, rotate <span class="op">=</span> <span class="st">"oblimin"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Extract loadings</span></span>
-<span><span class="va">loadings</span> <span class="op">&lt;-</span> <span class="va">fa_result</span><span class="op">$</span><span class="va">loadings</span></span>
-<span></span>
-<span><span class="co"># Create variable information data frame</span></span>
+<span><span class="co"># Create variable information</span></span>
 <span><span class="va">var_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">loadings</span><span class="op">)</span>,</span>
-<span>  description <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Variable 1 description"</span>, <span class="va">...</span><span class="op">)</span></span>
+<span>  variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">bfi.dictionary</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  description <span class="op">=</span> <span class="va">bfi.dictionary</span><span class="op">$</span><span class="va">Item</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">]</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Interpret with LLM (requires API key set in environment)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>ANTHROPIC_API_KEY <span class="op">=</span> <span class="st">"your-key-here"</span><span class="op">)</span></span>
+<span><span class="co"># Interpret directly from model object</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">fa_result</span>,</span>
+<span>                     variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
+<span>                     llm_provider <span class="op">=</span> <span class="st">"openai"</span>,</span>
+<span>                     llm_model <span class="op">=</span> <span class="st">"gpt-4o-mini"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="manual-approach">Manual Approach<a class="anchor" aria-label="anchor" href="#manual-approach"></a>
+</h3>
+<p>For more control or custom loadings matrices:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Extract loadings manually</span></span>
+<span><span class="va">loadings</span> <span class="op">&lt;-</span> <span class="va">fa_result</span><span class="op">$</span><span class="va">loadings</span></span>
 <span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span></span>
 <span>  loadings <span class="op">=</span> <span class="va">loadings</span>,</span>
-<span>  var_info <span class="op">=</span> <span class="va">var_info</span>,</span>
-<span>  llm_provider <span class="op">=</span> <span class="st">"anthropic"</span>,</span>
-<span>  llm_model <span class="op">=</span> <span class="st">"claude-haiku-4-5-20251001"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View results</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Visualize loadings with suggested factor names</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Export to multiple formats</span></span>
-<span><span class="fu"><a href="reference/export_interpretation.html">export_interpretation</a></span><span class="op">(</span><span class="va">results</span>, <span class="st">"my_results"</span>, format <span class="op">=</span> <span class="st">"csv"</span><span class="op">)</span></span></code></pre></div>
+<span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"llama3.1:8b"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="efficient-multi-analysis-workflows">Efficient Multi-Analysis Workflows<a class="anchor" aria-label="anchor" href="#efficient-multi-analysis-workflows"></a>
-</h2>
+<div class="section level3">
+<h3 id="efficient-multi-analysis-workflows">Efficient Multi-Analysis Workflows<a class="anchor" aria-label="anchor" href="#efficient-multi-analysis-workflows"></a>
+</h3>
 <p>Use persistent chat sessions to save tokens when analyzing multiple datasets:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create reusable chat session</span></span>
 <span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_fa.html">chat_fa</a></span><span class="op">(</span><span class="st">"anthropic"</span>, <span class="st">"claude-haiku-4-5-20251001"</span><span class="op">)</span></span>
 <span></span>
@@ -145,69 +161,33 @@
 <span><span class="co"># Check token usage</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="supported-llm-providers">Supported LLM Providers<a class="anchor" aria-label="anchor" href="#supported-llm-providers"></a>
-</h2>
-<p>Configure your API keys as environment variables:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># OpenAI</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>OPENAI_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Anthropic</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>ANTHROPIC_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Ollama (local, no key needed)</span></span>
-<span><span class="co"># Just install and run Ollama</span></span>
-<span></span>
-<span><span class="co"># Gemini</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>GEMINI_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Azure OpenAI</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>AZURE_OPENAI_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
 <ul>
+<li><p><strong>Website:</strong> <a href="https://matthiaskloft.github.io/psychinterpreter/" class="external-link">https://matthiaskloft.github.io/psychinterpreter/</a></p></li>
+<li>
+<p><strong>Articles:</strong></p>
+<ul>
 <li><a href="https://matthiaskloft.github.io/psychinterpreter/articles/01-Basic_Usage.html" class="external-link">Getting Started Guide</a></li>
-<li><a href="https://matthiaskloft.github.io/psychinterpreter/reference/index.html" class="external-link">Function Reference</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="section level2">
-<h2 id="key-functions">Key Functions<a class="anchor" aria-label="anchor" href="#key-functions"></a>
+<h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
 </h2>
 <ul>
 <li>
-<code><a href="reference/interpret_fa.html">interpret_fa()</a></code> - Main interpretation function</li>
-<li>
-<code><a href="reference/chat_fa.html">chat_fa()</a></code> - Create persistent chat session</li>
-<li>
-<code><a href="reference/plot.fa_interpretation.html">plot.fa_interpretation()</a></code> - Visualize factor loadings</li>
-<li>
-<code><a href="reference/export_interpretation.html">export_interpretation()</a></code> - Export results to multiple formats</li>
-<li>
-<code><a href="reference/find_cross_loadings.html">find_cross_loadings()</a></code> - Detect cross-loading variables</li>
-<li>
-<code><a href="reference/find_no_loadings.html">find_no_loadings()</a></code> - Detect variables with no significant loadings</li>
+<a href="https://github.com/matthiaskloft/psychinterpreter/issues">Open an Issue</a>: Basic usage of the package</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
 <p>If you use psychinterpreter in your research, please cite:</p>
-<pre><code>Kloft, M. (2025). psychinterpreter: LLM-powered interpretation of factor and cluster analyses. R package version 0.0.0.9000. https://github.com/matthiaskloft/psychinterpreter</code></pre>
-</div>
-<div class="section level2">
-<h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
-</h2>
-<p>MIT + file LICENSE</p>
-</div>
-<div class="section level2">
-<h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
-</h2>
-<ul>
-<li><a href="https://github.com/matthiaskloft/psychinterpreter/issues">Open an Issue</a></li>
-</ul>
+<p>Kloft, M. (2025). psychinterpreter: LLM-powered interpretation of factor and cluster analyses. R package version 0.0.0.9000. </p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -245,7 +225,6 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/matthiaskloft/psychinterpreter/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/matthiaskloft/psychinterpreter/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://github.com/matthiaskloft/psychinterpreter/actions/workflows/pkgdown.yaml"><img src="https://github.com/matthiaskloft/psychinterpreter/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
 </ul>
 </div>
 

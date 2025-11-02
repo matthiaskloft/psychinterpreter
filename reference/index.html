@@ -24,7 +24,7 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Basic_Usage.html">Basic usage of the 'psychinterpreter' Package</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Basic_Usage.html">psychinterpreter: Getting Started</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -83,6 +83,53 @@
         </dt>
         <dd>Reset chat session</dd>
       </dl></div><div class="section level2">
+      <h2 id="s-methods-for-package-integration">S3 Methods for Package Integration<a class="anchor" aria-label="anchor" href="#s-methods-for-package-integration"></a></h2>
+
+      <div class="section-desc"><p>Convenient S3 methods for interpreting results from popular factor analysis packages. Automatically extract loadings and factor correlations from fitted model objects.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="interpret.html">interpret()</a></code>
+
+        </dt>
+        <dd>Interpret Factor Analysis Results Using S3 Methods</dd>
+      </dl><dl><dt>
+
+          <code><a href="interpret.fa.html">interpret(<i>&lt;fa&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Interpret Results from psych::fa()</dd>
+      </dl><dl><dt>
+
+          <code><a href="interpret.principal.html">interpret(<i>&lt;principal&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Interpret Results from psych::principal()</dd>
+      </dl><dl><dt>
+
+          <code><a href="interpret.lavaan.html">interpret(<i>&lt;lavaan&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Interpret Results from lavaan Models (CFA/SEM)</dd>
+      </dl><dl><dt>
+
+          <code><a href="interpret.efaList.html">interpret(<i>&lt;efaList&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Interpret Results from lavaan::efa()</dd>
+      </dl><dl><dt>
+
+          <code><a href="interpret.SingleGroupClass.html">interpret(<i>&lt;SingleGroupClass&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Interpret Results from mirt::mirt()</dd>
+      </dl></div><div class="section level2">
       <h2 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a></h2>
 
       <div class="section-desc"><p>Functions for creating visual representations of factor analysis results.</p></div>
@@ -121,7 +168,7 @@
           <code><a href="export_interpretation.html">export_interpretation()</a></code>
 
         </dt>
-        <dd>Export Factor Analysis Interpretation Results</dd>
+        <dd>Export Factor Analysis Interpretation Report</dd>
       </dl></div><div class="section level2">
       <h2 id="utility-functions">Utility Functions<a class="anchor" aria-label="anchor" href="#utility-functions"></a></h2>
 

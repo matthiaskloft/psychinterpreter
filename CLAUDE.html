@@ -24,7 +24,7 @@
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/01-Basic_Usage.html">Basic usage of the 'psychinterpreter' Package</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/01-Basic_Usage.html">psychinterpreter: Getting Started</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -309,6 +309,33 @@ vignettes/
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a></h2>
 <p>MIT + file LICENSE</p>
 </div>
+<div class="section level2">
+<h2 id="recent-updates-2025-11-02">Recent Updates (2025-11-02)<a class="anchor" aria-label="anchor" href="#recent-updates-2025-11-02"></a></h2>
+<div class="section level3">
+<h3 id="update-1-core-issues-resolved">Update 1: Core Issues Resolved<a class="anchor" aria-label="anchor" href="#update-1-core-issues-resolved"></a></h3>
+<p>All previously documented issues have been resolved:</p>
+<ul><li>✓ <strong>Token tracking</strong>: Fixed local input token usage tracking for providers with cached system prompts</li>
+<li>✓ <strong>Parameter conflicts</strong>: Added informative message when <code>chat_session</code> overrides <code>llm_provider</code>/<code>llm_model</code> arguments</li>
+<li>✓ <strong>Formatting issues</strong>:
+<ul><li>Fixed literal “n” appearing instead of newlines in reports (e.g., “5 nVariance” → “5”)</li>
+<li>Fixed leading zero inconsistency for negative numbers (e.g., “-0.18” → “-.18” to match “.45” format)</li>
+</ul></li>
+<li>✓ <strong>Test infrastructure</strong>: Added comprehensive test suite in <code>tests/testthat/</code> directory</li>
+<li>✓ <strong>Export functions</strong>: Simplified to support only <code>.txt</code> and <code>.md</code> formats with smart extension handling</li>
+</ul></div>
+<div class="section level3">
+<h3 id="update-2-s3-methods-and-api-refinements">Update 2: S3 Methods and API Refinements<a class="anchor" aria-label="anchor" href="#update-2-s3-methods-and-api-refinements"></a></h3>
+<p><strong>New Features:</strong> - ✓ <strong>S3 method system</strong>: Created <code><a href="reference/interpret.html">interpret()</a></code> generic with methods for common FA packages (R/interpret_methods.R) - <code>interpret.psych.fa()</code> - Handles <code><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">psych::fa()</a></code> results - <code>interpret.psych.principal()</code> - Handles <code><a href="https://rdrr.io/pkg/psych/man/principal.html" class="external-link">psych::principal()</a></code> results - <code><a href="reference/interpret.lavaan.html">interpret.lavaan()</a></code> - Handles <code>lavaan::cfa()/sem()</code> results - <code><a href="reference/interpret.efaList.html">interpret.efaList()</a></code> - Handles <code><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">lavaan::efa()</a></code> results - <code><a href="reference/interpret.SingleGroupClass.html">interpret.SingleGroupClass()</a></code> - Handles <code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt::mirt()</a></code> results - All methods auto-extract loadings and factor correlations from model objects</p>
+<p><strong>API Changes:</strong> - ✓ <strong>Reordered <code><a href="reference/interpret_fa.html">interpret_fa()</a></code> arguments</strong>: More logical parameter order with frequently-used args first - <code>loadings, variable_info, factor_cor_mat, chat_session, llm_provider, llm_model, params, cutoff, n_emergency, sort_loadings, additional_info, word_limit, output_format, heading_level, suppress_heading, max_line_length, silent, echo</code> - ✓ <strong>Removed <code>suppress_small</code> parameter</strong>: Delegated to downstream formatting functions for cleaner separation of concerns</p>
+<p><strong>Utility Functions:</strong> - ✓ <strong>Optional <code>factor_cols</code> parameter</strong>: <code><a href="reference/find_cross_loadings.html">find_cross_loadings()</a></code> and <code><a href="reference/find_no_loadings.html">find_no_loadings()</a></code> now auto-detect factor columns when not provided - ✓ <strong>Added <code>silent</code> parameter to <code><a href="reference/export_interpretation.html">export_interpretation()</a></code></strong>: Suppresses success messages for testing</p>
+<p><strong>Dependencies:</strong> - ✓ <strong>Updated DESCRIPTION</strong>: Added psych, lavaan, mirt to Suggests for S3 method support</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="todos">TODOs<a class="anchor" aria-label="anchor" href="#todos"></a></h2>
+<ul><li>add class for fa interpretation results to valiadate in methods</li>
+<li>re-implement deleted tests</li>
+</ul></div>
 </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
