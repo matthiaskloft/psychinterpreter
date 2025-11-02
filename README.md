@@ -22,7 +22,7 @@ You can install the development version of psychinterpreter from GitHub:
 
 ```r
 # install.packages("devtools")
-devtools::install_github()
+devtools::install_github("https://github.com/matthiaskloft/psychinterpreter")
 ```
 
 ## Quick Start
