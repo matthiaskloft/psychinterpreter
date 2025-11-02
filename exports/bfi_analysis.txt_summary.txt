@@ -1,0 +1,6 @@
+factor	suggested_name	variance_explained
+ML2	Negative Affect	0.096476334562695
+ML5	Agreeable Warmth	0.0768840600843419
+ML1	Extraversion	0.0735564004299743
+ML3	Conscientiousness	0.0771190195461245
+ML4	Openness to Experience	0.0625291648045632

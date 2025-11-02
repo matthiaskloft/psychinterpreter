@@ -1,0 +1,49 @@
+url: https://matthiaskloft.github.io/psychinterpreter/
+template:
+  light-switch: yes
+  bootstrap: 5
+  bootswatch: litera
+  theme: arrow-light
+  theme-dark: arrow-dark
+  math-rendering: mathjax
+
+exclude: |
+  CLAUDE.md
+  NEWS.md
+
+reference:
+  - title: "Main Interpretation Functions"
+    desc: >
+      Core functions for interpreting factor analysis results using LLMs.
+    contents:
+      - interpret_fa
+      - chat_fa
+      - is.chat_fa
+      - reset.chat_fa
+
+  - title: "Visualization"
+    desc: >
+      Functions for creating visual representations of factor analysis results.
+    contents:
+      - plot.fa_interpretation
+      - create_factor_plot
+
+  - title: "Export Functions"
+    desc: >
+      Export interpretation results to various formats.
+    contents:
+      - export_interpretation
+
+  - title: "Utility Functions"
+    desc: >
+      Helper functions for analyzing factor loading patterns.
+    contents:
+      - find_cross_loadings
+      - find_no_loadings
+
+  - title: "Print Methods"
+    desc: >
+      S3 methods for displaying interpretation results.
+    contents:
+      - print.fa_interpretation
+      - print.chat_fa

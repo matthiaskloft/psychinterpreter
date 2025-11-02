@@ -1,3 +1,14 @@
 ^psychinterpreter\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^dev/
+^\.claude/
+^CLAUDE.md$
+^exports/
+^vignettes/articles/
+^vignettes/.*\.rmarkdown$
+^vignettes/.*_files/
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$

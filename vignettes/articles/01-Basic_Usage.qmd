@@ -1,0 +1,217 @@
+---
+title: "Basic usage of the 'psychinterpreter' Package"
+author: "Matthias Kloft"
+date: "`r Sys.Date()`"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    df-print: paged
+execute:
+  warning: false
+  message: false
+---
+
+## Overview
+
+This document demonstrates the functionality of the **psychinterpreter** package using the Big Five personality data from the `psych` package. The Big Five Inventory (BFI) is a widely-used personality assessment that measures five major dimensions of personality: Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism.
+
+We'll test all major features of psychinterpreter including:
+
+- Basic factor analysis interpretation
+- Persistent chat sessions for efficient LLM usage
+- Export functionality across multiple formats
+- Advanced interpretation features
+
+## Setup and Data Preparation
+
+```{r setup}
+library(psychinterpreter)
+library(ellmer)
+library(psych)
+library(dplyr)
+library(here)
+library(pander)
+
+# Load the BFI dataset and dictionary
+data("bfi")
+data("bfi.dictionary")
+```
+
+# Preparing the BFI Data
+
+Exclude demographic variables for factor analysis
+
+```{r}
+bfi <- bfi[,1:25]
+bfi.dictionary <- bfi.dictionary[1:25, ]
+```
+
+```{r data-exploration}
+# Show the first few rows
+head(bfi)
+
+# Display the BFI dictionary showing item descriptions and keying
+print(bfi.dictionary |> select(Item))
+```
+
+
+
+# Factor Analysis
+
+## Determining Number of Factors
+
+```{r parallel-analysis}
+# Parallel analysis to determine optimal number of factors
+pa_result <- fa.parallel(
+  bfi,
+  fa = "fa",
+  n.iter = 100,
+  use = "pairwise.complete.obs",
+  main = "Parallel Analysis: BFI Data"
+)
+```
+
+## Performing Exploratory Factor Analysis with 7 Factors
+
+Perform FA with 7 factors identified by the parallel analysis
+```{r fa-analysis}
+fa_result <- fa(
+  bfi,
+  nfactors = pa_result$nfact,
+  rotate = "oblimin",
+  fm = "ml"
+)
+```
+
+```{r}
+# Extract loading matrix for interpretation
+loadings_matrix <- unclass(fa_result$loadings) |> as.data.frame()
+round(loadings_matrix, 2)
+
+# Extract factor correlation matrix
+factor_cor_mat <- fa_result$Phi |> as.data.frame()
+round(factor_cor_mat, 2)
+```
+
+
+### Interpreting Factor Analysis Results
+
+Create variable information dataframe from BFI dictionary
+```{r test-basic-interpretation}
+variable_info <- data.frame(
+  variable = rownames(bfi.dictionary),
+  description = bfi.dictionary$Item,
+  stringsAsFactors = FALSE
+)
+
+head(variable_info, 10)
+```
+
+Set up persistent chat session
+
+```{r test-chat-sessions}
+chat <- chat_fa(
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud",
+  # set temperature and seed for reproducibility
+  params = params(temperature = 0, seed = 42)
+)
+
+print(chat)
+```
+
+We now generate factor interpretations using the specified LLM:
+```{r}
+#| output: asis
+
+result <- interpret_fa(
+    loadings = loadings_matrix,
+  variable_info = variable_info,
+  cutoff = 0.3,
+  n_emergency = 2,
+  additional_info = NULL,
+  factor_cor_mat = factor_cor_mat,
+  sort_loadings = TRUE,
+  suppress_small = TRUE,
+  word_limit = 100,
+  max_line_length = 80,
+  silent = FALSE,
+  echo = "none",
+  output_format = "markdown",
+  heading_level = 2,
+  suppress_heading = TRUE,
+  chat_session = chat
+)
+```
+
+Let's check the global token usage tracked by the chat:
+```{r usage1}
+print(chat)
+```
+
+```{r}
+result$chat
+```
+Plot the loading matrix with factor names:
+```{r}
+plot(result)
+```
+
+## Factor Analysis and Interpretation Using 5 Factors
+
+Let's repeat the interpretation with the theoretical number of 5 factors
+
+```{r}
+#| output: asis
+
+fa_result_5f <- fa(
+  bfi,
+  nfactors = 5,
+  rotate = "oblimin",
+  fm = "ml",
+  scores = TRUE
+)
+
+result <- interpret_fa(
+    loadings = fa_result_5f$loadings,
+  variable_info = variable_info,
+  cutoff = 0.3,
+  n_emergency = 2,
+  additional_info = NULL,
+  factor_cor_mat = factor_cor_mat,
+  sort_loadings = TRUE,
+  suppress_small = TRUE,
+  word_limit = 100,
+  max_line_length = 80,
+  silent = FALSE,
+  echo = "none",
+  output_format = "markdown",
+  heading_level = 2,
+  suppress_heading = TRUE,
+  chat_session = chat
+)
+```
+
+We can again check the total global token usage:
+```{r usage2}
+print(chat)
+```
+
+
+## Export Functionality
+
+We can export the results to multiple formats
+
+```{r exports, eval=FALSE}
+# TXT export
+export_interpretation(result,
+                      format = "txt",
+                      file = here("exports", "bfi_analysis"))
+```
+
+
+```{r}
+pander::pander(sessionInfo())
+```
