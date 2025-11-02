@@ -29,10 +29,6 @@
 #'   correlations suggest related constructs, while lower correlations indicate distinct factors.
 #'   If NULL, factors are assumed to be orthogonal (default = NULL)
 #' @param sort_loadings Logical. Sort variables by loading strength within factors (default = TRUE)
-#' @param suppress_small Logical. If TRUE, replaces loadings below cutoff with empty strings in the
-#'   loading_matrix output for cleaner display. If FALSE, shows all loadings as numbers.
-#'   Note: This only affects the output loading_matrix format, not the LLM interpretation
-#'   which always uses the cutoff (default = TRUE)
 #' @param params Parameters for the LLM created using ellmer::params() function (e.g., params(temperature = 0.7, seed = 42)).
 #'   Provides a provider-agnostic interface for setting model parameters like temperature, seed, max_tokens, etc.
 #'   If NULL, uses provider defaults. See ellmer::params() documentation for supported parameters.
@@ -99,6 +95,7 @@
 #'     \item{no_loadings}{Data frame of variables with no loadings above cutoff threshold}
 #'     \item{elapsed_time}{Total analysis time as difftime object}
 #'     \item{factor_cor_mat}{Factor correlation matrix (when provided)}
+#'     \item{cutoff}{Numeric cutoff value used for determining significant loadings}
 #'   }
 #'
 #' @examples
@@ -203,23 +200,22 @@
 
 interpret_fa <- function(loadings,
                          variable_info,
-                         cutoff = 0.3,
-                         n_emergency = 2,
+                         factor_cor_mat = NULL,
+                         chat_session = NULL,
                          llm_provider = "ollama",
                          llm_model = NULL,
-                         additional_info = NULL,
-                         factor_cor_mat = NULL,
-                         sort_loadings = TRUE,
-                         suppress_small = TRUE,
                          params = NULL,
+                         cutoff = 0.3,
+                         n_emergency = 2,
+                         sort_loadings = TRUE,
+                         additional_info = NULL,
                          word_limit = 150,
-                         max_line_length = 80,
-                         silent = FALSE,
-                         echo = "none",
                          output_format = "text",
                          heading_level = 1,
                          suppress_heading = FALSE,
-                         chat_session = NULL) {
+                         max_line_length = 80,
+                         silent = FALSE,
+                         echo = "none") {
   # ============================================================================
   # SECTION 1: INITIALIZATION AND PARAMETER VALIDATION
   # ============================================================================
@@ -663,7 +659,7 @@ interpret_fa <- function(loadings,
           ", ",
           factor_data$strength[j],
           ", ",
-          sub("^0", "", sprintf("%.3f", factor_data$loading[j])),
+          sub("^(-?)0\\.", "\\1.", sprintf("%.3f", factor_data$loading[j])),
           ")\n"
         )
       }
@@ -709,6 +705,13 @@ interpret_fa <- function(loadings,
 
     # Increment interpretation counter (persists due to environment reference semantics)
     chat_session$n_interpretations <- chat_session$n_interpretations + 1L
+
+    # Inform user if they provided provider/model arguments that will be ignored
+    if (llm_provider != "ollama" || !is.null(llm_model)) {
+      cli::cli_inform(
+        c("i" = "Using provided {.field chat_session} (overrides {.field llm_provider} and {.field llm_model} arguments)")
+      )
+    }
 
     cli::cli_alert_info(
       "Using existing chat session: {.strong {chat$get_provider()@name}} {.val {chat$get_model()}}"
@@ -861,7 +864,7 @@ interpret_fa <- function(loadings,
     loading_vector <- c()
     for (j in 1:nrow(loadings_df)) {
       var_name <- loadings_df$variable[j]
-      loading_val <- sub("^0", "", sprintf("%.3f", loadings_df[[factor_name]][j]))
+      loading_val <- sub("^(-?)0\\.", "\\1.", sprintf("%.3f", loadings_df[[factor_name]][j]))
       loading_vector <- c(loading_vector, paste0(var_name, "=", loading_val))
     }
 
@@ -910,7 +913,7 @@ interpret_fa <- function(loadings,
               other_factor %in% names(cor_df)) {
             cor_val <- round(cor_df[[other_factor]][i], 2)
             cor_formatted <- sprintf("%.2f", cor_val)
-            cor_formatted <- sub("^0", "", cor_formatted)  # Remove leading zero for consistency with LLM input
+            cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
             cor_vector <- c(cor_vector,
                             paste0(other_factor, "=", cor_formatted))
           }
@@ -1040,26 +1043,29 @@ interpret_fa <- function(loadings,
     })
 
     # Calculate per-run token usage
-    # Two approaches:
-    # 1. For cumulative tracking: Use delta with max(0, ...) to prevent negative accumulation
-    # 2. For per-run display: Get actual tokens from most recent messages
+    # Two approaches for token tracking to handle different provider behaviors:
+    # 1. Cumulative tracking: Use delta with max(0, ...) to prevent negative accumulation
+    #    when system prompts are cached (e.g., persistent chat sessions)
+    # 2. Per-run reporting: Extract actual token counts from the most recent messages
+    #    to show accurate per-analysis usage
 
     # Calculate delta for cumulative tracking (prevents negative accumulation)
     delta_input <- max(0, tokens_after$input - tokens_before$input)
     delta_output <- max(0, tokens_after$output - tokens_before$output)
 
-    # Get actual per-run tokens from most recent messages (for accurate reporting)
-    # This handles providers like Ollama that cache system prompts
-    run_input_tokens <- delta_input
-    run_output_tokens <- delta_output
+    # Initialize per-run tokens (will be overridden if per-message data available)
+    run_input_tokens <- 0
+    run_output_tokens <- 0
 
+    # Try to extract per-message tokens for accurate per-run reporting
+    # This is the preferred method as it handles cached system prompts correctly
     if (!is.null(tokens_after$df) && nrow(tokens_after$df) > 0) {
       # Try to get the most recent user and assistant message tokens
       user_messages <- tokens_after$df[tokens_after$df$role == "user", ]
       assistant_messages <- tokens_after$df[tokens_after$df$role == "assistant", ]
 
       if (nrow(user_messages) > 0) {
-        # Get the last user message tokens
+        # Get the last user message tokens (the prompt we just sent)
         last_user_tokens <- user_messages$tokens[nrow(user_messages)]
         if (!is.na(last_user_tokens) && last_user_tokens > 0) {
           run_input_tokens <- last_user_tokens
@@ -1067,12 +1073,21 @@ interpret_fa <- function(loadings,
       }
 
       if (nrow(assistant_messages) > 0) {
-        # Get the last assistant message tokens
+        # Get the last assistant message tokens (the response we just received)
         last_assistant_tokens <- assistant_messages$tokens[nrow(assistant_messages)]
         if (!is.na(last_assistant_tokens) && last_assistant_tokens > 0) {
           run_output_tokens <- last_assistant_tokens
         }
       }
+    }
+
+    # Fallback: If per-message extraction failed, use delta (may be 0 for cached prompts)
+    # Note: For local providers without token tracking, both methods may return 0
+    if (run_input_tokens == 0 && delta_input > 0) {
+      run_input_tokens <- delta_input
+    }
+    if (run_output_tokens == 0 && delta_output > 0) {
+      run_output_tokens <- delta_output
     }
 
     # Update cumulative token counters if using persistent chat session
@@ -1260,18 +1275,9 @@ interpret_fa <- function(loadings,
   # Create formatted loading matrix
   loading_matrix <- loadings_df
 
-  if (suppress_small) {
-    # Replace small loadings with empty string
-    for (col in factor_cols) {
-      loading_matrix[[col]] <- ifelse(abs(loading_matrix[[col]]) < cutoff,
-                                      "",
-                                      sub("^0", "", sprintf("%.3f", loading_matrix[[col]])))
-    }
-  } else {
-    # Format all loadings
-    for (col in factor_cols) {
-      loading_matrix[[col]] <- sub("^0", "", sprintf("%.3f", loading_matrix[[col]]))
-    }
+  # Format all loadings
+  for (col in factor_cols) {
+    loading_matrix[[col]] <- sub("^(-?)0\\.", "\\1.", sprintf("%.3f", loading_matrix[[col]]))
   }
 
   results$loading_matrix <- loading_matrix
@@ -1315,6 +1321,7 @@ interpret_fa <- function(loadings,
   results$no_loadings <- no_loadings
   results$elapsed_time <- elapsed_time
   results$factor_cor_mat <- factor_cor_mat
+  results$cutoff <- cutoff
 
   # Generate interpretation report using helper function
   report <- build_fa_report(

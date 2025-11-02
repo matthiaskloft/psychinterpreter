@@ -6,10 +6,11 @@
 #' the variable measures multiple constructs.
 #'
 #' @param loadings_df A dataframe with loadings including a 'variable' column
-#' @param factor_cols Character vector of factor column names
+#' @param factor_cols Character vector of factor column names. If NULL, automatically
+#'   detects all columns except 'variable' (default = NULL)
 #' @param cutoff Numeric. Minimum absolute loading value to consider (default = 0.3)
 #'
-#' @return A dataframe with columns: 
+#' @return A dataframe with columns:
 #'   \item{variable}{Variable name}
 #'   \item{factors}{Formatted string showing all factors and loadings above cutoff}
 #'
@@ -21,14 +22,26 @@
 #'   Factor1 = c(0.8, 0.4, 0.1),
 #'   Factor2 = c(0.2, 0.7, 0.9)
 #' )
-#' 
-#' # Find variables loading on multiple factors
+#'
+#' # Find variables loading on multiple factors (auto-detect factor columns)
+#' cross_vars <- find_cross_loadings(loadings_df, cutoff = 0.3)
+#'
+#' # Or specify factor columns explicitly
 #' cross_vars <- find_cross_loadings(loadings_df, c("Factor1", "Factor2"), cutoff = 0.3)
 #' print(cross_vars)
 #' }
 #'
 #' @export
-find_cross_loadings <- function(loadings_df, factor_cols, cutoff = 0.3) {
+find_cross_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
+  # Auto-detect factor columns if not provided
+  if (is.null(factor_cols)) {
+    factor_cols <- setdiff(names(loadings_df), "variable")
+  }
+
+  # Handle empty data frames
+  if (nrow(loadings_df) == 0 || length(factor_cols) == 0) {
+    return(data.frame(variable = character(), factors = character()))
+  }
   # Pre-allocate list for results for efficiency
   cross_list <- vector("list", nrow(loadings_df))
   
@@ -38,7 +51,7 @@ find_cross_loadings <- function(loadings_df, factor_cols, cutoff = 0.3) {
     # Check each factor for significant loadings
     for (col in factor_cols) {
       if (abs(loadings_df[[col]][i]) >= cutoff) {
-        high_loadings <- c(high_loadings, paste0(col, " (", sub("^0", "", sprintf("%.3f", loadings_df[[col]][i])), ")"))
+        high_loadings <- c(high_loadings, paste0(col, " (", sub("^(-?)0\\.", "\\1.", sprintf("%.3f", loadings_df[[col]][i])), ")"))
       }
     }
     
@@ -72,7 +85,8 @@ find_cross_loadings <- function(loadings_df, factor_cols, cutoff = 0.3) {
 #' factor solution.
 #'
 #' @param loadings_df A dataframe with loadings including a 'variable' column
-#' @param factor_cols Character vector of factor column names
+#' @param factor_cols Character vector of factor column names. If NULL, automatically
+#'   detects all columns except 'variable' (default = NULL)
 #' @param cutoff Numeric. Minimum absolute loading value to consider (default = 0.3)
 #'
 #' @return A dataframe with columns:
@@ -87,14 +101,26 @@ find_cross_loadings <- function(loadings_df, factor_cols, cutoff = 0.3) {
 #'   Factor1 = c(0.8, 0.2, 0.1),
 #'   Factor2 = c(0.1, 0.15, 0.05)
 #' )
-#' 
-#' # Find variables with no significant loadings
+#'
+#' # Find variables with no significant loadings (auto-detect factor columns)
+#' weak_vars <- find_no_loadings(loadings_df, cutoff = 0.3)
+#'
+#' # Or specify factor columns explicitly
 #' weak_vars <- find_no_loadings(loadings_df, c("Factor1", "Factor2"), cutoff = 0.3)
 #' print(weak_vars)
 #' }
 #'
 #' @export
-find_no_loadings <- function(loadings_df, factor_cols, cutoff = 0.3) {
+find_no_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
+  # Auto-detect factor columns if not provided
+  if (is.null(factor_cols)) {
+    factor_cols <- setdiff(names(loadings_df), "variable")
+  }
+
+  # Handle empty data frames
+  if (nrow(loadings_df) == 0 || length(factor_cols) == 0) {
+    return(data.frame(variable = character(), highest_loading = character()))
+  }
   # Pre-allocate list for results for efficiency
   no_load_list <- vector("list", nrow(loadings_df))
   
@@ -121,7 +147,7 @@ find_no_loadings <- function(loadings_df, factor_cols, cutoff = 0.3) {
     if (!has_significant_loading) {
       no_load_list[[i]] <- data.frame(
         variable = loadings_df$variable[i],
-        highest_loading = paste0(max_factor, " = ", sub("^0", "", sprintf("%.3f", max_loading)))
+        highest_loading = paste0(max_factor, " = ", sub("^(-?)0\\.", "\\1.", sprintf("%.3f", max_loading)))
       )
     }
   }

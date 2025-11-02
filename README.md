@@ -5,16 +5,27 @@
 <!-- badges: end -->
 
 
-Automate the interpretation of exploratory factor analysis (EFA) and cluster analysis results using Large Language Models (LLMs) via the [ellmer](https://ellmer.tidyverse.org/) package.
+**LLM-powered interpretation of factor and cluster analyses.**
+
+
+**Disclaimer:**
+This package is in early development and should be used with caution.
+Always review and validate LLM-generated interpretations.
+
 
 ## Features
 
-- 🤖 **LLM-Powered Interpretation**: Generate human-readable factor names and interpretations using state-of-the-art language models
-- 🔄 **Persistent Chat Sessions**: Reuse LLM sessions across multiple analyses to save tokens and reduce costs
+- 🤖 **LLM-Powered Interpretation**: Generate human-readable factor names and interpretations using state-of-the-art language models via the ['ellmer'](https://ellmer.tidyverse.org/) package
+- 🔌 **Seamless Integration**: S3 methods for popular packages - just pass your fitted model objects directly
+  - `psych::fa()` and `psych::principal()` results
+  - `lavaan::cfa()`, `lavaan::sem()`, and `lavaan::efa()` results
+  - `mirt::mirt()` multidimensional IRT results
+  - Auto-extracts loadings and factor correlations
 - 📊 **Comprehensive Reports**: Automatically generate detailed reports in text or markdown format
 - 📈 **Visualizations**: Create publication-ready heatmaps of factor loadings with suggested factor names
-- 💾 **Multi-Format Export**: Export results to CSV, JSON, RDS, or TXT formats
-- 🎯 **Provider Agnostic**: Works with OpenAI, Anthropic, Ollama, Gemini, and Azure
+- 💾 **Multi-Format Export**: Export results to TXT and MD formats
+- 🎯 **Provider Agnostic**: Works with OpenAI, Anthropic, Google Gemini, Azure, Ollama, and more via ['ellmer'](https://ellmer.tidyverse.org/)
+- 🔄 **Persistent Chat Sessions**: Reuse LLM sessions across multiple analyses to save tokens and reduce costs
 
 ## Installation
 
@@ -25,44 +36,49 @@ You can install the development version of psychinterpreter from GitHub:
 devtools::install_github("https://github.com/matthiaskloft/psychinterpreter")
 ```
 
+
 ## Quick Start
+
+### Simple S3 Method (Recommended)
 
 ```r
 library(psychinterpreter)
+library(psych)
 
-# Run factor analysis (using psych package or similar)
-fa_result <- psych::fa(data, nfactors = 5, rotate = "oblimin")
+# Run factor analysis
+fa_result <- fa(bfi[,1:25], nfactors = 5, rotate = "oblimin")
 
-# Extract loadings
-loadings <- fa_result$loadings
-
-# Create variable information data frame
+# Create variable information
 var_info <- data.frame(
-  variable = rownames(loadings),
-  description = c("Variable 1 description", ...)
+  variable = rownames(bfi.dictionary[,1:25]),
+  description = bfi.dictionary$Item[1:25]
 )
 
-# Interpret with LLM (requires API key set in environment)
-Sys.setenv(ANTHROPIC_API_KEY = "your-key-here")
+# Interpret directly from model object
+results <- interpret(fa_result,
+                     variable_info = var_info,
+                     llm_provider = "openai",
+                     llm_model = "gpt-4o-mini")
+```
+
+### Manual Approach
+
+For more control or custom loadings matrices:
+
+```r
+# Extract loadings manually
+loadings <- fa_result$loadings
 
 results <- interpret_fa(
   loadings = loadings,
-  var_info = var_info,
-  llm_provider = "anthropic",
-  llm_model = "claude-haiku-4-5-20251001"
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "llama3.1:8b"
 )
-
-# View results
-print(results)
-
-# Visualize loadings with suggested factor names
-plot(results)
-
-# Export to multiple formats
-export_interpretation(results, "my_results", format = "csv")
 ```
 
-## Efficient Multi-Analysis Workflows
+
+### Efficient Multi-Analysis Workflows
 
 Use persistent chat sessions to save tokens when analyzing multiple datasets:
 
@@ -79,54 +95,27 @@ result3 <- interpret_fa(loadings3, var_info3, chat_session = chat)
 print(chat)
 ```
 
-## Supported LLM Providers
-
-Configure your API keys as environment variables:
-
-```r
-# OpenAI
-Sys.setenv(OPENAI_API_KEY = "your-key")
-
-# Anthropic
-Sys.setenv(ANTHROPIC_API_KEY = "your-key")
-
-# Ollama (local, no key needed)
-# Just install and run Ollama
-
-# Gemini
-Sys.setenv(GEMINI_API_KEY = "your-key")
-
-# Azure OpenAI
-Sys.setenv(AZURE_OPENAI_API_KEY = "your-key")
-```
 
 ## Documentation
 
-- [Getting Started Guide](https://matthiaskloft.github.io/psychinterpreter/articles/01-Basic_Usage.html)
-- [Function Reference](https://matthiaskloft.github.io/psychinterpreter/reference/index.html)
+- **Website:** [https://matthiaskloft.github.io/psychinterpreter/](https://matthiaskloft.github.io/psychinterpreter/)
 
-## Key Functions
+- **Articles:**
+  - [Getting Started Guide](https://matthiaskloft.github.io/psychinterpreter/articles/01-Basic_Usage.html)
 
-- `interpret_fa()` - Main interpretation function
-- `chat_fa()` - Create persistent chat session
-- `plot.fa_interpretation()` - Visualize factor loadings
-- `export_interpretation()` - Export results to multiple formats
-- `find_cross_loadings()` - Detect cross-loading variables
-- `find_no_loadings()` - Detect variables with no significant loadings
+
+## Contributing
+
+- [Open an Issue](https://github.com/matthiaskloft/psychinterpreter/issues): Basic usage of the package
+
 
 ## Citation
 
 If you use psychinterpreter in your research, please cite:
 
-```
-Kloft, M. (2025). psychinterpreter: LLM-powered interpretation of factor and cluster analyses. R package version 0.0.0.9000. https://github.com/matthiaskloft/psychinterpreter
-```
+Kloft, M. (2025). psychinterpreter: LLM-powered interpretation of factor and cluster analyses.
+R package version 0.0.0.9000. \url{https://github.com/matthiaskloft/psychinterpreter}
 
-## License
 
-MIT + file LICENSE
 
-## Contributing
-
-- [Open an Issue](https://github.com/matthiaskloft/psychinterpreter/issues)
 

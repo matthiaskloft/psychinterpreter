@@ -138,7 +138,7 @@ build_fa_report <- function(interpretation_results,
             if (other_factor != factor_name && other_factor %in% names(cor_df)) {
               cor_val <- round(cor_df[[other_factor]][i], 2)
               cor_formatted <- sprintf("%.2f", cor_val)
-              cor_formatted <- sub("^0", "", cor_formatted)  # Remove leading zero for consistency with LLM input
+              cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
               correlations <- c(correlations, paste0(other_factor, " = ", cor_formatted))
             }
           }
@@ -193,7 +193,7 @@ build_fa_report <- function(interpretation_results,
               factor_idx <- which(rownames(cor_df) == factor_name)
               cor_val <- round(cor_df[[other_factor]][factor_idx], 2)
               cor_formatted <- sprintf("%.2f", cor_val)
-              cor_formatted <- sub("^0", "", cor_formatted)  # Remove leading zero for consistency with LLM input
+              cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
               correlations <- c(correlations, paste0(other_factor, " = ", cor_formatted))
             }
           }
@@ -350,7 +350,7 @@ build_fa_report <- function(interpretation_results,
             if (other_factor != factor_name && other_factor %in% names(cor_df)) {
               cor_val <- round(cor_df[[other_factor]][i], 2)
               cor_formatted <- sprintf("%.2f", cor_val)
-              cor_formatted <- sub("^0", "", cor_formatted)  # Remove leading zero for consistency with LLM input
+              cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
               correlations <- c(correlations, paste0(other_factor, " = ", cor_formatted))
             }
           }
@@ -398,7 +398,7 @@ build_fa_report <- function(interpretation_results,
               factor_idx <- which(rownames(cor_df) == factor_name)
               cor_val <- round(cor_df[[other_factor]][factor_idx], 2)
               cor_formatted <- sprintf("%.2f", cor_val)
-              cor_formatted <- sub("^0", "", cor_formatted)  # Remove leading zero for consistency with LLM input
+              cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
               correlations <- c(correlations, paste0(other_factor, " = ", cor_formatted))
             }
           }
@@ -571,7 +571,19 @@ build_fa_report <- function(interpretation_results,
   }
 
   # Final cleanup for both formats - any remaining isolated 'n' that should be newline
+  # This handles cases where \n gets stripped to just 'n' during string manipulation
+
+  # Pattern 1: lowercase-n-uppercase (e.g., "loadingsnVariance")
   report <- gsub("([a-z])n([A-Z][a-z]+:)", "\\1\n\\2", report)
+
+  # Pattern 2: digit-space-n-uppercase (e.g., "5 nVariance", "7.71% nFactor")
+  report <- gsub("([0-9%]) n([A-Z])", "\\1\n\\2", report)
+
+  # Pattern 3: double-n before uppercase (e.g., "nnML4" from ",  \n" becoming ", nn")
+  report <- gsub(" nn([A-Z])", "\n\n\\1", report)
+
+  # Pattern 4: comma-spaces-n (e.g., ",  nML4" from ",  \n" becoming ",  n")
+  report <- gsub(",  n([A-Z])", ",\n\\1", report)
 
   return(report)
 }

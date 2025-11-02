@@ -4,7 +4,7 @@
 \alias{plot.fa_interpretation}
 \title{Plot Factor Analysis Interpretation Results}
 \usage{
-\method{plot}{fa_interpretation}(x, type = "heatmap", ...)
+\method{plot}{fa_interpretation}(x, type = "heatmap", cutoff = NULL, ...)
 }
 \arguments{
 \item{x}{An fa_interpretation object from interpret_fa()}
@@ -13,6 +13,10 @@
 \itemize{
 \item "heatmap": Creates a heatmap of factor loadings (default)
 }}
+
+\item{cutoff}{Numeric. Cutoff value for highlighting significant loadings. If NULL (default),
+uses the cutoff value stored in the fa_interpretation object. Loadings with absolute
+values at or above this cutoff will be outlined with a black border.}
 
 \item{...}{Additional arguments (currently unused, reserved for future plot types)}
 }
@@ -31,6 +35,7 @@ The heatmap visualization:
 \item Automatically handles suppressed small loadings (empty strings)
 \item Rotates factor names for better readability
 \item Scales variable names appropriately
+\item Highlights loadings above cutoff with a black outline
 }
 }
 \examples{
@@ -38,8 +43,11 @@ The heatmap visualization:
 # Get interpretation results
 results <- interpret_fa(loadings, variable_info, silent = TRUE)
 
-# Use generic plot method
+# Use generic plot method with default cutoff
 plot(results)
+
+# Override cutoff value
+plot(results, cutoff = 0.4)
 
 # Save to file
 p <- plot(results)

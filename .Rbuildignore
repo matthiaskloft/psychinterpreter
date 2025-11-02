@@ -6,6 +6,7 @@
 ^CLAUDE.md$
 ^exports/
 ^vignettes/articles/
+^vignettes/\.quarto$
 ^vignettes/.*\.rmarkdown$
 ^vignettes/.*_files/
 ^_pkgdown\.yml$

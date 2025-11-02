@@ -3,7 +3,11 @@
     "allow": [
       "Bash(R -e:*)",
       "Bash(Rscript:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(test:*)",
+      "WebFetch(domain:www.rdocumentation.org)",
+      "WebFetch(domain:rdrr.io)",
+      "Bash(R CMD check:*)"
     ],
     "deny": [],
     "ask": []

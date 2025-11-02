@@ -4,12 +4,13 @@
 \alias{find_no_loadings}
 \title{Find Variables with No Loadings Above Cutoff}
 \usage{
-find_no_loadings(loadings_df, factor_cols, cutoff = 0.3)
+find_no_loadings(loadings_df, factor_cols = NULL, cutoff = 0.3)
 }
 \arguments{
 \item{loadings_df}{A dataframe with loadings including a 'variable' column}
 
-\item{factor_cols}{Character vector of factor column names}
+\item{factor_cols}{Character vector of factor column names. If NULL, automatically
+detects all columns except 'variable' (default = NULL)}
 
 \item{cutoff}{Numeric. Minimum absolute loading value to consider (default = 0.3)}
 }
@@ -33,7 +34,10 @@ loadings_df <- data.frame(
   Factor2 = c(0.1, 0.15, 0.05)
 )
 
-# Find variables with no significant loadings
+# Find variables with no significant loadings (auto-detect factor columns)
+weak_vars <- find_no_loadings(loadings_df, cutoff = 0.3)
+
+# Or specify factor columns explicitly
 weak_vars <- find_no_loadings(loadings_df, c("Factor1", "Factor2"), cutoff = 0.3)
 print(weak_vars)
 }

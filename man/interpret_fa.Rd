@@ -7,23 +7,22 @@
 interpret_fa(
   loadings,
   variable_info,
-  cutoff = 0.3,
-  n_emergency = 2,
+  factor_cor_mat = NULL,
+  chat_session = NULL,
   llm_provider = "ollama",
   llm_model = NULL,
-  additional_info = NULL,
-  factor_cor_mat = NULL,
-  sort_loadings = TRUE,
-  suppress_small = TRUE,
   params = NULL,
+  cutoff = 0.3,
+  n_emergency = 2,
+  sort_loadings = TRUE,
+  additional_info = NULL,
   word_limit = 150,
-  max_line_length = 80,
-  silent = FALSE,
-  echo = "none",
   output_format = "text",
   heading_level = 1,
   suppress_heading = FALSE,
-  chat_session = NULL
+  max_line_length = 80,
+  silent = FALSE,
+  echo = "none"
 )
 }
 \arguments{
@@ -35,10 +34,15 @@ interpret_fa(
 \item description: labels or descriptions of the variables
 }}
 
-\item{cutoff}{Numeric. Minimum loading value to consider (default = 0.3)}
+\item{factor_cor_mat}{Matrix or data.frame. Optional factor correlation matrix for oblique rotations.
+Should have factor names as row and column names matching the loadings factor columns. Used to inform
+interpretation of factor relationships and enhance understanding of discriminant validity. Higher
+correlations suggest related constructs, while lower correlations indicate distinct factors.
+If NULL, factors are assumed to be orthogonal (default = NULL)}
 
-\item{n_emergency}{Integer. When a factor has no loadings above the cutoff, use the
-top N highest loadings (even if below cutoff) for interpretation (default = 2)}
+\item{chat_session}{A chat_fa object for reusing existing chat sessions. If provided, uses the existing
+chat session (avoiding resending the system prompt and reducing token costs). If NULL, creates a new
+chat session. Useful for processing multiple analyses efficiently (default = NULL)}
 
 \item{llm_provider}{Character. Which LLM provider to use.
 Any provider supported by ellmer::chat() (e.g., "openai", "anthropic", "ollama", etc.)
@@ -46,35 +50,21 @@ See ellmer documentation for the complete list of supported providers.}
 
 \item{llm_model}{Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b")}
 
-\item{additional_info}{Character. Optional additional context for the LLM, such as theoretical background,
-research area information, or domain-specific knowledge to inform factor interpretation (default = NULL)}
-
-\item{factor_cor_mat}{Matrix or data.frame. Optional factor correlation matrix for oblique rotations.
-Should have factor names as row and column names matching the loadings factor columns. Used to inform
-interpretation of factor relationships and enhance understanding of discriminant validity. Higher
-correlations suggest related constructs, while lower correlations indicate distinct factors.
-If NULL, factors are assumed to be orthogonal (default = NULL)}
-
-\item{sort_loadings}{Logical. Sort variables by loading strength within factors (default = TRUE)}
-
-\item{suppress_small}{Logical. If TRUE, replaces loadings below cutoff with empty strings in the
-loading_matrix output for cleaner display. If FALSE, shows all loadings as numbers.
-Note: This only affects the output loading_matrix format, not the LLM interpretation
-which always uses the cutoff (default = TRUE)}
-
 \item{params}{Parameters for the LLM created using ellmer::params() function (e.g., params(temperature = 0.7, seed = 42)).
 Provides a provider-agnostic interface for setting model parameters like temperature, seed, max_tokens, etc.
 If NULL, uses provider defaults. See ellmer::params() documentation for supported parameters.}
 
+\item{cutoff}{Numeric. Minimum loading value to consider (default = 0.3)}
+
+\item{n_emergency}{Integer. When a factor has no loadings above the cutoff, use the
+top N highest loadings (even if below cutoff) for interpretation (default = 2)}
+
+\item{sort_loadings}{Logical. Sort variables by loading strength within factors (default = TRUE)}
+
+\item{additional_info}{Character. Optional additional context for the LLM, such as theoretical background,
+research area information, or domain-specific knowledge to inform factor interpretation (default = NULL)}
+
 \item{word_limit}{Integer. Maximum number of words for LLM interpretations (default = 150)}
-
-\item{max_line_length}{Integer. Maximum line length for console output text wrapping (default = 80)}
-
-\item{silent}{Logical. If TRUE, suppresses printing the interpretation report and progress bars to console (default = FALSE)}
-
-\item{echo}{Character. Controls what is echoed during LLM interaction. One of "none" (no output),
-"output" (show only LLM responses), or "all" (show prompts and responses). Passed directly
-to the ellmer chat function for debugging and transparency (default = "none")}
 
 \item{output_format}{Character. Output format for the report: "text" or "markdown" (default = "text")}
 
@@ -84,9 +74,13 @@ to the ellmer chat function for debugging and transparency (default = "none")}
 heading, allowing for better integration into existing documents that already have appropriate headings
 above the analysis output (default = FALSE)}
 
-\item{chat_session}{A chat_fa object for reusing existing chat sessions. If provided, uses the existing
-chat session (avoiding resending the system prompt and reducing token costs). If NULL, creates a new
-chat session. Useful for processing multiple analyses efficiently (default = NULL)}
+\item{max_line_length}{Integer. Maximum line length for console output text wrapping (default = 80)}
+
+\item{silent}{Logical. If TRUE, suppresses printing the interpretation report and progress bars to console (default = FALSE)}
+
+\item{echo}{Character. Controls what is echoed during LLM interaction. One of "none" (no output),
+"output" (show only LLM responses), or "all" (show prompts and responses). Passed directly
+to the ellmer chat function for debugging and transparency (default = "none")}
 }
 \value{
 A fa_interpretation object (S3 class) containing:
@@ -102,6 +96,7 @@ loadings, significance status, and variance_explained}
 \item{no_loadings}{Data frame of variables with no loadings above cutoff threshold}
 \item{elapsed_time}{Total analysis time as difftime object}
 \item{factor_cor_mat}{Factor correlation matrix (when provided)}
+\item{cutoff}{Numeric cutoff value used for determining significant loadings}
 }
 }
 \description{

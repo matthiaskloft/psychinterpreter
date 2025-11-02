@@ -2,65 +2,82 @@
 % Please edit documentation in R/export_functions.R
 \name{export_interpretation}
 \alias{export_interpretation}
-\title{Export Factor Analysis Interpretation Results}
+\title{Export Factor Analysis Interpretation Report}
 \usage{
 export_interpretation(
   interpretation_results,
-  format = "csv",
-  file = "fa_interpretation"
+  format = "txt",
+  file = "fa_interpretation",
+  silent = FALSE
 )
 }
 \arguments{
 \item{interpretation_results}{Results from interpret_fa() function - a list containing
-factor analysis interpretation results}
+factor analysis interpretation results with a 'report' element}
 
-\item{format}{Character. Export format: "csv", "json", "rds", or "txt" (default = "csv")}
+\item{format}{Character. Export format: "txt" for plain text or "md" for markdown
+(default = "txt")}
 
-\item{file}{Character. File path (with or without extension). Can include directory path.
-Default is "fa_interpretation" (saves in current directory)}
+\item{file}{Character. File path with or without extension. The appropriate extension
+(.txt or .md) will be added automatically if missing. Can include directory path.
+Default is "fa_interpretation"}
+
+\item{silent}{Logical. If TRUE, suppresses success message (default = FALSE)}
 }
 \value{
 Invisible TRUE on success
 }
 \description{
-Exports factor analysis interpretation results to various generic formats.
-All formats use base R functionality without external dependencies for
-maximum compatibility and reliability.
+Exports the factor analysis interpretation report to a text or markdown file.
+File extension is automatically added if not provided by the user.
 }
 \details{
 \strong{Supported Export Formats:}
 \itemize{
-\item \strong{"csv"}: Creates multiple CSV files for different components:
-\itemize{
-\item \verb{\{file\}_loadings.csv} - Factor loading matrix
-\item \verb{\{file\}_summary.csv} - Suggested factor names and variance explained
-\item \verb{\{file\}_cross_loadings.csv} - Variables with cross-loadings (if any)
-\item \verb{\{file\}_no_loadings.csv} - Variables with no significant loadings (if any)
-\item \verb{\{file\}_report.txt} - Full interpretation report
+\item \strong{"txt"}: Exports the report in plain text format. If the report in
+\code{interpretation_results} was generated with \code{output_format = "text"}, it will
+be exported as-is. Otherwise, markdown formatting may be present.
+\item \strong{"md"}: Exports the report in markdown format. If the report in
+\code{interpretation_results} was generated with \code{output_format = "markdown"}, it will
+be exported with proper markdown formatting. Otherwise, it will export the text version.
 }
-\item \strong{"json"}: Single JSON file containing all results in structured format.
-Ideal for programmatic access and web applications.
-\item \strong{"rds"}: Native R data format preserving exact object structure.
-Perfect for re-importing into R with full fidelity.
-\item \strong{"txt"}: Text-based export with formatted report and separate data files:
+
+\strong{File Extension Handling:}
+
+The function intelligently handles file extensions:
 \itemize{
-\item \verb{\{file\}_report.txt} - Main interpretation report
-\item \verb{\{file\}_loadings.txt} - Tab-separated loading matrix
-\item \verb{\{file\}_summary.txt} - Tab-separated summary information
-}
+\item If you provide \code{file = "my_report"}, it becomes \code{"my_report.txt"} or \code{"my_report.md"}
+\item If you provide \code{file = "my_report.txt"}, it stays \code{"my_report.txt"} for format="txt"
+\item Directory paths are preserved: \code{"output/report"} → \code{"output/report.txt"}
 }
 }
 \examples{
 \dontrun{
-# Get interpretation results
-results <- interpret_fa(loadings, variable_info, silent = TRUE)
+# Get interpretation results in text format
+results_txt <- interpret_fa(loadings, variable_info,
+                           output_format = "text",
+                           silent = TRUE)
 
-# Export to current directory
-export_interpretation(results, "csv", "my_analysis")
+# Export as plain text
+export_interpretation(results_txt, "txt", "my_analysis")
+# Creates: my_analysis.txt
+
+# Get interpretation results in markdown format
+results_md <- interpret_fa(loadings, variable_info,
+                          output_format = "markdown",
+                          silent = TRUE)
+
+# Export as markdown
+export_interpretation(results_md, "md", "my_analysis")
+# Creates: my_analysis.md
+
+# Extension auto-completion works
+export_interpretation(results_txt, "txt", "my_analysis.txt")
+# Creates: my_analysis.txt (not my_analysis.txt.txt)
 
 # Export to specific directory
-export_interpretation(results, "csv", "output/my_analysis")
-export_interpretation(results, "json", "results/factors")
+export_interpretation(results_md, "md", "output/my_analysis")
+# Creates: output/my_analysis.md
 }
 
 }

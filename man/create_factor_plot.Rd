@@ -4,7 +4,11 @@
 \alias{create_factor_plot}
 \title{Create a visual representation of factor loadings}
 \usage{
-create_factor_plot(interpretation_results, plot_type = "heatmap")
+create_factor_plot(
+  interpretation_results,
+  plot_type = "heatmap",
+  cutoff = NULL
+)
 }
 \arguments{
 \item{interpretation_results}{Results from interpret_fa() - an fa_interpretation object}
@@ -13,6 +17,10 @@ create_factor_plot(interpretation_results, plot_type = "heatmap")
 \itemize{
 \item "heatmap": Creates a heatmap of factor loadings (default)
 }}
+
+\item{cutoff}{Numeric. Cutoff value for highlighting significant loadings. If NULL (default),
+uses the cutoff value stored in the fa_interpretation object. Loadings with absolute
+values at or above this cutoff will be outlined with a black border.}
 }
 \value{
 A ggplot object that can be displayed, saved, or further customized
@@ -33,6 +41,7 @@ The heatmap visualization:
 \item Automatically handles suppressed small loadings (empty strings)
 \item Rotates factor names for better readability
 \item Scales variable names appropriately
+\item Highlights loadings above cutoff with a black outline
 }
 }
 \examples{
@@ -42,6 +51,9 @@ results <- interpret_fa(loadings, variable_info, silent = TRUE)
 
 # Using this function (backward compatible)
 p <- create_factor_plot(results)
+
+# Override cutoff value
+p <- create_factor_plot(results, cutoff = 0.4)
 print(p)
 }
 

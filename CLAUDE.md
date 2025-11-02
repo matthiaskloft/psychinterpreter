@@ -294,13 +294,46 @@ Look for warnings from interpret_fa.R:1044 about batch JSON parsing failures. Co
 MIT + file LICENSE
 
 
-## TODOs and known issues
+## Recent Updates (2025-11-02)
 
-- interpret_fa(): local input token usage not correctly tracked
-- interpret_fa(): session_chat and provider/model need to be disambiguated for potential conflict
-- interpret_fa(): formatting issues:
-  - Number of significant loadings: 5 nVariance explained: 7.71% nFactor Correlations: ML2 = -0.18, ML1 = -0.22, ML5 = .19, nnML4 = .19, ML6 = -0.03
-  - leading zeros for negative values, check prompt and report!
-- add tests/ directory with testthat tests
-- export functions need debugging and reduction to useful formats, i.e., .txt and .md
+### Update 1: Core Issues Resolved
 
+All previously documented issues have been resolved:
+
+- ✓ **Token tracking**: Fixed local input token usage tracking for providers with cached system prompts
+- ✓ **Parameter conflicts**: Added informative message when `chat_session` overrides `llm_provider`/`llm_model` arguments
+- ✓ **Formatting issues**:
+  - Fixed literal "n" appearing instead of newlines in reports (e.g., "5 nVariance" → "5\nVariance")
+  - Fixed leading zero inconsistency for negative numbers (e.g., "-0.18" → "-.18" to match ".45" format)
+- ✓ **Test infrastructure**: Added comprehensive test suite in `tests/testthat/` directory
+- ✓ **Export functions**: Simplified to support only `.txt` and `.md` formats with smart extension handling
+
+### Update 2: S3 Methods and API Refinements
+
+**New Features:**
+- ✓ **S3 method system**: Created `interpret()` generic with methods for common FA packages (R/interpret_methods.R)
+  - `interpret.psych.fa()` - Handles `psych::fa()` results
+  - `interpret.psych.principal()` - Handles `psych::principal()` results
+  - `interpret.lavaan()` - Handles `lavaan::cfa()/sem()` results
+  - `interpret.efaList()` - Handles `lavaan::efa()` results
+  - `interpret.SingleGroupClass()` - Handles `mirt::mirt()` results
+  - All methods auto-extract loadings and factor correlations from model objects
+
+**API Changes:**
+- ✓ **Reordered `interpret_fa()` arguments**: More logical parameter order with frequently-used args first
+  - `loadings, variable_info, factor_cor_mat, chat_session, llm_provider, llm_model, params, cutoff, n_emergency, sort_loadings, additional_info, word_limit, output_format, heading_level, suppress_heading, max_line_length, silent, echo`
+- ✓ **Removed `suppress_small` parameter**: Delegated to downstream formatting functions for cleaner separation of concerns
+
+**Utility Functions:**
+- ✓ **Optional `factor_cols` parameter**: `find_cross_loadings()` and `find_no_loadings()` now auto-detect factor columns when not provided
+- ✓ **Added `silent` parameter to `export_interpretation()`**: Suppresses success messages for testing
+
+**Dependencies:**
+- ✓ **Updated DESCRIPTION**: Added psych, lavaan, mirt to Suggests for S3 method support
+
+
+
+## TODOs
+
+- add class for fa interpretation results to valiadate in methods
+- re-implement deleted tests

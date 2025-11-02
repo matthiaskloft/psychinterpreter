@@ -4,12 +4,13 @@
 \alias{find_cross_loadings}
 \title{Find Cross-Loading Variables}
 \usage{
-find_cross_loadings(loadings_df, factor_cols, cutoff = 0.3)
+find_cross_loadings(loadings_df, factor_cols = NULL, cutoff = 0.3)
 }
 \arguments{
 \item{loadings_df}{A dataframe with loadings including a 'variable' column}
 
-\item{factor_cols}{Character vector of factor column names}
+\item{factor_cols}{Character vector of factor column names. If NULL, automatically
+detects all columns except 'variable' (default = NULL)}
 
 \item{cutoff}{Numeric. Minimum absolute loading value to consider (default = 0.3)}
 }
@@ -33,7 +34,10 @@ loadings_df <- data.frame(
   Factor2 = c(0.2, 0.7, 0.9)
 )
 
-# Find variables loading on multiple factors
+# Find variables loading on multiple factors (auto-detect factor columns)
+cross_vars <- find_cross_loadings(loadings_df, cutoff = 0.3)
+
+# Or specify factor columns explicitly
 cross_vars <- find_cross_loadings(loadings_df, c("Factor1", "Factor2"), cutoff = 0.3)
 print(cross_vars)
 }

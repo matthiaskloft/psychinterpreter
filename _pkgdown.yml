@@ -21,6 +21,18 @@ reference:
       - is.chat_fa
       - reset.chat_fa
 
+  - title: "S3 Methods for Package Integration"
+    desc: >
+      Convenient S3 methods for interpreting results from popular factor analysis packages.
+      Automatically extract loadings and factor correlations from fitted model objects.
+    contents:
+      - interpret
+      - interpret.fa
+      - interpret.principal
+      - interpret.lavaan
+      - interpret.efaList
+      - interpret.SingleGroupClass
+
   - title: "Visualization"
     desc: >
       Functions for creating visual representations of factor analysis results.
