@@ -2,7 +2,6 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/matthiaskloft/psychinterpreter/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/matthiaskloft/psychinterpreter/actions/workflows/R-CMD-check.yaml)
-[![pkgdown](https://github.com/matthiaskloft/psychinterpreter/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/matthiaskloft/psychinterpreter/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 
