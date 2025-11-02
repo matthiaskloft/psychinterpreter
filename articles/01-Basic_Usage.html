@@ -51,6 +51,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="nav-link" href="https://github.com/matthiaskloft/psychinterpreter/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -73,7 +74,7 @@
       <p class="author">Matthias Kloft</p>
       <p class="date">2025-11-02</p>
 
-
+      <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/vignettes/articles/01-Basic_Usage.qmd"><code>vignettes/articles/01-Basic_Usage.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -116,7 +117,7 @@ Attaching package: 'dplyr'</code></pre>
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://here.r-lib.org/" class="external-link">here</a></span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>here() starts at C:/Users/Matze/AppData/Local/Temp/Rtmp0IoNeb/pkgdown-quarto-a0907b5e6977</code></pre>
+<pre><code>here() starts at C:/Users/Matze/AppData/Local/Temp/Rtmp0IoNeb/pkgdown-quarto-a09025bd17c9</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rapporter.github.io/pander/" class="external-link">pander</a></span><span class="op">)</span></span>
@@ -280,7 +281,7 @@ O5     Will not probe deeply into a subject.</code></pre>
 <pre><code><span><span class="va">Model</span><span class="op">:</span> <span class="st">"gpt-oss:20b-cloud"</span></span></code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Created: 2025-11-02 02:59:25.853321</code></pre>
+<pre><code>Created: 2025-11-02 03:03:07.081736</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Interpretations run: 0</code></pre>
@@ -312,7 +313,7 @@ O5     Will not probe deeply into a subject.</code></pre>
 <pre><code>✔ Factor interpretation complete</code></pre>
 <p><strong>Number of factors:</strong> 6<br><strong>Loading cutoff:</strong> 0.3<br><strong>LLM used:</strong> Ollama - gpt-oss:20b-cloud<br><strong>Tokens:</strong><br>
 Input: 2078<br>
-Output: 6369<br><strong>Elapsed time:</strong> 22.2 secs</p>
+Output: 6046<br><strong>Elapsed time:</strong> 21.3 secs</p>
 </section><section class="level3"><h4 id="suggested-factor-names">Suggested Factor Names<a class="anchor" aria-label="anchor" href="#suggested-factor-names"></a>
 </h4>
 <ul>
@@ -320,7 +321,7 @@ Output: 6369<br><strong>Elapsed time:</strong> 22.2 secs</p>
 <strong>Factor 1 (9.2%):</strong> <em>Negative Affect</em>
 </li>
 <li>
-<strong>Factor 2 (7.9%):</strong> <em>Social Engagement</em>
+<strong>Factor 2 (7.9%):</strong> <em>Low Extraversion</em>
 </li>
 <li>
 <strong>Factor 3 (7.7%):</strong> <em>Conscientiousness</em>
@@ -329,10 +330,10 @@ Output: 6369<br><strong>Elapsed time:</strong> 22.2 secs</p>
 <strong>Factor 4 (6.8%):</strong> <em>Agreeableness</em>
 </li>
 <li>
-<strong>Factor 5 (6.3%):</strong> <em>Openness to Experience</em>
+<strong>Factor 5 (6.3%):</strong> <em>Openness</em>
 </li>
 <li>
-<strong>Factor 6 (3.1%):</strong> <em>Low Openness</em>
+<strong>Factor 6 (3.1%):</strong> <em>Low Openness/Conscientiousness</em>
 </li>
 </ul>
 <p><strong>Total variance explained by all factors: 41%</strong></p>
@@ -364,37 +365,37 @@ ML5 = .14, ML4 = .02</li>
 <p><strong>Number of significant loadings:</strong> 5 n<strong>Variance explained:</strong> 9.22% n<strong>Factor Correlations:</strong> ML1 = .25, ML3 = -0.18, ML5 = -0.10, nnML4 = .02, ML6 = .18</p>
 <p>nn<strong>Variables:</strong>nn 1. N2, Get irritated easily. (Positive, Very Strong, .851) 2. N1, Get angry easily. (Positive, Very Strong, .851) 3. N3, Have frequent mood swings. (Positive, Strong, .639) 4. N5, Panic easily. (Positive, Moderate, .402) 5. N4, Often feel blue. (Positive, Weak, .389)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML2 captures the core of neuroticism, evidenced by strong positive loadings on N1–N5 (anger, irritation, mood swings, sadness, panic). The high loadings (&gt;0.6) on N1–N3 and moderate loadings on N4–N5 confirm convergent validity. Cross‑loadings are minimal, supporting discriminant validity. ML2 correlates modestly with ML1 (0.25) and negatively with ML3 (–0.18), indicating that high negative affect is associated with lower social engagement and conscientiousness. The factor explains 9.2 % of total variance, underscoring its central role within the model.</p>
-</section><section class="level4"><h5 id="factor-2-ml1-social-engagement">Factor 2 (ML1):: Social Engagement<a class="anchor" aria-label="anchor" href="#factor-2-ml1-social-engagement"></a>
+ML2 captures the core of Neuroticism, with strong loadings on anger, irritability, mood swings, sadness, and panic. The factor shows convergent validity: all five negative affect items load above .39, indicating a coherent construct of emotional instability. Discriminant validity is supported by low correlations with other factors (e.g., .02 with ML4). The factor explains 9.2% of variance, making it the most substantial dimension. Its positive loadings on N4 and N5 reinforce the emotional distress component, while the near-zero loadings on other traits confirm distinctness.</p>
+</section><section class="level4"><h5 id="factor-2-ml1-low-extraversion">Factor 2 (ML1):: Low Extraversion<a class="anchor" aria-label="anchor" href="#factor-2-ml1-low-extraversion"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 7 n<strong>Variance explained:</strong> 7.9% n<strong>Factor Correlations:</strong> ML2 = .25, ML3 = -0.22, ML5 = -0.31, nnML4 = -0.19, ML6 = -0.06</p>
 <p>nn<strong>Variables:</strong>nn 1. E2, Find it difficult to approach others. (Positive, Strong, .686) 2. E1, Don’t talk a lot. (Positive, Strong, .587) 3. E4, Make friends easily. (Negative, Strong, -0.550) 4. N4, Often feel blue. (Positive, Moderate, .436) 5. E5, Take charge. (Negative, Moderate, -0.405) 6. O4, Spend time reflecting on things. (Positive, Weak, .355) 7. E3, Know how to captivate people. (Negative, Weak, -0.349)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML1 reflects the social engagement dimension, with strong positive loadings on introverted items E1 (talk less) and E2 (difficulty approaching) and strong negative loadings on extroverted items E3 (captivate), E4 (make friends), and E5 (take charge). This pattern confirms convergent validity, while the near‑zero loadings on neurotic, extroversion, and conscientious items support discriminant validity. ML1 correlates positively with ML2 (0.25) and negatively with ML3 (–0.22), suggesting that higher social engagement is linked to greater negative affect and lower conscientiousness. It accounts for 7.9 % of variance.</p>
+ML1 represents Introversion, evidenced by high positive loadings on E1 (talk less) and E2 (social avoidance) and negative loadings on E3–E5 (captivation, friendliness, leadership). The factor also captures mild negative affect through N4 and N5, and a modest openness element via O4. Convergent validity is clear: all five Extraversion items load strongly, albeit with opposite signs, forming a coherent low‑extraversion construct. Discriminant validity is upheld by low correlations with ML2 (0.25) and ML3 (–0.22). The factor accounts for 7.9% of variance, highlighting its role as a distinct personality dimension.</p>
 </section><section class="level4"><h5 id="factor-3-ml3-conscientiousness">Factor 3 (ML3):: Conscientiousness<a class="anchor" aria-label="anchor" href="#factor-3-ml3-conscientiousness"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 5 n<strong>Variance explained:</strong> 7.71% n<strong>Factor Correlations:</strong> ML2 = -0.18, ML1 = -0.22, ML5 = .19, nnML4 = .19, ML6 = -0.03</p>
 <p>nn<strong>Variables:</strong>nn 1. C2, Continue until everything is perfect. (Positive, Strong, .680) 2. C4, Do things in a half-way manner. (Negative, Strong, -0.634) 3. C3, Do things according to a plan. (Positive, Strong, .551) 4. C1, Am exacting in my work. (Positive, Strong, .547) 5. C5, Waste my time. (Negative, Strong, -0.541)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML3 captures conscientiousness, with high positive loadings on C1 (exacting), C2 (perfection), and C3 (planned) and high negative loadings on C4 (half‑way) and C5 (waste time). The loadings demonstrate strong convergent validity, and the negligible loadings on neurotic, extroversion, and openness items confirm discriminant validity. ML3 correlates negatively with ML2 (–0.18) and positively with ML5 (0.19) and ML4 (0.19), indicating that conscientiousness is inversely related to negative affect and positively related to agreeableness and openness. It explains 7.7 % of variance.</p>
+ML3 captures Conscientiousness, with strong positive loadings on C1 (exacting), C2 (perfectionism), and C3 (planned behavior), and strong negative loadings on C4 (half‑way) and C5 (time waste). The pattern demonstrates convergent validity: all five Conscientiousness items load above .54, forming a coherent construct of self‑discipline versus impulsivity. Discriminant validity is evident through modest correlations with other factors (e.g., –0.18 with ML2, 0.19 with ML5). Explaining 7.7% of variance, ML3 represents a distinct, behavior‑oriented personality dimension. Its loadings also align with the broader trait of orderliness, reinforcing its distinctiveness.</p>
 </section><section class="level4"><h5 id="factor-4-ml5-agreeableness">Factor 4 (ML5):: Agreeableness<a class="anchor" aria-label="anchor" href="#factor-4-ml5-agreeableness"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 5 n<strong>Variance explained:</strong> 6.79% n<strong>Factor Correlations:</strong> ML2 = -0.10, ML1 = -0.31, ML3 = .19, nnML4 = .25, ML6 = .14</p>
 <p>nn<strong>Variables:</strong>nn 1. A2, Inquire about others’ well-being. (Positive, Strong, .688) 2. A3, Know how to comfort others. (Positive, Strong, .617) 3. A1, Am indifferent to the feelings of others. (Negative, Strong, -0.560) 4. A5, Make people feel at ease. (Positive, Moderate, .451) 5. A4, Love children. (Positive, Weak, .391)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML5 represents agreeableness, with strong positive loadings on A2 (inquire about others), A3 (comfort), A4 (love children), and A5 (ease people), and a strong negative loading on A1 (indifferent). The pattern confirms convergent validity, while the near‑zero loadings on neurotic, extroversion, and conscientious items support discriminant validity. ML5 correlates negatively with ML1 (–0.31) and positively with ML4 (0.25), suggesting that higher agreeableness is associated with lower social engagement and higher openness. It accounts for 6.8 % of variance.</p>
-</section><section class="level4"><h5 id="factor-5-ml4-openness-to-experience">Factor 5 (ML4):: Openness to Experience<a class="anchor" aria-label="anchor" href="#factor-5-ml4-openness-to-experience"></a>
+ML5 reflects Agreeableness, with high positive loadings on A2 (inquire well‑being), A3 (comfort others), A4 (love children), and A5 (make people feel at ease), and a strong negative loading on A1 (indifferent to others). The convergent validity is clear: all five Agreeableness items load above .39, forming a coherent empathy‑oriented construct. Discriminant validity is supported by low correlations with ML2 (–0.10) and ML1 (–0.31). Explaining 6.8% of variance, ML5 captures the interpersonal warmth dimension distinct from other personality facets. Its strong negative loading on A1 further distinguishes it from the indifference factor.</p>
+</section><section class="level4"><h5 id="factor-5-ml4-openness">Factor 5 (ML4):: Openness<a class="anchor" aria-label="anchor" href="#factor-5-ml4-openness"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 6 n<strong>Variance explained:</strong> 6.27% n<strong>Factor Correlations:</strong> ML2 = .02, ML1 = -0.19, ML3 = .19, nnML5 = .25, ML6 = .02</p>
 <p>nn<strong>Variables:</strong>nn 1. O3, Carry the conversation to a higher level. (Positive, Strong, .656) 2. O1, Am full of ideas. (Positive, Strong, .564) 3. O5, Will not probe deeply into a subject. (Negative, Moderate, -0.451) 4. E3, Know how to captivate people. (Positive, Weak, .392) 5. O4, Spend time reflecting on things. (Positive, Weak, .376) 6. O2, Avoid difficult reading material. (Negative, Weak, -0.367)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML4 captures openness to experience, with high positive loadings on O1 (full of ideas), O3 (conversation depth), and O4 (reflection), and high negative loadings on O2 (avoid difficult reading) and O5 (not probe deeply). The loadings provide strong convergent validity, and the negligible loadings on neurotic, extroversion, and conscientious items confirm discriminant validity. ML4 correlates positively with ML3 (0.19) and ML5 (0.25), indicating that openness is associated with conscientiousness and agreeableness, and negatively with ML1 (–0.19). It explains 6.3 % of variance.</p>
-</section><section class="level4"><h5 id="factor-6-ml6-low-openness">Factor 6 (ML6):: Low Openness<a class="anchor" aria-label="anchor" href="#factor-6-ml6-low-openness"></a>
+ML4 represents Openness, with high positive loadings on O1 (full of ideas), O3 (higher‑level conversation), and O4 (reflective thinking), and strong negative loadings on O2 (avoid difficult reading) and O5 (avoid probing). The convergent validity is evident: all five Openness items load above .45, forming a coherent curiosity‑driven construct. Discriminant validity is upheld by low correlations with ML2 (0.02) and ML1 (–0.19). Explaining 6.3% of variance, ML4 captures the imaginative, exploratory facet of personality, distinct from other dimensions. Its negative loadings on O2 and O5 highlight a preference for accessible material over deep analysis.</p>
+</section><section class="level4"><h5 id="factor-6-ml6-low-opennessconscientiousness">Factor 6 (ML6):: Low Openness/Conscientiousness<a class="anchor" aria-label="anchor" href="#factor-6-ml6-low-opennessconscientiousness"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 2 n<strong>Variance explained:</strong> 3.12% n<strong>Factor Correlations:</strong> ML2 = .18, ML1 = -0.06, ML3 = -0.03, nnML5 = .14, ML4 = .02</p>
 <p>nn<strong>Variables:</strong>nn 1. O5, Will not probe deeply into a subject. (Positive, Moderate, .403) 2. O2, Avoid difficult reading material. (Positive, Weak, .353)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML6 represents a low‑openness profile, loading positively on O2 (avoid difficult reading) and O5 (not probe deeply) and on C4 (half‑way), while also showing moderate loadings on social items E3 (captivate), E4 (make friends), and agreeableness items A4 (love children) and A5 (ease people). The pattern confirms convergent validity for low openness and low conscientiousness, and the near‑zero loadings on neurotic and extroversion items support discriminant validity. ML6 correlates weakly with ML2 (0.18) and positively with ML5 (0.14), suggesting that low openness is modestly linked to negative affect and agreeableness. It accounts for 3.1 % of variance.</p>
+ML6 captures a low‑openness, low‑conscientiousness, and low‑extraversion profile, evidenced by positive loadings on O5 (avoid probing), O2 (avoid difficult reading), C4 (half‑way), and E4 (make friends easily), and moderate loadings on A5 (make people feel at ease) and N5 (panic). The convergent validity is modest, with several items loading around .30–.40, indicating a secondary dimension of behavioral restraint and emotional reactivity. Discriminant validity is supported by weak correlations with other factors (e.g., .14 with ML5, .18 with ML2). Explaining 3.1% of variance, ML6 represents a distinct, restrained personality facet.</p>
 </section></section><section class="level3"><h4 id="cross-loading-variables">Cross-Loading Variables<a class="anchor" aria-label="anchor" href="#cross-loading-variables"></a>
 </h4>
 <p>Variables loading on multiple factors (&gt;= 0.3):</p>
@@ -424,13 +425,13 @@ Factor ML6 represents a low‑openness profile, loading positively on O2 (avoid 
 <pre><code><span><span class="va">Model</span><span class="op">:</span> <span class="st">"gpt-oss:20b-cloud"</span></span></code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Created: 2025-11-02 02:59:25.853321</code></pre>
+<pre><code>Created: 2025-11-02 03:03:07.081736</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Interpretations run: 1</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Total tokens - Input: 2078, Output: 6369</code></pre>
+<pre><code>Total tokens - Input: 2078, Output: 6046</code></pre>
 </div>
 </div>
 <p>Plot the loading matrix with factor names:</p>
@@ -486,7 +487,7 @@ Factor ML6 represents a low‑openness profile, loading positively on O2 (avoid 
 <pre><code>✔ Factor interpretation complete</code></pre>
 <p><strong>Number of factors:</strong> 5<br><strong>Loading cutoff:</strong> 0.3<br><strong>LLM used:</strong> Ollama - gpt-oss:20b-cloud<br><strong>Tokens:</strong><br>
 Input: 0<br>
-Output: 3342<br><strong>Elapsed time:</strong> 10.8 secs</p>
+Output: 2953<br><strong>Elapsed time:</strong> 9.61 secs</p>
 <section class="level3"><h4 id="suggested-factor-names-1">Suggested Factor Names<a class="anchor" aria-label="anchor" href="#suggested-factor-names-1"></a>
 </h4>
 <ul>
@@ -535,31 +536,31 @@ ML5 = .14, ML4 = .02</li>
 <p><strong>Number of significant loadings:</strong> 5 n<strong>Variance explained:</strong> 9.65% n<strong>Factor Correlations:</strong> ML1 = .25, ML3 = -0.18, ML5 = -0.10, nnML4 = .02, ML6 = .18</p>
 <p>nn<strong>Variables:</strong>nn 1. N1, Get angry easily. (Positive, Very Strong, .852) 2. N2, Get irritated easily. (Positive, Very Strong, .817) 3. N3, Have frequent mood swings. (Positive, Strong, .665) 4. N5, Panic easily. (Positive, Moderate, .439) 5. N4, Often feel blue. (Positive, Moderate, .413)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML2 captures the core of neuroticism, evidenced by strong positive loadings on N1–N5 (anger, irritation, mood swings, sadness, panic). The high loadings (&gt;0.8) on N1–N3 and moderate loadings on N4–N5 confirm convergent validity. Cross‑loadings are minimal, supporting discriminant validity. ML2 correlates modestly with ML1 (0.25) and negatively with ML3 (–0.18), indicating that high negative affect is associated with lower social engagement and conscientiousness. This dimension aligns with established neuroticism scales and predicts emotional instability across contexts.</p>
+ML2 captures the core of Neuroticism, with strong loadings on anger, irritability, mood swings, sadness, and panic. The factor shows convergent validity: all five negative affect items load above .39, indicating a coherent construct of emotional instability. Discriminant validity is supported by low correlations with other factors (e.g., .02 with ML4). The factor explains 9.6% of variance, making it the most substantial dimension. Its positive loadings on N4 and N5 reinforce the emotional distress component, while the near‑zero loadings on other traits confirm distinctness.</p>
 </section><section class="level4"><h5 id="factor-2-ml5-agreeableness">Factor 2 (ML5):: Agreeableness<a class="anchor" aria-label="anchor" href="#factor-2-ml5-agreeableness"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 7 n<strong>Variance explained:</strong> 7.69% n<strong>Factor Correlations:</strong> ML2 = -0.10, ML1 = -0.31, ML3 = .19, nnML4 = .25, ML6 = .14</p>
 <p>nn<strong>Variables:</strong>nn 1. A3, Know how to comfort others. (Positive, Strong, .668) 2. A2, Inquire about others’ well-being. (Positive, Strong, .603) 3. A5, Make people feel at ease. (Positive, Strong, .577) 4. A4, Love children. (Positive, Moderate, .456) 5. E4, Make friends easily. (Positive, Weak, .362) 6. A1, Am indifferent to the feelings of others. (Negative, Weak, -0.360) 7. E3, Know how to captivate people. (Positive, Weak, .303)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML5 embodies agreeableness, with strong positive loadings on A2 (inquire), A3 (comfort), A4 (love children), and A5 (ease people), and a strong negative loading on A1 (indifferent). This pattern confirms convergent validity, while negligible loadings on neurotic, extroversion, and conscientious items support discriminant validity. ML5 correlates negatively with ML1 (–0.31) and positively with ML4 (0.25), indicating that higher agreeableness is associated with lower social engagement and higher openness. It accounts for 7.7 % of variance, reflecting its moderate influence in the personality structure.</p>
+ML5 reflects Agreeableness, with high positive loadings on A2, A3, A4, and A5, and a strong negative loading on A1. The convergent validity is clear: all five agreeableness items load above .39, forming a coherent empathy‑oriented construct. Discriminant validity is upheld by low correlations with ML2 (–0.10) and ML1 (–0.31). Explaining 7.7% of variance, ML5 captures the interpersonal warmth dimension distinct from other personality facets. Its negative loading on A1 further distinguishes it from the indifference factor, reinforcing the construct’s distinctiveness.</p>
 </section><section class="level4"><h5 id="factor-3-ml1-introversion">Factor 3 (ML1):: Introversion<a class="anchor" aria-label="anchor" href="#factor-3-ml1-introversion"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 7 n<strong>Variance explained:</strong> 7.36% n<strong>Factor Correlations:</strong> ML2 = .25, ML3 = -0.22, ML5 = -0.31, nnML4 = -0.19, ML6 = -0.06</p>
 <p>nn<strong>Variables:</strong>nn 1. E2, Find it difficult to approach others. (Positive, Strong, .667) 2. E1, Don’t talk a lot. (Positive, Strong, .565) 3. E4, Make friends easily. (Negative, Strong, -0.527) 4. N4, Often feel blue. (Positive, Moderate, .420) 5. E5, Take charge. (Negative, Weak, -0.394) 6. O4, Spend time reflecting on things. (Positive, Weak, .357) 7. E3, Know how to captivate people. (Negative, Weak, -0.341)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML1 reflects introversion, evidenced by strong positive loadings on E1 (talk less) and E2 (difficulty approaching) and strong negative loadings on E3 (captivate), E4 (make friends), and E5 (take charge). The loadings demonstrate convergent validity, while the near‑zero loadings on neurotic, extroversion, and conscientious items confirm discriminant validity. ML1 correlates positively with ML2 (0.25) and negatively with ML3 (–0.22), suggesting that higher introversion is linked to greater negative affect and lower conscientiousness. It explains 7.4 % of variance, underscoring its role in the model.</p>
+ML1 represents Introversion, evidenced by strong positive loadings on E1 and E2 and negative loadings on E3, E4, and E5. The factor also captures mild negative affect through N4 and N5, and a modest openness element via O4. Convergent validity is clear: all five extraversion items load strongly, albeit with opposite signs, forming a coherent low‑extraversion construct. Discriminant validity is upheld by low correlations with ML2 (0.25) and ML3 (–0.22). Explaining 7.4% of variance, ML1 highlights a distinct introverted personality dimension.</p>
 </section><section class="level4"><h5 id="factor-4-ml3-conscientiousness">Factor 4 (ML3):: Conscientiousness<a class="anchor" aria-label="anchor" href="#factor-4-ml3-conscientiousness"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 5 n<strong>Variance explained:</strong> 7.71% n<strong>Factor Correlations:</strong> ML2 = -0.18, ML1 = -0.22, ML5 = .19, nnML4 = .19, ML6 = -0.03</p>
 <p>nn<strong>Variables:</strong>nn 1. C4, Do things in a half-way manner. (Negative, Strong, -0.643) 2. C2, Continue until everything is perfect. (Positive, Strong, .638) 3. C5, Waste my time. (Negative, Strong, -0.570) 4. C3, Do things according to a plan. (Positive, Strong, .564) 5. C1, Am exacting in my work. (Positive, Strong, .532)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML3 captures conscientiousness, with high positive loadings on C1 (exacting), C2 (perfection), and C3 (planned) and high negative loadings on C4 (half‑way) and C5 (waste time). The loadings confirm convergent validity, and the negligible loadings on neurotic, extroversion, and openness items support discriminant validity. ML3 correlates negatively with ML2 (–0.18) and positively with ML5 (0.19) and ML4 (0.19), indicating that conscientiousness is inversely related to negative affect and positively related to agreeableness and openness. It accounts for 7.7 % of variance across diverse life domains.</p>
-</section><section class="level4"><h5 id="factor-5-ml4-openness">Factor 5 (ML4):: Openness<a class="anchor" aria-label="anchor" href="#factor-5-ml4-openness"></a>
+ML3 captures Conscientiousness, with strong positive loadings on C1, C2, and C3 and strong negative loadings on C4 and C5. The pattern demonstrates convergent validity: all five conscientiousness items load above .54, forming a coherent construct of self‑discipline versus impulsivity. Discriminant validity is evident through modest correlations with other factors (e.g., –0.18 with ML2, 0.19 with ML5). Explaining 7.7% of variance, ML3 represents a distinct, behavior‑oriented personality dimension. Its loadings also align with the broader trait of orderliness, reinforcing its distinctiveness.</p>
+</section><section class="level4"><h5 id="factor-5-ml4-openness-1">Factor 5 (ML4):: Openness<a class="anchor" aria-label="anchor" href="#factor-5-ml4-openness-1"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 6 n<strong>Variance explained:</strong> 6.25% n<strong>Factor Correlations:</strong> ML2 = .02, ML1 = -0.19, ML3 = .19, nnML5 = .25, ML6 = .02</p>
 <p>nn<strong>Variables:</strong>nn 1. O3, Carry the conversation to a higher level. (Positive, Strong, .633) 2. O1, Am full of ideas. (Positive, Strong, .534) 3. O5, Will not probe deeply into a subject. (Negative, Strong, -0.522) 4. O2, Avoid difficult reading material. (Negative, Moderate, -0.441) 5. O4, Spend time reflecting on things. (Positive, Weak, .379) 6. E3, Know how to captivate people. (Positive, Weak, .315)</p>
 <p><strong>LLM Interpretation:</strong><br>
-Factor ML4 represents openness to experience, with strong positive loadings on O1 (full of ideas), O3 (conversation depth), and O4 (reflection) and high negative loadings on O2 (avoid difficult reading) and O5 (not probe deeply). The pattern confirms convergent validity, and the near‑zero loadings on neurotic, extroversion, and conscientious items confirm discriminant validity. ML4 correlates positively with ML3 (0.19) and ML5 (0.25), indicating that openness is associated with conscientiousness and agreeableness, and negatively with ML1 (–0.19). It explains 6.3 % of variance, underscoring its role in the model.</p>
+ML4 represents Openness, with high positive loadings on O1, O3, and O4 and strong negative loadings on O2 and O5. The convergent validity is evident: all five openness items load above .45, forming a coherent curiosity‑driven construct. Discriminant validity is upheld by low correlations with ML2 (0.02) and ML1 (–0.19). Explaining 6.3% of variance, ML4 captures the imaginative, exploratory facet of personality, distinct from other dimensions. Its negative loadings on O2 and O5 highlight a preference for accessible material over deep analysis, reinforcing the construct’s uniqueness.</p>
 </section></section><section class="level3"><h4 id="cross-loading-variables-1">Cross-Loading Variables<a class="anchor" aria-label="anchor" href="#cross-loading-variables-1"></a>
 </h4>
 <p>Variables loading on multiple factors (&gt;= 0.3):</p>
@@ -587,13 +588,13 @@ Factor ML4 represents openness to experience, with strong positive loadings on O
 <pre><code><span><span class="va">Model</span><span class="op">:</span> <span class="st">"gpt-oss:20b-cloud"</span></span></code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Created: 2025-11-02 02:59:25.853321</code></pre>
+<pre><code>Created: 2025-11-02 03:03:07.081736</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Interpretations run: 2</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Total tokens - Input: 2078, Output: 9711</code></pre>
+<pre><code>Total tokens - Input: 2078, Output: 8999</code></pre>
 </div>
 </div>
 </section></section><section class="level2"><h3 id="export-functionality">Export Functionality<a class="anchor" aria-label="anchor" href="#export-functionality"></a>
