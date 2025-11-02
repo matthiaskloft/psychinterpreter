@@ -28,14 +28,19 @@ We'll test all major features of psychinterpreter including:
 ## Setup and Data Preparation
 
 ```{r setup}
-library(psychinterpreter)
-library(ellmer)
-library(psych)
-library(lavaan)
-library(mirt)
-library(dplyr)
-library(here)
-library(pander)
+packages <- c(
+  "psychinterpreter",
+  "ellmer",
+  "psych",
+  "lavaan",
+  "mirt",
+  "dplyr",
+  "here",
+  "pander"
+)
+# Load required packages using pacman
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(char = packages)
 
 # Load the BFI dataset and dictionary
 data("bfi")
@@ -189,7 +194,7 @@ interpret(
   cutoff = 0.3,
   chat_session = chat,
   word_limit = 100,
-  heading_level = 2,
+  heading_level = 3,
   suppress_heading = TRUE,
   output_format = "markdown"
 )
@@ -208,7 +213,7 @@ interpret(
   cutoff = 0.3,
   chat_session = chat,
   word_limit = 100,
-  heading_level = 2,
+  heading_level = 3,
   suppress_heading = TRUE,
   output_format = "markdown"
 )
@@ -236,7 +241,7 @@ interpret(
   chat_session = chat,
   word_limit = 100,
   output_format = "markdown",
-  heading_level = 2,
+  heading_level = 3,
   suppress_heading = TRUE
 )
 ```
@@ -259,7 +264,7 @@ interpret(
   cutoff = 0.3,
   chat_session = chat,
   word_limit = 100,
-  heading_level = 2,
+  heading_level = 3,
   suppress_heading = TRUE,
   output_format = "markdown"
 )
