@@ -10,6 +10,8 @@ Authors@R: c(person("Matthias", "Kloft",
 Description: We provide functions to automate the naming and describing of factors in exploratory factor analysis and clusters in cluster analysis using the large language models (LLMs) via the 'ellmer' package. We further provide wrapper functions to interface with commonly used packages, such as 'psych', 'lavaan', and 'mclust'.
 License: MIT + file LICENSE
 Encoding: UTF-8
+URL: https://matthiaskloft.github.io/psychinterpreter/, https://github.com/matthiaskloft/psychinterpreter
+BugReports: https://github.com/matthiaskloft/psychinterpreter/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends: 
@@ -24,4 +26,3 @@ Imports:
 Suggests:
   testthat (>= 3.0.0)
 Config/testthat/edition: 3
-URL: https://matthiaskloft.github.io/psychinterpreter/

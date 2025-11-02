@@ -9,8 +9,8 @@ format:
     code-fold: false
     df-print: paged
 execute:
-  warning: false
-  message: false
+  warning: true
+  message: true
 ---
 
 ## Overview
@@ -73,9 +73,9 @@ pa_result <- fa.parallel(
 )
 ```
 
-## Performing Exploratory Factor Analysis with 7 Factors
+## Exploratory Factor Analysis Using 6 Factors
 
-Perform FA with 7 factors identified by the parallel analysis
+Perform FA with 6 factors identified by the parallel analysis
 ```{r fa-analysis}
 fa_result <- fa(
   bfi,
@@ -151,9 +151,6 @@ Let's check the global token usage tracked by the chat:
 print(chat)
 ```
 
-```{r}
-result$chat
-```
 Plot the loading matrix with factor names:
 ```{r}
 plot(result)

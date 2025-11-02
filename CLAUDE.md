@@ -292,3 +292,12 @@ Look for warnings from interpret_fa.R:1044 about batch JSON parsing failures. Co
 ## License
 
 MIT + file LICENSE
+
+
+## TODOs and known issues
+
+- interpret_fa(): local input token usage not correctly tracked
+- interpret_fa(): session_chat and provider/model need to be disambiguated for potential conflict
+- add tests/ directory with testthat tests
+- export functions need debugging and reduction to useful formats, i.e., .txt and .md
+
