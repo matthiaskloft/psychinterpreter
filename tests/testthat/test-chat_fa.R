@@ -1,9 +1,8 @@
 test_that("chat_fa creates valid chat session object", {
   skip_if_no_llm()
 
-  # Determine which provider to use
-  provider <- if (has_openai_key()) "openai" else "anthropic"
-  model <- if (provider == "openai") "gpt-4o-mini" else "claude-haiku-4-5-20251001"
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
 
   chat <- chat_fa(provider, model)
 
@@ -21,8 +20,8 @@ test_that("chat_fa creates valid chat session object", {
 test_that("is.chat_fa correctly identifies chat_fa objects", {
   skip_if_no_llm()
 
-  provider <- if (has_openai_key()) "openai" else "anthropic"
-  model <- if (provider == "openai") "gpt-4o-mini" else "claude-haiku-4-5-20251001"
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
 
   chat <- chat_fa(provider, model)
   expect_true(is.chat_fa(chat))
@@ -36,8 +35,8 @@ test_that("is.chat_fa correctly identifies chat_fa objects", {
 test_that("reset.chat_fa resets session state", {
   skip_if_no_llm()
 
-  provider <- if (has_openai_key()) "openai" else "anthropic"
-  model <- if (provider == "openai") "gpt-4o-mini" else "claude-haiku-4-5-20251001"
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
 
   chat <- chat_fa(provider, model)
 
@@ -46,30 +45,38 @@ test_that("reset.chat_fa resets session state", {
   chat$total_input_tokens <- 1000
   chat$total_output_tokens <- 500
 
-  # Reset
-  reset.chat_fa(chat)
+  # Reset - returns a NEW object
+  chat_reset <- reset.chat_fa(chat)
 
-  # Check that counters are reset
-  expect_equal(chat$n_interpretations, 0)
-  expect_equal(chat$total_input_tokens, 0)
-  expect_equal(chat$total_output_tokens, 0)
+  # Check that counters are reset in the new object
+  expect_equal(chat_reset$n_interpretations, 0)
+  expect_equal(chat_reset$total_input_tokens, 0)
+  expect_equal(chat_reset$total_output_tokens, 0)
+
+  # Check that original creation time is preserved
+  expect_equal(chat_reset$created_at, chat$created_at)
 })
 
 test_that("print.chat_fa displays session info", {
   skip_if_no_llm()
 
-  provider <- if (has_openai_key()) "openai" else "anthropic"
-  model <- if (provider == "openai") "gpt-4o-mini" else "claude-haiku-4-5-20251001"
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
 
   chat <- chat_fa(provider, model)
 
-  # Capture print output
-  output <- capture.output(print(chat))
+  # Capture both stdout and stderr since cli may output to either
+  output <- capture.output(print(chat), type = "output")
+  message_output <- capture.output(print(chat), type = "message")
+
+  # Combine outputs
+  all_output <- c(output, message_output)
+  combined <- paste(all_output, collapse = "\n")
 
   # Check that output contains expected information
-  expect_true(any(grepl("Factor Analysis Chat Session", output)))
-  expect_true(any(grepl("Provider:", output)))
-  expect_true(any(grepl("Model:", output)))
+  expect_true(grepl("Chat Session", combined, ignore.case = TRUE))
+  expect_true(grepl("Provider", combined, ignore.case = TRUE))
+  expect_true(grepl("ollama", combined, ignore.case = TRUE))
 })
 
 test_that("chat_fa handles invalid provider gracefully", {

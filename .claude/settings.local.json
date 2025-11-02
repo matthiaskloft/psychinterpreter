@@ -7,7 +7,9 @@
       "Bash(test:*)",
       "WebFetch(domain:www.rdocumentation.org)",
       "WebFetch(domain:rdrr.io)",
-      "Bash(R CMD check:*)"
+      "Bash(R CMD check:*)",
+      "Bash(git log:*)",
+      "Bash(R CMD INSTALL:*)"
     ],
     "deny": [],
     "ask": []

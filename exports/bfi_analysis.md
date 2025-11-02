@@ -1,21 +1,21 @@
 # Factor Analysis Interpretation
 
 **Number of factors:** 6  
-**Loading cutoff:**   
+**Loading cutoff:** 0.3  
 **LLM used:** Ollama - gpt-oss:20b-cloud  
 **Tokens:**  
   Input: 2008  
-  Output: 4749  
-**Elapsed time:** 19.7 secs  
+  Output: 6348  
+**Elapsed time:** 30.2 secs  
 
 ## Suggested Factor Names
 
 - **Factor 1 (9.2%):** *Negative Affectivity*
-- **Factor 2 (7.9%):** *Low Extraversion*
+- **Factor 2 (7.9%):** *Social Introversion*
 - **Factor 3 (7.7%):** *Conscientiousness*
 - **Factor 4 (6.8%):** *Agreeableness*
 - **Factor 5 (6.3%):** *Openness*
-- **Factor 6 (3.1%):** *Practical Sociality*
+- **Factor 6 (3.1%):** *Closed‑Mindedness*
 
 **Total variance explained by all factors: 41%**
 
@@ -38,26 +38,34 @@
 
 ### Factor 1 (ML2):: Negative Affectivity
 
-**Number of significant loadings:** 5  n**Variance explained:** 9.22%  n**Factor Correlations:** ML1 = .25, ML3 = -.18, ML5 = -.10,   
+**Number of significant loadings:** 5  
+**Variance explained:** 9.22%  
+**Factor Correlations:** ML1 = .25, ML3 = -.18, ML5 = -.10,    
 
 ML4 = .02, ML6 = .18
 
-nn**Variables:**nn  1. N2, Get irritated easily. (Positive, Very Strong, .851)
+**Variables:**
+
+  1. N2, Get irritated easily. (Positive, Very Strong, .851)
   2. N1, Get angry easily. (Positive, Very Strong, .851)
   3. N3, Have frequent mood swings. (Positive, Strong, .639)
   4. N5, Panic easily. (Positive, Moderate, .402)
   5. N4, Often feel blue. (Positive, Weak, .389)
 
 **LLM Interpretation:**  
-ML2 captures the core of negative affectivity, evidenced by strong loadings on anger, irritation, mood swings, sadness, and panic items. The high correlations among these items confirm convergent validity, indicating that respondents who score high on one negative emotion tend to score high on the others. The factor is distinct from extraversion, conscientiousness, agreeableness, and openness, as shown by low cross-loadings and modest correlations with other factors. This construct reflects a tendency toward emotional instability and reactive distress, aligning with the neuroticism dimension of the Big Five.
+The factor captures a core dimension of emotional instability, as evidenced by strong loadings on items reflecting anger, irritation, mood swings, sadness, and panic. These variables converge on the construct of negative affectivity, a hallmark of the neuroticism domain. The factor explains 9.2% of variance and shows modest positive correlations with the Introversion factor ("ML1") and weak negative links to Conscientiousness ("ML3"), suggesting that heightened emotional reactivity tends to co‑occur with social withdrawal but is relatively distinct from orderliness. The pattern supports convergent validity and delineates a distinct affective profile.
 
-### Factor 2 (ML1):: Low Extraversion
+### Factor 2 (ML1):: Social Introversion
 
-**Number of significant loadings:** 7  n**Variance explained:** 7.9%  n**Factor Correlations:** ML2 = .25, ML3 = -.22, ML5 = -.31,   
+**Number of significant loadings:** 7  
+**Variance explained:** 7.9%  
+**Factor Correlations:** ML2 = .25, ML3 = -.22, ML5 = -.31,    
 
 ML4 = -.19, ML6 = -.06
 
-nn**Variables:**nn  1. E2, Find it difficult to approach others. (Positive, Strong, .686)
+**Variables:**
+
+  1. E2, Find it difficult to approach others. (Positive, Strong, .686)
   2. E1, Don't talk a lot. (Positive, Strong, .587)
   3. E4, Make friends easily. (Negative, Strong, -.550)
   4. N4, Often feel blue. (Positive, Moderate, .436)
@@ -66,45 +74,57 @@ nn**Variables:**nn  1. E2, Find it difficult to approach others. (Positive, Stro
   7. E3, Know how to captivate people. (Negative, Weak, -.349)
 
 **LLM Interpretation:**  
-ML1 represents low extraversion, with strong negative loadings on items that describe talkativeness, approachability, social captivation, friendship formation, and leadership. The negative loadings indicate that higher scores on this factor correspond to lower levels of outward sociability and assertiveness. Convergent validity is supported by the clustering of these five items, while discriminant validity is evident from its weak loadings on conscientiousness, agreeableness, and openness items. The factor correlates modestly with ML2, suggesting that introverted individuals may also experience higher negative affect, but the relationship remains distinct.
+ML1 represents a social introversion dimension, as indicated by high positive loadings on 'don't talk a lot' and 'find it difficult to approach others', and negative loadings on 'know how to captivate people', 'make friends easily', and 'take charge'. These items converge on reduced outward sociability and assertiveness, aligning with the extraversion facet of the Big Five. The factor accounts for 7.9% of variance and correlates positively with Negative Affectivity ("ML2") while showing modest negative associations with Conscientiousness ("ML3") and Openness ("ML4"). This pattern confirms convergent validity and distinguishes introverted social behavior from other personality domains.
 
 ### Factor 3 (ML3):: Conscientiousness
 
-**Number of significant loadings:** 5  n**Variance explained:** 7.71%  n**Factor Correlations:** ML2 = -.18, ML1 = -.22, ML5 = .19,   
+**Number of significant loadings:** 5  
+**Variance explained:** 7.71%  
+**Factor Correlations:** ML2 = -.18, ML1 = -.22, ML5 = .19,    
 
 ML4 = .19, ML6 = -.03
 
-nn**Variables:**nn  1. C2, Continue until everything is perfect. (Positive, Strong, .680)
+**Variables:**
+
+  1. C2, Continue until everything is perfect. (Positive, Strong, .680)
   2. C4, Do things in a half-way manner. (Negative, Strong, -.634)
   3. C3, Do things according to a plan. (Positive, Strong, .551)
   4. C1, Am exacting in my work. (Positive, Strong, .547)
   5. C5, Waste my time. (Negative, Strong, -.541)
 
 **LLM Interpretation:**  
-ML3 captures conscientiousness, as indicated by high positive loadings on exacting work, perfectionism, and planning, and high negative loadings on half‑way effort and time wasting. The pattern demonstrates convergent validity: individuals who are meticulous and organized also avoid careless or inefficient behavior. Discriminant validity is supported by low loadings on the other personality domains. The factor’s modest negative correlation with ML4 (openness) and ML5 (agreeableness) reflects the typical trade‑off between orderliness and flexibility or warmth, yet the construct remains distinct.
+ML3 captures the conscientiousness construct, evidenced by strong loadings on items that denote exactness, perfectionism, planning, and a tendency to waste time. The positive loadings on 'exacting', 'perfect', and 'plan', coupled with negative loadings on 'half‑way' and 'waste', delineate a spectrum from disciplined to careless behavior. Accounting for 7.7% of variance, this factor shows weak negative correlations with Introversion ("ML1") and Openness ("ML4"), and a modest positive link to Closed‑mindedness ("ML6"). The pattern confirms convergent validity and distinguishes conscientiousness as a distinct, order‑oriented personality dimension.
 
 ### Factor 4 (ML5):: Agreeableness
 
-**Number of significant loadings:** 5  n**Variance explained:** 6.79%  n**Factor Correlations:** ML2 = -.10, ML1 = -.31, ML3 = .19,   
+**Number of significant loadings:** 5  
+**Variance explained:** 6.79%  
+**Factor Correlations:** ML2 = -.10, ML1 = -.31, ML3 = .19,    
 
 ML4 = .25, ML6 = .14
 
-nn**Variables:**nn  1. A2, Inquire about others' well-being. (Positive, Strong, .688)
+**Variables:**
+
+  1. A2, Inquire about others' well-being. (Positive, Strong, .688)
   2. A3, Know how to comfort others. (Positive, Strong, .617)
   3. A1, Am indifferent to the feelings of others. (Negative, Strong, -.560)
   4. A5, Make people feel at ease. (Positive, Moderate, .451)
   5. A4, Love children. (Positive, Weak, .391)
 
 **LLM Interpretation:**  
-ML5 represents agreeableness, with strong positive loadings on items that reflect concern for others, comfort, child affection, and social ease, and a strong negative loading on indifference. The clustering of these items confirms convergent validity, while the factor shows low cross‑loadings on extraversion, conscientiousness, and openness, supporting discriminant validity. The factor’s weak negative correlation with ML2 suggests that highly agreeable individuals tend to experience less negative affect, but the relationship is not strong enough to merge the constructs. Thus, ML5 captures the warmth and cooperative orientation of the agreeableness dimension.
+ML5 reflects the agreeableness dimension, with high loadings on items that capture empathy, concern for others, and nurturing behavior. The negative loading on 'indifferent to feelings' and positive loadings on 'inquire', 'comfort', 'love children', and 'make people feel at ease' converge on a cooperative, compassionate construct. Explaining 6.8% of variance, this factor is weakly correlated with Introversion ("ML1") and Openness ("ML4"), and shows a small positive association with Closed‑mindedness ("ML6"). The loadings and correlations support convergent validity and delineate agreeableness as a distinct, prosocial personality trait.
 
 ### Factor 5 (ML4):: Openness
 
-**Number of significant loadings:** 6  n**Variance explained:** 6.27%  n**Factor Correlations:** ML2 = .02, ML1 = -.19, ML3 = .19,   
+**Number of significant loadings:** 6  
+**Variance explained:** 6.27%  
+**Factor Correlations:** ML2 = .02, ML1 = -.19, ML3 = .19,    
 
 ML5 = .25, ML6 = .02
 
-nn**Variables:**nn  1. O3, Carry the conversation to a higher level. (Positive, Strong, .656)
+**Variables:**
+
+  1. O3, Carry the conversation to a higher level. (Positive, Strong, .656)
   2. O1, Am full of ideas. (Positive, Strong, .564)
   3. O5, Will not probe deeply into a subject. (Negative, Moderate, -.451)
   4. E3, Know how to captivate people. (Positive, Weak, .392)
@@ -112,23 +132,27 @@ nn**Variables:**nn  1. O3, Carry the conversation to a higher level. (Positive, 
   6. O2, Avoid difficult reading material. (Negative, Weak, -.367)
 
 **LLM Interpretation:**  
-ML4 reflects openness to experience, evidenced by high positive loadings on idea generation, higher‑level conversation, and reflection, and negative loadings on avoidance of difficult reading and shallow inquiry. The pattern demonstrates convergent validity, as these items collectively capture intellectual curiosity and depth. Discriminant validity is shown by low loadings on the other personality factors. The factor’s modest positive correlation with ML3 (conscientiousness) and ML5 (agreeableness) indicates that open individuals may also be organized and warm, yet the construct remains distinct from extraversion and neuroticism.
+ML4 represents the openness to experience construct, as indicated by strong positive loadings on 'full of ideas', 'carry conversation to higher level', and 'spend time reflecting', and negative loadings on 'avoid difficult reading' and 'will not probe deeply'. These items converge on intellectual curiosity and imaginative engagement. Accounting for 6.3% of variance, the factor shows modest positive correlations with Introversion ("ML1") and Conscientiousness ("ML3"), and a small positive link to Closed‑mindedness ("ML6"). The pattern confirms convergent validity and distinguishes openness as a distinct, exploratory personality dimension.
 
-### Factor 6 (ML6):: Practical Sociality
+### Factor 6 (ML6):: Closed‑Mindedness
 
-**Number of significant loadings:** 2  n**Variance explained:** 3.12%  n**Factor Correlations:** ML2 = .18, ML1 = -.06, ML3 = -.03,   
+**Number of significant loadings:** 2  
+**Variance explained:** 3.12%  
+**Factor Correlations:** ML2 = .18, ML1 = -.06, ML3 = -.03,    
 
 ML5 = .14, ML4 = .02
 
-nn**Variables:**nn  1. O5, Will not probe deeply into a subject. (Positive, Moderate, .403)
+**Variables:**
+
+  1. O5, Will not probe deeply into a subject. (Positive, Moderate, .403)
   2. O2, Avoid difficult reading material. (Positive, Weak, .353)
 
 **LLM Interpretation:**  
-ML6 appears to capture a pragmatic, socially oriented style, with moderate loadings on superficial inquiry (O5), avoidance of difficult reading (O2), half‑way effort (C4), ease of making friends (E4), and indifference to others (A1). The convergence of these items suggests a construct that values practicality over depth, combining low intellectual curiosity with social ease. Convergent validity is supported by the clustering of these diverse but related items, while discriminant validity is evident from its weak loadings on the core personality factors. The factor’s low correlations with the other factors indicate it represents a distinct, pragmatic social orientation.
+ML6 captures a closed‑mindedness dimension, evidenced by positive loadings on 'avoid difficult reading' and 'will not probe deeply', while other openness items load weakly or negatively. This factor accounts for 3.1% of variance and is weakly positively correlated with Introversion ("ML1") and Openness ("ML4"), and shows a small positive association with Conscientiousness ("ML3"). The loadings and correlations support convergent validity, indicating that individuals who resist intellectual challenge and depth of inquiry tend to exhibit a distinct, less exploratory personality profile, separate from the broader openness construct.
 
 ## Cross-Loading Variables
 
-Variables loading on multiple factors (>= ):
+Variables loading on multiple factors (>= 0.3):
 
 - **E3:** Know how to captivate people.: ML1 (-.349), ML4 (.392)
 - **N4:** Often feel blue.: ML2 (.389), ML1 (.436)

@@ -1,5 +1,6 @@
-# Test script for verifying token tracking fix
-# This script demonstrates the expected behavior after the fix
+# Test script for verifying token tracking fix (V3)
+# This script demonstrates the expected behavior after the V3 fix
+# See dev/token_tracking_fix_v3.md for implementation details
 
 library(psychinterpreter)
 
@@ -50,15 +51,16 @@ cat("\n=== Test 6: Reset session ===\n")
 # Interpretations run: 0
 # Total tokens - Input: 0, Output: 0
 
-cat("\n=== Key Fixes Applied ===\n")
+cat("\n=== Key Fixes Applied (V3) ===\n")
 cat("1. chat_fa objects now use environments (reference semantics)\n")
 cat("2. n_interpretations counter now persists across calls\n")
 cat("3. Cumulative token tracking added to chat_fa objects\n")
 cat("4. Per-run tokens captured and stored in results$run_tokens\n")
 cat("5. Reports display per-run tokens, print(chat) shows cumulative\n")
-cat("6. Token tracking uses two-tier approach:\n")
-cat("   - Cumulative: Uses delta with max(0, ...) to prevent negatives\n")
-cat("   - Per-run: Extracts actual tokens from most recent messages\n")
+cat("6. Token tracking uses two-tier approach with SEPARATE get_tokens() calls:\n")
+cat("   - Cumulative: get_tokens(include_system_prompt = TRUE) with delta + max(0, ...)\n")
+cat("   - Per-run: get_tokens(include_system_prompt = FALSE) for accurate message tokens\n")
+cat("   - System prompt excluded from per-run counts (V3 fix)\n")
 cat("   - Handles Ollama's system prompt caching correctly\n")
 
 cat("\n=== How Token Tracking Works ===\n")

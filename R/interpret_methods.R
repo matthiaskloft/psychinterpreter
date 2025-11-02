@@ -166,12 +166,17 @@ interpret.fa <- function(model, variable_info, ...) {
   }
 
   # Call interpret_fa with extracted components
-  interpret_fa(
+  result <- interpret_fa(
     loadings = loadings,
     variable_info = variable_info,
     factor_cor_mat = factor_cor_mat,
     ...
   )
+
+  # Validate return class
+  stopifnot(inherits(result, "fa_interpretation"))
+
+  return(result)
 }
 
 #' Interpret Results from psych::principal()
@@ -222,12 +227,17 @@ interpret.principal <- function(model, variable_info, ...) {
 
   # PCA produces orthogonal components, no correlations
   # Call interpret_fa with extracted components
-  interpret_fa(
+  result <- interpret_fa(
     loadings = loadings,
     variable_info = variable_info,
     factor_cor_mat = NULL,
     ...
   )
+
+  # Validate return class
+  stopifnot(inherits(result, "fa_interpretation"))
+
+  return(result)
 }
 
 
@@ -348,12 +358,17 @@ interpret.lavaan <- function(model, variable_info, ...) {
   }
 
   # Call interpret_fa
-  interpret_fa(
+  result <- interpret_fa(
     loadings = loadings,
     variable_info = variable_info,
     factor_cor_mat = factor_cor_mat,
     ...
   )
+
+  # Validate return class
+  stopifnot(inherits(result, "fa_interpretation"))
+
+  return(result)
 }
 
 
@@ -419,12 +434,17 @@ interpret.efaList <- function(model, variable_info, ...) {
   }
 
   # Call interpret_fa
-  interpret_fa(
+  result <- interpret_fa(
     loadings = loadings,
     variable_info = variable_info,
     factor_cor_mat = factor_cor_mat,
     ...
   )
+
+  # Validate return class
+  stopifnot(inherits(result, "fa_interpretation"))
+
+  return(result)
 }
 
 
@@ -522,10 +542,15 @@ interpret.SingleGroupClass <- function(model, variable_info, rotate = "oblimin",
   }
 
   # Call interpret_fa
-  interpret_fa(
+  result <- interpret_fa(
     loadings = loadings,
     variable_info = variable_info,
     factor_cor_mat = factor_cor_mat,
     ...
   )
+
+  # Validate return class
+  stopifnot(inherits(result, "fa_interpretation"))
+
+  return(result)
 }

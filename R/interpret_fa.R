@@ -1003,7 +1003,8 @@ interpret_fa <- function(loadings,
     )
 
 
-    # Capture token state before LLM call for per-run tracking
+    # Capture token state before LLM call for cumulative tracking
+    # Use include_system_prompt = TRUE to count system prompt in cumulative totals
     tokens_before <- tryCatch({
       tokens_df <- chat$get_tokens(include_system_prompt = TRUE)
       if (nrow(tokens_df) > 0) {
@@ -1026,28 +1027,28 @@ interpret_fa <- function(loadings,
       NULL
     })
 
-    # Capture token state after LLM call
+    # Capture token state after LLM call for cumulative tracking
+    # Use include_system_prompt = TRUE to count system prompt in cumulative totals
     tokens_after <- tryCatch({
       tokens_df <- chat$get_tokens(include_system_prompt = TRUE)
       if (nrow(tokens_df) > 0) {
         list(
           input = sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE),
-          output = sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE),
-          df = tokens_df  # Keep dataframe for extracting last message tokens
+          output = sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
         )
       } else {
-        list(input = 0, output = 0, df = NULL)
+        list(input = 0, output = 0)
       }
     }, error = function(e) {
-      list(input = 0, output = 0, df = NULL)
+      list(input = 0, output = 0)
     })
 
     # Calculate per-run token usage
-    # Two approaches for token tracking to handle different provider behaviors:
-    # 1. Cumulative tracking: Use delta with max(0, ...) to prevent negative accumulation
-    #    when system prompts are cached (e.g., persistent chat sessions)
-    # 2. Per-run reporting: Extract actual token counts from the most recent messages
-    #    to show accurate per-analysis usage
+    # Two-tier token tracking to handle different provider behaviors:
+    # 1. Cumulative tracking: Use tokens WITH system prompt, calculate delta with max(0, ...)
+    #    to prevent negative accumulation when system prompts are cached
+    # 2. Per-run reporting: Use tokens WITHOUT system prompt to extract actual per-message
+    #    counts for accurate per-analysis reporting
 
     # Calculate delta for cumulative tracking (prevents negative accumulation)
     delta_input <- max(0, tokens_after$input - tokens_before$input)
@@ -1059,10 +1060,18 @@ interpret_fa <- function(loadings,
 
     # Try to extract per-message tokens for accurate per-run reporting
     # This is the preferred method as it handles cached system prompts correctly
-    if (!is.null(tokens_after$df) && nrow(tokens_after$df) > 0) {
+    # IMPORTANT: Use include_system_prompt = FALSE to get ONLY the user prompt tokens
+    # (without system prompt) for accurate per-run reporting
+    tokens_per_message <- tryCatch({
+      chat$get_tokens(include_system_prompt = FALSE)
+    }, error = function(e) {
+      NULL
+    })
+
+    if (!is.null(tokens_per_message) && nrow(tokens_per_message) > 0) {
       # Try to get the most recent user and assistant message tokens
-      user_messages <- tokens_after$df[tokens_after$df$role == "user", ]
-      assistant_messages <- tokens_after$df[tokens_after$df$role == "assistant", ]
+      user_messages <- tokens_per_message[tokens_per_message$role == "user", ]
+      assistant_messages <- tokens_per_message[tokens_per_message$role == "assistant", ]
 
       if (nrow(user_messages) > 0) {
         # Get the last user message tokens (the prompt we just sent)

@@ -224,12 +224,12 @@ build_fa_report <- function(interpretation_results,
       summary_md <- remaining_summary
 
       # Add proper markdown line breaks and bold formatting for key sections
-      summary_md <- gsub("(Number of significant loadings:) ([0-9]+)\\n", "**\\1** \\2  \\n", summary_md)
-      summary_md <- gsub("(Variance explained:) ([0-9\\.]+%)\\n", "**\\1** \\2  \\n", summary_md)
-      summary_md <- gsub("(\\*\\*Factor Correlations:\\*\\*[^\n]*)\\n", "\\1  \\n\\n", summary_md)
+      summary_md <- gsub("(Number of significant loadings:) ([0-9]+)\\n", "**\\1** \\2  \n", summary_md)
+      summary_md <- gsub("(Variance explained:) ([0-9\\.]+%)\\n", "**\\1** \\2  \n", summary_md)
+      summary_md <- gsub("(\\*\\*Factor Correlations:\\*\\*[^\n]*)\\n", "\\1  \n\n", summary_md)
 
       # Fix variables section - add proper spacing and formatting
-      summary_md <- gsub("Variables:\\n", "\\n\\n**Variables:**\\n\\n", summary_md)
+      summary_md <- gsub("Variables:\\n", "\n\n**Variables:**\n\n", summary_md)
 
       # Make WARNING section bold
       summary_md <- gsub("(WARNING:)", "**\\1**", summary_md)
@@ -569,21 +569,6 @@ build_fa_report <- function(interpretation_results,
     report <- gsub("(\\)) ([0-9]+\\. )", "\\1\n\\2", report)
     report <- gsub("([0-9]{1,2}\\. [^)]+\\)) ([0-9]+\\. )", "\\1\n\\2", report)
   }
-
-  # Final cleanup for both formats - any remaining isolated 'n' that should be newline
-  # This handles cases where \n gets stripped to just 'n' during string manipulation
-
-  # Pattern 1: lowercase-n-uppercase (e.g., "loadingsnVariance")
-  report <- gsub("([a-z])n([A-Z][a-z]+:)", "\\1\n\\2", report)
-
-  # Pattern 2: digit-space-n-uppercase (e.g., "5 nVariance", "7.71% nFactor")
-  report <- gsub("([0-9%]) n([A-Z])", "\\1\n\\2", report)
-
-  # Pattern 3: double-n before uppercase (e.g., "nnML4" from ",  \n" becoming ", nn")
-  report <- gsub(" nn([A-Z])", "\n\n\\1", report)
-
-  # Pattern 4: comma-spaces-n (e.g., ",  nML4" from ",  \n" becoming ",  n")
-  report <- gsub(",  n([A-Z])", ",\n\\1", report)
 
   return(report)
 }

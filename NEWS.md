@@ -24,11 +24,13 @@
 ## Improvements
 
 ### Token Tracking
-- Implemented dual-tier token tracking system:
-  - Per-run tokens extracted from actual message content (accurate for all providers)
-  - Cumulative tokens with safe delta calculation (prevents negative accumulation)
+- Implemented dual-tier token tracking system using separate `get_tokens()` calls:
+  - Per-run tokens: Uses `include_system_prompt = FALSE` to extract actual message content (accurate for all providers)
+  - Cumulative tokens: Uses `include_system_prompt = TRUE` with safe delta calculation (prevents negative accumulation)
 - Fixed issue where input tokens showed as 0 with Ollama provider
+- Fixed issue where system prompt was incorrectly included in per-run token counts
 - Added token usage display in reports and session summaries
+- See `dev/token_tracking_fix_v3.md` for implementation details
 
 ### Chat Session Management
 - Converted `chat_fa` objects to use environment-based storage for reference semantics

@@ -131,17 +131,19 @@ chat_fa <- function(provider,
 #'
 #' @export
 print.chat_fa <- function(x, ...) {
-  cli::cli_text("Factor Analysis Chat Session")
-  cli::cli_text("Provider: {.val {x$provider}}")
-  cli::cli_text("Model: {.val {x$model %||% 'default'}}")
-  cli::cli_text("Created: {.val {x$created_at}}")
-  cli::cli_text("Interpretations run: {.val {x$n_interpretations}}")
+  cat("Factor Analysis Chat Session\n")
+  cat("Provider:", x$provider, "\n")
+  cat("Model:", x$model %||% "default", "\n")
+  cat("Created:", as.character(x$created_at), "\n")
+  cat("Interpretations run:", x$n_interpretations, "\n")
 
   # Show cumulative token usage from tracked fields
   # These are maintained separately to provide accurate cumulative counts
   if (x$total_input_tokens > 0 || x$total_output_tokens > 0) {
-    cli::cli_text("Total tokens - Input: {.val {x$total_input_tokens}}, Output: {.val {x$total_output_tokens}}")
+    cat("Total tokens - Input:", x$total_input_tokens, ", Output:", x$total_output_tokens, "\n")
   }
+
+  invisible(x)
 }
 
 #' Check if object is a chat_fa

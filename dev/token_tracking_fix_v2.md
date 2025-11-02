@@ -1,5 +1,7 @@
 # Token Tracking Fix V2: Per-Run Input Tokens Showing as 0
 
+> **⚠️ SUPERSEDED:** This document is kept for historical reference. See `token_tracking_fix_v3.md` for the current implementation, which fixes an additional issue with system prompt inclusion in per-run reporting.
+
 ## Issue Reported
 ```
 **Tokens:**

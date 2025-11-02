@@ -50,15 +50,15 @@ fa_result <- fa(bfi[,1:25], nfactors = 5, rotate = "oblimin")
 
 # Create variable information
 var_info <- data.frame(
-  variable = rownames(bfi.dictionary[,1:25]),
+  variable = rownames(bfi.dictionary[1:25,]),
   description = bfi.dictionary$Item[1:25]
 )
 
 # Interpret directly from model object
 results <- interpret(fa_result,
                      variable_info = var_info,
-                     llm_provider = "openai",
-                     llm_model = "gpt-4o-mini")
+                     llm_provider = "ollama",
+                     llm_model = "gpt-oss:20b-cloud")
 ```
 
 ### Manual Approach
@@ -73,7 +73,7 @@ results <- interpret_fa(
   loadings = loadings,
   variable_info = var_info,
   llm_provider = "ollama",
-  llm_model = "llama3.1:8b"
+  llm_model = "gpt-oss:20b-cloud"
 )
 ```
 
@@ -84,12 +84,12 @@ Use persistent chat sessions to save tokens when analyzing multiple datasets:
 
 ```r
 # Create reusable chat session
-chat <- chat_fa("anthropic", "claude-haiku-4-5-20251001")
+chat <- chat_fa("ollama", "gpt-oss:20b-cloud")
 
 # Run multiple interpretations
-result1 <- interpret_fa(loadings1, var_info1, chat_session = chat)
-result2 <- interpret_fa(loadings2, var_info2, chat_session = chat)
-result3 <- interpret_fa(loadings3, var_info3, chat_session = chat)
+result1 <- interpret_fa(loadings, var_info, chat_session = chat, silent = TRUE)
+result2 <- interpret_fa(loadings, var_info, chat_session = chat)
+result3 <- interpret_fa(loadings, var_info, chat_session = chat)
 
 # Check token usage
 print(chat)

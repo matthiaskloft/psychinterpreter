@@ -98,8 +98,8 @@ test_that("interpret_fa warns when chat_session overrides provider/model", {
   loadings <- sample_loadings()
   var_info <- sample_variable_info()
 
-  provider <- if (has_openai_key()) "openai" else "anthropic"
-  model <- if (provider == "openai") "gpt-4o-mini" else "claude-haiku-4-5-20251001"
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
 
   chat <- chat_fa(provider, model)
 
@@ -128,8 +128,8 @@ test_that("interpret_fa handles emergency rule for weak factors", {
     description = c("Variable 1", "Variable 2", "Variable 3")
   )
 
-  provider <- if (has_openai_key()) "openai" else "anthropic"
-  model <- if (provider == "openai") "gpt-4o-mini" else "claude-haiku-4-5-20251001"
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
 
   # Should apply emergency rule for ML2
   result <- interpret_fa(weak_loadings, var_info,
@@ -153,8 +153,8 @@ test_that("interpret_fa returns expected structure", {
   loadings <- sample_loadings()
   var_info <- sample_variable_info()
 
-  provider <- if (has_openai_key()) "openai" else "anthropic"
-  model <- if (provider == "openai") "gpt-4o-mini" else "claude-haiku-4-5-20251001"
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
 
   result <- interpret_fa(loadings, var_info,
                         llm_provider = provider,
@@ -192,8 +192,8 @@ test_that("leading zeros are removed consistently for negative numbers", {
     description = c("Variable 1", "Variable 2", "Variable 3")
   )
 
-  provider <- if (has_openai_key()) "openai" else "anthropic"
-  model <- if (provider == "openai") "gpt-4o-mini" else "claude-haiku-4-5-20251001"
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
 
   result <- interpret_fa(neg_loadings, var_info,
                         llm_provider = provider,
