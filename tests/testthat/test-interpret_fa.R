@@ -95,8 +95,9 @@ test_that("interpret_fa validates chat_session parameter", {
 test_that("interpret_fa warns when chat_session overrides provider/model", {
   skip_if_no_llm()
 
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
+  # Use minimal fixtures for token efficiency
+  loadings <- minimal_loadings()
+  var_info <- minimal_variable_info()
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -108,6 +109,7 @@ test_that("interpret_fa warns when chat_session overrides provider/model", {
     interpret_fa(loadings, var_info,
                 chat_session = chat,
                 llm_provider = "different_provider",
+                word_limit = 30,  # Reduced for token efficiency
                 silent = FALSE),
     "overrides"
   )
@@ -116,42 +118,44 @@ test_that("interpret_fa warns when chat_session overrides provider/model", {
 test_that("interpret_fa handles emergency rule for weak factors", {
   skip_if_no_llm()
 
-  # Create loadings where one factor has no loadings above cutoff
+  # Create minimal loadings where one factor has no loadings above cutoff
   weak_loadings <- data.frame(
-    variable = c("var1", "var2", "var3"),
-    ML1 = c(0.8, 0.7, 0.6),
-    ML2 = c(0.05, 0.03, 0.02)  # All below typical cutoff
+    variable = c("v1", "v2"),
+    F1 = c(0.85, 0.75),
+    F2 = c(0.05, 0.03)  # All below cutoff - triggers emergency rule
   )
 
   var_info <- data.frame(
-    variable = c("var1", "var2", "var3"),
-    description = c("Variable 1", "Variable 2", "Variable 3")
+    variable = c("v1", "v2"),
+    description = c("Item 1", "Item 2")
   )
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  # Should apply emergency rule for ML2
+  # Should apply emergency rule for F2
   result <- interpret_fa(weak_loadings, var_info,
                         cutoff = 0.3,
-                        n_emergency = 2,
+                        n_emergency = 1,
                         llm_provider = provider,
                         llm_model = model,
+                        word_limit = 30,  # Reduced for token efficiency
                         silent = TRUE)
 
-  # Check that result includes ML2 despite low loadings
-  expect_true("ML2" %in% names(result$factor_summaries))
+  # Check that result includes F2 despite low loadings
+  expect_true("F2" %in% names(result$factor_summaries))
 
   # Check that the summary indicates emergency rule was used
-  ml2_summary <- result$factor_summaries$ML2$summary
-  expect_true(grepl("WARNING", ml2_summary))
+  f2_summary <- result$factor_summaries$F2$summary
+  expect_true(grepl("WARNING", f2_summary))
 })
 
 test_that("interpret_fa returns expected structure", {
   skip_if_no_llm()
 
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
+  # Use minimal fixtures for token efficiency
+  loadings <- minimal_loadings()
+  var_info <- minimal_variable_info()
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -159,6 +163,7 @@ test_that("interpret_fa returns expected structure", {
   result <- interpret_fa(loadings, var_info,
                         llm_provider = provider,
                         llm_model = model,
+                        word_limit = 30,  # Reduced for token efficiency
                         silent = TRUE)
 
   # Check main structure
@@ -180,16 +185,16 @@ test_that("interpret_fa returns expected structure", {
 test_that("leading zeros are removed consistently for negative numbers", {
   skip_if_no_llm()
 
-  # Create loadings with negative values
+  # Create minimal loadings with negative values (tests formatting)
   neg_loadings <- data.frame(
-    variable = c("var1", "var2", "var3"),
-    ML1 = c(0.8, -0.456, 0.123),
-    ML2 = c(-0.789, 0.654, -0.321)
+    variable = c("v1", "v2"),
+    F1 = c(0.85, -0.456),
+    F2 = c(-0.789, 0.654)
   )
 
   var_info <- data.frame(
-    variable = c("var1", "var2", "var3"),
-    description = c("Variable 1", "Variable 2", "Variable 3")
+    variable = c("v1", "v2"),
+    description = c("Item 1", "Item 2")
   )
 
   provider <- "ollama"
@@ -198,6 +203,7 @@ test_that("leading zeros are removed consistently for negative numbers", {
   result <- interpret_fa(neg_loadings, var_info,
                         llm_provider = provider,
                         llm_model = model,
+                        word_limit = 30,  # Reduced for token efficiency
                         silent = TRUE)
 
   # Check that loading matrix doesn't have "-0." patterns

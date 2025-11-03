@@ -189,11 +189,28 @@ The package exports 12 functions plus 3 S3 methods:
 
 ## Testing Strategy
 
-Currently no tests implemented (tests/ directory doesn't exist). When adding tests:
-- Use `testthat` framework (already in DESCRIPTION Suggests)
-- Skip tests requiring API keys unless credentials available
-- Create fixtures for factor loading matrices and variable descriptions
-- Test both single-analysis and persistent chat session workflows
+The package has comprehensive test coverage (162 tests) following [R Packages 2e](https://r-pkgs.org/testing-design.html) best practices:
+
+**Test Structure:**
+- Uses `testthat 3.0` framework with edition 3 features
+- Fixtures stored in `tests/testthat/fixtures/` as `.rds` files
+- Helper functions in `tests/testthat/helper.R` use `test_path()` for portability
+- All LLM-requiring tests skip automatically on CI (GitHub Actions)
+
+**Test Coverage:**
+- `test-chat_fa.R` (18 tests): Chat session management and token tracking
+- `test-export_functions.R` (28 tests): Export to txt/md formats, path handling
+- `test-fa_utilities.R` (16 tests): Cross-loading and no-loading detection
+- `test-interpret_fa.R` (23 tests): Core interpretation logic, emergency rules
+- `test-interpret_methods.R` (22 tests): S3 methods for psych/lavaan/mirt
+- `test-print_methods.R` (31 tests): Print methods for fa_interpretation and chat_fa
+- `test-visualization.R` (24 tests): Plot methods and heatmap generation
+
+**Key Features:**
+- Fixtures avoid LLM calls in most tests (fast, deterministic)
+- Proper temporary file cleanup with `tempfile()` + `unlink()`
+- CI environment detection skips tests requiring local services
+- Comprehensive validation of edge cases and error handling
 
 ## File Organization
 
@@ -201,11 +218,29 @@ Currently no tests implemented (tests/ directory doesn't exist). When adding tes
 R/
 ├── interpret_fa.R          # Main interpretation function (~1270 lines)
 ├── chat_fa.R               # Persistent chat session management
+├── interpret_methods.R     # S3 methods for psych/lavaan/mirt
 ├── fa_utilities.R          # Cross-loading & no-loading detection
 ├── utils.R                 # Word counting, text wrapping
 ├── fa_report_functions.R   # Report building, print methods
-├── export_functions.R      # Export to CSV/JSON/RDS/TXT
-└── visualization.R         # ggplot2 heatmap creation
+├── export_functions.R      # Export to txt/md formats
+└── visualization.R         # S3 plot method and heatmap creation
+
+tests/testthat/
+├── fixtures/
+│   ├── sample_loadings.rds         # Factor loadings fixture
+│   ├── sample_variable_info.rds    # Variable descriptions
+│   ├── sample_factor_cor.rds       # Correlation matrix
+│   ├── sample_interpretation.rds   # Complete interpretation object
+│   ├── make-fixtures.R             # Script to regenerate fixtures
+│   └── README.md                   # Fixture documentation
+├── helper.R                # Test helper functions (uses test_path())
+├── test-chat_fa.R          # Chat session tests (18 tests)
+├── test-export_functions.R # Export format tests (28 tests)
+├── test-fa_utilities.R     # Utility function tests (16 tests)
+├── test-interpret_fa.R     # Core interpretation tests (23 tests)
+├── test-interpret_methods.R # S3 method tests (22 tests)
+├── test-print_methods.R    # Print method tests (31 tests)
+└── test-visualization.R    # Plotting tests (24 tests)
 
 dev/
 └── PACKAGE_MIGRATION_PLAN.md  # Historical migration documentation
@@ -352,6 +387,48 @@ All previously documented issues have been resolved:
   - Test was calling `chat_fa()` without checking ellmer availability
   - Now properly skips on CI environments
 - ✓ **Fixed print method**: Changed `print.chat_fa()` from `cli::cli_text()` to `cat()` for proper `capture.output()` compatibility in tests
+
+### Update 5: Test Suite Improvements (2025-11-03)
+
+**Best Practices Implementation** (following [R Packages 2e](https://r-pkgs.org/testing-design.html#storing-test-data)):
+
+- ✓ **Fixtures directory structure**: Created `tests/testthat/fixtures/` with organized test data
+  - Test data now stored as `.rds` files (efficient, preserves R object structure)
+  - `sample_loadings.rds`, `sample_variable_info.rds`, `sample_factor_cor.rds`, `sample_interpretation.rds`
+  - Includes `make-fixtures.R` script for regenerating test data
+  - Documented in `fixtures/README.md` with usage examples
+
+- ✓ **Helper file reorganization**: Renamed `helper-fixtures.R` → `helper.R`
+  - Follows testthat naming conventions
+  - Functions use `test_path()` for portable file paths (works in both interactive and CI environments)
+  - Added `get_fixture_path()` helper with fallback for interactive use
+
+- ✓ **Improved file path handling**: All fixture loading now uses `test_path()`
+  - Ensures tests work correctly regardless of working directory
+  - Compatible with both `devtools::test()` and `R CMD check`
+
+- ✓ **Temporary file management**: Verified proper cleanup
+  - All tests use `tempfile()` with explicit `unlink()` cleanup
+  - No test contamination between runs
+  - Follows testthat 3.0 best practices
+
+- ✓ **.Rbuildignore updates**: Excluded fixture maintenance files
+  - `make-fixtures.R` and `fixtures/README.md` not included in built package
+  - Keeps package size minimal while maintaining developer documentation
+
+- ✓ **Token-efficient LLM testing**: Created minimal fixtures for LLM integration tests
+  - Standard fixtures: 5 variables × 3 factors (~400-500 tokens)
+  - Minimal fixtures: 3 variables × 2 factors (~150-200 tokens)
+  - **60-70% token reduction** for LLM-calling tests
+  - Functions: `minimal_loadings()`, `minimal_variable_info()`, `minimal_factor_cor()`
+  - Updated tests to use `word_limit = 30` (vs. default 150, minimum 20) for faster, cheaper testing
+  - Lowered `word_limit` validation minimum from 50 to 20 words for maximum test efficiency
+  - Regeneration script: `fixtures/make-minimal-fixtures.R`
+
+- ✓ **Relaxed parameter limits**: Adjusted overly restrictive validation (2025-11-03)
+  - `word_limit`: Changed minimum from 50 → 20 words (allows minimal testing)
+  - `max_line_length`: Changed maximum from 200 → 300 characters (supports wide terminals)
+  - Recommended ranges updated for better guidance (80-120 chars for readability)
 
 ## TODOs
 

@@ -638,12 +638,12 @@ print.fa_interpretation <- function(x,
       c("{.var max_line_length} must be a single numeric value", "x" = "You supplied: {.val {max_line_length}}")
     )
   }
-  if (max_line_length < 20 || max_line_length > 200) {
+  if (max_line_length < 20 || max_line_length > 300) {
     cli::cli_abort(
       c(
-        "{.var max_line_length} must be between 20 and 200",
+        "{.var max_line_length} must be between 20 and 300",
         "x" = "You supplied: {.val {max_line_length}}",
-        "i" = "Recommended range is 60-120 characters"
+        "i" = "Recommended range is 80-120 characters for readability"
       )
     )
   }
