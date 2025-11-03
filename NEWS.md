@@ -13,7 +13,7 @@
 - Plots now use LLM-generated suggested factor names automatically
 
 ### Export & Utilities
-- Added `export_interpretation()` supporting CSV, JSON, RDS, and TXT formats
+- Added `export_interpretation()` supporting txt and md formats
 - Implemented `find_cross_loadings()` to detect variables with multiple significant loadings
 - Implemented `find_no_loadings()` to detect orphaned variables
 
@@ -41,6 +41,10 @@
 - Added comprehensive roxygen2 documentation for all exported functions
 - Created getting started vignette (`vignettes/articles/01-Basic_Usage.qmd`)
 - Added CLAUDE.md with detailed developer guidance
+
+### User Messaging
+- Changed word limit exceedance notification from `cli_warn()` to `cli_inform()` (less intrusive for testing and automated workflows)
+- Improved messaging clarity with structured format showing expected vs. actual word counts
 
 ### Package Infrastructure
 - Added VignetteBuilder configuration for pkgdown

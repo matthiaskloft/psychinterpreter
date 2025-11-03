@@ -259,11 +259,8 @@ interpret_fa <- function(loadings,
     # Additional check: if it's a plain list without function call context, warn user
     if (is.list(params) && is.null(attr(params, "ellmer_params")) &&
         !any(c("temperature", "seed", "max_tokens") %in% names(params))) {
-      cli::cli_warn(
-        c(
-          "Parameters should be created using ellmer::params() function",
-          "i" = "Use params(temperature = 0.7, seed = 42) instead of list()"
-        )
+      cli::cli_alert_info(
+        "Parameters should be created using ellmer::params() function. Use params(temperature = 0.7, seed = 42) instead of list()"
       )
     }
   }
@@ -1170,10 +1167,10 @@ interpret_fa <- function(loadings,
               "Unable to generate interpretation"
             }
 
-            # Check word count and warn if exceeded
+            # Check word count and inform if exceeded
             word_count <- count_words(interpretation)
             if (word_count > word_limit) {
-              cli::cli_warn(
+              cli::cli_inform(
                 c(
                   "LLM interpretation for {factor_name} exceeded word limit",
                   "!" = "Expected: {word_limit} words, Got: {word_count} words",
@@ -1194,7 +1191,7 @@ interpret_fa <- function(loadings,
 
       } else {
         # Fallback: parse using alternative methods if object parsing fails
-        cli::cli_warn("Object-based JSON parsing failed, attempting alternative extraction")
+        cli::cli_alert_info("Object-based JSON parsing failed, attempting alternative extraction")
 
         # Try to extract factor information using patterns for the new object structure
         # Look for factor names as keys with nested objects

@@ -289,6 +289,7 @@ test_that("interpret.SingleGroupClass works with mirt models", {
                      variable_info = var_info,
                      llm_provider = provider,
                      llm_model = model,
+                     word_limit = 20,
                      silent = TRUE)
 
   # Check result structure

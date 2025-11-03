@@ -66,8 +66,9 @@ build_fa_report <- function(interpretation_results,
         tokens <- interpretation_results$run_tokens
       } else {
         # Fallback to chat object tokens (for backwards compatibility)
+        # Use include_system_prompt = FALSE for consistency with run_tokens
         tokens <- tryCatch({
-          tokens_df <- chat$get_tokens()
+          tokens_df <- chat$get_tokens(include_system_prompt = FALSE)
           if (nrow(tokens_df) > 0) {
             input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
             output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)

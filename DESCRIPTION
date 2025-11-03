@@ -1,5 +1,5 @@
 Package: psychinterpreter
-Title: LLM-powered interpretation of factor and cluster analyses
+Title: LLM-powered interpretation for psychometric analyses
 Version: 0.0.0.9000
 Author: Matthias Kloft [aut, cre, cph] (<https://orcid.org/0000-0003-1845-6957>)
 Maintainer: Matthias Kloft <kloft.dev+rctbayespower@gmail.com>
