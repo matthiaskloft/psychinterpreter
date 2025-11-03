@@ -9,7 +9,9 @@
       "WebFetch(domain:rdrr.io)",
       "Bash(R CMD check:*)",
       "Bash(git log:*)",
-      "Bash(R CMD INSTALL:*)"
+      "Bash(R CMD INSTALL:*)",
+      "Bash(CI=true Rscript:*)",
+      "WebFetch(domain:r-pkgs.org)"
     ],
     "deny": [],
     "ask": []

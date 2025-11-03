@@ -39,6 +39,11 @@ sample_factor_cor <- function() {
 
 # Check if Ollama is available for LLM tests
 has_ollama <- function() {
+  # Skip on CI environments (GitHub Actions, etc.)
+  if (identical(Sys.getenv("CI"), "true")) {
+    return(FALSE)
+  }
+
   # Try to check if Ollama is running by attempting a basic connection
   # This is a simple check - if ellmer can't connect, it will fail during test
   tryCatch({

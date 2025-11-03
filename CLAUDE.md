@@ -341,6 +341,18 @@ All previously documented issues have been resolved:
   - Fixed test expectation in `test-print_methods.R`: Changed pattern from "Factor" (title case) to "factor" (lowercase) to match actual output
 - ✓ **All tests now pass**: 28 export_functions tests, 14 print_methods tests (excluding skipped tests requiring ellmer/external packages)
 
+### Update 4: CI/CD Test Fixes (2025-11-03)
+
+**GitHub Actions Compatibility:**
+- ✓ **Enhanced CI environment detection**: Updated `has_ollama()` in `tests/testthat/helper-fixtures.R`
+  - Automatically detects CI environments (GitHub Actions) via `Sys.getenv("CI")`
+  - Skips all LLM-requiring tests on CI where Ollama/ellmer are unavailable
+  - Prevents test failures in automated testing pipelines
+- ✓ **Fixed missing skip guard**: Added `skip_if_no_llm()` to "chat_fa handles invalid provider gracefully" test
+  - Test was calling `chat_fa()` without checking ellmer availability
+  - Now properly skips on CI environments
+- ✓ **Fixed print method**: Changed `print.chat_fa()` from `cli::cli_text()` to `cat()` for proper `capture.output()` compatibility in tests
+
 ## TODOs
 
 ✓ All TODOs completed as of 2025-11-02:

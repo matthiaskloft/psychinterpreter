@@ -80,6 +80,8 @@ test_that("print.chat_fa displays session info", {
 })
 
 test_that("chat_fa handles invalid provider gracefully", {
+  skip_if_no_llm()
+
   expect_error(
     chat_fa("invalid_provider", "model"),
     class = "rlang_error"
