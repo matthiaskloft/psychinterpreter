@@ -42,12 +42,12 @@ test_that("print.fa_interpretation validates max_line_length parameter", {
 
   expect_error(
     print(results, max_line_length = 10),
-    "must be between 20 and 200"
+    "must be between 20 and 300"
   )
 
   expect_error(
-    print(results, max_line_length = 250),
-    "must be between 20 and 200"
+    print(results, max_line_length = 350),
+    "must be between 20 and 300"
   )
 })
 

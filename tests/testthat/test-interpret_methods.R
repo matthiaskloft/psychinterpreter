@@ -25,15 +25,10 @@ test_that("interpret.fa works with psych::fa objects", {
 
   library(psych)
 
-  # Create simple factor analysis
-  data <- matrix(rnorm(100), ncol = 5)
-  colnames(data) <- paste0("var", 1:5)
+  # Use fixture with proper correlational structure (avoids FA warnings)
+  data <- correlational_data()
+  var_info <- correlational_var_info()
   fa_model <- fa(data, nfactors = 2, rotate = "oblimin", warnings = FALSE)
-
-  var_info <- data.frame(
-    variable = paste0("var", 1:5),
-    description = paste("Variable", 1:5)
-  )
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -42,6 +37,7 @@ test_that("interpret.fa works with psych::fa objects", {
                      variable_info = var_info,
                      llm_provider = provider,
                      llm_model = model,
+                     word_limit = 30,  # Reduced for token efficiency
                      silent = TRUE)
 
   # Check result structure
@@ -56,14 +52,10 @@ test_that("interpret.fa extracts factor correlations from oblique rotation", {
 
   library(psych)
 
-  data <- matrix(rnorm(100), ncol = 5)
-  colnames(data) <- paste0("var", 1:5)
+  # Use fixture with proper correlational structure (avoids FA warnings)
+  data <- correlational_data()
+  var_info <- correlational_var_info()
   fa_model <- fa(data, nfactors = 2, rotate = "oblimin", warnings = FALSE)
-
-  var_info <- data.frame(
-    variable = paste0("var", 1:5),
-    description = paste("Variable", 1:5)
-  )
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -72,6 +64,7 @@ test_that("interpret.fa extracts factor correlations from oblique rotation", {
                      variable_info = var_info,
                      llm_provider = provider,
                      llm_model = model,
+                     word_limit = 30,  # Reduced for token efficiency
                      silent = TRUE)
 
   # Should have factor correlations for oblique rotation
@@ -101,14 +94,10 @@ test_that("interpret.principal works with psych::principal objects", {
 
   library(psych)
 
-  data <- matrix(rnorm(100), ncol = 5)
-  colnames(data) <- paste0("var", 1:5)
+  # Use fixture with proper correlational structure (avoids FA warnings)
+  data <- correlational_data()
+  var_info <- correlational_var_info()
   pca_model <- principal(data, nfactors = 2, rotate = "varimax")
-
-  var_info <- data.frame(
-    variable = paste0("var", 1:5),
-    description = paste("Variable", 1:5)
-  )
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -117,6 +106,7 @@ test_that("interpret.principal works with psych::principal objects", {
                      variable_info = var_info,
                      llm_provider = provider,
                      llm_model = model,
+                     word_limit = 30,  # Reduced for token efficiency
                      silent = TRUE)
 
   # Check result structure
@@ -130,14 +120,10 @@ test_that("interpret.principal does not extract factor correlations", {
 
   library(psych)
 
-  data <- matrix(rnorm(100), ncol = 5)
-  colnames(data) <- paste0("var", 1:5)
+  # Use fixture with proper correlational structure (avoids FA warnings)
+  data <- correlational_data()
+  var_info <- correlational_var_info()
   pca_model <- principal(data, nfactors = 2, rotate = "varimax")
-
-  var_info <- data.frame(
-    variable = paste0("var", 1:5),
-    description = paste("Variable", 1:5)
-  )
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -146,6 +132,7 @@ test_that("interpret.principal does not extract factor correlations", {
                      variable_info = var_info,
                      llm_provider = provider,
                      llm_model = model,
+                     word_limit = 30,  # Reduced for token efficiency
                      silent = TRUE)
 
   # PCA should have NULL factor correlations (orthogonal)
@@ -336,14 +323,11 @@ test_that("all interpret methods return fa_interpretation objects", {
 
   library(psych)
 
-  data <- matrix(rnorm(100), ncol = 5)
-  colnames(data) <- paste0("var", 1:5)
-  fa_model <- fa(data, nfactors = 2, rotate = "oblimin", warnings = FALSE)
+  # Use fixture with proper correlational structure (avoids FA warnings)
+  data <- correlational_data()
+  var_info <- correlational_var_info()
 
-  var_info <- data.frame(
-    variable = paste0("var", 1:5),
-    description = paste("Variable", 1:5)
-  )
+  fa_model <- fa(data, nfactors = 2, rotate = "oblimin", warnings = FALSE)
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -352,6 +336,7 @@ test_that("all interpret methods return fa_interpretation objects", {
                      variable_info = var_info,
                      llm_provider = provider,
                      llm_model = model,
+                     word_limit = 30,  # Reduced for token efficiency
                      silent = TRUE)
 
   # Validate class

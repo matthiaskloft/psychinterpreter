@@ -72,6 +72,23 @@ minimal_factor_cor <- function() {
   readRDS(get_fixture_path("fixtures", "minimal_factor_cor.rds"))
 }
 
+# Correlational Data Fixtures (for S3 method testing) ----
+# These fixtures have proper correlational structure for psych/lavaan/mirt
+
+#' Load correlational data (for S3 method tests)
+#'
+#' @return A data frame with 6 variables having proper factor structure
+correlational_data <- function() {
+  readRDS(get_fixture_path("fixtures", "correlational_data.rds"))
+}
+
+#' Load correlational variable info (for S3 method tests)
+#'
+#' @return A data frame with variable descriptions for correlational data
+correlational_var_info <- function() {
+  readRDS(get_fixture_path("fixtures", "correlational_var_info.rds"))
+}
+
 # LLM Availability Functions ----
 
 #' Check if Ollama/LLM is available for testing

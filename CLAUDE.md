@@ -227,11 +227,18 @@ R/
 
 tests/testthat/
 ├── fixtures/
-│   ├── sample_loadings.rds         # Factor loadings fixture
-│   ├── sample_variable_info.rds    # Variable descriptions
-│   ├── sample_factor_cor.rds       # Correlation matrix
-│   ├── sample_interpretation.rds   # Complete interpretation object
-│   ├── make-fixtures.R             # Script to regenerate fixtures
+│   ├── sample_loadings.rds         # Standard: Factor loadings fixture
+│   ├── sample_variable_info.rds    # Standard: Variable descriptions
+│   ├── sample_factor_cor.rds       # Standard: Correlation matrix
+│   ├── sample_interpretation.rds   # Standard: Complete interpretation object
+│   ├── minimal_loadings.rds        # Minimal: Token-efficient loadings
+│   ├── minimal_variable_info.rds   # Minimal: Token-efficient var info
+│   ├── minimal_factor_cor.rds      # Minimal: Token-efficient correlation matrix
+│   ├── correlational_data.rds      # Correlational: Realistic FA data (100×6)
+│   ├── correlational_var_info.rds  # Correlational: Variable descriptions
+│   ├── make-fixtures.R             # Script to regenerate standard fixtures
+│   ├── make-minimal-fixtures.R     # Script to regenerate minimal fixtures
+│   ├── make-correlational-data.R   # Script to regenerate correlational fixtures
 │   └── README.md                   # Fixture documentation
 ├── helper.R                # Test helper functions (uses test_path())
 ├── test-chat_fa.R          # Chat session tests (18 tests)
@@ -429,6 +436,44 @@ All previously documented issues have been resolved:
   - `word_limit`: Changed minimum from 50 → 20 words (allows minimal testing)
   - `max_line_length`: Changed maximum from 200 → 300 characters (supports wide terminals)
   - Recommended ranges updated for better guidance (80-120 chars for readability)
+
+### Update 6: Correlational Fixtures for Realistic FA Testing (2025-11-03)
+
+**Problem Identified:**
+- Psych package tests were using random uncorrelated data (`matrix(rnorm(100), ncol=5)`)
+- Generated Heywood case warnings: "The estimated weights for the factor scores are probably incorrect"
+- Random data violates FA assumptions (requires correlational structure)
+
+**Solution Implemented:**
+- ✓ **Created correlational fixtures** with proper factor structure:
+  - `correlational_data.rds`: 6 variables × 100 observations with known 2-factor structure
+  - `correlational_var_info.rds`: Corresponding variable descriptions
+  - Generated using: FactorScores × Loadings' + Error method
+  - Factor 1 loads on var1-var3 (loadings: 0.80, 0.75, 0.70)
+  - Factor 2 loads on var4-var6 (loadings: 0.85, 0.75, 0.80)
+
+- ✓ **Updated all psych tests** to use correlational data:
+  - `test-interpret_methods.R:29, 59` - interpret.fa tests
+  - `test-interpret_methods.R:97, 126` - interpret.principal tests
+  - `test-interpret_methods.R:341` - S3 method class validation test
+  - All tests now include `word_limit = 30` for token efficiency
+
+- ✓ **Added helper functions** in `tests/testthat/helper.R`:
+  - `correlational_data()` - Loads correlational dataset
+  - `correlational_var_info()` - Loads variable descriptions
+  - Both use `get_fixture_path()` for portability
+
+- ✓ **Documented in fixtures/README.md**:
+  - Added "Correlational Data Fixtures" section
+  - Explained why random data causes problems
+  - Provided usage examples and regeneration instructions
+  - Updated file listing and organization
+
+**Benefits:**
+- Eliminates Heywood case warnings from test output
+- Tests use realistic data matching real-world FA scenarios
+- Validates that S3 methods work correctly with proper factor structure
+- Maintains token efficiency with `word_limit = 30`
 
 ## TODOs
 
