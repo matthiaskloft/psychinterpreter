@@ -80,12 +80,14 @@
 <h3 id="improvements-development-version">Improvements<a class="anchor" aria-label="anchor" href="#improvements-development-version"></a></h3>
 <div class="section level4">
 <h4 id="token-tracking-development-version">Token Tracking<a class="anchor" aria-label="anchor" href="#token-tracking-development-version"></a></h4>
-<ul><li>Implemented dual-tier token tracking system:
-<ul><li>Per-run tokens extracted from actual message content (accurate for all providers)</li>
-<li>Cumulative tokens with safe delta calculation (prevents negative accumulation)</li>
+<ul><li>Implemented dual-tier token tracking system using separate <code>get_tokens()</code> calls:
+<ul><li>Per-run tokens: Uses <code>include_system_prompt = FALSE</code> to extract actual message content (accurate for all providers)</li>
+<li>Cumulative tokens: Uses <code>include_system_prompt = TRUE</code> with safe delta calculation (prevents negative accumulation)</li>
 </ul></li>
 <li>Fixed issue where input tokens showed as 0 with Ollama provider</li>
+<li>Fixed issue where system prompt was incorrectly included in per-run token counts</li>
 <li>Added token usage display in reports and session summaries</li>
+<li>See <code>dev/token_tracking_fix_v3.md</code> for implementation details</li>
 </ul></div>
 <div class="section level4">
 <h4 id="chat-session-management-development-version">Chat Session Management<a class="anchor" aria-label="anchor" href="#chat-session-management-development-version"></a></h4>

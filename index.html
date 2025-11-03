@@ -120,15 +120,15 @@
 <span></span>
 <span><span class="co"># Create variable information</span></span>
 <span><span class="va">var_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">bfi.dictionary</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">bfi.dictionary</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">25</span>,<span class="op">]</span><span class="op">)</span>,</span>
 <span>  description <span class="op">=</span> <span class="va">bfi.dictionary</span><span class="op">$</span><span class="va">Item</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">]</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Interpret directly from model object</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">fa_result</span>,</span>
 <span>                     variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
-<span>                     llm_provider <span class="op">=</span> <span class="st">"openai"</span>,</span>
-<span>                     llm_model <span class="op">=</span> <span class="st">"gpt-4o-mini"</span><span class="op">)</span></span></code></pre></div>
+<span>                     llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>                     llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="manual-approach">Manual Approach<a class="anchor" aria-label="anchor" href="#manual-approach"></a>
@@ -142,7 +142,7 @@
 <span>  loadings <span class="op">=</span> <span class="va">loadings</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
 <span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>  llm_model <span class="op">=</span> <span class="st">"llama3.1:8b"</span></span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -151,12 +151,12 @@
 <p>Use persistent chat sessions to save tokens when analyzing multiple datasets:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create reusable chat session</span></span>
-<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_fa.html">chat_fa</a></span><span class="op">(</span><span class="st">"anthropic"</span>, <span class="st">"claude-haiku-4-5-20251001"</span><span class="op">)</span></span>
+<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_fa.html">chat_fa</a></span><span class="op">(</span><span class="st">"ollama"</span>, <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Run multiple interpretations</span></span>
-<span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings1</span>, <span class="va">var_info1</span>, chat_session <span class="op">=</span> <span class="va">chat</span><span class="op">)</span></span>
-<span><span class="va">result2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings2</span>, <span class="va">var_info2</span>, chat_session <span class="op">=</span> <span class="va">chat</span><span class="op">)</span></span>
-<span><span class="va">result3</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings3</span>, <span class="va">var_info3</span>, chat_session <span class="op">=</span> <span class="va">chat</span><span class="op">)</span></span>
+<span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings</span>, <span class="va">var_info</span>, chat_session <span class="op">=</span> <span class="va">chat</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">result2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings</span>, <span class="va">var_info</span>, chat_session <span class="op">=</span> <span class="va">chat</span><span class="op">)</span></span>
+<span><span class="va">result3</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings</span>, <span class="va">var_info</span>, chat_session <span class="op">=</span> <span class="va">chat</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Check token usage</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span></span></code></pre></div>
