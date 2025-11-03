@@ -104,6 +104,20 @@ chat_fa <- function(provider,
     )
   })
 
+  # Extract system prompt token count
+  # This represents the one-time cost of the system prompt for this chat session
+  system_prompt_tokens <- tryCatch({
+    tokens_df <- chat$get_tokens(include_system_prompt = TRUE)
+    if (nrow(tokens_df) > 0) {
+      # Sum all tokens (should only be system prompt at this point)
+      sum(tokens_df$tokens, na.rm = TRUE)
+    } else {
+      0L
+    }
+  }, error = function(e) {
+    0L
+  })
+
   # Create chat_fa object using environment for reference semantics
   # This allows modifications (like incrementing counters) to persist
   chat_obj <- new.env(parent = emptyenv())
@@ -119,6 +133,7 @@ chat_fa <- function(provider,
   # input tokens to be undercounted. Output tokens are typically accurate.
   chat_obj$total_input_tokens <- 0L
   chat_obj$total_output_tokens <- 0L
+  chat_obj$system_prompt_tokens <- system_prompt_tokens
 
   class(chat_obj) <- "chat_fa"
   return(chat_obj)
@@ -139,8 +154,11 @@ print.chat_fa <- function(x, ...) {
 
   # Show cumulative token usage from tracked fields
   # These are maintained separately to provide accurate cumulative counts
-  if (x$total_input_tokens > 0 || x$total_output_tokens > 0) {
+  if (x$total_input_tokens > 0 || x$total_output_tokens > 0 || x$system_prompt_tokens > 0) {
     cat("Total tokens - Input:", x$total_input_tokens, ", Output:", x$total_output_tokens, "\n")
+    if (x$system_prompt_tokens > 0) {
+      cat("System prompt tokens:", x$system_prompt_tokens, "\n")
+    }
   }
 
   invisible(x)

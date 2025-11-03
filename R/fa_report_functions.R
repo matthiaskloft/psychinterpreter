@@ -66,9 +66,11 @@ build_fa_report <- function(interpretation_results,
         tokens <- interpretation_results$run_tokens
       } else {
         # Fallback to chat object tokens (for backwards compatibility)
-        # Use include_system_prompt = FALSE for consistency with run_tokens
+        # Include system prompt based on session type: TRUE if temporary session, FALSE if persistent
+        # Default to TRUE for backwards compatibility with old results
+        include_sys <- !isTRUE(interpretation_results$used_chat_session)
         tokens <- tryCatch({
-          tokens_df <- chat$get_tokens(include_system_prompt = FALSE)
+          tokens_df <- chat$get_tokens(include_system_prompt = include_sys)
           if (nrow(tokens_df) > 0) {
             input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
             output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
@@ -277,8 +279,11 @@ build_fa_report <- function(interpretation_results,
         tokens <- interpretation_results$run_tokens
       } else {
         # Fallback to chat object tokens (for backwards compatibility)
+        # Include system prompt based on session type: TRUE if temporary session, FALSE if persistent
+        # Default to TRUE for backwards compatibility with old results
+        include_sys <- !isTRUE(interpretation_results$used_chat_session)
         tokens <- tryCatch({
-          tokens_df <- chat$get_tokens(include_system_prompt = TRUE)
+          tokens_df <- chat$get_tokens(include_system_prompt = include_sys)
           if (nrow(tokens_df) > 0) {
             input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
             output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)

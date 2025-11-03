@@ -1057,10 +1057,11 @@ interpret_fa <- function(loadings,
 
     # Try to extract per-message tokens for accurate per-run reporting
     # This is the preferred method as it handles cached system prompts correctly
-    # IMPORTANT: Use include_system_prompt = FALSE to get ONLY the user prompt tokens
-    # (without system prompt) for accurate per-run reporting
+    # IMPORTANT: Include system prompt for temporary sessions (new chat), exclude for persistent sessions
+    # - Temporary session (chat_session = NULL): System prompt IS part of this run's cost
+    # - Persistent session (chat_session provided): System prompt was sent previously
     tokens_per_message <- tryCatch({
-      chat$get_tokens(include_system_prompt = FALSE)
+      chat$get_tokens(include_system_prompt = is.null(chat_session))
     }, error = function(e) {
       NULL
     })
@@ -1323,6 +1324,7 @@ interpret_fa <- function(loadings,
   results$llm_info <- list(provider = llm_provider, model = chat$get_model())
   results$chat <- chat
   results$run_tokens <- list(input = run_input_tokens, output = run_output_tokens)
+  results$used_chat_session <- !is.null(chat_session)
   results$cross_loadings <- cross_loadings
   results$no_loadings <- no_loadings
   results$elapsed_time <- elapsed_time
