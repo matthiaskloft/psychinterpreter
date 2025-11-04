@@ -21,10 +21,11 @@
 #' This allows for efficient reuse across multiple factor analysis interpretations without
 #' resending the system prompt each time.
 #'
-#' **Token Tracking Note:** Cumulative token counts may be approximate for some providers
-#' (e.g., Ollama) that cache system prompts. Input tokens may be undercounted due to
-#' caching, while output tokens are typically accurate. Use `results$run_tokens` to access
-#' per-interpretation token counts.
+#' **Token Tracking Note:** System prompt tokens are captured on first use (when the first
+#' interpretation is run) because LLM providers don't send the system prompt until the first
+#' message exchange. Cumulative token counts may be approximate for some providers (e.g., Ollama)
+#' that cache system prompts. Input tokens may be undercounted due to caching, while output
+#' tokens are typically accurate. Use `results$run_tokens` to access per-interpretation token counts.
 #'
 #' @examples
 #' \dontrun{
@@ -104,20 +105,6 @@ chat_fa <- function(provider,
     )
   })
 
-  # Extract system prompt token count
-  # This represents the one-time cost of the system prompt for this chat session
-  system_prompt_tokens <- tryCatch({
-    tokens_df <- chat$get_tokens(include_system_prompt = TRUE)
-    if (nrow(tokens_df) > 0) {
-      # Sum all tokens (should only be system prompt at this point)
-      sum(tokens_df$tokens, na.rm = TRUE)
-    } else {
-      0L
-    }
-  }, error = function(e) {
-    0L
-  })
-
   # Create chat_fa object using environment for reference semantics
   # This allows modifications (like incrementing counters) to persist
   chat_obj <- new.env(parent = emptyenv())
@@ -133,7 +120,11 @@ chat_fa <- function(provider,
   # input tokens to be undercounted. Output tokens are typically accurate.
   chat_obj$total_input_tokens <- 0L
   chat_obj$total_output_tokens <- 0L
-  chat_obj$system_prompt_tokens <- system_prompt_tokens
+  # System prompt tokens will be captured on first use (when first message is sent)
+  # They cannot be extracted at initialization because ellmer doesn't count tokens
+  # until after the first API call
+  chat_obj$system_prompt_tokens <- 0L
+  chat_obj$system_prompt_captured <- FALSE
 
   class(chat_obj) <- "chat_fa"
   return(chat_obj)
@@ -202,6 +193,8 @@ reset.chat_fa <- function(chat_obj) {
   new_chat$n_interpretations <- 0L
   new_chat$total_input_tokens <- 0L
   new_chat$total_output_tokens <- 0L
+  new_chat$system_prompt_tokens <- 0L
+  new_chat$system_prompt_captured <- FALSE
 
   return(new_chat)
 }
