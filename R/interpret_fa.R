@@ -697,8 +697,8 @@ interpret_fa <- function(loadings,
       )
     }
 
-    # Use existing chat session
-    chat <- chat_session$chat
+    # Use existing chat session and ignore chat history
+    chat <- chat_session$chat$clone()$set_turns(list())
 
     # Increment interpretation counter (persists due to environment reference semantics)
     chat_session$n_interpretations <- chat_session$n_interpretations + 1L
@@ -999,23 +999,6 @@ interpret_fa <- function(loadings,
       " variables if no significant loadings\n"
     )
 
-
-    # Capture token state before LLM call for cumulative tracking
-    # Use include_system_prompt = TRUE to count system prompt in cumulative totals
-    tokens_before <- tryCatch({
-      tokens_df <- chat$get_tokens(include_system_prompt = TRUE)
-      if (nrow(tokens_df) > 0) {
-        list(
-          input = sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE),
-          output = sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
-        )
-      } else {
-        list(input = 0, output = 0)
-      }
-    }, error = function(e) {
-      list(input = 0, output = 0)
-    })
-
     # Get LLM response with error handling
     response <- tryCatch({
       chat$chat(prompt, echo = echo)
@@ -1023,115 +1006,6 @@ interpret_fa <- function(loadings,
       cli::cli_warn("Failed to get factor analysis: {e$message}")
       NULL
     })
-
-    # Capture token state after LLM call for cumulative tracking
-    # Use include_system_prompt = TRUE to count system prompt in cumulative totals
-    tokens_after <- tryCatch({
-      tokens_df <- chat$get_tokens(include_system_prompt = TRUE)
-      if (nrow(tokens_df) > 0) {
-        list(
-          input = sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE),
-          output = sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
-        )
-      } else {
-        list(input = 0, output = 0)
-      }
-    }, error = function(e) {
-      list(input = 0, output = 0)
-    })
-
-    # Calculate per-run token usage
-    # Two-tier token tracking to handle different provider behaviors:
-    # 1. Cumulative tracking: Use tokens WITH system prompt, calculate delta with max(0, ...)
-    #    to prevent negative accumulation when system prompts are cached
-    # 2. Per-run reporting: Use tokens WITHOUT system prompt to extract actual per-message
-    #    counts for accurate per-analysis reporting
-
-    # Calculate delta for cumulative tracking (prevents negative accumulation)
-    delta_input <- max(0, tokens_after$input - tokens_before$input)
-    delta_output <- max(0, tokens_after$output - tokens_before$output)
-
-    # Initialize per-run tokens (will be overridden if per-message data available)
-    run_input_tokens <- 0
-    run_output_tokens <- 0
-
-    # Try to extract per-message tokens for accurate per-run reporting
-    # This is the preferred method as it handles cached system prompts correctly
-    # IMPORTANT: Include system prompt for temporary sessions (new chat), exclude for persistent sessions
-    # - Temporary session (chat_session = NULL): System prompt IS part of this run's cost
-    # - Persistent session (chat_session provided): System prompt was sent previously
-    tokens_per_message <- tryCatch({
-      chat$get_tokens(include_system_prompt = is.null(chat_session))
-    }, error = function(e) {
-      NULL
-    })
-
-    if (!is.null(tokens_per_message) && nrow(tokens_per_message) > 0) {
-      # Try to get the most recent user and assistant message tokens
-      user_messages <- tokens_per_message[tokens_per_message$role == "user", ]
-      assistant_messages <- tokens_per_message[tokens_per_message$role == "assistant", ]
-
-      if (nrow(user_messages) > 0) {
-        # Get the last user message tokens (the prompt we just sent)
-        last_user_tokens <- user_messages$tokens[nrow(user_messages)]
-        if (!is.na(last_user_tokens) && last_user_tokens > 0) {
-          run_input_tokens <- last_user_tokens
-        }
-      }
-
-      if (nrow(assistant_messages) > 0) {
-        # Get the last assistant message tokens (the response we just received)
-        last_assistant_tokens <- assistant_messages$tokens[nrow(assistant_messages)]
-        if (!is.na(last_assistant_tokens) && last_assistant_tokens > 0) {
-          run_output_tokens <- last_assistant_tokens
-        }
-      }
-    }
-
-    # Fallback: If per-message extraction failed, use delta (may be 0 for cached prompts)
-    # Note: For local providers without token tracking, both methods may return 0
-    if (run_input_tokens == 0 && delta_input > 0) {
-      run_input_tokens <- delta_input
-    }
-    if (run_output_tokens == 0 && delta_output > 0) {
-      run_output_tokens <- delta_output
-    }
-
-    # Capture system prompt tokens on first use of persistent chat session
-    # This is done here because ellmer doesn't provide token counts until after
-    # the first API call (system prompt is sent with first message)
-    if (!is.null(chat_session) && !chat_session$system_prompt_captured) {
-      # Get total tokens including system prompt
-      tokens_with_system <- tryCatch({
-        tokens_df <- chat$get_tokens(include_system_prompt = TRUE)
-        if (nrow(tokens_df) > 0 && "role" %in% names(tokens_df)) {
-          # Sum tokens for system prompt (if available as separate role)
-          system_rows <- tokens_df[tokens_df$role == "system", ]
-          if (nrow(system_rows) > 0) {
-            sum(system_rows$tokens, na.rm = TRUE)
-          } else {
-            # If system prompt is bundled with first message, estimate from delta
-            # This is the difference between what we measured (delta_input) and
-            # what the per-message tracking showed (run_input_tokens)
-            max(0, delta_input - run_input_tokens)
-          }
-        } else {
-          0L
-        }
-      }, error = function(e) {
-        0L
-      })
-
-      chat_session$system_prompt_tokens <- tokens_with_system
-      chat_session$system_prompt_captured <- TRUE
-    }
-
-    # Update cumulative token counters if using persistent chat session
-    # Use delta values (with max(0, ...)) to prevent negative accumulation
-    if (!is.null(chat_session)) {
-      chat_session$total_input_tokens <- chat_session$total_input_tokens + delta_input
-      chat_session$total_output_tokens <- chat_session$total_output_tokens + delta_output
-    }
 
     # Parse hierarchical JSON response
     if (!is.null(response)) {
@@ -1300,6 +1174,15 @@ interpret_fa <- function(loadings,
   results$suggested_names <- suggested_names
   results$llm_info <- list(provider = llm_provider, model = chat$get_model())
   results$chat <- chat
+  # token tracking
+  tokens_df <- chat$get_tokens()
+  results$input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
+  results$output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
+  # if chat_session was used, increment total tokens
+  tokens_df <- chat$get_tokens()
+  chat_session$total_input_tokens <- chat_session$total_input_tokens + results$input_tokens
+  chat_session$total_output_tokens <- chat_session$total_output_tokens + results$output_tokens
+
 
   # ============================================================================
   # SECTION 8: OUTPUT FORMATTING AND COMPREHENSIVE REPORT GENERATION
@@ -1352,7 +1235,6 @@ interpret_fa <- function(loadings,
   results$suggested_names <- suggested_names
   results$llm_info <- list(provider = llm_provider, model = chat$get_model())
   results$chat <- chat
-  results$run_tokens <- list(input = run_input_tokens, output = run_output_tokens)
   results$used_chat_session <- !is.null(chat_session)
   results$cross_loadings <- cross_loadings
   results$no_loadings <- no_loadings

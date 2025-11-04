@@ -16,12 +16,11 @@
 #' @keywords internal
 #' @noRd
 build_fa_report <- function(interpretation_results,
-                             output_format = "text",
-                             heading_level = 1,
-                             n_factors,
-                             cutoff,
-                             suppress_heading = FALSE) {
-
+                            output_format = "text",
+                            heading_level = 1,
+                            n_factors,
+                            cutoff,
+                            suppress_heading = FALSE) {
   # Extract components from results
   factor_summaries <- interpretation_results$factor_summaries
   suggested_names <- interpretation_results$suggested_names
@@ -59,43 +58,28 @@ build_fa_report <- function(interpretation_results,
                        " - ",
                        chat$get_model(),
                        "  \n")
-      # Get token information - prefer per-run tokens if available
-      tokens <- NULL
-      if (!is.null(interpretation_results$run_tokens)) {
-        # Use per-run tokens (accurate for individual interpretations)
-        tokens <- interpretation_results$run_tokens
-      } else {
-        # Fallback to chat object tokens (for backwards compatibility)
-        # Include system prompt based on session type: TRUE if temporary session, FALSE if persistent
-        # Default to TRUE for backwards compatibility with old results
-        include_sys <- !isTRUE(interpretation_results$used_chat_session)
-        tokens <- tryCatch({
-          tokens_df <- chat$get_tokens(include_system_prompt = include_sys)
-          if (nrow(tokens_df) > 0) {
-            input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
-            output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
-            list(input = input_tokens, output = output_tokens)
-          } else {
-            NULL
-          }
-        }, error = function(e) {
-          NULL
-        })
-      }
 
-      if (!is.null(tokens) && !is.null(tokens$input) && !is.null(tokens$output)) {
-        # Ensure positive token counts for display
-        input_tokens <- abs(as.numeric(tokens$input))
-        output_tokens <- abs(as.numeric(tokens$output))
-        report <- paste0(report, "**Tokens:**  \n  Input: ", input_tokens, "  \n  Output: ", output_tokens, "  \n")
+
+      if (!is.null(interpretation_results$input_tokens) &&
+          !is.null(interpretation_results$output_tokens)) {
+        report <- paste0(
+          report,
+          "**Tokens:**  \n  Input: ",
+          interpretation_results$input_tokens,
+          "  \n  Output: ",
+          interpretation_results$output_tokens,
+          "  \n"
+        )
       }
     } else if (!is.null(llm_info)) {
-      report <- paste0(report,
-                       "**LLM used:** ",
-                       llm_info$provider,
-                       " - ",
-                       llm_info$model %||% "default",
-                       "  \n")
+      report <- paste0(
+        report,
+        "**LLM used:** ",
+        llm_info$provider,
+        " - ",
+        llm_info$model %||% "default",
+        "  \n"
+      )
     }
 
     report <- paste0(report, "\n", h2, " Suggested Factor Names\n\n")
@@ -115,8 +99,14 @@ build_fa_report <- function(interpretation_results,
     }
 
     # Add total variance explained
-    total_variance <- sum(sapply(factor_summaries, function(x) x$variance_explained))
-    report <- paste0(report, "\n**Total variance explained by all factors: ", round(total_variance * 100, 1), "%**\n")
+    total_variance <- sum(sapply(factor_summaries, function(x)
+      x$variance_explained))
+    report <- paste0(
+      report,
+      "\n**Total variance explained by all factors: ",
+      round(total_variance * 100, 1),
+      "%**\n"
+    )
 
     # Add factor correlations section if provided
     if (!is.null(factor_cor_mat)) {
@@ -138,11 +128,13 @@ build_fa_report <- function(interpretation_results,
           correlations <- c()
           for (j in 1:length(cor_factors)) {
             other_factor <- cor_factors[j]
-            if (other_factor != factor_name && other_factor %in% names(cor_df)) {
+            if (other_factor != factor_name &&
+                other_factor %in% names(cor_df)) {
               cor_val <- round(cor_df[[other_factor]][i], 2)
               cor_formatted <- sprintf("%.2f", cor_val)
               cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
-              correlations <- c(correlations, paste0(other_factor, " = ", cor_formatted))
+              correlations <- c(correlations,
+                                paste0(other_factor, " = ", cor_formatted))
             }
           }
           if (length(correlations) > 0) {
@@ -150,9 +142,23 @@ build_fa_report <- function(interpretation_results,
             if (length(correlations) > 3) {
               line1 <- paste(correlations[1:3], collapse = ", ")
               line2 <- paste(correlations[4:length(correlations)], collapse = ", ")
-              report <- paste0(report, "- **", factor_name, ":** ", line1, ",  \n  ", line2, "\n")
+              report <- paste0(report,
+                               "- **",
+                               factor_name,
+                               ":** ",
+                               line1,
+                               ",  \n  ",
+                               line2,
+                               "\n")
             } else {
-              report <- paste0(report, "- **", factor_name, ":** ", paste(correlations, collapse = ", "), "\n")
+              report <- paste0(
+                report,
+                "- **",
+                factor_name,
+                ":** ",
+                paste(correlations, collapse = ", "),
+                "\n"
+              )
             }
           }
         }
@@ -177,7 +183,8 @@ build_fa_report <- function(interpretation_results,
       report <- paste0(report, "\n\n")
 
       # Parse summary to insert factor correlations after "Variance explained" line
-      if (!is.null(factor_cor_mat) && factor_name %in% rownames(factor_cor_mat)) {
+      if (!is.null(factor_cor_mat) &&
+          factor_name %in% rownames(factor_cor_mat)) {
         # Convert matrix to dataframe if needed and get factor names
         if (is.matrix(factor_cor_mat)) {
           cor_df <- as.data.frame(factor_cor_mat)
@@ -192,12 +199,14 @@ build_fa_report <- function(interpretation_results,
           correlations <- c()
           for (j in 1:length(cor_factors)) {
             other_factor <- cor_factors[j]
-            if (other_factor != factor_name && other_factor %in% names(cor_df)) {
+            if (other_factor != factor_name &&
+                other_factor %in% names(cor_df)) {
               factor_idx <- which(rownames(cor_df) == factor_name)
               cor_val <- round(cor_df[[other_factor]][factor_idx], 2)
               cor_formatted <- sprintf("%.2f", cor_val)
               cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
-              correlations <- c(correlations, paste0(other_factor, " = ", cor_formatted))
+              correlations <- c(correlations,
+                                paste0(other_factor, " = ", cor_formatted))
             }
           }
           if (length(correlations) > 0) {
@@ -211,9 +220,13 @@ build_fa_report <- function(interpretation_results,
                 if (length(correlations) > 3) {
                   line1 <- paste(correlations[1:3], collapse = ", ")
                   line2 <- paste(correlations[4:length(correlations)], collapse = ", ")
-                  cor_line <- paste0("**Factor Correlations:** ", line1, ",  \n", line2)
+                  cor_line <- paste0("**Factor Correlations:** ",
+                                     line1,
+                                     ",  \n",
+                                     line2)
                 } else {
-                  cor_line <- paste0("**Factor Correlations:** ", paste(correlations, collapse = ", "))
+                  cor_line <- paste0("**Factor Correlations:** ",
+                                     paste(correlations, collapse = ", "))
                 }
                 modified_lines <- c(modified_lines, cor_line)
               }
@@ -227,9 +240,15 @@ build_fa_report <- function(interpretation_results,
       summary_md <- remaining_summary
 
       # Add proper markdown line breaks and bold formatting for key sections
-      summary_md <- gsub("(Number of significant loadings:) ([0-9]+)\\n", "**\\1** \\2  \n", summary_md)
-      summary_md <- gsub("(Variance explained:) ([0-9\\.]+%)\\n", "**\\1** \\2  \n", summary_md)
-      summary_md <- gsub("(\\*\\*Factor Correlations:\\*\\*[^\n]*)\\n", "\\1  \n\n", summary_md)
+      summary_md <- gsub("(Number of significant loadings:) ([0-9]+)\\n",
+                         "**\\1** \\2  \n",
+                         summary_md)
+      summary_md <- gsub("(Variance explained:) ([0-9\\.]+%)\\n",
+                         "**\\1** \\2  \n",
+                         summary_md)
+      summary_md <- gsub("(\\*\\*Factor Correlations:\\*\\*[^\n]*)\\n",
+                         "\\1  \n\n",
+                         summary_md)
 
       # Fix variables section - add proper spacing and formatting
       summary_md <- gsub("Variables:\\n", "\n\n**Variables:**\n\n", summary_md)
@@ -257,7 +276,8 @@ build_fa_report <- function(interpretation_results,
     if (!suppress_heading) {
       report <- "==========================================\n"
       report <- paste0(report, "FACTOR ANALYSIS INTERPRETATION\n")
-      report <- paste0(report, "==========================================\n\n")
+      report <- paste0(report,
+                       "==========================================\n\n")
     } else {
       report <- ""
     }
@@ -272,36 +292,19 @@ build_fa_report <- function(interpretation_results,
                        " - ",
                        chat$get_model(),
                        "\n")
-      # Get token information - prefer per-run tokens if available
-      tokens <- NULL
-      if (!is.null(interpretation_results$run_tokens)) {
-        # Use per-run tokens (accurate for individual interpretations)
-        tokens <- interpretation_results$run_tokens
-      } else {
-        # Fallback to chat object tokens (for backwards compatibility)
-        # Include system prompt based on session type: TRUE if temporary session, FALSE if persistent
-        # Default to TRUE for backwards compatibility with old results
-        include_sys <- !isTRUE(interpretation_results$used_chat_session)
-        tokens <- tryCatch({
-          tokens_df <- chat$get_tokens(include_system_prompt = include_sys)
-          if (nrow(tokens_df) > 0) {
-            input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
-            output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
-            list(input = input_tokens, output = output_tokens)
-          } else {
-            NULL
-          }
-        }, error = function(e) {
-          NULL
-        })
+
+      if (!is.null(interpretation_results$input_tokens) &&
+          !is.null(interpretation_results$output_tokens)) {
+        report <- paste0(
+          report,
+          "**Tokens:**  \n  Input: ",
+          interpretation_results$input_tokens,
+          "  \n  Output: ",
+          interpretation_results$output_tokens,
+          "  \n"
+        )
       }
 
-      if (!is.null(tokens) && !is.null(tokens$input) && !is.null(tokens$output)) {
-        # Ensure positive token counts for display
-        input_tokens <- abs(as.numeric(tokens$input))
-        output_tokens <- abs(as.numeric(tokens$output))
-        report <- paste0(report, "Tokens:\n  Input: ", input_tokens, "\n  Output: ", output_tokens, "\n")
-      }
     } else if (!is.null(llm_info)) {
       report <- paste0(report,
                        "LLM used: ",
@@ -329,8 +332,12 @@ build_fa_report <- function(interpretation_results,
     }
 
     # Add total variance explained
-    total_variance <- sum(sapply(factor_summaries, function(x) x$variance_explained))
-    report <- paste0(report, "\n\nTotal variance explained: ", round(total_variance * 100, 1), "%\n")
+    total_variance <- sum(sapply(factor_summaries, function(x)
+      x$variance_explained))
+    report <- paste0(report,
+                     "\n\nTotal variance explained: ",
+                     round(total_variance * 100, 1),
+                     "%\n")
 
     # Add factor correlations section if provided
     if (!is.null(factor_cor_mat)) {
@@ -353,15 +360,21 @@ build_fa_report <- function(interpretation_results,
           correlations <- c()
           for (j in 1:length(cor_factors)) {
             other_factor <- cor_factors[j]
-            if (other_factor != factor_name && other_factor %in% names(cor_df)) {
+            if (other_factor != factor_name &&
+                other_factor %in% names(cor_df)) {
               cor_val <- round(cor_df[[other_factor]][i], 2)
               cor_formatted <- sprintf("%.2f", cor_val)
               cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
-              correlations <- c(correlations, paste0(other_factor, " = ", cor_formatted))
+              correlations <- c(correlations,
+                                paste0(other_factor, " = ", cor_formatted))
             }
           }
           if (length(correlations) > 0) {
-            report <- paste0(report, factor_name, ": ", paste(correlations, collapse = ", "), "\n")
+            report <- paste0(report,
+                             factor_name,
+                             ": ",
+                             paste(correlations, collapse = ", "),
+                             "\n")
           }
         }
       }
@@ -385,7 +398,8 @@ build_fa_report <- function(interpretation_results,
       }
       # Parse summary to insert factor correlations after "Variance explained" line
       modified_summary <- remaining_summary
-      if (!is.null(factor_cor_mat) && factor_name %in% rownames(factor_cor_mat)) {
+      if (!is.null(factor_cor_mat) &&
+          factor_name %in% rownames(factor_cor_mat)) {
         # Convert matrix to dataframe if needed and get factor names
         if (is.matrix(factor_cor_mat)) {
           cor_df <- as.data.frame(factor_cor_mat)
@@ -400,12 +414,14 @@ build_fa_report <- function(interpretation_results,
           correlations <- c()
           for (j in 1:length(cor_factors)) {
             other_factor <- cor_factors[j]
-            if (other_factor != factor_name && other_factor %in% names(cor_df)) {
+            if (other_factor != factor_name &&
+                other_factor %in% names(cor_df)) {
               factor_idx <- which(rownames(cor_df) == factor_name)
               cor_val <- round(cor_df[[other_factor]][factor_idx], 2)
               cor_formatted <- sprintf("%.2f", cor_val)
               cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
-              correlations <- c(correlations, paste0(other_factor, " = ", cor_formatted))
+              correlations <- c(correlations,
+                                paste0(other_factor, " = ", cor_formatted))
             }
           }
           if (length(correlations) > 0) {
@@ -415,7 +431,8 @@ build_fa_report <- function(interpretation_results,
             for (line in summary_lines) {
               modified_lines <- c(modified_lines, line)
               if (grepl("^Variance explained:", line)) {
-                cor_line <- paste("Factor Correlations:", paste(correlations, collapse = ", "))
+                cor_line <- paste("Factor Correlations:",
+                                  paste(correlations, collapse = ", "))
                 modified_lines <- c(modified_lines, cor_line)
               }
             }
@@ -427,7 +444,9 @@ build_fa_report <- function(interpretation_results,
       # Apply text format line break fixes similar to markdown version
       if (!is.null(modified_summary)) {
         # Add line break after factor correlations
-        modified_summary <- gsub("(Factor Correlations:[^\n]*)\n", "\\1\n\n", modified_summary)
+        modified_summary <- gsub("(Factor Correlations:[^\n]*)\n",
+                                 "\\1\n\n",
+                                 modified_summary)
         # Ensure Variables section has proper spacing
         modified_summary <- gsub("Variables:\n", "\nVariables:\n", modified_summary)
         # Fix numbered list so each item is on its own line (already should be from original format)
@@ -470,9 +489,14 @@ build_fa_report <- function(interpretation_results,
       # Use description if available, otherwise fallback to variable name
       var_display <- if (!is.na(cross_loadings$description[j])) {
         if (output_format == "markdown") {
-          paste0("**", cross_loadings$variable[j], ":** ", cross_loadings$description[j])
+          paste0("**",
+                 cross_loadings$variable[j],
+                 ":** ",
+                 cross_loadings$description[j])
         } else {
-          paste0(cross_loadings$variable[j], ", ", cross_loadings$description[j])
+          paste0(cross_loadings$variable[j],
+                 ", ",
+                 cross_loadings$description[j])
         }
       } else {
         if (output_format == "markdown") {
@@ -495,26 +519,35 @@ build_fa_report <- function(interpretation_results,
   if (!is.null(no_loadings) && nrow(no_loadings) > 0) {
     if (output_format == "markdown") {
       report <- paste0(report, "\n", h2, " Variables Not Covered by Any Factor\n\n")
-      report <- paste0(report,
-                       "Variables with no absolute loadings >= ",
-                       cutoff,
-                       " (highest absolute loading shown):\n\n")
+      report <- paste0(
+        report,
+        "Variables with no absolute loadings >= ",
+        cutoff,
+        " (highest absolute loading shown):\n\n"
+      )
     } else {
       report <- paste0(report, "\n\nVARIABLES NOT COVERED BY ANY FACTOR:\n")
       report <- paste0(report, "=====================================\n\n")
-      report <- paste0(report,
-                       "Variables with no absolute loadings >= ",
-                       cutoff,
-                       " (highest absolute loading shown):\n")
+      report <- paste0(
+        report,
+        "Variables with no absolute loadings >= ",
+        cutoff,
+        " (highest absolute loading shown):\n"
+      )
     }
 
     for (j in 1:nrow(no_loadings)) {
       # Use description if available, otherwise fallback to variable name
       var_display <- if (!is.na(no_loadings$description[j])) {
         if (output_format == "markdown") {
-          paste0("**", no_loadings$variable[j], ":** ", no_loadings$description[j])
+          paste0("**",
+                 no_loadings$variable[j],
+                 ":** ",
+                 no_loadings$description[j])
         } else {
-          paste0(no_loadings$variable[j], ": ", no_loadings$description[j])
+          paste0(no_loadings$variable[j],
+                 ": ",
+                 no_loadings$description[j])
         }
       } else {
         if (output_format == "markdown") {
@@ -544,23 +577,45 @@ build_fa_report <- function(interpretation_results,
     if (output_format == "markdown") {
       # Try to insert after Tokens section, if not found try after LLM used line
       if (grepl("\\*\\*Tokens:\\*\\*", report)) {
-        report <- sub("(\\*\\*Tokens:\\*\\*  \n  Input: [0-9]+  \n  Output: [0-9]+  \n)",
-                      paste0("\\1**Elapsed time:** ", format(elapsed_time, digits = 3), "  \n\n"),
-                      report)
+        report <- sub(
+          "(\\*\\*Tokens:\\*\\*  \n  Input: [0-9]+  \n  Output: [0-9]+  \n)",
+          paste0(
+            "\\1**Elapsed time:** ",
+            format(elapsed_time, digits = 3),
+            "  \n\n"
+          ),
+          report
+        )
       } else {
-        report <- sub("(\\*\\*LLM used:\\*\\* [^\n]*  \n)",
-                      paste0("\\1**Elapsed time:** ", format(elapsed_time, digits = 3), "  \n\n"),
-                      report)
+        report <- sub(
+          "(\\*\\*LLM used:\\*\\* [^\n]*  \n)",
+          paste0(
+            "\\1**Elapsed time:** ",
+            format(elapsed_time, digits = 3),
+            "  \n\n"
+          ),
+          report
+        )
       }
     } else {
       # Try to insert after Tokens section, if not found try after LLM used line
       if (grepl("Tokens:", report)) {
-        report <- sub("(Tokens:\n  Input: [0-9]+\n  Output: [0-9]+\n)",
-                      paste0("\\1Elapsed time: ", format(elapsed_time, digits = 3), "\n\n"),
-                      report)
+        report <- sub(
+          "(Tokens:\n  Input: [0-9]+\n  Output: [0-9]+\n)",
+          paste0(
+            "\\1Elapsed time: ",
+            format(elapsed_time, digits = 3),
+            "\n\n"
+          ),
+          report
+        )
       } else {
         report <- sub("(LLM used: [^\n]*\n)",
-                      paste0("\\1Elapsed time: ", format(elapsed_time, digits = 3), "\n\n"),
+                      paste0(
+                        "\\1Elapsed time: ",
+                        format(elapsed_time, digits = 3),
+                        "\n\n"
+                      ),
                       report)
       }
     }
@@ -620,11 +675,11 @@ build_fa_report <- function(interpretation_results,
 #'
 #' @export
 print.fa_interpretation <- function(x,
-                                   max_line_length = 80,
-                                   output_format = NULL,
-                                   heading_level = 1,
-                                   suppress_heading = FALSE,
-                                   ...) {
+                                    max_line_length = 80,
+                                    output_format = NULL,
+                                    heading_level = 1,
+                                    suppress_heading = FALSE,
+                                    ...) {
   # Validate input
   if (!inherits(x, "fa_interpretation") || !is.list(x)) {
     cli::cli_abort(
@@ -632,14 +687,19 @@ print.fa_interpretation <- function(x,
     )
   }
 
-  if (!("report" %in% names(x)) && !("factor_summaries" %in% names(x))) {
+  if (!("report" %in% names(x)) &&
+      !("factor_summaries" %in% names(x))) {
     cli::cli_abort(
-      c("fa_interpretation object must contain 'report' or 'factor_summaries' component", "i" = "This should be the output from interpret_fa()")
+      c(
+        "fa_interpretation object must contain 'report' or 'factor_summaries' component",
+        "i" = "This should be the output from interpret_fa()"
+      )
     )
   }
 
   # Validate max_line_length parameter
-  if (!is.numeric(max_line_length) || length(max_line_length) != 1) {
+  if (!is.numeric(max_line_length) ||
+      length(max_line_length) != 1) {
     cli::cli_abort(
       c("{.var max_line_length} must be a single numeric value", "x" = "You supplied: {.val {max_line_length}}")
     )
@@ -658,7 +718,10 @@ print.fa_interpretation <- function(x,
   if (!is.null(output_format)) {
     if (!is.character(output_format) || length(output_format) != 1) {
       cli::cli_abort(
-        c("{.var output_format} must be a single character string", "x" = "You supplied: {.val {output_format}}")
+        c(
+          "{.var output_format} must be a single character string",
+          "x" = "You supplied: {.val {output_format}}"
+        )
       )
     }
     if (!output_format %in% c("text", "markdown")) {
@@ -678,7 +741,8 @@ print.fa_interpretation <- function(x,
       c("{.var heading_level} must be a single numeric value", "x" = "You supplied: {.val {heading_level}}")
     )
   }
-  if (heading_level < 1 || heading_level > 6 || heading_level != as.integer(heading_level)) {
+  if (heading_level < 1 ||
+      heading_level > 6 || heading_level != as.integer(heading_level)) {
     cli::cli_abort(
       c(
         "{.var heading_level} must be an integer between 1 and 6",

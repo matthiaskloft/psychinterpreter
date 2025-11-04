@@ -35,10 +35,11 @@ The chat_fa object stores:
 This allows for efficient reuse across multiple factor analysis interpretations without
 resending the system prompt each time.
 
-\strong{Token Tracking Note:} Cumulative token counts may be approximate for some providers
-(e.g., Ollama) that cache system prompts. Input tokens may be undercounted due to
-caching, while output tokens are typically accurate. Use \code{results$run_tokens} to access
-per-interpretation token counts.
+\strong{Token Tracking Note:} System prompt tokens are captured on first use (when the first
+interpretation is run) because LLM providers don't send the system prompt until the first
+message exchange. Cumulative token counts may be approximate for some providers (e.g., Ollama)
+that cache system prompts. Input tokens may be undercounted due to caching, while output
+tokens are typically accurate. Use \code{results$run_tokens} to access per-interpretation token counts.
 }
 \examples{
 \dontrun{

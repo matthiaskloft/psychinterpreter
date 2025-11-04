@@ -296,6 +296,10 @@ Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
   
 ## TODOs
 
+- I fixed the token tracking manually
+  - check docs and commenting, and tests
+  - system_prompt tokens are not shown correctly by ellmer. This seems to be a bug. We will ignore them in our tracking for now. Document this.
+  
 - prepare package class system for future classes which may include "gm" (gaussian mixture model), "irt" (item response theory), and "cdm" (cognitive diagnosis models)
   - analyze potential refactoring and modularization of existing codebase to improve maintainability and scalability
   - rename and refactor code base

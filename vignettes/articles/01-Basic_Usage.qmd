@@ -33,6 +33,7 @@ We'll test all major features of psychinterpreter including:
 packages <- c(
   "psychinterpreter",
   "ellmer",
+  "ollamar",
   "psych",
   "lavaan",
   "mirt",
@@ -109,9 +110,15 @@ round(factor_cor_mat, 2)
 
 
 ## Chat Setup
-Set up persistent chat session
+Set up persistent chat session. If you use Ollama, make sure to start the server befor running this.
 
 ```{r test-chat-sessions}
+# test the connection to the Ollama server
+#ollamar::test_connection()
+
+# optionally pull the model from ollama
+#ollamar::pull("gpt-oss:20b-cloud")
+
 chat <- chat_fa(
   provider = "ollama",
   model = "gpt-oss:20b-cloud", echo = "all",
@@ -120,6 +127,8 @@ chat <- chat_fa(
 )
 
 print(chat)
+
+chat$chat$get_tokens(include_system_prompt = T)
 ```
 
 ## Interpreting Factor Analysis Results
@@ -139,29 +148,29 @@ We now generate factor interpretations using the specified LLM:
 ```{r}
 #| output: asis
 
+word_limit <-  50
 result <- interpret_fa(
-    loadings = loadings_matrix,
+    chat_session = chat,
+  loadings = loadings_matrix,
   variable_info = variable_info,
   cutoff = 0.3,
   n_emergency = 2,
   additional_info = NULL,
   factor_cor_mat = factor_cor_mat,
   sort_loadings = TRUE,
-  word_limit = 100,
+  word_limit =  word_limit,
   max_line_length = 80,
   silent = FALSE,
   echo = "none",
   output_format = "markdown",
   heading_level = 2,
-  suppress_heading = TRUE,
-  chat_session = chat
+  suppress_heading = TRUE
 )
 ```
 
 Let's check the global token usage tracked by the chat:
 ```{r usage1}
 print(chat)
-chat$chat$get_system_prompt()
 ```
 
 Plot the loading matrix with factor names:
@@ -196,7 +205,7 @@ interpret(
   variable_info = variable_info,
   cutoff = 0.3,
   chat_session = chat,
-  word_limit = 100,
+  word_limit =  word_limit,
   heading_level = 3,
   suppress_heading = TRUE,
   output_format = "markdown"
@@ -215,7 +224,7 @@ interpret(
   variable_info = variable_info,
   cutoff = 0.3,
   chat_session = chat,
-  word_limit = 100,
+  word_limit =  word_limit,
   heading_level = 3,
   suppress_heading = TRUE,
   output_format = "markdown"
@@ -242,7 +251,7 @@ interpret(
   variable_info = variable_info,
   cutoff = 0.3,
   chat_session = chat,
-  word_limit = 100,
+  word_limit =  word_limit,
   output_format = "markdown",
   heading_level = 3,
   suppress_heading = TRUE
@@ -266,7 +275,7 @@ interpret(
   variable_info = variable_info,
   cutoff = 0.3,
   chat_session = chat,
-  word_limit = 100,
+  word_limit =  word_limit,
   heading_level = 3,
   suppress_heading = TRUE,
   output_format = "markdown"

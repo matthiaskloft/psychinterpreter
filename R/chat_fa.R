@@ -104,7 +104,7 @@ chat_fa <- function(provider,
       )
     )
   })
-
+  #chat$chat('Respond with "Ready"')
   # Create chat_fa object using environment for reference semantics
   # This allows modifications (like incrementing counters) to persist
   chat_obj <- new.env(parent = emptyenv())
@@ -115,16 +115,8 @@ chat_fa <- function(provider,
   chat_obj$echo <- echo
   chat_obj$created_at <- Sys.time()
   chat_obj$n_interpretations <- 0L
-  # Token counters: Track cumulative usage across interpretations
-  # Note: Some providers (e.g., Ollama) cache system prompts, which may cause
-  # input tokens to be undercounted. Output tokens are typically accurate.
-  chat_obj$total_input_tokens <- 0L
-  chat_obj$total_output_tokens <- 0L
-  # System prompt tokens will be captured on first use (when first message is sent)
-  # They cannot be extracted at initialization because ellmer doesn't count tokens
-  # until after the first API call
-  chat_obj$system_prompt_tokens <- 0L
-  chat_obj$system_prompt_captured <- FALSE
+  chat_obj$total_input_tokens <- 0
+  chat_obj$total_output_tokens <- 0
 
   class(chat_obj) <- "chat_fa"
   return(chat_obj)
@@ -145,12 +137,14 @@ print.chat_fa <- function(x, ...) {
 
   # Show cumulative token usage from tracked fields
   # These are maintained separately to provide accurate cumulative counts
-  if (x$total_input_tokens > 0 || x$total_output_tokens > 0 || x$system_prompt_tokens > 0) {
-    cat("Total tokens - Input:", x$total_input_tokens, ", Output:", x$total_output_tokens, "\n")
-    if (x$system_prompt_tokens > 0) {
-      cat("System prompt tokens:", x$system_prompt_tokens, "\n")
-    }
-  }
+
+  cat(
+    "Total tokens - Input:",
+    x$total_input_tokens,
+    ", Output:",
+    x$total_output_tokens,
+    "\n"
+  )
 
   invisible(x)
 }
@@ -191,10 +185,6 @@ reset.chat_fa <- function(chat_obj) {
   new_chat$created_at <- chat_obj$created_at
   # Reset counters and token tracking
   new_chat$n_interpretations <- 0L
-  new_chat$total_input_tokens <- 0L
-  new_chat$total_output_tokens <- 0L
-  new_chat$system_prompt_tokens <- 0L
-  new_chat$system_prompt_captured <- FALSE
 
   return(new_chat)
 }
