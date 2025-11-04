@@ -114,7 +114,7 @@ Set up persistent chat session
 ```{r test-chat-sessions}
 chat <- chat_fa(
   provider = "ollama",
-  model = "gpt-oss:20b-cloud",
+  model = "gpt-oss:20b-cloud", echo = "all",
   # set temperature and seed for reproducibility
   params = params(temperature = 0, seed = 42)
 )
@@ -128,7 +128,7 @@ Create variable information dataframe from BFI dictionary
 ```{r test-basic-interpretation}
 variable_info <- data.frame(
   variable = rownames(bfi.dictionary),
-  description = bfi.dictionary$Item,
+  description = as.character(bfi.dictionary$Item),
   stringsAsFactors = FALSE
 )
 
@@ -161,6 +161,7 @@ result <- interpret_fa(
 Let's check the global token usage tracked by the chat:
 ```{r usage1}
 print(chat)
+chat$chat$get_system_prompt()
 ```
 
 Plot the loading matrix with factor names:

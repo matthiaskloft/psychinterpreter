@@ -295,6 +295,11 @@ Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
 - prepare package class system for future classes which may include "gm" (gaussian mixture model), "irt" (item response theory), and "cdm" (cognitive diagnosis models)
   - analyze potential refactoring and modularization of existing codebase to improve maintainability and scalability
   - rename and refactor code base
+  
+## Known Issues
+
+- system_prompt seem not to be passed at initialization. tokens are therefore not tracked
+
 
 ## Version & License
 
