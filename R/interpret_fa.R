@@ -1097,6 +1097,35 @@ interpret_fa <- function(loadings,
       run_output_tokens <- delta_output
     }
 
+    # Capture system prompt tokens on first use of persistent chat session
+    # This is done here because ellmer doesn't provide token counts until after
+    # the first API call (system prompt is sent with first message)
+    if (!is.null(chat_session) && !chat_session$system_prompt_captured) {
+      # Get total tokens including system prompt
+      tokens_with_system <- tryCatch({
+        tokens_df <- chat$get_tokens(include_system_prompt = TRUE)
+        if (nrow(tokens_df) > 0 && "role" %in% names(tokens_df)) {
+          # Sum tokens for system prompt (if available as separate role)
+          system_rows <- tokens_df[tokens_df$role == "system", ]
+          if (nrow(system_rows) > 0) {
+            sum(system_rows$tokens, na.rm = TRUE)
+          } else {
+            # If system prompt is bundled with first message, estimate from delta
+            # This is the difference between what we measured (delta_input) and
+            # what the per-message tracking showed (run_input_tokens)
+            max(0, delta_input - run_input_tokens)
+          }
+        } else {
+          0L
+        }
+      }, error = function(e) {
+        0L
+      })
+
+      chat_session$system_prompt_tokens <- tokens_with_system
+      chat_session$system_prompt_captured <- TRUE
+    }
+
     # Update cumulative token counters if using persistent chat session
     # Use delta values (with max(0, ...)) to prevent negative accumulation
     if (!is.null(chat_session)) {

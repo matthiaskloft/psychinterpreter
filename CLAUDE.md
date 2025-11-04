@@ -273,8 +273,12 @@ Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
 - `heading_level`: For markdown hierarchy
 - `suppress_heading`: For embedding in documents
 
-## Recent Key Updates (2025-11-03)
+## Recent Key Updates
 
+### 2025-11-04
+- ✓ **System prompt token tracking**: Fixed token tracking for persistent chat sessions. System prompt tokens are now correctly captured on first use (when first message is sent) rather than at initialization. Added `system_prompt_captured` flag to track whether tokens have been extracted.
+
+### 2025-11-03
 - ✓ **Token tracking fix**: Dual-tier system prevents negative accumulation
 - ✓ **S3 method system**: `interpret()` generic for psych/lavaan/mirt packages
 - ✓ **Export simplification**: Only txt/md formats (removed CSV/JSON/RDS)
@@ -298,7 +302,7 @@ Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
   
 ## Known Issues
 
-- system_prompt seem not to be passed at initialization. tokens are therefore not tracked
+None currently.
 
 
 ## Version & License
