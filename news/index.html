@@ -66,7 +66,7 @@
 </ul></div>
 <div class="section level4">
 <h4 id="export--utilities-development-version">Export &amp; Utilities<a class="anchor" aria-label="anchor" href="#export--utilities-development-version"></a></h4>
-<ul><li>Added <code><a href="../reference/export_interpretation.html">export_interpretation()</a></code> supporting CSV, JSON, RDS, and TXT formats</li>
+<ul><li>Added <code><a href="../reference/export_interpretation.html">export_interpretation()</a></code> supporting txt and md formats</li>
 <li>Implemented <code><a href="../reference/find_cross_loadings.html">find_cross_loadings()</a></code> to detect variables with multiple significant loadings</li>
 <li>Implemented <code><a href="../reference/find_no_loadings.html">find_no_loadings()</a></code> to detect orphaned variables</li>
 </ul></div>
@@ -100,6 +100,11 @@
 <ul><li>Added comprehensive roxygen2 documentation for all exported functions</li>
 <li>Created getting started vignette (<code>vignettes/articles/01-Basic_Usage.qmd</code>)</li>
 <li>Added CLAUDE.md with detailed developer guidance</li>
+</ul></div>
+<div class="section level4">
+<h4 id="user-messaging-development-version">User Messaging<a class="anchor" aria-label="anchor" href="#user-messaging-development-version"></a></h4>
+<ul><li>Changed word limit exceedance notification from <code>cli_warn()</code> to <code>cli_inform()</code> (less intrusive for testing and automated workflows)</li>
+<li>Improved messaging clarity with structured format showing expected vs. actual word counts</li>
 </ul></div>
 <div class="section level4">
 <h4 id="package-infrastructure-development-version">Package Infrastructure<a class="anchor" aria-label="anchor" href="#package-infrastructure-development-version"></a></h4>

@@ -50,179 +50,100 @@
 
 <div id="claudemd" class="section level1">
 
-<p>This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</p>
+<p>This file provides guidance to Claude Code when working with the <strong>psychinterpreter</strong> R package.</p>
 <div class="section level2">
 <h2 id="package-overview">Package Overview<a class="anchor" aria-label="anchor" href="#package-overview"></a></h2>
-<p><strong>psychinterpreter</strong> is an R package that automates the interpretation of exploratory factor analysis (EFA) and cluster analysis results using Large Language Models (LLMs) via the <code>ellmer</code> package. It interfaces with various LLM providers (OpenAI, Anthropic, Ollama, Gemini, Azure) to generate human-readable factor names and interpretations based on loading patterns and variable descriptions.</p>
+<p><strong>psychinterpreter</strong> automates interpretation of exploratory factor analysis (EFA) results using Large Language Models via the <code>ellmer</code> package. It interfaces with OpenAI, Anthropic, Ollama, Gemini, and Azure to generate human-readable factor names and interpretations.</p>
 </div>
 <div class="section level2">
 <h2 id="core-architecture">Core Architecture<a class="anchor" aria-label="anchor" href="#core-architecture"></a></h2>
 <div class="section level3">
 <h3 id="llm-powered-interpretation-pipeline">LLM-Powered Interpretation Pipeline<a class="anchor" aria-label="anchor" href="#llm-powered-interpretation-pipeline"></a></h3>
-<p>The package uses a sophisticated multi-stage pipeline:</p>
 <ol style="list-style-type: decimal"><li>
 <strong>Factor Analysis Preparation</strong> (R/fa_utilities.R):
-<ul><li>Analyzes factor loadings against configurable cutoffs</li>
+<ul><li>Analyzes loadings against configurable cutoffs</li>
 <li>Identifies significant loadings per factor</li>
 <li>Applies “emergency rule” for weak factors (uses top N variables if none exceed cutoff)</li>
 <li>Detects cross-loadings and orphaned variables</li>
 </ul></li>
 <li>
-<strong>Prompt Engineering &amp; LLM Communication</strong> (R/interpret_fa.R):
+<strong>LLM Communication</strong> (R/interpret_fa.R, ~1350 lines):
 <ul><li>Constructs structured prompts with psychometric context</li>
-<li>Uses compact vector format for efficient token usage</li>
-<li>Processes ALL factors in a single LLM call (batch processing optimization)</li>
+<li>Processes ALL factors in a single LLM call (batch optimization)</li>
 <li>Includes factor correlations for oblique rotations</li>
-<li>Supports persistent chat sessions via <code>chat_fa</code> objects to avoid resending system prompts</li>
+<li>Supports persistent chat sessions via <code>chat_fa</code> objects to save tokens</li>
 </ul></li>
 <li>
 <strong>Report Generation</strong> (R/fa_report_functions.R):
-<ul><li>Builds comprehensive reports in text or markdown format</li>
-<li>Includes factor interpretations, cross-loadings, and diagnostic information</li>
-<li>Configurable heading levels for document integration</li>
+<ul><li>Builds reports in text or markdown format</li>
+<li>Includes interpretations, cross-loadings, and diagnostics</li>
 <li>Text wrapping for console output</li>
 </ul></li>
 </ol></div>
 <div class="section level3">
 <h3 id="persistent-chat-sessions">Persistent Chat Sessions<a class="anchor" aria-label="anchor" href="#persistent-chat-sessions"></a></h3>
-<p>Key innovation for cost/efficiency optimization:</p>
-<ul><li>
-<strong><code>chat_fa</code> objects</strong> (R/chat_fa.R): Reusable LLM sessions that preserve system prompt</li>
-<li>Single analysis: Creates temporary session</li>
-<li>Multiple analyses: Create one <code>chat_fa</code>, pass to multiple <code><a href="reference/interpret_fa.html">interpret_fa()</a></code> calls</li>
-<li>Saves ~500+ tokens per additional analysis by not resending system prompt</li>
-</ul></div>
+<p><strong>Key innovation</strong>: <code>chat_fa</code> objects (R/chat_fa.R) are reusable LLM sessions that preserve the system prompt. - Single analysis: Creates temporary session - Multiple analyses: Create one <code>chat_fa</code>, pass to multiple <code><a href="reference/interpret_fa.html">interpret_fa()</a></code> calls - Saves ~500+ tokens per additional analysis</p>
+</div>
 <div class="section level3">
-<h3 id="key-design-patterns">Key Design Patterns<a class="anchor" aria-label="anchor" href="#key-design-patterns"></a></h3>
-<p><strong>Single Responsibility</strong>: Each R file handles one aspect: - <code>interpret_fa.R</code>: Main interpretation logic and LLM coordination - <code>chat_fa.R</code>: Chat session management - <code>fa_utilities.R</code>: Data analysis utilities (cross-loadings, no-loadings detection) - <code>utils.R</code>: Text processing helpers (word counting, text wrapping) - <code>fa_report_functions.R</code>: Report building and formatting - <code>export_functions.R</code>: Multi-format export (CSV, JSON, RDS, TXT) - <code>visualization.R</code>: S3 plot method and ggplot2-based heatmap visualizations</p>
-<p><strong>S3 Methods</strong>: Package implements custom methods for standard R generics: - <code><a href="reference/print.fa_interpretation.html">print.fa_interpretation()</a></code>: Formatted console output with text wrapping - <code><a href="reference/print.chat_fa.html">print.chat_fa()</a></code>: Session info and token usage display - <code><a href="reference/plot.fa_interpretation.html">plot.fa_interpretation()</a></code>: Factor loading heatmap visualization - Backward-compatible wrappers: <code><a href="reference/create_factor_plot.html">create_factor_plot()</a></code> calls <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method</p>
-<p><strong>Provider Abstraction</strong>: Uses <code>ellmer</code> package’s unified interface for LLM providers. Switch providers by changing parameters, not code.</p>
-<p><strong>Structured Output</strong>: LLM returns JSON with factor names as keys, parsed with fallback extraction methods for robustness.</p>
+<h3 id="s3-methods-for-common-fa-packages">S3 Methods for Common FA Packages<a class="anchor" aria-label="anchor" href="#s3-methods-for-common-fa-packages"></a></h3>
+<p>The <code><a href="reference/interpret.html">interpret()</a></code> generic (R/interpret_methods.R) auto-extracts loadings from: - <code><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">psych::fa()</a></code> and <code><a href="https://rdrr.io/pkg/psych/man/principal.html" class="external-link">psych::principal()</a></code> results - <code><a href="https://rdrr.io/pkg/lavaan/man/cfa.html" class="external-link">lavaan::cfa()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/sem.html" class="external-link">lavaan::sem()</a></code>, and <code><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">lavaan::efa()</a></code> results - <code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt::mirt()</a></code> results</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="common-development-commands">Common Development Commands<a class="anchor" aria-label="anchor" href="#common-development-commands"></a></h2>
+<h2 id="key-implementation-details">Key Implementation Details<a class="anchor" aria-label="anchor" href="#key-implementation-details"></a></h2>
 <div class="section level3">
-<h3 id="building--checking">Building &amp; Checking<a class="anchor" aria-label="anchor" href="#building--checking"></a></h3>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Generate documentation from roxygen2 comments</span></span>
-<span><span class="fu">roxygen2</span><span class="fu">::</span><span class="fu"><a href="https://roxygen2.r-lib.org/reference/roxygenize.html" class="external-link">roxygenise</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Run R CMD check</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">check</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Install package locally</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Load for development</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="testing">Testing<a class="anchor" aria-label="anchor" href="#testing"></a></h3>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Run all tests</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">test</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Run specific test file</span></span>
-<span><span class="fu">testthat</span><span class="fu">::</span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_file.html" class="external-link">test_file</a></span><span class="op">(</span><span class="st">"tests/testthat/test-interpret_fa.R"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a></h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Build package documentation</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">document</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Preview help for function</span></span>
-<span><span class="op">?</span><span class="va">interpret_fa</span></span></code></pre></div>
-</div>
-</div>
-<div class="section level2">
-<h2 id="llm-provider-configuration">LLM Provider Configuration<a class="anchor" aria-label="anchor" href="#llm-provider-configuration"></a></h2>
-<p>API keys must be set as environment variables before using the package:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># OpenAI</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>OPENAI_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Anthropic</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>ANTHROPIC_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># For Ollama (local), no key needed</span></span></code></pre></div>
-<p>Provider-specific chat initialization handled by <code>ellmer</code> package through switch statement in interpret_fa.R:587-766.</p>
-</div>
-<div class="section level2">
-<h2 id="important-implementation-details">Important Implementation Details<a class="anchor" aria-label="anchor" href="#important-implementation-details"></a></h2>
-<div class="section level3">
-<h3 id="json-parsing-strategy-interpret_far1015-1161">JSON Parsing Strategy (interpret_fa.R:1015-1161)<a class="anchor" aria-label="anchor" href="#json-parsing-strategy-interpret_far1015-1161"></a></h3>
-<p>Multi-tiered fallback approach for robust LLM response handling: 1. Try parsing cleaned JSON (remove extra text, fix formatting issues) 2. Fall back to original response 3. Pattern-based extraction if JSON parsing fails 4. Default values if all methods fail</p>
-<p>Critical for handling small/local models that may produce imperfect JSON.</p>
+<h3 id="emergency-rule-logic">Emergency Rule Logic<a class="anchor" aria-label="anchor" href="#emergency-rule-logic"></a></h3>
+<p>If a factor has zero loadings above cutoff: - Uses top <code>n_emergency</code> highest absolute loadings instead - Clearly marked with WARNING in output - Prevents empty factor interpretations</p>
 </div>
 <div class="section level3">
 <h3 id="word-limit-enforcement">Word Limit Enforcement<a class="anchor" aria-label="anchor" href="#word-limit-enforcement"></a></h3>
-<p>The package targets 80-100% of <code>word_limit</code> parameter for interpretations: - System prompt includes explicit word targets - Post-processing validates and warns if exceeded - Helper function <code><a href="reference/count_words.html">count_words()</a></code> in utils.R</p>
+<p>Targets 80-100% of <code>word_limit</code> parameter: - System prompt includes explicit word targets - Post-processing validates and <strong>informs</strong> (via <code><a href="https://cli.r-lib.org/reference/cli_abort.html" class="external-link">cli::cli_inform()</a></code>) if exceeded - Helper function <code><a href="reference/count_words.html">count_words()</a></code> in utils.R - <strong>Note</strong>: Changed from warning to message (2025-11-03) to reduce test noise</p>
 </div>
 <div class="section level3">
-<h3 id="factor-correlation-integration">Factor Correlation Integration<a class="anchor" aria-label="anchor" href="#factor-correlation-integration"></a></h3>
-<p>When <code>factor_cor_mat</code> provided (for oblique rotations): - Included in LLM prompt for relationship context - Helps LLM understand discriminant vs. convergent validity - Displayed in report sections (both summary and per-factor)</p>
+<h3 id="json-parsing-strategy">JSON Parsing Strategy<a class="anchor" aria-label="anchor" href="#json-parsing-strategy"></a></h3>
+<p>Multi-tiered fallback for robust LLM response handling: 1. Try parsing cleaned JSON (remove extra text, fix formatting) 2. Fall back to original response 3. Pattern-based extraction if JSON parsing fails 4. Default values if all methods fail</p>
+<p>Critical for handling small/local models with imperfect JSON output.</p>
 </div>
 <div class="section level3">
-<h3 id="emergency-rule-logic-interpret_far600-617">Emergency Rule Logic (interpret_fa.R:600-617)<a class="anchor" aria-label="anchor" href="#emergency-rule-logic-interpret_far600-617"></a></h3>
-<p>If a factor has zero loadings above cutoff: - Uses top <code>n_emergency</code> highest absolute loadings instead - Clearly marked in output with WARNING - Prevents empty factor interpretations</p>
+<h3 id="system-prompt-synchronization">System Prompt Synchronization<a class="anchor" aria-label="anchor" href="#system-prompt-synchronization"></a></h3>
+<p>The psychometric expert system prompt is defined in <strong>TWO locations</strong>: - <code>interpret_fa.R</code> (lines ~294-330): Single-use sessions - <code>chat_fa.R</code> (lines ~57-73): Persistent sessions</p>
+<p><strong>CRITICAL</strong>: Keep both prompts synchronized when making changes.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="exported-functions-and-methods">Exported Functions and Methods<a class="anchor" aria-label="anchor" href="#exported-functions-and-methods"></a></h2>
+<p><strong>9 exported functions:</strong> - <code><a href="reference/interpret_fa.html">interpret_fa()</a></code> - Core factor interpretation with LLM - <code><a href="reference/interpret.html">interpret()</a></code> - S3 generic for common FA packages - <code><a href="reference/chat_fa.html">chat_fa()</a></code>, <code><a href="reference/is.chat_fa.html">is.chat_fa()</a></code>, <code><a href="reference/reset.chat_fa.html">reset.chat_fa()</a></code> - Session management - <code><a href="reference/find_cross_loadings.html">find_cross_loadings()</a></code>, <code><a href="reference/find_no_loadings.html">find_no_loadings()</a></code> - Diagnostic utilities - <code><a href="reference/export_interpretation.html">export_interpretation()</a></code> - Export to txt/md formats - <code><a href="reference/create_factor_plot.html">create_factor_plot()</a></code> - Plotting wrapper</p>
+<p><strong>10 S3 methods:</strong> - <code><a href="reference/interpret.fa.html">interpret.fa()</a></code>, <code><a href="reference/interpret.principal.html">interpret.principal()</a></code>, <code><a href="reference/interpret.lavaan.html">interpret.lavaan()</a></code>, <code><a href="reference/interpret.efaList.html">interpret.efaList()</a></code>, <code><a href="reference/interpret.SingleGroupClass.html">interpret.SingleGroupClass()</a></code>, <code>interpret.psych()</code>, <code>interpret.default()</code> - <code><a href="reference/print.fa_interpretation.html">print.fa_interpretation()</a></code>, <code><a href="reference/print.chat_fa.html">print.chat_fa()</a></code> - <code><a href="reference/plot.fa_interpretation.html">plot.fa_interpretation()</a></code></p>
+</div>
+<div class="section level2">
+<h2 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a></h2>
+<p><strong>Imports (required):</strong> - <code>ellmer</code> - LLM communication - <code>dplyr</code>, <code>tidyr</code> - Data manipulation - <code>ggplot2</code> - Visualization - <code>cli</code> - User messaging - <code>jsonlite</code> - JSON parsing</p>
+<p><strong>Suggests (optional):</strong> - <code>psych</code>, <code>lavaan</code>, <code>mirt</code> - For S3 method support - <code>testthat</code> - Testing framework - <code>knitr</code>, <code>rmarkdown</code> - Vignettes</p>
 </div>
 <div class="section level2">
 <h2 id="code-style-conventions">Code Style Conventions<a class="anchor" aria-label="anchor" href="#code-style-conventions"></a></h2>
 <ul><li>
 <strong>Roxygen2 documentation</strong>: Required for all exported functions</li>
 <li>
-<strong>Examples limit</strong>: Maximum 2 examples per function in documentation</li>
+<strong>Explicit namespacing</strong>: Use <code>package::function()</code> (e.g., <code><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">dplyr::mutate()</a></code>)</li>
 <li>
-<strong>Explicit namespacing</strong>: Use <code>package::function()</code> notation (e.g., <code><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">dplyr::mutate()</a></code>)</li>
+<strong>CLI messaging</strong>: Use <code>cli</code> package (<code>cli_alert_info</code>, <code>cli_abort</code>, <code>cli_inform</code>)</li>
 <li>
-<strong>CLI messaging</strong>: Use <code>cli</code> package for user-facing messages (cli_alert_info, cli_abort, cli_warn)</li>
+<strong>Pipe operator</strong>: Base R <code>|&gt;</code> (not magrittr <code>%&gt;%</code>)</li>
 <li>
-<strong>Pipe operator</strong>: Uses base R <code>|&gt;</code> pipe (not magrittr <code>%&gt;%</code>)</li>
-<li>
-<strong>Parameter validation</strong>: Extensive validation with informative error messages at function start</li>
+<strong>Parameter validation</strong>: Extensive validation with informative errors at function start</li>
 </ul></div>
 <div class="section level2">
-<h2 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a></h2>
-<div class="section level3">
-<h3 id="imports-required">Imports (Required)<a class="anchor" aria-label="anchor" href="#imports-required"></a></h3>
-<ul><li>
-<code>ellmer</code>: LLM communication layer</li>
-<li>
-<code>dplyr</code>, <code>tidyr</code>: Data manipulation</li>
-<li>
-<code>cli</code>: User messaging</li>
-<li>
-<code>jsonlite</code>: JSON parsing</li>
-</ul></div>
-<div class="section level3">
-<h3 id="suggests-optional">Suggests (Optional)<a class="anchor" aria-label="anchor" href="#suggests-optional"></a></h3>
-<ul><li>
-<code>ggplot2</code>: Visualization (plot() method and create_factor_plot())</li>
-<li>
-<code>testthat</code>: Testing framework</li>
-</ul></div>
-</div>
-<div class="section level2">
-<h2 id="exported-functions">Exported Functions<a class="anchor" aria-label="anchor" href="#exported-functions"></a></h2>
-<p>The package exports 12 functions plus 3 S3 methods:</p>
-<p><strong>Main Functions:</strong> - <code><a href="reference/interpret_fa.html">interpret_fa()</a></code> - Core factor interpretation with LLM - <code><a href="reference/chat_fa.html">chat_fa()</a></code> - Create persistent chat session - <code><a href="reference/is.chat_fa.html">is.chat_fa()</a></code> - Check if object is chat_fa - <code><a href="reference/reset.chat_fa.html">reset.chat_fa()</a></code> - Reset chat session</p>
-<p><strong>Utilities:</strong> - <code><a href="reference/find_cross_loadings.html">find_cross_loadings()</a></code> - Detect cross-loading variables - <code><a href="reference/find_no_loadings.html">find_no_loadings()</a></code> - Detect variables with no significant loadings - <code><a href="reference/export_interpretation.html">export_interpretation()</a></code> - Export results to multiple formats - <code><a href="reference/create_factor_plot.html">create_factor_plot()</a></code> - Standalone plotting function (wrapper)</p>
-<p><strong>S3 Methods:</strong> - <code><a href="reference/print.fa_interpretation.html">print.fa_interpretation()</a></code> - Print interpretation results - <code><a href="reference/print.chat_fa.html">print.chat_fa()</a></code> - Print chat session info - <code><a href="reference/plot.fa_interpretation.html">plot.fa_interpretation()</a></code> - Visualize factor loadings</p>
-</div>
-<div class="section level2">
-<h2 id="testing-strategy">Testing Strategy<a class="anchor" aria-label="anchor" href="#testing-strategy"></a></h2>
-<p>The package has comprehensive test coverage (162 tests) following <a href="https://r-pkgs.org/testing-design.html" class="external-link">R Packages 2e</a> best practices:</p>
-<p><strong>Test Structure:</strong> - Uses <code>testthat 3.0</code> framework with edition 3 features - Fixtures stored in <code>tests/testthat/fixtures/</code> as <code>.rds</code> files - Helper functions in <code>tests/testthat/helper.R</code> use <code>test_path()</code> for portability - All LLM-requiring tests skip automatically on CI (GitHub Actions)</p>
-<p><strong>Test Coverage:</strong> - <code>test-chat_fa.R</code> (18 tests): Chat session management and token tracking - <code>test-export_functions.R</code> (28 tests): Export to txt/md formats, path handling - <code>test-fa_utilities.R</code> (16 tests): Cross-loading and no-loading detection - <code>test-interpret_fa.R</code> (23 tests): Core interpretation logic, emergency rules - <code>test-interpret_methods.R</code> (22 tests): S3 methods for psych/lavaan/mirt - <code>test-print_methods.R</code> (31 tests): Print methods for fa_interpretation and chat_fa - <code>test-visualization.R</code> (24 tests): Plot methods and heatmap generation</p>
-<p><strong>Key Features:</strong> - Fixtures avoid LLM calls in most tests (fast, deterministic) - Proper temporary file cleanup with <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile()</a></code> + <code><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink()</a></code> - CI environment detection skips tests requiring local services - Comprehensive validation of edge cases and error handling</p>
+<h2 id="testing">Testing<a class="anchor" aria-label="anchor" href="#testing"></a></h2>
+<p><strong>70 tests</strong> across 7 files following <a href="https://r-pkgs.org/testing-design.html" class="external-link">R Packages 2e</a> best practices:</p>
+<p><strong>Test files:</strong> - <code>test-chat_fa.R</code> - Chat session management and token tracking - <code>test-export_functions.R</code> - Export to txt/md formats - <code>test-fa_utilities.R</code> - Cross-loading and no-loading detection - <code>test-interpret_fa.R</code> - Core interpretation logic, emergency rules - <code>test-interpret_methods.R</code> - S3 methods for psych/lavaan/mirt - <code>test-print_methods.R</code> - Print methods - <code>test-visualization.R</code> - Plot methods and heatmap generation</p>
+<p><strong>Test infrastructure:</strong> - Uses <code>testthat 3.0</code> framework - Fixtures stored in <code>tests/testthat/fixtures/</code> as <code>.rds</code> files - Helper functions in <code>helper.R</code> use <code>test_path()</code> for portability - LLM-requiring tests skip automatically on CI (GitHub Actions) - Token-efficient fixtures: <code>minimal_*</code> fixtures use <code>word_limit = 20</code> (minimum allowed)</p>
+<p><strong>Three fixture sets:</strong> 1. <strong>Standard fixtures</strong>: 5 variables × 3 factors (~400-500 tokens) 2. <strong>Minimal fixtures</strong>: 3 variables × 2 factors (~150-200 tokens, 60-70% reduction) 3. <strong>Correlational fixtures</strong>: Realistic FA data with proper factor structure (eliminates Heywood case warnings)</p>
 </div>
 <div class="section level2">
 <h2 id="file-organization">File Organization<a class="anchor" aria-label="anchor" href="#file-organization"></a></h2>
 <pre><code>R/
-├── interpret_fa.R          # Main interpretation function (~1270 lines)
+├── interpret_fa.R          # Main interpretation function (~1350 lines)
 ├── chat_fa.R               # Persistent chat session management
 ├── interpret_methods.R     # S3 methods for psych/lavaan/mirt
 ├── fa_utilities.R          # Cross-loading &amp; no-loading detection
@@ -232,236 +153,165 @@
 └── visualization.R         # S3 plot method and heatmap creation
 
 tests/testthat/
-├── fixtures/
-│   ├── sample_loadings.rds         # Standard: Factor loadings fixture
-│   ├── sample_variable_info.rds    # Standard: Variable descriptions
-│   ├── sample_factor_cor.rds       # Standard: Correlation matrix
-│   ├── sample_interpretation.rds   # Standard: Complete interpretation object
-│   ├── minimal_loadings.rds        # Minimal: Token-efficient loadings
-│   ├── minimal_variable_info.rds   # Minimal: Token-efficient var info
-│   ├── minimal_factor_cor.rds      # Minimal: Token-efficient correlation matrix
-│   ├── correlational_data.rds      # Correlational: Realistic FA data (100×6)
-│   ├── correlational_var_info.rds  # Correlational: Variable descriptions
-│   ├── make-fixtures.R             # Script to regenerate standard fixtures
-│   ├── make-minimal-fixtures.R     # Script to regenerate minimal fixtures
-│   ├── make-correlational-data.R   # Script to regenerate correlational fixtures
-│   └── README.md                   # Fixture documentation
-├── helper.R                # Test helper functions (uses test_path())
-├── test-chat_fa.R          # Chat session tests (18 tests)
-├── test-export_functions.R # Export format tests (28 tests)
-├── test-fa_utilities.R     # Utility function tests (16 tests)
-├── test-interpret_fa.R     # Core interpretation tests (23 tests)
-├── test-interpret_methods.R # S3 method tests (22 tests)
-├── test-print_methods.R    # Print method tests (31 tests)
-└── test-visualization.R    # Plotting tests (24 tests)
-
-dev/
-└── PACKAGE_MIGRATION_PLAN.md  # Historical migration documentation
-
-vignettes/
-└── articles/
-    └── 01-Basic_Usage.qmd   # Example usage with BFI dataset</code></pre>
+├── fixtures/               # Test data as .rds files
+│   ├── sample_*.rds        # Standard fixtures (5 vars × 3 factors)
+│   ├── minimal_*.rds       # Token-efficient fixtures (3 vars × 2 factors)
+│   ├── correlational_*.rds # Realistic FA data (6 vars × 2 factors)
+│   └── make-*.R            # Regeneration scripts
+├── helper.R                # Test helper functions
+└── test-*.R                # 7 test files (70 tests total)</code></pre>
+</div>
+<div class="section level2">
+<h2 id="common-development-commands">Common Development Commands<a class="anchor" aria-label="anchor" href="#common-development-commands"></a></h2>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Documentation</span></span>
+<span><span class="fu">roxygen2</span><span class="fu">::</span><span class="fu"><a href="https://roxygen2.r-lib.org/reference/roxygenize.html" class="external-link">roxygenise</a></span><span class="op">(</span><span class="op">)</span>       <span class="co"># Generate docs from roxygen2 comments</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">document</a></span><span class="op">(</span><span class="op">)</span>         <span class="co"># Alternative</span></span>
+<span></span>
+<span><span class="co"># Testing</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">test</a></span><span class="op">(</span><span class="op">)</span>             <span class="co"># Run all tests</span></span>
+<span><span class="fu">testthat</span><span class="fu">::</span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_file.html" class="external-link">test_file</a></span><span class="op">(</span><span class="st">"tests/testthat/test-interpret_fa.R"</span><span class="op">)</span>  <span class="co"># Single file</span></span>
+<span></span>
+<span><span class="co"># Checking</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">check</a></span><span class="op">(</span><span class="op">)</span>            <span class="co"># Run R CMD check</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># Install locally</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="op">)</span>         <span class="co"># Load for development</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="common-workflows">Common Workflows<a class="anchor" aria-label="anchor" href="#common-workflows"></a></h2>
 <div class="section level3">
-<h3 id="visualizing-factor-analysis-results">Visualizing Factor Analysis Results<a class="anchor" aria-label="anchor" href="#visualizing-factor-analysis-results"></a></h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get interpretation results</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings</span>, <span class="va">variable_info</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<h3 id="using-s3-methods-with-fa-packages">Using S3 Methods with FA Packages<a class="anchor" aria-label="anchor" href="#using-s3-methods-with-fa-packages"></a></h3>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># psych package</span></span>
+<span><span class="va">fa_result</span> <span class="op">&lt;-</span> <span class="fu">psych</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">fa</a></span><span class="op">(</span><span class="va">data</span>, nfactors <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">interpretation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">fa_result</span>,</span>
+<span>                           variable_info <span class="op">=</span> <span class="va">var_descriptions</span>,</span>
+<span>                           llm_provider <span class="op">=</span> <span class="st">"anthropic"</span>,</span>
+<span>                           llm_model <span class="op">=</span> <span class="st">"claude-haiku-4-5-20251001"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Use S3 plot method (recommended)</span></span>
+<span><span class="co"># lavaan package</span></span>
+<span><span class="va">efa_result</span> <span class="op">&lt;-</span> <span class="fu">lavaan</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">efa</a></span><span class="op">(</span><span class="va">data</span>, nfactors <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">interpretation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">efa_result</span>, variable_info <span class="op">=</span> <span class="va">var_descriptions</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># mirt package</span></span>
+<span><span class="va">mirt_result</span> <span class="op">&lt;-</span> <span class="fu">mirt</span><span class="fu">::</span><span class="fu"><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt</a></span><span class="op">(</span><span class="va">data</span>, <span class="fl">2</span>, itemtype <span class="op">=</span> <span class="st">"2PL"</span><span class="op">)</span></span>
+<span><span class="va">interpretation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mirt_result</span>, variable_info <span class="op">=</span> <span class="va">var_descriptions</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="visualizing-results">Visualizing Results<a class="anchor" aria-label="anchor" href="#visualizing-results"></a></h3>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get interpretation</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings</span>, <span class="va">variable_info</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Plot with S3 method (recommended)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Or use backward-compatible function</span></span>
+<span><span class="co"># Or use backward-compatible wrapper</span></span>
 <span><span class="fu"><a href="reference/create_factor_plot.html">create_factor_plot</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Save plot</span></span>
-<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="fu">ggsave</span><span class="op">(</span><span class="st">"loadings.png"</span>, <span class="va">p</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Customize plot</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="co"># Save and customize</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Custom Title"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.y <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.y <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">ggsave</span><span class="op">(</span><span class="st">"loadings.png"</span>, <span class="va">p</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="adding-new-llm-provider-support">Adding New LLM Provider Support<a class="anchor" aria-label="anchor" href="#adding-new-llm-provider-support"></a></h3>
-<ol style="list-style-type: decimal"><li>
-<code>ellmer</code> package handles provider abstraction - no changes needed to psychinterpreter</li>
-<li>Users simply specify provider name and model in function calls</li>
-</ol></div>
-<div class="section level3">
-<h3 id="modifying-system-prompt">Modifying System Prompt<a class="anchor" aria-label="anchor" href="#modifying-system-prompt"></a></h3>
-<p>The psychometric expert system prompt is defined in TWO locations: - <code>interpret_fa.R:294-330</code> (single-use sessions) - <code>chat_fa.R:57-73</code> (persistent sessions)</p>
-<p><strong>CRITICAL</strong>: Keep both prompts synchronized when making changes.</p>
-</div>
-<div class="section level3">
-<h3 id="adding-new-output-formats">Adding New Output Formats<a class="anchor" aria-label="anchor" href="#adding-new-output-formats"></a></h3>
-<ol style="list-style-type: decimal"><li>Add format to <code><a href="reference/export_interpretation.html">export_interpretation()</a></code> switch statement (export_functions.R:93)</li>
-<li>Implement format-specific export logic</li>
-<li>Update function documentation with new format description</li>
-</ol></div>
-<div class="section level3">
-<h3 id="extending-report-formats">Extending Report Formats<a class="anchor" aria-label="anchor" href="#extending-report-formats"></a></h3>
-<p>Report generation in <code>build_fa_report()</code> (fa_report_functions.R:18) supports: - <code>output_format</code>: “text” or “markdown” - <code>heading_level</code>: For markdown hierarchy integration - <code>suppress_heading</code>: For embedding in existing documents</p>
-<p>Add new formats by extending the conditional logic at line 39 (markdown) and 244 (text).</p>
+<h3 id="token-efficient-multi-analysis-workflow">Token-Efficient Multi-Analysis Workflow<a class="anchor" aria-label="anchor" href="#token-efficient-multi-analysis-workflow"></a></h3>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create persistent session (saves system prompt)</span></span>
+<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_fa.html">chat_fa</a></span><span class="op">(</span><span class="st">"anthropic"</span>, <span class="st">"claude-haiku-4-5-20251001"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Interpret multiple analyses</span></span>
+<span><span class="va">results1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings1</span>, <span class="va">var_info1</span>, chat_session <span class="op">=</span> <span class="va">chat</span><span class="op">)</span></span>
+<span><span class="va">results2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings2</span>, <span class="va">var_info2</span>, chat_session <span class="op">=</span> <span class="va">chat</span><span class="op">)</span></span>
+<span><span class="va">results3</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings3</span>, <span class="va">var_info3</span>, chat_session <span class="op">=</span> <span class="va">chat</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Check token usage</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span>  <span class="co"># Shows cumulative tokens and n_interpretations</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="debugging-tips">Debugging Tips<a class="anchor" aria-label="anchor" href="#debugging-tips"></a></h2>
-<div class="section level3">
-<h3 id="enable-llm-promptresponse-visibility">Enable LLM Prompt/Response Visibility<a class="anchor" aria-label="anchor" href="#enable-llm-promptresponse-visibility"></a></h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">...</span>, echo <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span>  <span class="co"># Shows prompts and responses</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="check-token-usage">Check Token Usage<a class="anchor" aria-label="anchor" href="#check-token-usage"></a></h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_fa.html">chat_fa</a></span><span class="op">(</span><span class="st">"anthropic"</span>, <span class="st">"claude-haiku-4-5-20251001"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Enable LLM prompt/response visibility</span></span>
+<span><span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">...</span>, echo <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Check token usage</span></span>
+<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_fa.html">chat_fa</a></span><span class="op">(</span><span class="st">"anthropic"</span>, <span class="st">"claude-haiku-4-5-20251001"</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">...</span>, chat_session <span class="op">=</span> <span class="va">chat</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span>  <span class="co"># Displays token counts</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span>  <span class="co"># Displays token counts</span></span>
+<span></span>
+<span><span class="co"># Validate JSON parsing</span></span>
+<span><span class="co"># Look for messages about word limit exceedances or JSON parsing issues</span></span></code></pre></div>
 </div>
+<div class="section level2">
+<h2 id="llm-provider-configuration">LLM Provider Configuration<a class="anchor" aria-label="anchor" href="#llm-provider-configuration"></a></h2>
+<p>API keys must be set as environment variables:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>OPENAI_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span>      <span class="co"># OpenAI</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>ANTHROPIC_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span>   <span class="co"># Anthropic</span></span>
+<span><span class="co"># Ollama (local): no key needed</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="extending-the-package">Extending the Package<a class="anchor" aria-label="anchor" href="#extending-the-package"></a></h2>
 <div class="section level3">
-<h3 id="validate-json-response-parsing">Validate JSON Response Parsing<a class="anchor" aria-label="anchor" href="#validate-json-response-parsing"></a></h3>
-<p>Look for warnings from interpret_fa.R:1044 about batch JSON parsing failures. Consider using larger models if small models produce invalid JSON.</p>
+<h3 id="adding-new-output-formats-to-export_interpretation">Adding New Output Formats to export_interpretation()<a class="anchor" aria-label="anchor" href="#adding-new-output-formats-to-export_interpretation"></a></h3>
+<ol style="list-style-type: decimal"><li>Add format to switch statement (export_functions.R:~93)</li>
+<li>Implement format-specific logic</li>
+<li>Update documentation</li>
+</ol></div>
+<div class="section level3">
+<h3 id="modifying-report-formats">Modifying Report Formats<a class="anchor" aria-label="anchor" href="#modifying-report-formats"></a></h3>
+<p>Report generation in <code>build_fa_report()</code> (fa_report_functions.R:~18) supports: - <code>output_format</code>: “text” or “markdown” - <code>heading_level</code>: For markdown hierarchy - <code>suppress_heading</code>: For embedding in documents</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="version-history">Version History<a class="anchor" aria-label="anchor" href="#version-history"></a></h2>
-<ul><li>
-<strong>0.0.0.9000</strong>: Development version</li>
-<li>R version requirement: &gt;= 4.1.0</li>
+<h2 id="recent-key-updates">Recent Key Updates<a class="anchor" aria-label="anchor" href="#recent-key-updates"></a></h2>
+<div class="section level3">
+<h3 id="id_2025-11-04">2025-11-04<a class="anchor" aria-label="anchor" href="#id_2025-11-04"></a></h3>
+<ul><li>✓ <strong>System prompt token tracking</strong>: Fixed token tracking for persistent chat sessions. System prompt tokens are now correctly captured on first use (when first message is sent) rather than at initialization. Added <code>system_prompt_captured</code> flag to track whether tokens have been extracted.</li>
 </ul></div>
+<div class="section level3">
+<h3 id="id_2025-11-03">2025-11-03<a class="anchor" aria-label="anchor" href="#id_2025-11-03"></a></h3>
+<ul><li>✓ <strong>Token tracking fix</strong>: Dual-tier system prevents negative accumulation</li>
+<li>✓ <strong>S3 method system</strong>: <code><a href="reference/interpret.html">interpret()</a></code> generic for psych/lavaan/mirt packages</li>
+<li>✓ <strong>Export simplification</strong>: Only txt/md formats (removed CSV/JSON/RDS)</li>
+<li>✓ <strong>Test fixtures</strong>: Three sets (standard, minimal, correlational) for comprehensive testing</li>
+<li>✓ <strong>Word limit messaging</strong>: Changed from <code>cli_warn()</code> to <code>cli_inform()</code> for less noise</li>
+<li>✓ <strong>Parameter limits relaxed</strong>: <code>word_limit</code> minimum 20→20, <code>max_line_length</code> max 200→300</li>
+</ul></div>
+</div>
 <div class="section level2">
-<h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a></h2>
-<p>MIT + file LICENSE</p>
-</div>
-<div class="section level2">
-<h2 id="recent-updates-2025-11-02">Recent Updates (2025-11-02)<a class="anchor" aria-label="anchor" href="#recent-updates-2025-11-02"></a></h2>
-<div class="section level3">
-<h3 id="update-1-core-issues-resolved">Update 1: Core Issues Resolved<a class="anchor" aria-label="anchor" href="#update-1-core-issues-resolved"></a></h3>
-<p>All previously documented issues have been resolved:</p>
-<ul><li>✓ <strong>Token tracking</strong>: Fixed input token counting by using separate <code>get_tokens()</code> calls with different <code>include_system_prompt</code> parameters for cumulative vs. per-run reporting (see <code>dev/token_tracking_fix_v3.md</code>)</li>
-<li>✓ <strong>Parameter conflicts</strong>: Added informative message when <code>chat_session</code> overrides <code>llm_provider</code>/<code>llm_model</code> arguments</li>
-<li>✓ <strong>Formatting issues</strong>:
-<ul><li>Fixed literal “n” appearing instead of newlines in reports (e.g., “5 nVariance” → “5”)</li>
-<li>Fixed leading zero inconsistency for negative numbers (e.g., “-0.18” → “-.18” to match “.45” format)</li>
-</ul></li>
-<li>✓ <strong>Test infrastructure</strong>: Added comprehensive test suite in <code>tests/testthat/</code> directory</li>
-<li>✓ <strong>Export functions</strong>: Simplified to support only <code>.txt</code> and <code>.md</code> formats with smart extension handling</li>
-</ul></div>
-<div class="section level3">
-<h3 id="update-2-s3-methods-and-api-refinements">Update 2: S3 Methods and API Refinements<a class="anchor" aria-label="anchor" href="#update-2-s3-methods-and-api-refinements"></a></h3>
-<p><strong>New Features:</strong> - ✓ <strong>S3 method system</strong>: Created <code><a href="reference/interpret.html">interpret()</a></code> generic with methods for common FA packages (R/interpret_methods.R) - <code>interpret.psych.fa()</code> - Handles <code><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">psych::fa()</a></code> results - <code>interpret.psych.principal()</code> - Handles <code><a href="https://rdrr.io/pkg/psych/man/principal.html" class="external-link">psych::principal()</a></code> results - <code><a href="reference/interpret.lavaan.html">interpret.lavaan()</a></code> - Handles <code>lavaan::cfa()/sem()</code> results - <code><a href="reference/interpret.efaList.html">interpret.efaList()</a></code> - Handles <code><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">lavaan::efa()</a></code> results - <code><a href="reference/interpret.SingleGroupClass.html">interpret.SingleGroupClass()</a></code> - Handles <code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt::mirt()</a></code> results - All methods auto-extract loadings and factor correlations from model objects</p>
-<p><strong>API Changes:</strong> - ✓ <strong>Reordered <code><a href="reference/interpret_fa.html">interpret_fa()</a></code> arguments</strong>: More logical parameter order with frequently-used args first - <code>loadings, variable_info, factor_cor_mat, chat_session, llm_provider, llm_model, params, cutoff, n_emergency, sort_loadings, additional_info, word_limit, output_format, heading_level, suppress_heading, max_line_length, silent, echo</code> - ✓ <strong>Removed <code>suppress_small</code> parameter</strong>: Delegated to downstream formatting functions for cleaner separation of concerns</p>
-<p><strong>Utility Functions:</strong> - ✓ <strong>Optional <code>factor_cols</code> parameter</strong>: <code><a href="reference/find_cross_loadings.html">find_cross_loadings()</a></code> and <code><a href="reference/find_no_loadings.html">find_no_loadings()</a></code> now auto-detect factor columns when not provided - ✓ <strong>Added <code>silent</code> parameter to <code><a href="reference/export_interpretation.html">export_interpretation()</a></code></strong>: Suppresses success messages for testing</p>
-<p><strong>Dependencies:</strong> - ✓ <strong>Updated DESCRIPTION</strong>: Added psych, lavaan, mirt to Suggests for S3 method support</p>
-</div>
-<div class="section level3">
-<h3 id="update-3-test-fixture-fix-2025-11-02">Update 3: Test Fixture Fix (2025-11-02)<a class="anchor" aria-label="anchor" href="#update-3-test-fixture-fix-2025-11-02"></a></h3>
-<p><strong>Bug Fix:</strong> - ✓ <strong>Fixed test fixture data structure</strong>: Corrected <code>sample_interpretation()</code> in <code>tests/testthat/helper-fixtures.R</code> - Changed <code>no_loadings</code> from <code>character(0)</code> to proper empty data frame with columns: <code>variable</code>, <code>highest_loading</code>, <code>description</code> - Fixed <code>cross_loadings</code> structure: replaced <code>loadings</code> column with <code>description</code> column to match expected format - Resolved “missing value where TRUE/FALSE needed” error in <code>build_fa_report()</code> when checking <code>nrow(no_loadings) &gt; 0</code> - Fixed test expectation in <code>test-print_methods.R</code>: Changed pattern from “Factor” (title case) to “factor” (lowercase) to match actual output - ✓ <strong>All tests now pass</strong>: 28 export_functions tests, 14 print_methods tests (excluding skipped tests requiring ellmer/external packages)</p>
-</div>
-<div class="section level3">
-<h3 id="update-4-cicd-test-fixes-2025-11-03">Update 4: CI/CD Test Fixes (2025-11-03)<a class="anchor" aria-label="anchor" href="#update-4-cicd-test-fixes-2025-11-03"></a></h3>
-<p><strong>GitHub Actions Compatibility:</strong> - ✓ <strong>Enhanced CI environment detection</strong>: Updated <code>has_ollama()</code> in <code>tests/testthat/helper-fixtures.R</code> - Automatically detects CI environments (GitHub Actions) via <code>Sys.getenv("CI")</code> - Skips all LLM-requiring tests on CI where Ollama/ellmer are unavailable - Prevents test failures in automated testing pipelines - ✓ <strong>Fixed missing skip guard</strong>: Added <code>skip_if_no_llm()</code> to “chat_fa handles invalid provider gracefully” test - Test was calling <code><a href="reference/chat_fa.html">chat_fa()</a></code> without checking ellmer availability - Now properly skips on CI environments - ✓ <strong>Fixed print method</strong>: Changed <code><a href="reference/print.chat_fa.html">print.chat_fa()</a></code> from <code><a href="https://cli.r-lib.org/reference/cli_text.html" class="external-link">cli::cli_text()</a></code> to <code><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat()</a></code> for proper <code><a href="https://rdrr.io/r/utils/capture.output.html" class="external-link">capture.output()</a></code> compatibility in tests</p>
-</div>
-<div class="section level3">
-<h3 id="update-5-test-suite-improvements-2025-11-03">Update 5: Test Suite Improvements (2025-11-03)<a class="anchor" aria-label="anchor" href="#update-5-test-suite-improvements-2025-11-03"></a></h3>
-<p><strong>Best Practices Implementation</strong> (following <a href="https://r-pkgs.org/testing-design.html#storing-test-data" class="external-link">R Packages 2e</a>):</p>
-<ul><li>✓ <strong>Fixtures directory structure</strong>: Created <code>tests/testthat/fixtures/</code> with organized test data
-<ul><li>Test data now stored as <code>.rds</code> files (efficient, preserves R object structure)</li>
-<li>
-<code>sample_loadings.rds</code>, <code>sample_variable_info.rds</code>, <code>sample_factor_cor.rds</code>, <code>sample_interpretation.rds</code>
-</li>
-<li>Includes <code>make-fixtures.R</code> script for regenerating test data</li>
-<li>Documented in <code>fixtures/README.md</code> with usage examples</li>
-</ul></li>
-<li>✓ <strong>Helper file reorganization</strong>: Renamed <code>helper-fixtures.R</code> → <code>helper.R</code>
-<ul><li>Follows testthat naming conventions</li>
-<li>Functions use <code>test_path()</code> for portable file paths (works in both interactive and CI environments)</li>
-<li>Added <code>get_fixture_path()</code> helper with fallback for interactive use</li>
-</ul></li>
-<li>✓ <strong>Improved file path handling</strong>: All fixture loading now uses <code>test_path()</code>
-<ul><li>Ensures tests work correctly regardless of working directory</li>
-<li>Compatible with both <code><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">devtools::test()</a></code> and <code>R CMD check</code>
-</li>
-</ul></li>
-<li>✓ <strong>Temporary file management</strong>: Verified proper cleanup
-<ul><li>All tests use <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile()</a></code> with explicit <code><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink()</a></code> cleanup</li>
-<li>No test contamination between runs</li>
-<li>Follows testthat 3.0 best practices</li>
-</ul></li>
-<li>✓ <strong>.Rbuildignore updates</strong>: Excluded fixture maintenance files
-<ul><li>
-<code>make-fixtures.R</code> and <code>fixtures/README.md</code> not included in built package</li>
-<li>Keeps package size minimal while maintaining developer documentation</li>
-</ul></li>
-<li>✓ <strong>Token-efficient LLM testing</strong>: Created minimal fixtures for LLM integration tests
-<ul><li>Standard fixtures: 5 variables × 3 factors (~400-500 tokens)</li>
-<li>Minimal fixtures: 3 variables × 2 factors (~150-200 tokens)</li>
-<li>
-<strong>60-70% token reduction</strong> for LLM-calling tests</li>
-<li>Functions: <code>minimal_loadings()</code>, <code>minimal_variable_info()</code>, <code>minimal_factor_cor()</code>
-</li>
-<li>Updated tests to use <code>word_limit = 30</code> (vs. default 150, minimum 20) for faster, cheaper testing</li>
-<li>Lowered <code>word_limit</code> validation minimum from 50 to 20 words for maximum test efficiency</li>
-<li>Regeneration script: <code>fixtures/make-minimal-fixtures.R</code>
-</li>
-</ul></li>
-<li>✓ <strong>Relaxed parameter limits</strong>: Adjusted overly restrictive validation (2025-11-03)
-<ul><li>
-<code>word_limit</code>: Changed minimum from 50 → 20 words (allows minimal testing)</li>
-<li>
-<code>max_line_length</code>: Changed maximum from 200 → 300 characters (supports wide terminals)</li>
-<li>Recommended ranges updated for better guidance (80-120 chars for readability)</li>
+<h2 id="future-features">Future Features<a class="anchor" aria-label="anchor" href="#future-features"></a></h2>
+<ul><li>Additional interpretation classes:
+<ul><li>Cluster analysis</li>
+<li>IRT models (item diagnostics focus)</li>
+<li>CDM models (q-matrix interpretation)</li>
 </ul></li>
 </ul></div>
-<div class="section level3">
-<h3 id="update-6-correlational-fixtures-for-realistic-fa-testing-2025-11-03">Update 6: Correlational Fixtures for Realistic FA Testing (2025-11-03)<a class="anchor" aria-label="anchor" href="#update-6-correlational-fixtures-for-realistic-fa-testing-2025-11-03"></a></h3>
-<p><strong>Problem Identified:</strong> - Psych package tests were using random uncorrelated data (<code>matrix(rnorm(100), ncol=5)</code>) - Generated Heywood case warnings: “The estimated weights for the factor scores are probably incorrect” - Random data violates FA assumptions (requires correlational structure)</p>
-<p><strong>Solution Implemented:</strong> - ✓ <strong>Created correlational fixtures</strong> with proper factor structure: - <code>correlational_data.rds</code>: 6 variables × 100 observations with known 2-factor structure - <code>correlational_var_info.rds</code>: Corresponding variable descriptions - Generated using: FactorScores × Loadings’ + Error method - Factor 1 loads on var1-var3 (loadings: 0.80, 0.75, 0.70) - Factor 2 loads on var4-var6 (loadings: 0.85, 0.75, 0.80)</p>
-<ul><li>✓ <strong>Updated all psych tests</strong> to use correlational data:
-<ul><li>
-<code>test-interpret_methods.R:29, 59</code> - interpret.fa tests</li>
-<li>
-<code>test-interpret_methods.R:97, 126</code> - interpret.principal tests</li>
-<li>
-<code>test-interpret_methods.R:341</code> - S3 method class validation test</li>
-<li>All tests now include <code>word_limit = 30</code> for token efficiency</li>
-</ul></li>
-<li>✓ <strong>Added helper functions</strong> in <code>tests/testthat/helper.R</code>:
-<ul><li>
-<code>correlational_data()</code> - Loads correlational dataset</li>
-<li>
-<code>correlational_var_info()</code> - Loads variable descriptions</li>
-<li>Both use <code>get_fixture_path()</code> for portability</li>
-</ul></li>
-<li>✓ <strong>Documented in fixtures/README.md</strong>:
-<ul><li>Added “Correlational Data Fixtures” section</li>
-<li>Explained why random data causes problems</li>
-<li>Provided usage examples and regeneration instructions</li>
-<li>Updated file listing and organization</li>
-</ul></li>
-</ul><p><strong>Benefits:</strong> - Eliminates Heywood case warnings from test output - Tests use realistic data matching real-world FA scenarios - Validates that S3 methods work correctly with proper factor structure - Maintains token efficiency with <code>word_limit = 30</code></p>
-</div>
-</div>
 <div class="section level2">
 <h2 id="todos">TODOs<a class="anchor" aria-label="anchor" href="#todos"></a></h2>
-<p>✓ All TODOs completed as of 2025-11-02:</p>
-<ul><li>✓ <strong>Class validation</strong>: Added <code>fa_interpretation</code> class validation to all S3 interpret methods (R/interpret_methods.R:177, 238, 359, 431, 537)</li>
-<li>✓ <strong>Comprehensive test suite</strong>: Created/completed all test files:
-<ul><li>
-<code>test-interpret_methods.R</code> - Tests for S3 interpret() generic and methods for psych, lavaan, mirt packages</li>
-<li>
-<code>test-export_functions.R</code> - Tests for export_interpretation() function</li>
-<li>
-<code>test-visualization.R</code> - Tests for plot.fa_interpretation() and create_factor_plot()</li>
-<li>
-<code>test-print_methods.R</code> - Tests for print.fa_interpretation() and print.chat_fa()</li>
-<li>Existing: <code>test-interpret_fa.R</code>, <code>test-chat_fa.R</code>, <code>test-fa_utilities.R</code>
-</li>
+<ul><li>Token tracking fix implemented
+<ul><li>docs, code comments, and tests reviewed and updated to reflect behavior</li>
+<li>NOTE: <code>system_prompt</code> tokens are not reliably reported by the <code>ellmer</code> wrapper for some providers (this appears to be an upstream bug). For accuracy and to avoid double-counting or negative accumulation, <code>psychinterpreter</code> intentionally does NOT add <code>system_prompt</code> tokens to the package-level cumulative token counters. Instead, per-run tokens are computed from roles reported by <code>ellmer::chat$get_tokens()</code> (user/assistant). If you need provider-specific system-prompt token counts, call <code>chat$chat$get_tokens(include_system_prompt = TRUE)</code> directly but be aware results may be inconsistent across providers.</li>
 </ul></li>
+<li>prepare package class system for future classes which may include “gm” (gaussian mixture model), “irt” (item response theory), and “cdm” (cognitive diagnosis models)
+<ul><li>analyze potential refactoring and modularization of existing codebase to improve maintainability and scalability</li>
+<li>rename and refactor code base</li>
+</ul></li>
+</ul></div>
+<div class="section level2">
+<h2 id="known-issues">Known Issues<a class="anchor" aria-label="anchor" href="#known-issues"></a></h2>
+<p>None currently.</p>
+</div>
+<div class="section level2">
+<h2 id="version--license">Version &amp; License<a class="anchor" aria-label="anchor" href="#version--license"></a></h2>
+<ul><li>
+<strong>Version</strong>: 0.0.0.9000 (development)</li>
+<li>
+<strong>R requirement</strong>: &gt;= 4.1.0</li>
+<li>
+<strong>License</strong>: MIT + file LICENSE</li>
 </ul></div>
 </div>
 
