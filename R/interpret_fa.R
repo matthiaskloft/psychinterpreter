@@ -1176,6 +1176,10 @@ interpret_fa <- function(loadings,
   results$chat <- chat
   # token tracking
   tokens_df <- chat$get_tokens()
+  # Note: some providers / the ellmer wrapper do not reliably report `system` role
+  # token counts. We intentionally only sum user/assistant tokens here and do NOT
+  # include `system`/`system_prompt` tokens in package-level counters to avoid
+  # inconsistent or double-counted totals.
   results$input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
   results$output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
   # if chat_session was used, increment total tokens

@@ -296,9 +296,9 @@ Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
   
 ## TODOs
 
-- I fixed the token tracking manually
-  - check docs and commenting, and tests
-  - system_prompt tokens are not shown correctly by ellmer. This seems to be a bug. We will ignore them in our tracking for now. Document this.
+- Token tracking fix implemented
+  - docs, code comments, and tests reviewed and updated to reflect behavior
+  - NOTE: `system_prompt` tokens are not reliably reported by the `ellmer` wrapper for some providers (this appears to be an upstream bug). For accuracy and to avoid double-counting or negative accumulation, `psychinterpreter` intentionally does NOT add `system_prompt` tokens to the package-level cumulative token counters. Instead, per-run tokens are computed from roles reported by `ellmer::chat$get_tokens()` (user/assistant). If you need provider-specific system-prompt token counts, call `chat$chat$get_tokens(include_system_prompt = TRUE)` directly but be aware results may be inconsistent across providers.
   
 - prepare package class system for future classes which may include "gm" (gaussian mixture model), "irt" (item response theory), and "cdm" (cognitive diagnosis models)
   - analyze potential refactoring and modularization of existing codebase to improve maintainability and scalability
