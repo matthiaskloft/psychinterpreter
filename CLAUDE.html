@@ -292,13 +292,14 @@ tests/testthat/
 <div class="section level2">
 <h2 id="todos">TODOs<a class="anchor" aria-label="anchor" href="#todos"></a></h2>
 <ul><li>
-<code><a href="reference/interpret_fa.html">interpret_fa()</a></code>:
+<p><code><a href="reference/interpret_fa.html">interpret_fa()</a></code>:</p>
 <ul><li>add argument “hide_low_loadings” to suppress reporting of low loadings to exclude loadings below the cutoff from the data provided to the LLM.</li>
 <li>add feature: if “n_emergency” is zero, the factor name and is replaced by “undefined” and the interpretation features a message explaining that “there are no significant loadings for this factor”. The LLM is instructed to answer with “NA” in this case for these factors.</li>
 <li>if the emergency rule was used for a factor, the factor name should append “(n.s.)” for non significant (loadings).</li>
 </ul></li>
+<li><p><code><a href="reference/interpret_fa.html">interpret_fa()</a></code>: implement ellmers chat_structured() for prompting and retrieving answers: <a href="https://ellmer.tidyverse.org/articles/prompt-design.html" class="external-link uri">https://ellmer.tidyverse.org/articles/prompt-design.html</a>, <a href="https://ellmer.tidyverse.org/articles/structured-data.html" class="external-link uri">https://ellmer.tidyverse.org/articles/structured-data.html</a></p></li>
 <li>
-<code><a href="reference/interpret_fa.html">interpret_fa()</a></code> customization options added
+<p><code><a href="reference/interpret_fa.html">interpret_fa()</a></code> customization options added</p>
 <ul><li>
 <code>interpretation_guidelines</code> and <code>system_prompt</code> are now accepted as arguments in <code><a href="reference/interpret_fa.html">interpret_fa()</a></code> to allow advanced users to customize the system-level framing and additional interpretation instructions sent to the LLM.</li>
 <li>Usage example:</li>
