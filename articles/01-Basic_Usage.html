@@ -260,7 +260,7 @@ ML6  0.18 -0.06 -0.03  0.14  0.02  1.00</code></pre>
 <pre><code>Factor Analysis Chat Session
 Provider: ollama
 Model: gpt-oss:20b-cloud
-Created: 2025-11-05 15:41:45.36575
+Created: 2025-11-05 17:22:20.191043
 Interpretations run: 0
 Total tokens - Input: 0 , Output: 0 </code></pre>
 </div>
@@ -310,7 +310,7 @@ Total tokens - Input: 0 , Output: 0 </code></pre>
 <pre><code>✔ Factor interpretation complete</code></pre>
 <p><strong>Number of factors:</strong> 6<br><strong>Loading cutoff:</strong> 0.23<br><strong>LLM used:</strong> Ollama - gpt-oss:20b-cloud<br><strong>Tokens:</strong><br>
 Input: 1975<br>
-Output: 5081<br><strong>Elapsed time:</strong> 24.8 secs</p>
+Output: 3383<br><strong>Elapsed time:</strong> 22.3 secs</p>
 <section class="level3"><h4 id="suggested-factor-names">Suggested Factor Names<a class="anchor" aria-label="anchor" href="#suggested-factor-names"></a>
 </h4>
 <ul>
@@ -318,19 +318,19 @@ Output: 5081<br><strong>Elapsed time:</strong> 24.8 secs</p>
 <strong>Factor 1 (9.2%):</strong> <em>Negative Affect</em>
 </li>
 <li>
-<strong>Factor 2 (7.9%):</strong> <em>Introversion</em>
+<strong>Factor 2 (7.9%):</strong> <em>Social Engagement</em>
 </li>
 <li>
 <strong>Factor 3 (7.7%):</strong> <em>Conscientiousness</em>
 </li>
 <li>
-<strong>Factor 4 (6.8%):</strong> <em>Agreeableness</em>
+<strong>Factor 4 (6.8%):</strong> <em>Empathy</em>
 </li>
 <li>
-<strong>Factor 5 (6.3%):</strong> <em>Openness</em>
+<strong>Factor 5 (6.3%):</strong> <em>Openness to Experience</em>
 </li>
 <li>
-<strong>Factor 6 (3.1%):</strong> <em>Low Openness/Agreeableness</em>
+<strong>Factor 6 (3.1%):</strong> <em>Low Openness</em>
 </li>
 </ul>
 <p><strong>Total variance explained by all factors: 41%</strong></p>
@@ -370,8 +370,8 @@ ML5 = .14, ML4 = .02</li>
 <li>N4, Often feel blue. (Positive, Weak, .389)</li>
 </ol>
 <p><strong>LLM Interpretation:</strong><br>
-This factor aggregates high scores on N1–N5, reflecting frequent irritability, mood swings, sadness, and panic. It represents the negative affect dimension of neuroticism, capturing emotional instability and susceptibility to distress. Strong loadings on all five neurotic items confirm convergent validity, while low cross-loadings support discriminant validity.</p>
-</section><section class="level4"><h5 id="factor-2-ml1-introversion">Factor 2 (ML1): Introversion<a class="anchor" aria-label="anchor" href="#factor-2-ml1-introversion"></a>
+Negative Affect factor: high loadings on N1-5. Represents tendency to experience negative emotions, mood instability, irritability. Strong positive loadings confirm convergent validity. Correlates moderately with ML1 (0.25) and ML6 (0.18), indicating some overlap with social anxiety and low openness, but remains distinct.</p>
+</section><section class="level4"><h5 id="factor-2-ml1-social-engagement">Factor 2 (ML1): Social Engagement<a class="anchor" aria-label="anchor" href="#factor-2-ml1-social-engagement"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 8<br><strong>Variance explained:</strong> 7.9%<br><strong>Factor Correlations:</strong> ML2 = .25, ML3 = -.22, ML5 = -.31,</p>
 <p>ML4 = -.19, ML6 = -.06</p>
@@ -387,7 +387,7 @@ This factor aggregates high scores on N1–N5, reflecting frequent irritability,
 <li>N5, Panic easily. (Positive, Weak, .256)</li>
 </ol>
 <p><strong>LLM Interpretation:</strong><br>
-Introversion is captured by high positive loadings on E1 and E2 and negative loadings on E3–E5. The factor reflects a tendency to be reserved, avoid social contact, and experience social anxiety, contrasting with extraverted traits. Convergent validity is evident, and discriminant validity is upheld by minimal overlap with other factors.</p>
+Social Engagement factor: positive loadings on introverted items (E1, E2) and negative on extroverted items (E3-5). Captures social interaction style; higher scores reflect introversion/social anxiety. Convergent validity shown by loadings. Correlates negatively with ML3 (-0.22) and ML5 (-0.31), suggesting inverse relation to conscientiousness and empathy.</p>
 </section><section class="level4"><h5 id="factor-3-ml3-conscientiousness">Factor 3 (ML3): Conscientiousness<a class="anchor" aria-label="anchor" href="#factor-3-ml3-conscientiousness"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 6<br><strong>Variance explained:</strong> 7.71%<br><strong>Factor Correlations:</strong> ML2 = -.18, ML1 = -.22, ML5 = .19,</p>
@@ -402,8 +402,8 @@ Introversion is captured by high positive loadings on E1 and E2 and negative loa
 <li>E5, Take charge. (Positive, Weak, .264)</li>
 </ol>
 <p><strong>LLM Interpretation:</strong><br>
-Conscientiousness is defined by strong positive loadings on C1–C3 and strong negative loadings on C4–C5. The factor represents meticulousness, planning, and perfectionism, while contrasting with half‑way or wasteful behaviors. Convergent validity is clear, and discriminant validity is maintained by low cross‑loadings.</p>
-</section><section class="level4"><h5 id="factor-4-ml5-agreeableness">Factor 4 (ML5): Agreeableness<a class="anchor" aria-label="anchor" href="#factor-4-ml5-agreeableness"></a>
+Conscientiousness factor: strong positive loadings on C1-3, negative on C4-5. Measures organization, diligence, planning. Convergent validity evident. Correlates negatively with ML1 (-0.22) and ML5 (-0.31), indicating conscientious individuals less introverted and less empathetic. Positive correlation with ML4 (0.19) shows modest link to openness.</p>
+</section><section class="level4"><h5 id="factor-4-ml5-empathy">Factor 4 (ML5): Empathy<a class="anchor" aria-label="anchor" href="#factor-4-ml5-empathy"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 5<br><strong>Variance explained:</strong> 6.79%<br><strong>Factor Correlations:</strong> ML2 = -.10, ML1 = -.31, ML3 = .19,</p>
 <p>ML4 = .25, ML6 = .14</p>
@@ -416,8 +416,8 @@ Conscientiousness is defined by strong positive loadings on C1–C3 and strong n
 <li>A4, Love children. (Positive, Weak, .391)</li>
 </ol>
 <p><strong>LLM Interpretation:</strong><br>
-Agreeableness is captured by high loadings on A2, A3, A4, and A5, with a negative loading on A1. The factor reflects empathy, warmth, and concern for others, while the negative loading on indifference confirms convergent validity and discriminant validity through minimal overlap with other factors.</p>
-</section><section class="level4"><h5 id="factor-5-ml4-openness">Factor 5 (ML4): Openness<a class="anchor" aria-label="anchor" href="#factor-5-ml4-openness"></a>
+Empathy factor: high loadings on A2-5, negative on A1. Reflects concern for others, caring, supportive behavior. Convergent validity clear. Correlates negatively with ML1 (-031) and ML3 (-0.31), showing empathy inversely related to social engagement and conscientiousness. Weak positive with ML4 (0.25) suggests some overlap with openness.</p>
+</section><section class="level4"><h5 id="factor-5-ml4-openness-to-experience">Factor 5 (ML4): Openness to Experience<a class="anchor" aria-label="anchor" href="#factor-5-ml4-openness-to-experience"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 6<br><strong>Variance explained:</strong> 6.27%<br><strong>Factor Correlations:</strong> ML2 = .02, ML1 = -.19, ML3 = .19,</p>
 <p>ML5 = .25, ML6 = .02</p>
@@ -431,8 +431,8 @@ Agreeableness is captured by high loadings on A2, A3, A4, and A5, with a negativ
 <li>O2, Avoid difficult reading material. (Negative, Weak, -.367)</li>
 </ol>
 <p><strong>LLM Interpretation:</strong><br>
-Openness is defined by high positive loadings on O1, O3, and O4, and negative loadings on O2 and O5. The factor captures intellectual curiosity, imaginative thinking, and reflective depth, contrasting with avoidance of complex material and superficial engagement. Convergent validity is strong, discriminant validity is upheld.</p>
-</section><section class="level4"><h5 id="factor-6-ml6-low-opennessagreeableness">Factor 6 (ML6): Low Openness/Agreeableness<a class="anchor" aria-label="anchor" href="#factor-6-ml6-low-opennessagreeableness"></a>
+Openness to Experience factor: strong loadings on O1, O3, O4, negative on O2, O5. Captures imagination, intellectual curiosity, reflective thinking. Convergent validity strong. Correlates positively with ML3 (0.19) and ML5 (0.25), indicating openness associated with conscientiousness and empathy. Negative with ML1 (-0.19) reflects less extroversion.</p>
+</section><section class="level4"><h5 id="factor-6-ml6-low-openness">Factor 6 (ML6): Low Openness<a class="anchor" aria-label="anchor" href="#factor-6-ml6-low-openness"></a>
 </h5>
 <p><strong>Number of significant loadings:</strong> 5<br><strong>Variance explained:</strong> 3.12%<br><strong>Factor Correlations:</strong> ML2 = .18, ML1 = -.06, ML3 = -.03,</p>
 <p>ML5 = .14, ML4 = .02</p>
@@ -445,7 +445,7 @@ Openness is defined by high positive loadings on O1, O3, and O4, and negative lo
 <li>A1, Am indifferent to the feelings of others. (Positive, Weak, .281)</li>
 </ol>
 <p><strong>LLM Interpretation:</strong><br>
-Low Openness/Agreeableness is indicated by positive loadings on O5, O2, A1, A4, and A5. The factor reflects a tendency to avoid complex material, not probe deeply, and show indifference to others, yet maintain warmth toward children. It blends low openness and low agreeableness, with discriminant validity supported by minimal cross‑loadings.</p>
+Low Openness factor: loadings on O2 and O5. Indicates preference for routine, avoidance of complex material, superficial engagement. Convergent validity limited; only two items. Correlates positively with ML2 (0.18) and ML5 (0.14), suggesting low openness linked to negative affect and empathy. Weak with others.</p>
 </section></section><section class="level3"><h4 id="cross-loading-variables">Cross-Loading Variables<a class="anchor" aria-label="anchor" href="#cross-loading-variables"></a>
 </h4>
 <p>Variables loading on multiple factors (&gt;= 0.23):</p>
@@ -479,9 +479,9 @@ Low Openness/Agreeableness is indicated by positive loadings on O5, O2, A1, A4, 
 <pre><code>Factor Analysis Chat Session
 Provider: ollama
 Model: gpt-oss:20b-cloud
-Created: 2025-11-05 15:41:45.36575
+Created: 2025-11-05 17:22:20.191043
 Interpretations run: 1
-Total tokens - Input: 1975 , Output: 5081 </code></pre>
+Total tokens - Input: 1975 , Output: 3383 </code></pre>
 </div>
 </div>
 <p>We can also examine the prompt:</p>
@@ -695,11 +695,11 @@ Respond with ONLY valid JSON using factor names as object keys:
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_lavaan_efa</span><span class="op">$</span><span class="va">suggested_names</span></span></code></pre></div>
 </details><p>$f1 [1] “Empathy &amp; Altruism”</p>
-<p>$f2 [1] “Perfectionistic Conscientiousness”</p>
-<p>$f3 [1] “Introversion”</p>
-<p>$f4 [1] “Surface Social Interaction”</p>
+<p>$f2 [1] “Perfectionist Conscientiousness”</p>
+<p>$f3 [1] “Introverted Social Withdrawal”</p>
+<p>$f4 [1] “Shallow Cognitive Style”</p>
 <p>$f5 [1] “Negative Affectivity”</p>
-<p>$f6 [1] “Creative Social Intelligence”</p>
+<p>$f6 [1] “Openness &amp; Curiosity”</p>
 <p>Also works with lavaa::cfa():</p>
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># specify and fit a CFA model</span></span>
@@ -725,16 +725,19 @@ Respond with ONLY valid JSON using factor names as object keys:
 <span>  silent <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details><pre><code>ℹ Using existing chat session: Ollama "gpt-oss:20b-cloud"</code></pre>
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb34"><pre class="downlit sourceCode r">
+<pre><code>LLM interpretation for O exceeded word limit
+! Expected: 50 words, Got: 57 words
+ℹ Consider using a more restrictive model or adjusting the prompt</code></pre>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_lavaan_cfa</span><span class="op">$</span><span class="va">suggested_names</span></span></code></pre></div>
 </details><p>$O [1] “Creative Ideation”</p>
-<p>$C [1] “Perfectionistic Planning”</p>
-<p>$E [1] “Introverted Social Discomfort”</p>
-<p>$A [1] “Empathy Orientation”</p>
-<p>$N [1] “Neuroticism”</p>
+<p>$C [1] “Orderly Perfectionism”</p>
+<p>$E [1] “Introverted Sociality”</p>
+<p>$A [1] “Affective Detachment”</p>
+<p>$N [1] “Negative Affect”</p>
 </section><section class="level3"><h4 id="mirt-package">mirt Package<a class="anchor" aria-label="anchor" href="#mirt-package"></a>
 </h4>
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb35"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Fit a unidimensional IRT model</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span></span>
 <span>  <span class="va">irt_model</span> <span class="op">&lt;-</span> <span class="fu">mirt</span><span class="fu">::</span><span class="fu"><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt</a></span><span class="op">(</span></span>
@@ -746,7 +749,7 @@ Respond with ONLY valid JSON using factor names as object keys:
 <span><span class="op">)</span></span></code></pre></div>
 </details><p>, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.2000, Max-Change = 0.1664, Max-Change = 0.1027, Max-Change = 0.0691, Max-Change = 0.0504, Max-Change = 0.0433, Max-Change = 0.0292, Max-Change = 0.0229, Max-Change = 0.0542, Max-Change = 0.0219, Max-Change = 0.0251, Max-Change = 0.0223, Max-Change = 0.0480, Max-Change = 0.0224, Max-Change = 0.0266, Max-Change = 0.0279, Max-Change = 0.0283, Max-Change = 0.0258, Max-Change = 0.0149, Max-Change = 0.0177, Max-Change = 0.0207, Max-Change = 0.0190, Max-Change = 0.0232, Max-Change = 0.0238, Max-Change = 0.0283, Max-Change = 0.0174, Max-Change = 0.0182, Max-Change = 0.0184, Max-Change = 0.0176, Max-Change = 0.0199, Max-Change = 0.0207, Max-Change = 0.0233, Max-Change = 0.0253, Max-Change = 0.0323, Max-Change = 0.0529, Max-Change = 0.0276, Max-Change = 0.0180, Max-Change = 0.0215, Max-Change = 0.0269, Max-Change = 0.0169, Max-Change = 0.0227, Max-Change = 0.0152, Max-Change = 0.0194, Max-Change = 0.0242, Max-Change = 0.0252, Max-Change = 0.0249, Max-Change = 0.0227, Max-Change = 0.0243, Max-Change = 0.0198, Max-Change = 0.0271, Max-Change = 0.0210, Max-Change = 0.0325, Max-Change = 0.0301, Max-Change = 0.0313, Max-Change = 0.0348, Max-Change = 0.0192, Max-Change = 0.0217, Max-Change = 0.0363, Max-Change = 0.0384, Max-Change = 0.0300, Max-Change = 0.0370, Max-Change = 0.0219, Max-Change = 0.0248, Max-Change = 0.0233, Max-Change = 0.0394, Max-Change = 0.0201, Max-Change = 0.0214, Max-Change = 0.0195, Max-Change = 0.0292, Max-Change = 0.0214, Max-Change = 0.0241, Max-Change = 0.0223, Max-Change = 0.0198, Max-Change = 0.0222, Max-Change = 0.0164, Max-Change = 0.0174, Max-Change = 0.0166, Max-Change = 0.0153, Max-Change = 0.0345, Max-Change = 0.0244, Max-Change = 0.0152, Max-Change = 0.0299, Max-Change = 0.0377, Max-Change = 0.0237, Max-Change = 0.0274, Max-Change = 0.0267, Max-Change = 0.0203, Max-Change = 0.0175, Max-Change = 0.0451, Max-Change = 0.0369, Max-Change = 0.0246, Max-Change = 0.0167, Max-Change = 0.0175, Max-Change = 0.0231, Max-Change = 0.0208, Max-Change = 0.0294, Max-Change = 0.0345, Max-Change = 0.0284, Max-Change = 0.0172, Max-Change = 0.0153, Max-Change = 0.0191, Max-Change = 0.0154, Max-Change = 0.0229, Max-Change = 0.0210, Max-Change = 0.0267, Max-Change = 0.0329, Max-Change = 0.0230, Max-Change = 0.0211, Max-Change = 0.0342, Max-Change = 0.0326, Max-Change = 0.0438, Max-Change = 0.0220, Max-Change = 0.0227, Max-Change = 0.0183, Max-Change = 0.0204, Max-Change = 0.0222, Max-Change = 0.0292, Max-Change = 0.0314, Max-Change = 0.0187, Max-Change = 0.0208, Max-Change = 0.0250, Max-Change = 0.0179, Max-Change = 0.0311, Max-Change = 0.0205, Max-Change = 0.0407, Max-Change = 0.0284, Max-Change = 0.0318, Max-Change = 0.0249, Max-Change = 0.0231, Max-Change = 0.0271, Max-Change = 0.0194, Max-Change = 0.0138, Max-Change = 0.0267, Max-Change = 0.0319, Max-Change = 0.0169, Max-Change = 0.0167, Max-Change = 0.0196, Max-Change = 0.0367, Max-Change = 0.0155, Max-Change = 0.0298, Max-Change = 0.0264, Max-Change = 0.0391, Max-Change = 0.0211, Max-Change = 0.0271, Max-Change = 0.0325, Max-Change = 0.0307, Max-Change = 0.0209, Max-Change = 0.0324, Max-Change = 0.0221, Max-Change = 0.0185, Max-Change = 0.0249, Max-Change = 0.0210, Max-Change = 0.0333, Max-Change = 0.0259, Max-Change = 0.0224, Max-Change = 0.0219, Max-Change = 0.0194, Max-Change = 0.0261, Max-Change = 0.0207, Max-Change = 0.0280, Max-Change = 0.0209, Max-Change = 0.0454, Max-Change = 0.0398, Max-Change = 0.0241, Max-Change = 0.0253, Max-Change = 0.0217, Max-Change = 0.0416, Max-Change = 0.0245, Max-Change = 0.0259, Max-Change = 0.0244, Max-Change = 0.0206, Max-Change = 0.0258, Max-Change = 0.0161, Max-Change = 0.0252, Max-Change = 0.0430, Max-Change = 0.0200, Max-Change = 0.0252, Max-Change = 0.0199, Max-Change = 0.0263, Max-Change = 0.0263, Max-Change = 0.0255, Max-Change = 0.0300, Max-Change = 0.0203, Max-Change = 0.0222, Max-Change = 0.0206, Max-Change = 0.0267, Max-Change = 0.0353, Max-Change = 0.0259, Max-Change = 0.0207, Max-Change = 0.0207, Max-Change = 0.0205, Max-Change = 0.0236, Max-Change = 0.0170, Max-Change = 0.0158, Max-Change = 0.0196, Max-Change = 0.0244, Max-Change = 0.0166, Max-Change = 0.0287, Max-Change = 0.0270, Max-Change = 0.0217, Max-Change = 0.0306, Max-Change = 0.0216, Max-Change = 0.0198, Max-Change = 0.0191, Max-Change = 0.0243, Max-Change = 0.0162, Max-Change = 0.0171, Max-Change = 0.0244, Max-Change = 0.0171, Max-Change = 0.0182, Max-Change = 0.0231, Max-Change = 0.0165, Max-Change = 0.0201, Max-Change = 0.0353, Max-Change = 0.0177, Max-Change = 0.0210, Max-Change = 0.0233, Max-Change = 0.0175, gam = 0.0000, Max-Change = 0.0000, gam = 0.1778, Max-Change = 0.0255, gam = 0.1057, Max-Change = 0.0131, gam = 0.0780, Max-Change = 0.0081, gam = 0.0629, Max-Change = 0.0106, gam = 0.0532, Max-Change = 0.0070, gam = 0.0464, Max-Change = 0.0059, gam = 0.0413, Max-Change = 0.0062, gam = 0.0374, Max-Change = 0.0056, gam = 0.0342, Max-Change = 0.0042, gam = 0.0316, Max-Change = 0.0043, gam = 0.0294, Max-Change = 0.0031, gam = 0.0276, Max-Change = 0.0034, gam = 0.0260, Max-Change = 0.0027, gam = 0.0246, Max-Change = 0.0031, gam = 0.0233, Max-Change = 0.0027, gam = 0.0222, Max-Change = 0.0038, gam = 0.0212, Max-Change = 0.0032, gam = 0.0203, Max-Change = 0.0039, gam = 0.0195, Max-Change = 0.0025, gam = 0.0188, Max-Change = 0.0016, gam = 0.0181, Max-Change = 0.0026, gam = 0.0175, Max-Change = 0.0033, gam = 0.0169, Max-Change = 0.0017, gam = 0.0164, Max-Change = 0.0020, gam = 0.0159, Max-Change = 0.0029, gam = 0.0154, Max-Change = 0.0016, gam = 0.0150, Max-Change = 0.0017, gam = 0.0146, Max-Change = 0.0017, gam = 0.0142, Max-Change = 0.0019, gam = 0.0139, Max-Change = 0.0019, gam = 0.0135, Max-Change = 0.0013, gam = 0.0132, Max-Change = 0.0012, gam = 0.0129, Max-Change = 0.0017, gam = 0.0126, Max-Change = 0.0023, gam = 0.0124, Max-Change = 0.0011, gam = 0.0121, Max-Change = 0.0011, gam = 0.0119, Max-Change = 0.0009, gam = 0.0116, Max-Change = 0.0011, gam = 0.0114, Max-Change = 0.0013, gam = 0.0112, Max-Change = 0.0016, gam = 0.0110, Max-Change = 0.0010, gam = 0.0108, Max-Change = 0.0009, gam = 0.0106, Max-Change = 0.0010, gam = 0.0104, Max-Change = 0.0008, gam = 0.0102, Max-Change = 0.0020, gam = 0.0101, Max-Change = 0.0022, gam = 0.0099, Max-Change = 0.0017, gam = 0.0098, Max-Change = 0.0020, gam = 0.0096, Max-Change = 0.0023, gam = 0.0095, Max-Change = 0.0019, gam = 0.0093, Max-Change = 0.0017, gam = 0.0092, Max-Change = 0.0016, gam = 0.0091, Max-Change = 0.0011, gam = 0.0089, Max-Change = 0.0012, gam = 0.0088, Max-Change = 0.0014, gam = 0.0087, Max-Change = 0.0013, gam = 0.0086, Max-Change = 0.0014, gam = 0.0085, Max-Change = 0.0015, gam = 0.0084, Max-Change = 0.0012, gam = 0.0082, Max-Change = 0.0016, gam = 0.0081, Max-Change = 0.0015, gam = 0.0080, Max-Change = 0.0012, gam = 0.0080, Max-Change = 0.0010, gam = 0.0079, Max-Change = 0.0014, gam = 0.0078, Max-Change = 0.0007, gam = 0.0077, Max-Change = 0.0009, gam = 0.0076, Max-Change = 0.0012, gam = 0.0075, Max-Change = 0.0010, gam = 0.0074, Max-Change = 0.0013, gam = 0.0073, Max-Change = 0.0012, gam = 0.0073, Max-Change = 0.0008, gam = 0.0072, Max-Change = 0.0007, gam = 0.0071, Max-Change = 0.0006</p>
 <p>Calculating log-likelihood…</p>
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb36"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># interpret mirt model</span></span>
 <span><span class="va">result_mirt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  <span class="va">irt_model</span>,</span>
@@ -760,14 +763,14 @@ Respond with ONLY valid JSON using factor names as object keys:
 <span>  silent <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details><pre><code>ℹ Using existing chat session: Ollama "gpt-oss:20b-cloud"</code></pre>
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb38"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_mirt</span><span class="op">$</span> <span class="va">suggested_names</span></span></code></pre></div>
-</details><p>$F1 [1] “Openness and Sociality”</p>
-<p>$F2 [1] “Neuroticism”</p>
-<p>$F3 [1] “Extraversion”</p>
-<p>$F4 [1] “Conscientiousness”</p>
-<p>$F5 [1] “Agreeableness”</p>
-<p>$F6 [1] “General Personality”</p>
+</details><p>$F1 [1] “Creative Social Engagement”</p>
+<p>$F2 [1] “Neurotic Instability”</p>
+<p>$F3 [1] “Social Engagement”</p>
+<p>$F4 [1] “Orderly Perfectionism”</p>
+<p>$F5 [1] “Compassionate Interpersonal”</p>
+<p>$F6 [1] “Social-Emotional Flexibility”</p>
 </section></section></section><section class="section level2"><h2 id="cluster-analysis">Cluster Analysis<a class="anchor" aria-label="anchor" href="#cluster-analysis"></a>
 </h2>
 <p>Coming soon …</p>
@@ -775,21 +778,21 @@ Respond with ONLY valid JSON using factor names as object keys:
 </h3>
 <p>We can again check the total global token usage:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb39"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>Factor Analysis Chat Session
 Provider: ollama
 Model: gpt-oss:20b-cloud
-Created: 2025-11-05 15:41:45.36575
+Created: 2025-11-05 17:22:20.191043
 Interpretations run: 5
-Total tokens - Input: 9403 , Output: 17868 </code></pre>
+Total tokens - Input: 9403 , Output: 25285 </code></pre>
 </div>
 </div>
 </section></section><section class="section level2"><h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb41"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pander</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pander/man/pander.html" class="external-link">pander</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
 <p><strong>R version 4.5.2 (2025-10-31 ucrt)</strong></p>
