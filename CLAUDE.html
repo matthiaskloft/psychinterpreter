@@ -291,11 +291,36 @@ tests/testthat/
 </ul></div>
 <div class="section level2">
 <h2 id="todos">TODOs<a class="anchor" aria-label="anchor" href="#todos"></a></h2>
-<ul><li>Token tracking fix implemented
+<ul><li>
+<code><a href="reference/interpret_fa.html">interpret_fa()</a></code>:
+<ul><li>add argument “hide_low_loadings” to suppress reporting of low loadings to exclude loadings below the cutoff from the data provided to the LLM.</li>
+<li>add feature: if “n_emergency” is zero, the factor name and is replaced by “undefined” and the interpretation features a message explaining that “there are no significant loadings for this factor”. The LLM is instructed to answer with “NA” in this case for these factors.</li>
+<li>if the emergency rule was used for a factor, the factor name should append “(n.s.)” for non significant (loadings).</li>
+</ul></li>
+<li>
+<code><a href="reference/interpret_fa.html">interpret_fa()</a></code> customization options added
+<ul><li>
+<code>interpretation_guidelines</code> and <code>system_prompt</code> are now accepted as arguments in <code><a href="reference/interpret_fa.html">interpret_fa()</a></code> to allow advanced users to customize the system-level framing and additional interpretation instructions sent to the LLM.</li>
+<li>Usage example:</li>
+</ul></li>
+</ul><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Provide a short custom system prompt and extra interpretation guidance</span></span>
+<span><span class="va">custom_system</span> <span class="op">&lt;-</span> <span class="st">"You are an expert psychometrician writing for a general scientific audience."</span></span>
+<span><span class="va">guidelines</span> <span class="op">&lt;-</span> <span class="st">"Prefer concise 2-3 word factor names; avoid niche technical jargon; emphasize practical implications."</span></span>
+<span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings</span>, <span class="va">variable_info</span>,</span>
+<span>                       system_prompt <span class="op">=</span> <span class="va">custom_system</span>,</span>
+<span>                       interpretation_guidelines <span class="op">=</span> <span class="va">guidelines</span>,</span>
+<span>                       llm_provider <span class="op">=</span> <span class="st">'openai'</span>,</span>
+<span>                       llm_model <span class="op">=</span> <span class="st">'gpt-4o-mini'</span><span class="op">)</span></span></code></pre></div>
+<ul><li><p>Update: R roxygen docs for <code><a href="reference/interpret_fa.html">interpret_fa()</a></code> include <code>@param system_prompt</code> and <code>@param interpretation_guidelines</code> (see <code>R/interpret_fa.R</code>).</p></li>
+<li>
+<p>Token tracking fix implemented</p>
 <ul><li>docs, code comments, and tests reviewed and updated to reflect behavior</li>
 <li>NOTE: <code>system_prompt</code> tokens are not reliably reported by the <code>ellmer</code> wrapper for some providers (this appears to be an upstream bug). For accuracy and to avoid double-counting or negative accumulation, <code>psychinterpreter</code> intentionally does NOT add <code>system_prompt</code> tokens to the package-level cumulative token counters. Instead, per-run tokens are computed from roles reported by <code>ellmer::chat$get_tokens()</code> (user/assistant). If you need provider-specific system-prompt token counts, call <code>chat$chat$get_tokens(include_system_prompt = TRUE)</code> directly but be aware results may be inconsistent across providers.</li>
 </ul></li>
-<li>prepare package class system for future classes which may include “gm” (gaussian mixture model), “irt” (item response theory), and “cdm” (cognitive diagnosis models)
+<li>
+<p>prepare package class system for future classes which may include “gm” (gaussian mixture model), “irt” (item response theory), and “cdm” (cognitive diagnosis models)</p>
 <ul><li>analyze potential refactoring and modularization of existing codebase to improve maintainability and scalability</li>
 <li>rename and refactor code base</li>
 </ul></li>

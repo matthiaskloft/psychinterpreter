@@ -69,12 +69,14 @@ calculated from the loadings (sum of squared loadings / number of variables).</p
 <span>  <span class="va">variable_info</span>,</span>
 <span>  factor_cor_mat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  chat_session <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  params <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cutoff <span class="op">=</span> <span class="fl">0.3</span>,</span>
 <span>  n_emergency <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  sort_loadings <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  system_prompt <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  interpretation_guidelines <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  additional_info <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">150</span>,</span>
 <span>  output_format <span class="op">=</span> <span class="st">"text"</span>,</span>
@@ -141,6 +143,19 @@ top N highest loadings (even if below cutoff) for interpretation (default = 2)</
 
 <dt id="arg-sort-loadings">sort_loadings<a class="anchor" aria-label="anchor" href="#arg-sort-loadings"></a></dt>
 <dd><p>Logical. Sort variables by loading strength within factors (default = TRUE)</p></dd>
+
+
+<dt id="arg-system-prompt">system_prompt<a class="anchor" aria-label="anchor" href="#arg-system-prompt"></a></dt>
+<dd><p>Character or NULL. Optional custom system prompt text to override the package default
+psychometric system prompt. Use this to provide institution- or project-specific framing for the LLM
+(e.g., preferred terminology, audience level, or reporting conventions). If NULL the internal default
+system prompt is used (default = NULL). This will be ignored if chat_session is used.</p></dd>
+
+
+<dt id="arg-interpretation-guidelines">interpretation_guidelines<a class="anchor" aria-label="anchor" href="#arg-interpretation-guidelines"></a></dt>
+<dd><p>Character or NULL. Optional custom interpretation guidelines for the LMM that override
+the package default guidelines. If NULL, built-in interpretation
+guidelines are applied (default = NULL).</p></dd>
 
 
 <dt id="arg-additional-info">additional_info<a class="anchor" aria-label="anchor" href="#arg-additional-info"></a></dt>
