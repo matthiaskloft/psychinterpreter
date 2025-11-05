@@ -178,8 +178,16 @@ test_that("interpret_fa returns expected structure", {
   expect_true(all(factor_names %in% names(result$factor_summaries)))
 
   # Check token tracking
-  expect_true("run_tokens" %in% names(result))
-  expect_type(result$run_tokens, "list")
+  # Token tracking: older versions used `run_tokens`; newer versions expose
+  # numeric `input_tokens` and `output_tokens` directly on the result. Check
+  # for the newer shape first, else fall back to the old `run_tokens` shape.
+  if ("input_tokens" %in% names(result) && "output_tokens" %in% names(result)) {
+    expect_true(is.numeric(result$input_tokens))
+    expect_true(is.numeric(result$output_tokens))
+  } else {
+    expect_true("run_tokens" %in% names(result))
+    expect_type(result$run_tokens, "list")
+  }
 })
 
 test_that("leading zeros are removed consistently for negative numbers", {

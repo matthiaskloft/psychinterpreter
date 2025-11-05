@@ -35,11 +35,19 @@ The chat_fa object stores:
 This allows for efficient reuse across multiple factor analysis interpretations without
 resending the system prompt each time.
 
-\strong{Token Tracking Note:} System prompt tokens are captured on first use (when the first
-interpretation is run) because LLM providers don't send the system prompt until the first
-message exchange. Cumulative token counts may be approximate for some providers (e.g., Ollama)
-that cache system prompts. Input tokens may be undercounted due to caching, while output
-tokens are typically accurate. Use \code{results$run_tokens} to access per-interpretation token counts.
+\strong{Token Tracking Note:}
+The package tracks per-interpretation token counts using roles returned by
+\code{ellmer::chat$get_tokens()} (user/assistant). Some providers or the \code{ellmer}
+wrapper do not consistently expose \code{system}/\code{system_prompt} token counts (this
+appears to be an upstream limitation/bug). To avoid incorrect cumulative
+accounting (double-counting or negative accumulation), \code{chat_fa} intentionally
+does NOT include \code{system_prompt} tokens in the package-level cumulative
+counters (\code{total_input_tokens} / \code{total_output_tokens}).
+
+If you require a provider-specific view that includes system prompt tokens,
+call \code{chat$chat$get_tokens(include_system_prompt = TRUE)} directly — but note
+that results may vary across providers. Use \code{results$run_tokens} to access
+per-interpretation token counts produced by \code{interpret_fa()}.
 }
 \examples{
 \dontrun{
