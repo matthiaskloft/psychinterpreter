@@ -121,14 +121,12 @@ Set up persistent chat session. If you use Ollama, make sure to start the server
 
 chat <- chat_fa(
   provider = "ollama",
-  model = "gpt-oss:20b-cloud", echo = "all",
+  model = "gpt-oss:20b-cloud",
   # set temperature and seed for reproducibility
   params = params(temperature = 0, seed = 42)
 )
 
 print(chat)
-
-chat$chat$get_tokens(include_system_prompt = T)
 ```
 
 ## Interpreting Factor Analysis Results
@@ -150,10 +148,10 @@ We now generate factor interpretations using the specified LLM:
 
 word_limit <-  50
 result <- interpret_fa(
-    chat_session = chat,
+  chat_session = chat,
   loadings = loadings_matrix,
   variable_info = variable_info,
-  cutoff = 0.3,
+  cutoff = 0.23,
   n_emergency = 2,
   additional_info = NULL,
   factor_cor_mat = factor_cor_mat,
@@ -172,6 +170,17 @@ Let's check the global token usage tracked by the chat:
 ```{r usage1}
 print(chat)
 ```
+
+We can also examine the prompt:
+```{r prompt}
+cat(
+  "System Prompt: \n\n",
+  result$system_prompt, "\n",
+  "Main Prompt: \n\n",
+    result$prompt)
+```
+
+
 
 Plot the loading matrix with factor names:
 ```{r}
@@ -200,7 +209,7 @@ export_interpretation(result,
 ```{r method-psych}
 #| output: asis
 
-interpret(
+result_psych <- interpret(
   fa_result,
   variable_info = variable_info,
   cutoff = 0.3,
@@ -208,8 +217,10 @@ interpret(
   word_limit =  word_limit,
   heading_level = 3,
   suppress_heading = TRUE,
-  output_format = "markdown"
+  output_format = "markdown",
+  silent = TRUE
 )
+result_psych$suggested_names
 ```
 
 ### lavaan Package
@@ -219,7 +230,7 @@ interpret(
 # Specify a CFA model for BFI data
 fa_lavaan <- lavaan::efa(bfi, nfactors = pa_result$nfact, rotation = "oblimin")
 # interpret lavaan model
-interpret(
+result_lavaan_efa <- interpret(
   fa_lavaan,
   variable_info = variable_info,
   cutoff = 0.3,
@@ -227,8 +238,10 @@ interpret(
   word_limit =  word_limit,
   heading_level = 3,
   suppress_heading = TRUE,
-  output_format = "markdown"
+  output_format = "markdown",
+  silent = TRUE
 )
+result_lavaan_efa$suggested_names
 ```
 
 Also works with lavaa::cfa():
@@ -246,7 +259,7 @@ cfa_model <- "
 cfa_fit <- lavaan::cfa(cfa_model, data = bfi, std.lv = TRUE)
 
 # interpret lavaan cfa model
-interpret(
+result_lavaan_cfa <- interpret(
   cfa_fit,
   variable_info = variable_info,
   cutoff = 0.3,
@@ -254,8 +267,11 @@ interpret(
   word_limit =  word_limit,
   output_format = "markdown",
   heading_level = 3,
-  suppress_heading = TRUE
+  suppress_heading = TRUE,
+  silent = TRUE
 )
+
+result_lavaan_cfa$suggested_names
 ```
 
 ### mirt Package
@@ -263,14 +279,17 @@ interpret(
 #| output: asis
 
 # Fit a unidimensional IRT model
-irt_model <- mirt::mirt(
-  data = bfi,
-  model =  pa_result$nfact,
-  itemtype = "graded",
-  method = "MHRM"
+suppressMessages(
+  irt_model <- mirt::mirt(
+    data = bfi,
+    model =  pa_result$nfact,
+    itemtype = "graded",
+    method = "MHRM"
+  )
 )
+
 # interpret mirt model
-interpret(
+result_mirt <- interpret(
   irt_model,
   variable_info = variable_info,
   cutoff = 0.3,
@@ -278,8 +297,11 @@ interpret(
   word_limit =  word_limit,
   heading_level = 3,
   suppress_heading = TRUE,
-  output_format = "markdown"
+  output_format = "markdown",
+  silent = TRUE
 )
+
+result_mirt$ suggested_names
 ```
 
 # Cluster Analysis

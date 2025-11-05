@@ -170,15 +170,23 @@ build_fa_report <- function(interpretation_results,
     for (i in 1:n_factors) {
       factor_name <- factor_cols[i]
 
-      # Extract the first line (factor header) from summary
-      summary_lines <- strsplit(factor_summaries[[factor_name]]$summary, "\n")[[1]]
-      factor_header <- summary_lines[1]
-      remaining_summary <- paste(summary_lines[-1], collapse = "\n")
+  # Use the stored header and the summary body. The header is kept separate
+  # so the report builder can consistently format headings (less post-fact
+  # string surgery).
+  factor_header <- factor_summaries[[factor_name]]$header %||% paste0("Factor ", i, " (", factor_name, ")")
+  remaining_summary <- factor_summaries[[factor_name]]$summary %||% ""
 
       # Add factor header with suggested name as h3
       report <- paste0(report, h3, " ", factor_header)
       if (!is.null(suggested_names[[factor_name]])) {
-        report <- paste0(report, ": ", suggested_names[[factor_name]])
+        # factor_header may already include a trailing ':' (created earlier in
+        # the summary). Avoid producing a double-colon ("::") by checking for
+        # an existing trailing colon and only inserting a separator when needed.
+  if (grepl(":\\s*$", factor_header)) {
+          report <- paste0(report, " ", suggested_names[[factor_name]])
+        } else {
+          report <- paste0(report, ": ", suggested_names[[factor_name]])
+        }
       }
       report <- paste0(report, "\n\n")
 
@@ -386,10 +394,9 @@ build_fa_report <- function(interpretation_results,
     for (i in 1:n_factors) {
       factor_name <- factor_cols[i]
 
-      # Extract the first line (factor header) from summary
-      summary_lines <- strsplit(factor_summaries[[factor_name]]$summary, "\n")[[1]]
-      factor_header <- summary_lines[1]
-      remaining_summary <- paste(summary_lines[-1], collapse = "\n")
+  # Use stored header and body (interpret_fa now separates header from body)
+  factor_header <- factor_summaries[[factor_name]]$header %||% paste0("Factor ", i, " (", factor_name, ")")
+  remaining_summary <- factor_summaries[[factor_name]]$summary %||% ""
 
       # Add factor header with suggested name
       report <- paste0(report, factor_header)

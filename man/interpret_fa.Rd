@@ -9,12 +9,14 @@ interpret_fa(
   variable_info,
   factor_cor_mat = NULL,
   chat_session = NULL,
-  llm_provider = "ollama",
+  llm_provider = NULL,
   llm_model = NULL,
   params = NULL,
   cutoff = 0.3,
   n_emergency = 2,
   sort_loadings = TRUE,
+  system_prompt = NULL,
+  interpretation_guidelines = NULL,
   additional_info = NULL,
   word_limit = 150,
   output_format = "text",
@@ -60,6 +62,15 @@ If NULL, uses provider defaults. See ellmer::params() documentation for supporte
 top N highest loadings (even if below cutoff) for interpretation (default = 2)}
 
 \item{sort_loadings}{Logical. Sort variables by loading strength within factors (default = TRUE)}
+
+\item{system_prompt}{Character or NULL. Optional custom system prompt text to override the package default
+psychometric system prompt. Use this to provide institution- or project-specific framing for the LLM
+(e.g., preferred terminology, audience level, or reporting conventions). If NULL the internal default
+system prompt is used (default = NULL). This will be ignored if chat_session is used.}
+
+\item{interpretation_guidelines}{Character or NULL. Optional custom interpretation guidelines for the LMM that override
+the package default guidelines. If NULL, built-in interpretation
+guidelines are applied (default = NULL).}
 
 \item{additional_info}{Character. Optional additional context for the LLM, such as theoretical background,
 research area information, or domain-specific knowledge to inform factor interpretation (default = NULL)}

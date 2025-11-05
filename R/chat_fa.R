@@ -6,6 +6,10 @@
 #'
 #' @param provider Character. LLM provider (e.g., "anthropic", "openai", "ollama")
 #' @param model Character. Model name (e.g., "claude-haiku-4-5-20251001")
+#' @param system_prompt Character or NULL. Optional custom system prompt text to override the package default
+#'   psychometric system prompt. Use this to provide institution- or project-specific framing for the LLM
+#'   (e.g., preferred terminology, audience level, or reporting conventions). If NULL the internal default
+#'   system prompt is used (default = NULL).
 #' @param params List. ellmer parameters (temperature, etc.). Default uses ellmer::params()
 #' @param echo Character. Echo level ("none", "output", "all"). Default is "none"
 #'
@@ -52,6 +56,7 @@
 #' @export
 chat_fa <- function(provider,
                     model = NULL,
+                    system_prompt = NULL,
                     params = NULL,
                     echo = "none") {
   # Validate inputs
@@ -68,24 +73,30 @@ chat_fa <- function(provider,
     params <- ellmer::params()
   }
 
-  # Build system prompt (same as in interpret_fa)
-  system_prompt <- paste0(
-    "# ROLE\n",
-    "You are an expert psychometrician specializing in factor analysis.\n\n",
 
-    "# TASK\n",
-    "Provide comprehensive factor analysis interpretation by: (1) identifying and naming meaningful constructs, (2) explaining factor composition and boundaries, and (3) analyzing relationships between factors.\n\n",
+  # use user system_prompt if provided
+  if (!is.null(system_prompt)) {
+    system_prompt <- system_prompt
+  } else{
+    # Build default system prompt (same as in interpret_fa)
+    system_prompt <- paste0(
+      "# ROLE\n",
+      "You are an expert psychometrician specializing in exploratory factor analysis.\n\n",
 
-    "# KEY DEFINITIONS\n",
-    "- **Loading**: Correlation coefficient (-1 to +1) between variable and factor\n",
-    "- **Significant loading**: Loading with absolute value >= cutoff threshold\n",
-    "- **Convergent validity**: Variables measuring similar constructs should load together; for two factors covering similar constructs, the correlation will be highly positive or negative\n",
-    "- **Discriminant validity**: Factors should represent meaningfully distinct constructs; for two factors covering similar constructs, the correlation will be near zero\n",
-    "- **Factor correlation**: Correlation between factors indicating relationship strength\n",
-    "- **Factor interpretation**: Identifying underlying construct explaining variable relationships\n",
-    "- **Variance explained**: Percentage of total data variance captured by each factor\n",
-    "- **Emergency rule**: Use highest absolute loadings when none meet cutoff\n\n"
-  )
+      "# TASK\n",
+      "Provide comprehensive factor analysis interpretation by: (1) identifying and naming meaningful constructs, (2) explaining factor composition and boundaries, and (3) analyzing relationships between factors.\n\n",
+
+      "# KEY DEFINITIONS\n",
+      "- **Loading**: Correlation coefficient (-1 to +1) between variable and factor\n",
+      "- **Significant loading**: Loading with absolute value >= cutoff threshold\n",
+      "- **Convergent validity**: Variables measuring similar constructs should load together; for two factors covering similar constructs, the correlation will be highly positive or negative\n",
+      "- **Discriminant validity**: Factors should represent meaningfully distinct constructs; for two factors covering similar constructs, the correlation will be near zero\n",
+      "- **Factor correlation**: Correlation between factors indicating relationship strength\n",
+      "- **Factor interpretation**: Identifying underlying construct explaining variable relationships\n",
+      "- **Variance explained**: Percentage of total data variance captured by each factor\n",
+      "- **Emergency rule**: Use highest absolute loadings when none meet cutoff\n\n"
+    )
+  }
 
   # Create provider/model specification
   provider_spec <- if (!is.null(model)) {

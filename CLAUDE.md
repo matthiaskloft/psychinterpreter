@@ -295,6 +295,30 @@ Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
   
   
 ## TODOs
+- `interpret_fa()`: 
+  - add argument "hide_low_loadings" to suppress reporting of low loadings to exclude loadings below the cutoff from the data provided to the LLM.
+  - add feature: if "n_emergency" is zero, the factor name and is replaced by "undefined" and the interpretation features a message explaining that "there are no significant loadings for this factor". The LLM is instructed to answer with "NA" in this case for these factors.
+  - if the emergency rule was used for a factor, the factor name should append "(n.s.)" for non significant (loadings).
+
+- `interpret_fa()`: implement ellmers chat_structured() for prompting and retrieving answers: https://ellmer.tidyverse.org/articles/prompt-design.html, https://ellmer.tidyverse.org/articles/structured-data.html
+  
+- `interpret_fa()` customization options added
+  - `interpretation_guidelines` and `system_prompt` are now accepted as arguments in `interpret_fa()` to allow advanced users to customize the system-level framing and additional interpretation instructions sent to the LLM.
+  - Usage example:
+
+```r
+# Provide a short custom system prompt and extra interpretation guidance
+custom_system <- "You are an expert psychometrician writing for a general scientific audience."
+guidelines <- "Prefer concise 2-3 word factor names; avoid niche technical jargon; emphasize practical implications."
+
+result <- interpret_fa(loadings, variable_info,
+                       system_prompt = custom_system,
+                       interpretation_guidelines = guidelines,
+                       llm_provider = 'openai',
+                       llm_model = 'gpt-4o-mini')
+```
+
+  - Update: R roxygen docs for `interpret_fa()` include `@param system_prompt` and `@param interpretation_guidelines` (see `R/interpret_fa.R`).
 
 - Token tracking fix implemented
   - docs, code comments, and tests reviewed and updated to reflect behavior

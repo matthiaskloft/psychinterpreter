@@ -4,12 +4,23 @@
 \alias{chat_fa}
 \title{Create Factor Analysis Chat Session}
 \usage{
-chat_fa(provider, model = NULL, params = NULL, echo = "none")
+chat_fa(
+  provider,
+  model = NULL,
+  system_prompt = NULL,
+  params = NULL,
+  echo = "none"
+)
 }
 \arguments{
 \item{provider}{Character. LLM provider (e.g., "anthropic", "openai", "ollama")}
 
 \item{model}{Character. Model name (e.g., "claude-haiku-4-5-20251001")}
+
+\item{system_prompt}{Character or NULL. Optional custom system prompt text to override the package default
+psychometric system prompt. Use this to provide institution- or project-specific framing for the LLM
+(e.g., preferred terminology, audience level, or reporting conventions). If NULL the internal default
+system prompt is used (default = NULL).}
 
 \item{params}{List. ellmer parameters (temperature, etc.). Default uses ellmer::params()}
 

@@ -40,18 +40,21 @@ sample_interpretation <- list(
   ),
   factor_summaries = list(
     ML1 = list(
+      header = "Factor 1 (ML1)",
       summary = "This factor captures cognitive ability and reasoning skills, with strong loadings from variables 1 and 2 (0.80, 0.70).\n\nVariables with significant loadings:\n- var1: First variable description (0.80)\n- var2: Second variable description (0.70)",
       n_loadings = 2,
       has_emergency = FALSE,
       variance_explained = 0.28
     ),
     ML2 = list(
+      header = "Factor 2 (ML2)",
       summary = "This factor represents numerical skills and quantitative reasoning, with strong loadings from variables 3 and 4 (0.75, 0.82).\n\nVariables with significant loadings:\n- var3: Third variable description (0.75)\n- var4: Fourth variable description (0.82)",
       n_loadings = 2,
       has_emergency = FALSE,
       variance_explained = 0.25
     ),
     ML3 = list(
+      header = "Factor 3 (ML3)",
       summary = "This factor reflects memory performance and recall ability, with a dominant loading from variable 5 (0.85).\n\nVariables with significant loadings:\n- var5: Fifth variable description (0.85)",
       n_loadings = 1,
       has_emergency = FALSE,

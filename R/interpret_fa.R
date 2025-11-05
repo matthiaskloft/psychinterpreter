@@ -29,6 +29,13 @@
 #'   correlations suggest related constructs, while lower correlations indicate distinct factors.
 #'   If NULL, factors are assumed to be orthogonal (default = NULL)
 #' @param sort_loadings Logical. Sort variables by loading strength within factors (default = TRUE)
+#' @param system_prompt Character or NULL. Optional custom system prompt text to override the package default
+#'   psychometric system prompt. Use this to provide institution- or project-specific framing for the LLM
+#'   (e.g., preferred terminology, audience level, or reporting conventions). If NULL the internal default
+#'   system prompt is used (default = NULL). This will be ignored if chat_session is used.
+#' @param interpretation_guidelines Character or NULL. Optional custom interpretation guidelines for the LMM that override
+#'   the package default guidelines. If NULL, built-in interpretation
+#'   guidelines are applied (default = NULL).
 #' @param params Parameters for the LLM created using ellmer::params() function (e.g., params(temperature = 0.7, seed = 42)).
 #'   Provides a provider-agnostic interface for setting model parameters like temperature, seed, max_tokens, etc.
 #'   If NULL, uses provider defaults. See ellmer::params() documentation for supported parameters.
@@ -202,12 +209,14 @@ interpret_fa <- function(loadings,
                          variable_info,
                          factor_cor_mat = NULL,
                          chat_session = NULL,
-                         llm_provider = "ollama",
+                         llm_provider = NULL,
                          llm_model = NULL,
                          params = NULL,
                          cutoff = 0.3,
                          n_emergency = 2,
                          sort_loadings = TRUE,
+                         system_prompt = NULL,
+                         interpretation_guidelines = NULL,
                          additional_info = NULL,
                          word_limit = 150,
                          output_format = "text",
@@ -225,12 +234,11 @@ interpret_fa <- function(loadings,
   # Start timing
   start_time <- Sys.time()
 
-  # Validate llm_provider parameter
-  if (!is.character(llm_provider) || length(llm_provider) != 1) {
-    cli::cli_abort(
-      c("{.var llm_provider} must be a single character string", "x" = "You supplied: {.val {llm_provider}}")
-    )
-  }
+  # NOTE: Defer validation of {.var llm_provider} until we actually need to
+  # initialize a new chat session. This allows input-related validation errors
+  # (e.g., invalid {.var cutoff}) to be reported first in tests that do not
+  # provide an active chat session.
+
 
   # Validate llm_model parameter (allow NULL)
   if (!is.null(llm_model) &&
@@ -285,43 +293,30 @@ interpret_fa <- function(loadings,
   # key psychometric definitions, and detailed interpretation guidelines organized
   # into Factor Naming, Factor Interpretation, and Output Requirements sections.
 
-  # Set default system prompt
-  system_prompt <- paste0(
-    "# ROLE\n",
-    "You are an expert psychometrician specializing in exploratory factor analysis.\n\n",
+  # use user system_prompt if provided
+  if (!is.null(system_prompt)) {
+    system_prompt <- system_prompt
+  } else{
+    # Set default system prompt
+    system_prompt <- paste0(
+      "# ROLE\n",
+      "You are an expert psychometrician specializing in exploratory factor analysis.\n\n",
 
-    "# TASK\n",
-    "Provide comprehensive factor analysis interpretation by: (1) identifying and naming meaningful constructs, (2) explaining factor composition and boundaries, and (3) analyzing relationships between factors.\n\n",
+      "# TASK\n",
+      "Provide comprehensive factor analysis interpretation by: (1) identifying and naming meaningful constructs, (2) explaining factor composition and boundaries, and (3) analyzing relationships between factors.\n\n",
 
-    "# KEY DEFINITIONS\n",
-    "- **Loading**: Correlation coefficient (-1 to +1) between variable and factor\n",
-    "- **Significant loading**: Loading with absolute value >= cutoff threshold\n",
-    "- **Convergent validity**: Variables measuring similar constructs should load together; for two factors covering similar constructs, the correlation will be highly positive or negative\n",
-    "- **Discriminant validity**: Factors should represent meaningfully distinct constructs; for two factors covering similar constructs, the correlation will be near zero\n",
-    "- **Factor correlation**: Correlation between factors indicating relationship strength\n",
-    "- **Factor interpretation**: Identifying underlying construct explaining variable relationships\n",
-    "- **Variance explained**: Percentage of total data variance captured by each factor\n",
-    "- **Emergency rule**: Use highest absolute loadings when none meet cutoff\n\n",
+      "# KEY DEFINITIONS\n",
+      "- **Loading**: Correlation coefficient (-1 to +1) between variable and factor\n",
+      "- **Significant loading**: Loading with absolute value >= cutoff threshold\n",
+      "- **Convergent validity**: Variables measuring similar constructs should load together; for two factors covering similar constructs, the correlation will be highly positive or negative\n",
+      "- **Discriminant validity**: Factors should represent meaningfully distinct constructs; for two factors covering similar constructs, the correlation will be near zero\n",
+      "- **Factor correlation**: Correlation between factors indicating relationship strength\n",
+      "- **Factor interpretation**: Identifying underlying construct explaining variable relationships\n",
+      "- **Variance explained**: Percentage of total data variance captured by each factor\n",
+      "- **Emergency rule**: Use highest absolute loadings when none meet cutoff\n\n"
+    )
+  }
 
-    "# INTERPRETATION GUIDELINES\n\n",
-    "## Factor Naming\n",
-    "- **Construct identification**: Identify the underlying construct each factor represents\n",
-    "- **Name creation**: Create 2-4 word names capturing the essence of each factor\n",
-    "- **Theoretical grounding**: Base names on domain knowledge and additional context\n\n",
-    "## Factor Interpretation\n",
-    "- **Convergent validity**: Explain why significantly loading variables belong together conceptually\n",
-    "- **Loading patterns**: Examine both strong positive/negative loadings and notable weak loadings\n",
-    "- **Construct meaning**: Describe what the factor measures and represents\n",
-    "- **Factor Relationships**: Use correlation matrix and cross loadings to understand how factors relate to each other\n",
-    "- **Discriminant validity**: Ensure factors represent meaningfully distinct constructs; explain how similar factors complement each other\n\n",
-    "## Output Requirements\n",
-    "- **Word target (Interpretation)**: Aim for ",
-    round(word_limit * 0.8),
-    "-",
-    word_limit,
-    " words per interpretation (80%-100% of limit)\n",
-    "- **Writing style**: Be concise, precise, and domain-appropriate"
-  )
 
   # ============================================================================
   # SECTION 3: COMPREHENSIVE INPUT VALIDATION
@@ -417,7 +412,8 @@ interpret_fa <- function(loadings,
     )
   }
   if (heading_level < 1 ||
-      heading_level > 6 || heading_level != as.integer(heading_level)) {
+      heading_level > 6 ||
+      heading_level != as.integer(heading_level)) {
     cli::cli_abort(
       c(
         "{.var heading_level} must be an integer between 1 and 6",
@@ -506,7 +502,8 @@ interpret_fa <- function(loadings,
   missing_in_loadings <- setdiff(variable_info$variable, loadings_df$variable)
 
   # Check that variables in loadings and variable_info match exactly
-  if (length(missing_in_info) > 0 || length(missing_in_loadings) > 0) {
+  if (length(missing_in_info) > 0 ||
+      length(missing_in_loadings) > 0) {
     if (length(missing_in_info) == nrow(loadings_df)) {
       # All variables missing - critical error
       cli::cli_abort(
@@ -606,13 +603,19 @@ interpret_fa <- function(loadings,
         )
     }
 
-    # Create factor summary
-    summary_text <- paste0(
+    # Create factor header and body summary. The report builder is responsible
+    # for formatting headers consistently, so we store the header separately and
+    # keep the summary body without the header line.
+    header_text <- paste0(
       "Factor ",
       i,
       " (",
       factor_name,
-      "):\n",
+      ")"
+    )
+
+    # Body of the summary (exclude header line)
+    summary_text <- paste0(
       "Number of significant loadings: ",
       ifelse(has_significant, nrow(factor_data), 0),
       "\n",
@@ -656,7 +659,11 @@ interpret_fa <- function(loadings,
           ", ",
           factor_data$strength[j],
           ", ",
-          sub("^(-?)0\\.", "\\1.", sprintf("%.3f", factor_data$loading[j])),
+          sub(
+            "^(-?)0\\.",
+            "\\1.",
+            sprintf("%.3f", factor_data$loading[j])
+          ),
           ")\n"
         )
       }
@@ -665,6 +672,7 @@ interpret_fa <- function(loadings,
     }
 
     factor_summaries[[factor_name]] <- list(
+      header = header_text,
       summary = summary_text,
       variables = factor_data,
       n_loadings = ifelse(has_significant, nrow(factor_data), 0),
@@ -704,7 +712,7 @@ interpret_fa <- function(loadings,
     chat_session$n_interpretations <- chat_session$n_interpretations + 1L
 
     # Inform user if they provided provider/model arguments that will be ignored
-    if (llm_provider != "ollama" || !is.null(llm_model)) {
+    if (!is.null(llm_provider) || !is.null(llm_model)) {
       cli::cli_inform(
         c("i" = "Using provided {.field chat_session} (overrides {.field llm_provider} and {.field llm_model} arguments)")
       )
@@ -716,6 +724,13 @@ interpret_fa <- function(loadings,
 
   } else {
     # Create new chat session using provider-specific functions
+    # Validate llm_provider now that we are about to create a chat
+    if (!is.character(llm_provider) || length(llm_provider) != 1) {
+      cli::cli_abort(
+        c("{.var llm_provider} must be a single character string", "x" = "You supplied: {.val {llm_provider}}")
+      )
+    }
+
     chat <- tryCatch({
       switch(
         llm_provider,
@@ -786,35 +801,40 @@ interpret_fa <- function(loadings,
   # Build structured prompt sections
   prompt <- ""
 
+  # use interpretation_guidelines provided by user if given, else use default
+  if (!is.null(interpretation_guidelines)) {
+    interpretation_guidelines <- interpretation_guidelines
+  } else{
+    # default INTERPRETATION GUIDELINES
+    interpretation_guidelines <- paste0(
+      "# INTERPRETATION GUIDELINES\n\n",
+      "## Factor Naming\n",
+      "- **Construct identification**: Identify the underlying construct each factor represents\n",
+      "- **Name creation**: Create 2-4 word names capturing the essence of each factor\n",
+      "- **Theoretical grounding**: Base names on domain knowledge and additional context\n\n",
+      "## Factor Interpretation\n",
+      "- **Convergent validity**: Explain why significantly loading variables belong together conceptually\n",
+      "- **Loading patterns**: Examine both strong positive/negative loadings and notable weak loadings\n",
+      "- **Construct meaning**: Describe what the factor measures and represents\n",
+      "- **Factor Relationships**: Use correlation matrix and cross loadings to understand how factors relate to each other\n",
+      "- **Discriminant validity**: Ensure factors represent meaningfully distinct constructs; explain how similar factors complement each other\n\n",
+      "## Output Requirements\n",
+      "- **Word target (Interpretation)**: Aim for ",
+      round(word_limit * 0.8),
+      "-",
+      word_limit,
+      " words per interpretation (80%-100% of limit)\n",
+      "- **Writing style**: Be concise, precise, and domain-appropriate\n\n"
+    )
+  }
+
+
   # Add interpretation guidelines section
-  prompt <- paste0(
-    prompt,
-    "# INTERPRETATION GUIDELINES\n\n",
-    "## Factor Naming\n",
-    "- **Construct identification**: Identify the underlying construct each factor represents\n",
-    "- **Name creation**: Create 2-4 word names capturing the essence of each factor\n",
-    "- **Theoretical grounding**: Base names on domain knowledge and additional context\n\n",
-    "## Factor Interpretation\n",
-    "- **Convergent validity**: Explain why significantly loading variables belong together conceptually\n",
-    "- **Loading patterns**: Examine both strong positive/negative loadings and notable weak loadings\n",
-    "- **Construct meaning**: Describe what the factor measures and represents\n",
-    "- **Factor Relationships**: Use correlation matrix and cross loadings to understand how factors relate to each other\n",
-    "- **Discriminant validity**: Ensure factors represent meaningfully distinct constructs; explain how similar factors complement each other\n\n",
-    "## Output Requirements\n",
-    "- **Word target (Interpretation)**: Aim for ",
-    round(word_limit * 0.8),
-    "-",
-    word_limit,
-    " words per interpretation (80%-100% of limit)\n",
-    "- **Writing style**: Be concise, precise, and domain-appropriate\n\n"
-  )
+  prompt <- paste0(prompt, interpretation_guidelines)
 
   # Add additional context if provided (positioned after TASK in system prompt)
   if (!is.null(additional_info) && nchar(additional_info) > 0) {
-    prompt <- paste0(prompt,
-                           "# ADDITIONAL CONTEXT\n",
-                           additional_info,
-                           "\n\n")
+    prompt <- paste0(prompt, "# ADDITIONAL CONTEXT\n", additional_info, "\n\n")
   }
 
   # Add variable descriptions section
@@ -826,12 +846,7 @@ interpret_fa <- function(loadings,
         variable_info$description[i],
         variable_info$variable[i]
       )
-      prompt <- paste0(prompt,
-                             "- ",
-                             variable_info$variable[i],
-                             ": ",
-                             var_desc,
-                             "\n")
+      prompt <- paste0(prompt, "- ", variable_info$variable[i], ": ", var_desc, "\n")
     }
   }
   prompt <- paste0(prompt, "\n")
@@ -866,10 +881,10 @@ interpret_fa <- function(loadings,
     }
 
     prompt <- paste0(prompt,
-                           factor_name,
-                           ": ",
-                           paste(loading_vector, collapse = " "),
-                           "\n")
+                     factor_name,
+                     ": ",
+                     paste(loading_vector, collapse = " "),
+                     "\n")
   }
 
   # Add variance explained
@@ -896,10 +911,8 @@ interpret_fa <- function(loadings,
     }
 
     # Add correlation matrix information in compact format
-    prompt <- paste0(
-      prompt,
-      "Factor correlations help understand relationships between factors:\n"
-    )
+    prompt <- paste0(prompt,
+                     "Factor correlations help understand relationships between factors:\n")
     for (i in 1:length(cor_factors)) {
       factor_name <- cor_factors[i]
       if (factor_name %in% names(cor_df)) {
@@ -917,10 +930,10 @@ interpret_fa <- function(loadings,
         }
         if (length(cor_vector) > 0) {
           prompt <- paste0(prompt,
-                                 factor_name,
-                                 " with: ",
-                                 paste(cor_vector, collapse = " "),
-                                 "\n")
+                           factor_name,
+                           " with: ",
+                           paste(cor_vector, collapse = " "),
+                           "\n")
         }
       }
     }
@@ -978,26 +991,25 @@ interpret_fa <- function(loadings,
       "# CRITICAL REQUIREMENTS\n",
       "- Include ALL ",
       n_factors,
-      " factors as object keys\n",
-      "- Use exact factor names as keys: ",
+      " factors as object keys using their exact names: ",
       paste(factor_cols, collapse = ", "),
       "\n",
       "- Valid JSON syntax (proper quotes, commas, brackets)\n",
       "- No additional text before or after JSON\n",
       "- Factor names: 2-4 words maximum\n",
-      "- Interpretations: 1-4 sentences, target ",
+      "- Factor interpretations: target ",
       round(word_limit * 0.8),
       "-",
       word_limit,
       " words each (80%-100% of ",
       word_limit,
       " word limit)\n",
-      "- Apply convergent validity: Explain why variables load together\n",
-      "- Consider discriminant validity: Ensure factors represent distinct constructs\n",
       "- Emergency rule: Use top ",
       n_emergency,
       " variables if no significant loadings\n"
     )
+
+    ### Call LLM ###############################################################
 
     # Get LLM response with error handling
     response <- tryCatch({
@@ -1006,6 +1018,7 @@ interpret_fa <- function(loadings,
       cli::cli_warn("Failed to get factor analysis: {e$message}")
       NULL
     })
+    ###########################################################################
 
     # Parse hierarchical JSON response
     if (!is.null(response)) {
@@ -1240,6 +1253,21 @@ interpret_fa <- function(loadings,
   results$llm_info <- list(provider = llm_provider, model = chat$get_model())
   results$chat <- chat
   results$used_chat_session <- !is.null(chat_session)
+  # store the system_prompt from chat_session if applicable (defensive)
+  if (!is.null(chat_session)) {
+    results$system_prompt <- tryCatch({
+      if (!is.null(chat_session$chat$get_system_prompt) && is.function(chat_session$chat$get_system_prompt)) {
+        chat_session$chat$get_system_prompt()
+      } else if (!is.null(chat_session$chat$system_prompt)) {
+        chat_session$chat$system_prompt
+      } else {
+        system_prompt
+      }
+    }, error = function(e) system_prompt)
+  } else {
+    results$system_prompt <- system_prompt
+  }
+  results$prompt <- prompt
   results$cross_loadings <- cross_loadings
   results$no_loadings <- no_loadings
   results$elapsed_time <- elapsed_time
