@@ -14,6 +14,7 @@ interpret_fa(
   params = NULL,
   cutoff = 0.3,
   n_emergency = 2,
+  hide_low_loadings = FALSE,
   sort_loadings = TRUE,
   system_prompt = NULL,
   interpretation_guidelines = NULL,
@@ -59,7 +60,13 @@ If NULL, uses provider defaults. See ellmer::params() documentation for supporte
 \item{cutoff}{Numeric. Minimum loading value to consider (default = 0.3)}
 
 \item{n_emergency}{Integer. When a factor has no loadings above the cutoff, use the
-top N highest loadings (even if below cutoff) for interpretation (default = 2)}
+top N highest loadings (even if below cutoff) for interpretation. If set to 0,
+factors with no significant loadings are labeled as "undefined" and assigned NA
+interpretations (default = 2)}
+
+\item{hide_low_loadings}{Logical. If TRUE, only variables with loadings at or above
+the cutoff are included in the data sent to the LLM. If FALSE, all loadings are
+included regardless of magnitude (default = FALSE)}
 
 \item{sort_loadings}{Logical. Sort variables by loading strength within factors (default = TRUE)}
 

@@ -275,6 +275,11 @@ Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
 
 ## Recent Key Updates
 
+### 2025-11-05
+- ✓ **hide_low_loadings parameter**: Added `hide_low_loadings` parameter to `interpret_fa()`. When TRUE, only variables with loadings at or above the cutoff are included in data sent to the LLM, reducing token usage and focusing interpretation on significant loadings.
+- ✓ **n_emergency = 0 support**: `n_emergency` parameter now accepts 0. When set to 0, factors with no significant loadings are labeled as "undefined" with "NA" interpretations, providing explicit handling of weak/undefined factors instead of forcing interpretation of weak loadings.
+- ✓ **Emergency rule indicator**: Factor names from the emergency rule (when no loadings exceed cutoff) now automatically receive a "(n.s.)" suffix to clearly indicate non-significant loadings were used for interpretation.
+
 ### 2025-11-04
 - ✓ **System prompt token tracking**: Fixed token tracking for persistent chat sessions. System prompt tokens are now correctly captured on first use (when first message is sent) rather than at initialization. Added `system_prompt_captured` flag to track whether tokens have been extracted.
 
@@ -295,10 +300,6 @@ Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
   
   
 ## TODOs
-- `interpret_fa()`: 
-  - add argument "hide_low_loadings" to suppress reporting of low loadings to exclude loadings below the cutoff from the data provided to the LLM.
-  - add feature: if "n_emergency" is zero, the factor name and is replaced by "undefined" and the interpretation features a message explaining that "there are no significant loadings for this factor". The LLM is instructed to answer with "NA" in this case for these factors.
-  - if the emergency rule was used for a factor, the factor name should append "(n.s.)" for non significant (loadings).
 
 - `interpret_fa()`: implement ellmers chat_structured() for prompting and retrieving answers: https://ellmer.tidyverse.org/articles/prompt-design.html, https://ellmer.tidyverse.org/articles/structured-data.html
   

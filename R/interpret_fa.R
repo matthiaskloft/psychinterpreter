@@ -16,7 +16,12 @@
 #'   - description: labels or descriptions of the variables
 #' @param cutoff Numeric. Minimum loading value to consider (default = 0.3)
 #' @param n_emergency Integer. When a factor has no loadings above the cutoff, use the
-#'   top N highest loadings (even if below cutoff) for interpretation (default = 2)
+#'   top N highest loadings (even if below cutoff) for interpretation. If set to 0,
+#'   factors with no significant loadings are labeled as "undefined" and assigned NA
+#'   interpretations (default = 2)
+#' @param hide_low_loadings Logical. If TRUE, only variables with loadings at or above
+#'   the cutoff are included in the data sent to the LLM. If FALSE, all loadings are
+#'   included regardless of magnitude (default = FALSE)
 #' @param llm_provider Character. Which LLM provider to use.
 #'   Any provider supported by ellmer::chat() (e.g., "openai", "anthropic", "ollama", etc.)
 #'   See ellmer documentation for the complete list of supported providers.
@@ -214,6 +219,7 @@ interpret_fa <- function(loadings,
                          params = NULL,
                          cutoff = 0.3,
                          n_emergency = 2,
+                         hide_low_loadings = FALSE,
                          sort_loadings = TRUE,
                          system_prompt = NULL,
                          interpretation_guidelines = NULL,
@@ -346,12 +352,22 @@ interpret_fa <- function(loadings,
       c("{.var n_emergency} must be a single integer value", "x" = "You supplied: {.val {n_emergency}}")
     )
   }
-  if (n_emergency < 1 || n_emergency != as.integer(n_emergency)) {
+  if (n_emergency < 0 || n_emergency != as.integer(n_emergency)) {
     cli::cli_abort(
       c(
-        "{.var n_emergency} must be a positive integer >= 1",
+        "{.var n_emergency} must be a non-negative integer >= 0",
         "x" = "You supplied: {.val {n_emergency}}",
-        "i" = "Typical values are 2 or 3"
+        "i" = "Typical values are 2 or 3. Use 0 to mark factors with no significant loadings as 'undefined'"
+      )
+    )
+  }
+
+  # Validate hide_low_loadings parameter
+  if (!is.logical(hide_low_loadings) || length(hide_low_loadings) != 1 || is.na(hide_low_loadings)) {
+    cli::cli_abort(
+      c(
+        "{.var hide_low_loadings} must be a single logical value (TRUE or FALSE)",
+        "x" = "You supplied: {.val {hide_low_loadings}}"
       )
     )
   }
@@ -584,23 +600,38 @@ interpret_fa <- function(loadings,
         direction = ifelse(loading > 0, "Positive", "Negative")
       )
 
-    # If no significant loadings, get top N variables below cutoff
+    # If no significant loadings, apply emergency rule or mark as undefined
     has_significant <- nrow(factor_data) > 0
+    used_emergency_rule <- FALSE
+
     if (!has_significant) {
-      factor_data <- loadings_with_info |>
-        dplyr::select(variable, description, !!sym(factor_name)) |>
-        dplyr::rename(loading = !!sym(factor_name)) |>
-        arrange(desc(abs(loading))) |>
-        head(n_emergency) |>
-        mutate(
-          strength = case_when(
-            abs(loading) >= 0.7 ~ "Very Strong",
-            abs(loading) >= 0.5 ~ "Strong",
-            abs(loading) >= 0.4 ~ "Moderate",
-            TRUE ~ "Below Cutoff"
-          ),
-          direction = ifelse(loading > 0, "Positive", "Negative")
+      if (n_emergency == 0) {
+        # Leave factor_data empty when n_emergency = 0
+        factor_data <- data.frame(
+          variable = character(0),
+          description = character(0),
+          loading = numeric(0),
+          strength = character(0),
+          direction = character(0)
         )
+      } else {
+        # Apply emergency rule: use top N variables below cutoff
+        used_emergency_rule <- TRUE
+        factor_data <- loadings_with_info |>
+          dplyr::select(variable, description, !!sym(factor_name)) |>
+          dplyr::rename(loading = !!sym(factor_name)) |>
+          arrange(desc(abs(loading))) |>
+          head(n_emergency) |>
+          mutate(
+            strength = case_when(
+              abs(loading) >= 0.7 ~ "Very Strong",
+              abs(loading) >= 0.5 ~ "Strong",
+              abs(loading) >= 0.4 ~ "Moderate",
+              TRUE ~ "Below Cutoff"
+            ),
+            direction = ifelse(loading > 0, "Positive", "Negative")
+          )
+      }
     }
 
     # Create factor header and body summary. The report builder is responsible
@@ -625,15 +656,25 @@ interpret_fa <- function(loadings,
     )
 
     if (!has_significant) {
-      summary_text <- paste0(
-        summary_text,
-        "WARNING: No variables load above cutoff (",
-        cutoff,
-        "). ",
-        "Using top ",
-        n_emergency,
-        " variables below cutoff for interpretation.\n"
-      )
+      if (n_emergency == 0) {
+        summary_text <- paste0(
+          summary_text,
+          "WARNING: No variables load above cutoff (",
+          cutoff,
+          "). ",
+          "Factor marked as undefined (n_emergency = 0).\n"
+        )
+      } else {
+        summary_text <- paste0(
+          summary_text,
+          "WARNING: No variables load above cutoff (",
+          cutoff,
+          "). ",
+          "Using top ",
+          n_emergency,
+          " variables below cutoff for interpretation.\n"
+        )
+      }
     }
 
     summary_text <- paste0(summary_text, "\nVariables:\n")
@@ -677,6 +718,7 @@ interpret_fa <- function(loadings,
       variables = factor_data,
       n_loadings = ifelse(has_significant, nrow(factor_data), 0),
       has_significant = has_significant,
+      used_emergency_rule = used_emergency_rule,
       variance_explained = variance_explained
     )
   }
@@ -876,7 +918,14 @@ interpret_fa <- function(loadings,
     loading_vector <- c()
     for (j in 1:nrow(loadings_df)) {
       var_name <- loadings_df$variable[j]
-      loading_val <- sub("^(-?)0\\.", "\\1.", sprintf("%.3f", loadings_df[[factor_name]][j]))
+      loading_value <- loadings_df[[factor_name]][j]
+
+      # Skip low loadings if hide_low_loadings is TRUE
+      if (hide_low_loadings && abs(loading_value) < cutoff) {
+        next
+      }
+
+      loading_val <- sub("^(-?)0\\.", "\\1.", sprintf("%.3f", loading_value))
       loading_vector <- c(loading_vector, paste0(var_name, "=", loading_val))
     }
 
@@ -940,15 +989,25 @@ interpret_fa <- function(loadings,
     prompt <- paste0(prompt, "\n")
   }
 
-  # Check for factors with no variables (minimal processing needed)
+  # Check for factors with no significant loadings (n_emergency = 0 case)
   factors_with_no_vars <- 0
+  undefined_factors <- c()
+
   for (i in 1:n_factors) {
     factor_name <- factor_cols[i]
     factor_vars <- factor_summaries[[factor_name]]$variables
 
     if (nrow(factor_vars) == 0) {
-      suggested_names[[factor_name]] <- "No variables"
-      factor_summaries[[factor_name]]$llm_interpretation <- "This factor has no variables."
+      if (n_emergency == 0 && !factor_summaries[[factor_name]]$has_significant) {
+        # Mark as undefined when n_emergency = 0 and no significant loadings
+        suggested_names[[factor_name]] <- "undefined"
+        factor_summaries[[factor_name]]$llm_interpretation <- "NA"
+        undefined_factors <- c(undefined_factors, factor_name)
+      } else {
+        # Default handling for truly empty factors
+        suggested_names[[factor_name]] <- "No variables"
+        factor_summaries[[factor_name]]$llm_interpretation <- "This factor has no variables."
+      }
       factors_with_no_vars <- factors_with_no_vars + 1
     }
   }
@@ -984,8 +1043,7 @@ interpret_fa <- function(loadings,
       }
     }
 
-    prompt <- paste0(
-      prompt,
+    prompt_requirements <- paste0(
       "}\n",
       "```\n\n",
       "# CRITICAL REQUIREMENTS\n",
@@ -1003,11 +1061,35 @@ interpret_fa <- function(loadings,
       word_limit,
       " words each (80%-100% of ",
       word_limit,
-      " word limit)\n",
-      "- Emergency rule: Use top ",
-      n_emergency,
-      " variables if no significant loadings\n"
+      " word limit)\n"
     )
+
+    # Add emergency rule or undefined factor instructions
+    if (n_emergency == 0) {
+      prompt_requirements <- paste0(
+        prompt_requirements,
+        "- For factors with no significant loadings: respond with \"undefined\" for name and \"NA\" for interpretation\n"
+      )
+    } else {
+      prompt_requirements <- paste0(
+        prompt_requirements,
+        "- Emergency rule: Use top ",
+        n_emergency,
+        " variables if no significant loadings\n"
+      )
+    }
+
+    # Add undefined factors note if applicable
+    if (length(undefined_factors) > 0) {
+      prompt_requirements <- paste0(
+        prompt_requirements,
+        "- The following factors have no significant loadings and should receive \"undefined\" for name and \"NA\" for interpretation: ",
+        paste(undefined_factors, collapse = ", "),
+        "\n"
+      )
+    }
+
+    prompt <- paste0(prompt, prompt_requirements)
 
     ### Call LLM ###############################################################
 
@@ -1071,7 +1153,14 @@ interpret_fa <- function(loadings,
             suggested_name <- if (!is.null(factor_data$name) &&
                                   !is.na(factor_data$name) &&
                                   nchar(trimws(factor_data$name)) > 0) {
-              trimws(factor_data$name)
+              name_text <- trimws(factor_data$name)
+              # Add (n.s.) suffix if emergency rule was used and name is not "NA"
+              if (factor_summaries[[factor_name]]$used_emergency_rule &&
+                  !grepl("^NA$|^na$|^N/A$|^n/a$", name_text, ignore.case = FALSE)) {
+                paste0(name_text, " (n.s.)")
+              } else {
+                name_text
+              }
             } else {
               paste("Factor", i)
             }
@@ -1143,7 +1232,14 @@ interpret_fa <- function(loadings,
             if (!is.null(parsed_factor) && is.list(parsed_factor)) {
               # Successfully parsed individual factor
               suggested_names[[factor_name]] <- if (!is.null(parsed_factor$name)) {
-                trimws(parsed_factor$name)
+                name_text <- trimws(parsed_factor$name)
+                # Add (n.s.) suffix if emergency rule was used and name is not "NA"
+                if (factor_summaries[[factor_name]]$used_emergency_rule &&
+                    !grepl("^NA$|^na$|^N/A$|^n/a$", name_text, ignore.case = FALSE)) {
+                  paste0(name_text, " (n.s.)")
+                } else {
+                  name_text
+                }
               } else {
                 paste("Factor", i)
               }

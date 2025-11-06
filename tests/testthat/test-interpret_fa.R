@@ -13,10 +13,10 @@ test_that("interpret_fa validates input parameters", {
     "must be between 0 and 1"
   )
 
-  # Test invalid n_emergency
+  # Test invalid n_emergency (negative values not allowed)
   expect_error(
-    interpret_fa(loadings, var_info, n_emergency = 0),
-    "must be a positive integer"
+    interpret_fa(loadings, var_info, n_emergency = -1),
+    "must be a non-negative integer"
   )
 
   # Test invalid output_format
@@ -220,4 +220,97 @@ test_that("leading zeros are removed consistently for negative numbers", {
     # Should have "-.XXX" not "-0.XXX" for negative values
     expect_false(grepl("-0\\.[0-9]", loading_str))
   }
+})
+
+test_that("n_emergency = 0 marks factors as undefined", {
+  skip_if_no_llm()
+
+  # Create loadings where one factor has no loadings above cutoff
+  weak_loadings <- data.frame(
+    variable = c("v1", "v2"),
+    F1 = c(0.85, 0.75),
+    F2 = c(0.05, 0.03)  # All below cutoff
+  )
+
+  var_info <- data.frame(
+    variable = c("v1", "v2"),
+    description = c("Item 1", "Item 2")
+  )
+
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
+
+  # Test with n_emergency = 0
+  result <- interpret_fa(weak_loadings, var_info,
+                        cutoff = 0.3,
+                        n_emergency = 0,
+                        llm_provider = provider,
+                        llm_model = model,
+                        word_limit = 30,
+                        silent = TRUE)
+
+  # Check that F2 is marked as undefined
+  expect_equal(result$suggested_names$F2, "undefined")
+  expect_equal(result$factor_summaries$F2$llm_interpretation, "NA")
+
+  # Check that the summary indicates it's marked as undefined
+  f2_summary <- result$factor_summaries$F2$summary
+  expect_true(grepl("undefined", f2_summary))
+})
+
+test_that("emergency rule adds (n.s.) suffix to factor names", {
+  skip_if_no_llm()
+
+  # Create loadings where one factor has no loadings above cutoff
+  weak_loadings <- data.frame(
+    variable = c("v1", "v2"),
+    F1 = c(0.85, 0.75),
+    F2 = c(0.05, 0.03)  # All below cutoff - triggers emergency rule
+  )
+
+  var_info <- data.frame(
+    variable = c("v1", "v2"),
+    description = c("Item 1", "Item 2")
+  )
+
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
+
+  # Test with n_emergency > 0 to trigger emergency rule
+  result <- interpret_fa(weak_loadings, var_info,
+                        cutoff = 0.3,
+                        n_emergency = 1,
+                        llm_provider = provider,
+                        llm_model = model,
+                        word_limit = 30,
+                        silent = TRUE)
+
+  # Check that F2 name has (n.s.) suffix
+  # Note: The LLM generates the name, so we check that either:
+  # 1. The name includes "(n.s.)" suffix, or
+  # 2. The factor is marked as having used the emergency rule
+  expect_true(result$factor_summaries$F2$used_emergency_rule)
+
+  # If the LLM returned a non-NA name, it should have the suffix
+  f2_name <- result$suggested_names$F2
+  if (!is.null(f2_name) && !grepl("^NA$|^na$|^N/A$|^n/a$", f2_name)) {
+    expect_true(grepl("\\(n\\.s\\.\\)", f2_name))
+  }
+})
+
+test_that("hide_low_loadings parameter works correctly", {
+  # This test doesn't require LLM, just checks parameter validation
+  loadings <- sample_loadings()
+  var_info <- sample_variable_info()
+
+  # Test invalid hide_low_loadings
+  expect_error(
+    interpret_fa(loadings, var_info, hide_low_loadings = "yes"),
+    "must be a single logical value"
+  )
+
+  expect_error(
+    interpret_fa(loadings, var_info, hide_low_loadings = NA),
+    "must be a single logical value"
+  )
 })
