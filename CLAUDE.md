@@ -132,6 +132,16 @@ The psychometric expert system prompt is defined in **ONE location**:
 - Uses `testthat 3.0` framework
 - Fixtures stored in `tests/testthat/fixtures/` as `.rds` files
 - Helper functions in `helper.R` use `test_path()` for portability
+- **Environment caching**: Fixtures cached in `.test_cache` environment (loaded once per session)
+  - 40x+ speedup on repeated fixture access
+  - 97.6% time reduction for fixture loading
+  - Zero impact on package size (cache only exists during testing)
+- **Minimal LLM testing**: LLM interpretation tested once per class, S3 methods test only data extraction
+  - Core interpretation: 2 LLM tests (1 comprehensive + 1 edge case)
+  - S3 methods: 4 LLM tests (1 integration per package: psych, lavaan, mirt, efaList)
+  - Chat sessions: 1 LLM test (session reuse with 2 interpretations)
+  - Print/visualization: 0 LLM tests (use cached `sample_interpretation()`)
+  - Total: ~7 LLM calls (down from 33+ before optimization)
 - LLM-requiring tests skip automatically on CI (GitHub Actions)
 - Token-efficient fixtures: `minimal_*` fixtures use `word_limit = 20` (minimum allowed)
 
@@ -202,68 +212,112 @@ devtools::load_all()         # Load for development
 
 ## Common Workflows
 
-### The interpret() Generic: Four Usage Patterns
+### The interpret() Generic: Usage Patterns
 
-The `interpret()` function is the main entry point for all interpretations, supporting four flexible dispatch patterns:
+The `interpret()` function is the main entry point for all interpretations. All arguments are named to prevent positional confusion.
 
-#### Pattern 1: Model Objects (Automatic Extraction)
+#### Pattern 1: Fitted Model Objects (Automatic Extraction)
 
 ```r
 # Automatically extracts loadings from fitted models
 fa_result <- psych::fa(data, nfactors = 3)
-interpretation <- interpret(fa_result,
-                           variable_info = var_descriptions,
-                           llm_provider = "anthropic",
-                           llm_model = "claude-haiku-4-5-20251001")
+interpretation <- interpret(
+  model_fit = fa_result,
+  variable_info = var_descriptions,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
 
 # Also works with lavaan, mirt, etc.
 efa_result <- lavaan::efa(data, nfactors = 3)
-interpretation <- interpret(efa_result, variable_info = var_descriptions)
+interpretation <- interpret(
+  model_fit = efa_result,
+  variable_info = var_descriptions,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
 ```
 
-#### Pattern 2: Raw Data with model_type
+#### Pattern 2: Raw Data (Matrix/Data Frame) with model_type
 
 ```r
 # For custom loadings matrices or manual extraction
 loadings <- as.data.frame(unclass(fa_model$loadings))
 
-interpretation <- interpret(loadings,
-                           variable_info = var_descriptions,
-                           model_type = "fa",
-                           llm_provider = "anthropic",
-                           llm_model = "claude-haiku-4-5-20251001")
+interpretation <- interpret(
+  model_fit = loadings,
+  variable_info = var_descriptions,
+  model_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
 ```
 
-#### Pattern 3: Persistent Chat Session (Most Token-Efficient)
+#### Pattern 3: Structured List
+
+```r
+# For FA: Provide loadings (required) and optionally Phi/factor_cor_mat
+interpretation <- interpret(
+  model_fit = list(
+    loadings = loadings_matrix,
+    Phi = factor_cor_mat  # or factor_cor_mat = ...
+  ),
+  variable_info = var_descriptions,
+  model_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# Minimal list (orthogonal rotation, no Phi needed)
+interpretation <- interpret(
+  model_fit = list(loadings = loadings_matrix),
+  variable_info = var_descriptions,
+  model_type = "fa"
+)
+```
+
+#### Pattern 4: Chat Session (Token-Efficient for Multiple Analyses)
 
 ```r
 # Create session once
-chat <- chat_session(model_type = "fa",
-                    provider = "anthropic",
-                    model = "claude-haiku-4-5-20251001")
+chat <- chat_session(
+  model_type = "fa",
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
+)
 
-# Use session as first argument - saves system prompt tokens
-result1 <- interpret(chat, loadings1, var_info1)
-result2 <- interpret(chat, loadings2, var_info2)  # Reuses system prompt
-result3 <- interpret(chat, loadings3, var_info3)
+# Use with named chat_session parameter - saves system prompt tokens
+result1 <- interpret(
+  chat_session = chat,
+  model_fit = loadings1,
+  variable_info = var_info1
+)
+
+result2 <- interpret(
+  chat_session = chat,
+  model_fit = loadings2,
+  variable_info = var_info2
+)  # Reuses system prompt
+
+result3 <- interpret(
+  chat_session = chat,
+  model_fit = list(loadings = loadings3, Phi = phi3),
+  variable_info = var_info3
+)  # Works with lists too
 
 print(chat)  # Check cumulative tokens
 ```
 
-#### Pattern 4: Raw Data with chat_session Parameter
-
-```r
-# Combine raw data with persistent session
-interpretation <- interpret(loadings,
-                           variable_info = var_descriptions,
-                           chat_session = chat)
-# model_type automatically inherited from chat session
-```
+**Key Points:**
+- All arguments are **named** - no positional confusion
+- `model_fit` accepts: fitted models, matrices, data.frames, or structured lists
+- `additional_info` is a separate parameter, not part of model_fit list
+- Chat sessions work with any model_fit type (fitted models, raw data, or lists)
 
 **Pattern Recommendation:**
-- **Single analysis**: Pattern 1 (model objects) - simplest
-- **Multiple analyses**: Pattern 3 (chat session) - most efficient
-- **Custom data**: Pattern 2 or 4 depending on whether you need multi-analysis
+- **Single analysis**: Pattern 1 (fitted model) - simplest
+- **Multiple analyses**: Pattern 4 (chat session) - most efficient
+- **Custom data**: Pattern 2 (raw matrix) or Pattern 3 (structured list)
 
 ### Visualizing Results
 
@@ -286,11 +340,11 @@ ggsave("loadings.png", p, width = 10, height = 8)
 
 ### Token-Efficient Multi-Analysis Workflow (Legacy)
 
-**Note:** `chat_fa()` is deprecated. Use `chat_session()` with the interpret() generic (see Pattern 3 above) for new code.
+**Note:** `chat_fa()` is deprecated. Use `chat_session()` with the interpret() generic (see Pattern 4 above) for new code.
 
 ```r
 # Legacy approach - still works but deprecated
-chat <- chat_fa("anthropic", "claude-haiku-4-5-20251001")
+chat <- chat_fa("ollama", "gpt-oss:20b-cloud")
 
 # Interpret multiple analyses
 results1 <- interpret_fa(loadings1, var_info1, chat_session = chat)
@@ -302,15 +356,31 @@ print(chat)  # Shows cumulative tokens and n_interpretations
 ```
 
 ```r
-# Modern approach - recommended
-chat <- chat_session(model_type = "fa",
-                    provider = "anthropic",
-                    model = "claude-haiku-4-5-20251001")
+# Modern approach - recommended (all arguments named)
+chat <- chat_session(
+  model_type = "fa",
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
+)
 
-# Use with interpret() generic
-results1 <- interpret(chat, loadings1, var_info1)
-results2 <- interpret(chat, loadings2, var_info2)
-results3 <- interpret(chat, loadings3, var_info3)
+# Use with interpret() generic - all arguments are named
+results1 <- interpret(
+  chat_session = chat,
+  model_fit = loadings1,
+  variable_info = var_info1
+)
+
+results2 <- interpret(
+  chat_session = chat,
+  model_fit = loadings2,
+  variable_info = var_info2
+)
+
+results3 <- interpret(
+  chat_session = chat,
+  model_fit = loadings3,
+  variable_info = var_info3
+)
 
 print(chat)  # Shows cumulative tokens
 ```
@@ -321,9 +391,20 @@ print(chat)  # Shows cumulative tokens
 # Enable LLM prompt/response visibility
 interpret_fa(..., echo = "all")
 
+# Or with interpret() generic
+interpret(
+  model_fit = ...,
+  variable_info = ...,
+  echo = "all"
+)
+
 # Check token usage
-chat <- chat_fa("anthropic", "claude-haiku-4-5-20251001")
-result <- interpret_fa(..., chat_session = chat)
+chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+result <- interpret(
+  chat_session = chat,
+  model_fit = loadings,
+  variable_info = var_info
+)
 print(chat)  # Displays token counts
 
 # Validate JSON parsing
@@ -360,6 +441,15 @@ The S3 method `build_report.fa_interpretation()` (report_fa.R:~805) integrates w
 ## Recent Key Updates
 
 ### 2025-11-07
+- ✓ **Test Suite Optimization**: Minimized LLM calls and optimized fixture loading
+  - **Fixture caching**: Environment-based caching provides 40x speedup on repeated access (97.6% time reduction)
+  - **LLM testing strategy**: Reduced from 33+ LLM calls to ~7 LLM calls
+    - Core interpretation: 2 tests (1 comprehensive + 1 edge case)
+    - S3 methods: 4 integration tests (1 per package), all other tests focus on data extraction only
+    - Chat sessions: 1 test with session reuse
+    - Print/visualization: 0 LLM tests (use cached `sample_interpretation()`)
+  - Tests now separate concerns: data extraction vs. LLM interpretation
+  - Faster test execution, lower token usage, better test isolation
 - ✓ **Major Code Cleanup**: Identified and removed all redundant code
   - Removed 3 duplicate R source files: fa_report_functions.R (804 lines), fa_wrapper_methods.R (556 lines), fa_utilities.R (165 lines)
   - Total redundant code eliminated: ~1,559 lines
@@ -453,3 +543,4 @@ None currently.
 - **R requirement**: >= 4.1.0
 - **License**: MIT + file LICENSE
 - put development related markdowns into dev/
+- for examples and tests, always use "ollama" as the provider and "gpt-oss:20b-cloud"

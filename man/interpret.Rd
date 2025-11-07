@@ -4,24 +4,35 @@
 \alias{interpret}
 \title{Interpret Psychometric Analysis Results}
 \usage{
-interpret(model, ...)
+interpret(
+  chat_session = NULL,
+  model_fit = NULL,
+  variable_info = NULL,
+  model_type = NULL,
+  ...
+)
 }
 \arguments{
-\item{model}{One of:
+\item{chat_session}{Optional. A chat_session object created with \code{\link{chat_session}}
+for token-efficient multi-analysis workflows.}
+
+\item{model_fit}{One of:
 \itemize{
 \item Fitted model object (psych::fa, lavaan::cfa, mirt::mirt, etc.)
-\item Raw model data (loadings matrix, parameters, etc.)
-\item chat_session object for multi-analysis workflows
+\item Raw data (loadings matrix as data.frame/matrix)
+\item Structured list with model components (e.g., \code{list(loadings = ..., Phi = ...)})
 }}
 
-\item{...}{Additional arguments passed to methods, including:
+\item{variable_info}{Dataframe with 'variable' and 'description' columns describing the variables.}
+
+\item{model_type}{Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
+raw data without chat_session. Automatically inferred from chat_session if provided.}
+
+\item{...}{Additional model-specific parameters:
 \itemize{
-\item variable_info: Dataframe with 'variable' and 'description' columns
-\item model_type: Character. Type of analysis ("fa", "gm", "irt", "cdm") when using raw data
-\item chat_session: Persistent chat session (created with \code{chat_session()})
-\item llm_provider: LLM provider (e.g., "anthropic", "openai")
-\item llm_model: Model name (e.g., "claude-haiku-4-5-20251001")
-\item Other model-specific parameters (cutoff, word_limit, etc.)
+\item \strong{LLM settings}: llm_provider, llm_model
+\item \strong{FA-specific}: cutoff, n_emergency, additional_info, factor_cor_mat, sort_loadings,
+word_limit, max_line_length, silent, echo, output_format, heading_level, suppress_heading
 }}
 }
 \value{
@@ -33,41 +44,68 @@ Model-specific interpretation object:
 }
 \description{
 Unified interface for interpreting psychometric analysis results with LLMs.
-Supports model objects from popular R packages, raw data with model_type specification,
-and persistent chat sessions for efficient multi-analysis workflows.
+Supports fitted model objects, raw data with model_type specification,
+structured lists, and persistent chat sessions for efficient multi-analysis workflows.
 }
 \details{
-This generic function provides four usage patterns:
+All arguments are named to prevent positional confusion. The function detects which pattern
+you're using based on which arguments are provided.
+\subsection{Usage Patterns}{
 
-\strong{1. Model Object (Automatic Extraction)}
-\code{interpret(model_object, variable_info, ...)}
-\itemize{
-\item Automatically extracts loadings/parameters from fitted models
-\item Supported: psych::fa, psych::principal, lavaan::cfa/efa, mirt::mirt
+\strong{Pattern 1: Fitted Model Object}
+
+Automatically extracts model components from fitted objects.
+
+\preformatted{
+interpret(
+  model_fit = fa_model,
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
 }
 
-\strong{2. Raw Data with model_type}
-\code{interpret(data, variable_info, model_type = "fa", ...)}
-\itemize{
-\item For custom data structures or manual loading matrices
-\item Requires explicit model_type specification
+\strong{Pattern 2: Raw Data with model_type}
+
+For custom data structures or manual extraction.
+
+\preformatted{
+interpret(
+  model_fit = loadings_matrix,
+  variable_info = var_info,
+  model_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
 }
 
-\strong{3. Persistent Chat Session (Efficient Multi-Analysis)}
-\code{interpret(chat_session, model_data, variable_info, ...)}
-\itemize{
-\item Reuses chat session across multiple analyses
-\item Saves tokens by not repeating system prompt
+\strong{Pattern 3: Structured List}
+
+For FA: Provide loadings (required) and optionally Phi/factor_cor_mat.
+
+\preformatted{
+interpret(
+  model_fit = list(
+    loadings = loadings_matrix,
+    Phi = factor_cor_mat
+  ),
+  variable_info = var_info,
+  model_type = "fa"
+)
 }
 
-\strong{4. Raw Data with chat_session}
-\code{interpret(data, variable_info, chat_session = chat, ...)}
-\itemize{
-\item Combines raw data with persistent session
-\item Model type inherited from chat_session
+\strong{Pattern 4: Chat Session (Token-Efficient)}
+
+Reuse chat session across analyses to save tokens.
+
+\preformatted{
+chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+result1 <- interpret(chat_session = chat, model_fit = model1, variable_info = var_info1)
+result2 <- interpret(chat_session = chat, model_fit = model2, variable_info = var_info2)
+}
 }
 
-\strong{Supported Model Types:}
+\subsection{Supported Model Types}{
 \itemize{
 \item \strong{fa} (Factor Analysis): psych::fa(), psych::principal(), lavaan::cfa/efa(), mirt::mirt()
 \item \strong{gm} (Gaussian Mixture): Not yet implemented
@@ -75,80 +113,54 @@ This generic function provides four usage patterns:
 \item \strong{cdm} (Cognitive Diagnosis Models): Not yet implemented
 }
 }
+}
 \examples{
 \dontrun{
-# Set up API credentials
-Sys.setenv(ANTHROPIC_API_KEY = "your-api-key-here")
+library(psych)
+fa_model <- fa(mtcars[,1:4], nfactors = 2, rotate = "oblimin")
 
 var_info <- data.frame(
   variable = c("mpg", "cyl", "disp", "hp"),
   description = c("Miles per gallon", "Cylinders", "Displacement", "Horsepower")
 )
 
-# ============================================================================
-# PATTERN 1: Model Object (Automatic Extraction)
-# ============================================================================
-library(psych)
-fa_model <- fa(mtcars[,1:4], nfactors = 2, rotate = "oblimin")
-
-# S3 method automatically extracts loadings
-result1 <- interpret(fa_model, variable_info = var_info,
-                     llm_provider = "anthropic",
-                     llm_model = "claude-haiku-4-5-20251001")
-
-# ============================================================================
-# PATTERN 2: Raw Data with model_type
-# ============================================================================
-# Extract loadings manually
-loadings <- as.data.frame(unclass(fa_model$loadings))
-
-# Interpret raw data by specifying model_type
-result2 <- interpret(loadings, variable_info = var_info,
-                     model_type = "fa",
-                     llm_provider = "anthropic",
-                     llm_model = "claude-haiku-4-5-20251001")
-
-# ============================================================================
-# PATTERN 3: Persistent Chat Session (Token-Efficient)
-# ============================================================================
-# Create persistent chat session
-chat <- chat_session(model_type = "fa",
-                     provider = "anthropic",
-                     model = "claude-haiku-4-5-20251001")
-
-# Use session as first argument (saves tokens on repeated analyses)
-result3a <- interpret(chat, loadings, variable_info)
-result3b <- interpret(chat, loadings2, variable_info2)  # Reuses system prompt
-
-print(chat)  # Check cumulative token usage
-
-# ============================================================================
-# PATTERN 4: Raw Data with chat_session Parameter
-# ============================================================================
-result4 <- interpret(loadings, variable_info, chat_session = chat)
-# Model type automatically inherited from chat session
-}
-
-\dontrun{
-# Additional examples with other packages
-
-# lavaan CFA
-library(lavaan)
-model_spec <- 'visual  =~ x1 + x2 + x3
-               textual =~ x4 + x5 + x6
-               speed   =~ x7 + x8 + x9'
-fit <- cfa(model_spec, data = HolzingerSwineford1939)
-
-var_info <- data.frame(
-  variable = paste0("x", 1:9),
-  description = paste("Indicator", 1:9)
+# Pattern 1: Fitted model
+result1 <- interpret(
+  model_fit = fa_model,
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 
-result <- interpret(fit, variable_info = var_info,
-                    llm_provider = "anthropic",
-                    llm_model = "claude-haiku-4-5-20251001")
+# Pattern 2: Raw data
+loadings <- as.data.frame(unclass(fa_model$loadings))
+result2 <- interpret(
+  model_fit = loadings,
+  variable_info = var_info,
+  model_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# Pattern 3: Structured list
+result3 <- interpret(
+  model_fit = list(
+    loadings = loadings,
+    Phi = fa_model$Phi
+  ),
+  variable_info = var_info,
+  model_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# Pattern 4: Chat session
+chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+result4a <- interpret(chat_session = chat, model_fit = loadings, variable_info = var_info)
+result4b <- interpret(chat_session = chat, model_fit = loadings2, variable_info = var_info2)
+print(chat)  # Check token usage
 }
 }
 \seealso{
-\code{\link{interpret_fa}} for the underlying interpretation function
+\code{\link{interpret_fa}}, \code{\link{chat_session}}
 }

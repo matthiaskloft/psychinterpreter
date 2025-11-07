@@ -30,7 +30,6 @@ We'll test all major features of psychinterpreter including:
 ## Setup and Data Preparation
 
 ```{r setup}
-devtools::install_github("https://github.com/matthiaskloft/psychinterpreter")
 packages <- c(
   "psychinterpreter",
   "ellmer",
@@ -122,8 +121,8 @@ Set up persistent chat session. If you use Ollama, make sure to start the server
 
 chat <- chat_session(model_type = "fa",
   provider = "ollama",
-  #model = "sam860/LFM2:2.6b",
-  model = "gpt-oss:20b-cloud",
+  model = "qwen3-vl:235b-instruct-cloud",
+  #model = "gpt-oss:20b-cloud",
   # set temperature and seed for reproducibility
   params = params(temperature = 0, seed = 42)
 )
@@ -151,7 +150,7 @@ We now generate factor interpretations using the specified LLM:
 word_limit <-  50
 result <- interpret(
   chat_session = chat,
-  loadings = loadings_matrix,
+  model_fit = loadings_matrix,
   variable_info = variable_info,
   cutoff = 0.23,
   n_emergency = 2,

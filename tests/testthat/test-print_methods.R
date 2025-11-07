@@ -216,11 +216,8 @@ test_that("print.chat_session displays session information", {
   expect_true(grepl("ollama", combined, ignore.case = TRUE))
 })
 
-test_that("print.chat_session shows token usage after interpretation", {
+test_that("print.chat_session shows token usage when available", {
   skip_if_no_llm()
-
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -228,10 +225,12 @@ test_that("print.chat_session shows token usage after interpretation", {
   # Use modern API
   chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
-  # Run interpretation
-  results <- interpret_fa(loadings, var_info,
-                         chat_session = chat,
-                         silent = TRUE)
+  # Simulate token usage without making actual LLM call
+  if ("total_input_tokens" %in% ls(envir = chat)) {
+    chat$total_input_tokens <- 100
+    chat$total_output_tokens <- 50
+  }
+  chat$n_interpretations <- 1
 
   # Check that print shows token usage
   output <- capture.output(print(chat))
@@ -245,9 +244,6 @@ test_that("print.chat_session shows token usage after interpretation", {
 test_that("print.chat_session shows interpretation count", {
   skip_if_no_llm()
 
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
-
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
@@ -259,10 +255,8 @@ test_that("print.chat_session shows interpretation count", {
   output0_text <- paste(output0, collapse = "\n")
   expect_true(grepl("Interpretations run.*0", output0_text, ignore.case = TRUE))
 
-  # Run interpretation
-  results <- interpret_fa(loadings, var_info,
-                         chat_session = chat,
-                         silent = TRUE)
+  # Simulate having run an interpretation (without making LLM call)
+  chat$n_interpretations <- 1
 
   # Count should be 1
   output1 <- capture.output(print(chat))

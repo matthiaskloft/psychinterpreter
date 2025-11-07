@@ -1,9 +1,15 @@
 # Test Helper Functions
 # Helper functions and utilities for psychinterpreter tests
 
+# Fixture Cache Environment ----
+# Cache environment to load fixtures only once per test session
+# This significantly reduces I/O overhead during testing
+.test_cache <- new.env(parent = emptyenv())
+
 # Fixture Loading Functions ----
 # These functions use test_path() to load fixture data from RDS files
 # This ensures correct paths in both interactive and automated testing
+# Fixtures are cached in .test_cache and loaded only once per test session
 
 #' Get path to test fixture file
 #'
@@ -23,28 +29,44 @@ get_fixture_path <- function(...) {
 #'
 #' @return A data frame with factor loadings
 sample_loadings <- function() {
-  readRDS(get_fixture_path("fixtures", "fa", "sample_loadings.rds"))
+  cache_key <- "sample_loadings"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_loadings.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load sample variable information
 #'
 #' @return A data frame with variable descriptions
 sample_variable_info <- function() {
-  readRDS(get_fixture_path("fixtures", "fa", "sample_variable_info.rds"))
+  cache_key <- "sample_variable_info"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_variable_info.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load sample factor correlation matrix
 #'
 #' @return A correlation matrix for oblique rotations
 sample_factor_cor <- function() {
-  readRDS(get_fixture_path("fixtures", "fa", "sample_factor_cor.rds"))
+  cache_key <- "sample_factor_cor"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_factor_cor.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load sample interpretation result
 #'
 #' @return A complete fa_interpretation object (fixture to avoid LLM calls)
 sample_interpretation <- function() {
-  readRDS(get_fixture_path("fixtures", "fa", "sample_interpretation.rds"))
+  cache_key <- "sample_interpretation"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_interpretation.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 # Minimal Fixtures (Token-Efficient) ----
@@ -55,21 +77,33 @@ sample_interpretation <- function() {
 #'
 #' @return A data frame with 3 variables × 2 factors
 minimal_loadings <- function() {
-  readRDS(get_fixture_path("fixtures", "fa", "minimal_loadings.rds"))
+  cache_key <- "minimal_loadings"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_loadings.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load minimal variable information (for token-efficient LLM tests)
 #'
 #' @return A data frame with short variable descriptions
 minimal_variable_info <- function() {
-  readRDS(get_fixture_path("fixtures", "fa", "minimal_variable_info.rds"))
+  cache_key <- "minimal_variable_info"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_variable_info.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load minimal factor correlation matrix (for token-efficient LLM tests)
 #'
 #' @return A 2×2 correlation matrix
 minimal_factor_cor <- function() {
-  readRDS(get_fixture_path("fixtures", "fa", "minimal_factor_cor.rds"))
+  cache_key <- "minimal_factor_cor"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_factor_cor.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 # Correlational Data Fixtures (for S3 method testing) ----
@@ -79,14 +113,22 @@ minimal_factor_cor <- function() {
 #'
 #' @return A data frame with 6 variables having proper factor structure
 correlational_data <- function() {
-  readRDS(get_fixture_path("fixtures", "fa", "correlational_data.rds"))
+  cache_key <- "correlational_data"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "correlational_data.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load correlational variable info (for S3 method tests)
 #'
 #' @return A data frame with variable descriptions for correlational data
 correlational_var_info <- function() {
-  readRDS(get_fixture_path("fixtures", "fa", "correlational_var_info.rds"))
+  cache_key <- "correlational_var_info"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "correlational_var_info.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 # LLM Availability Functions ----

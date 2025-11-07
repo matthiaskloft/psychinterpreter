@@ -5,45 +5,83 @@
 #' Interpret Psychometric Analysis Results
 #'
 #' Unified interface for interpreting psychometric analysis results with LLMs.
-#' Supports model objects from popular R packages, raw data with model_type specification,
-#' and persistent chat sessions for efficient multi-analysis workflows.
+#' Supports fitted model objects, raw data with model_type specification,
+#' structured lists, and persistent chat sessions for efficient multi-analysis workflows.
 #'
-#' @param model One of:
+#' @param chat_session Optional. A chat_session object created with \code{\link{chat_session}}
+#'   for token-efficient multi-analysis workflows.
+#' @param model_fit One of:
 #'   - Fitted model object (psych::fa, lavaan::cfa, mirt::mirt, etc.)
-#'   - Raw model data (loadings matrix, parameters, etc.)
-#'   - chat_session object for multi-analysis workflows
-#' @param ... Additional arguments passed to methods, including:
-#'   - variable_info: Dataframe with 'variable' and 'description' columns
-#'   - model_type: Character. Type of analysis ("fa", "gm", "irt", "cdm") when using raw data
-#'   - chat_session: Persistent chat session (created with \code{chat_session()})
-#'   - llm_provider: LLM provider (e.g., "anthropic", "openai")
-#'   - llm_model: Model name (e.g., "claude-haiku-4-5-20251001")
-#'   - Other model-specific parameters (cutoff, word_limit, etc.)
+#'   - Raw data (loadings matrix as data.frame/matrix)
+#'   - Structured list with model components (e.g., \code{list(loadings = ..., Phi = ...)})
+#' @param variable_info Dataframe with 'variable' and 'description' columns describing the variables.
+#' @param model_type Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
+#'   raw data without chat_session. Automatically inferred from chat_session if provided.
+#' @param ... Additional model-specific parameters:
+#'   - **LLM settings**: llm_provider, llm_model
+#'   - **FA-specific**: cutoff, n_emergency, additional_info, factor_cor_mat, sort_loadings,
+#'     word_limit, max_line_length, silent, echo, output_format, heading_level, suppress_heading
 #'
 #' @details
-#' This generic function provides four usage patterns:
+#' All arguments are named to prevent positional confusion. The function detects which pattern
+#' you're using based on which arguments are provided.
 #'
-#' **1. Model Object (Automatic Extraction)**
-#' \code{interpret(model_object, variable_info, ...)}
-#' - Automatically extracts loadings/parameters from fitted models
-#' - Supported: psych::fa, psych::principal, lavaan::cfa/efa, mirt::mirt
+#' ## Usage Patterns
 #'
-#' **2. Raw Data with model_type**
-#' \code{interpret(data, variable_info, model_type = "fa", ...)}
-#' - For custom data structures or manual loading matrices
-#' - Requires explicit model_type specification
+#' **Pattern 1: Fitted Model Object**
 #'
-#' **3. Persistent Chat Session (Efficient Multi-Analysis)**
-#' \code{interpret(chat_session, model_data, variable_info, ...)}
-#' - Reuses chat session across multiple analyses
-#' - Saves tokens by not repeating system prompt
+#' Automatically extracts model components from fitted objects.
 #'
-#' **4. Raw Data with chat_session**
-#' \code{interpret(data, variable_info, chat_session = chat, ...)}
-#' - Combines raw data with persistent session
-#' - Model type inherited from chat_session
+#' \preformatted{
+#' interpret(
+#'   model_fit = fa_model,
+#'   variable_info = var_info,
+#'   llm_provider = "ollama",
+#'   llm_model = "gpt-oss:20b-cloud"
+#' )
+#' }
 #'
-#' **Supported Model Types:**
+#' **Pattern 2: Raw Data with model_type**
+#'
+#' For custom data structures or manual extraction.
+#'
+#' \preformatted{
+#' interpret(
+#'   model_fit = loadings_matrix,
+#'   variable_info = var_info,
+#'   model_type = "fa",
+#'   llm_provider = "ollama",
+#'   llm_model = "gpt-oss:20b-cloud"
+#' )
+#' }
+#'
+#' **Pattern 3: Structured List**
+#'
+#' For FA: Provide loadings (required) and optionally Phi/factor_cor_mat.
+#'
+#' \preformatted{
+#' interpret(
+#'   model_fit = list(
+#'     loadings = loadings_matrix,
+#'     Phi = factor_cor_mat
+#'   ),
+#'   variable_info = var_info,
+#'   model_type = "fa"
+#' )
+#' }
+#'
+#' **Pattern 4: Chat Session (Token-Efficient)**
+#'
+#' Reuse chat session across analyses to save tokens.
+#'
+#' \preformatted{
+#' chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+#' result1 <- interpret(chat_session = chat, model_fit = model1, variable_info = var_info1)
+#' result2 <- interpret(chat_session = chat, model_fit = model2, variable_info = var_info2)
+#' }
+#'
+#' ## Supported Model Types
+#'
 #' - **fa** (Factor Analysis): psych::fa(), psych::principal(), lavaan::cfa/efa(), mirt::mirt()
 #' - **gm** (Gaussian Mixture): Not yet implemented
 #' - **irt** (Item Response Theory): Not yet implemented
@@ -53,193 +91,261 @@
 #'   - FA: \code{fa_interpretation} (see \code{\link{interpret_fa}})
 #'   - Future: \code{gm_interpretation}, \code{irt_interpretation}, etc.
 #'
-#' @seealso \code{\link{interpret_fa}} for the underlying interpretation function
+#' @seealso \code{\link{interpret_fa}}, \code{\link{chat_session}}
 #'
-#' @importFrom cli cli_abort
+#' @importFrom cli cli_abort cli_warn
 #' @importFrom tidyr pivot_wider
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Set up API credentials
-#' Sys.setenv(ANTHROPIC_API_KEY = "your-api-key-here")
+#' library(psych)
+#' fa_model <- fa(mtcars[,1:4], nfactors = 2, rotate = "oblimin")
 #'
 #' var_info <- data.frame(
 #'   variable = c("mpg", "cyl", "disp", "hp"),
 #'   description = c("Miles per gallon", "Cylinders", "Displacement", "Horsepower")
 #' )
 #'
-#' # ============================================================================
-#' # PATTERN 1: Model Object (Automatic Extraction)
-#' # ============================================================================
-#' library(psych)
-#' fa_model <- fa(mtcars[,1:4], nfactors = 2, rotate = "oblimin")
-#'
-#' # S3 method automatically extracts loadings
-#' result1 <- interpret(fa_model, variable_info = var_info,
-#'                      llm_provider = "anthropic",
-#'                      llm_model = "claude-haiku-4-5-20251001")
-#'
-#' # ============================================================================
-#' # PATTERN 2: Raw Data with model_type
-#' # ============================================================================
-#' # Extract loadings manually
-#' loadings <- as.data.frame(unclass(fa_model$loadings))
-#'
-#' # Interpret raw data by specifying model_type
-#' result2 <- interpret(loadings, variable_info = var_info,
-#'                      model_type = "fa",
-#'                      llm_provider = "anthropic",
-#'                      llm_model = "claude-haiku-4-5-20251001")
-#'
-#' # ============================================================================
-#' # PATTERN 3: Persistent Chat Session (Token-Efficient)
-#' # ============================================================================
-#' # Create persistent chat session
-#' chat <- chat_session(model_type = "fa",
-#'                      provider = "anthropic",
-#'                      model = "claude-haiku-4-5-20251001")
-#'
-#' # Use session as first argument (saves tokens on repeated analyses)
-#' result3a <- interpret(chat, loadings, variable_info)
-#' result3b <- interpret(chat, loadings2, variable_info2)  # Reuses system prompt
-#'
-#' print(chat)  # Check cumulative token usage
-#'
-#' # ============================================================================
-#' # PATTERN 4: Raw Data with chat_session Parameter
-#' # ============================================================================
-#' result4 <- interpret(loadings, variable_info, chat_session = chat)
-#' # Model type automatically inherited from chat session
-#' }
-#'
-#' @examples
-#' \dontrun{
-#' # Additional examples with other packages
-#'
-#' # lavaan CFA
-#' library(lavaan)
-#' model_spec <- 'visual  =~ x1 + x2 + x3
-#'                textual =~ x4 + x5 + x6
-#'                speed   =~ x7 + x8 + x9'
-#' fit <- cfa(model_spec, data = HolzingerSwineford1939)
-#'
-#' var_info <- data.frame(
-#'   variable = paste0("x", 1:9),
-#'   description = paste("Indicator", 1:9)
+#' # Pattern 1: Fitted model
+#' result1 <- interpret(
+#'   model_fit = fa_model,
+#'   variable_info = var_info,
+#'   llm_provider = "ollama",
+#'   llm_model = "gpt-oss:20b-cloud"
 #' )
 #'
-#' result <- interpret(fit, variable_info = var_info,
-#'                     llm_provider = "anthropic",
-#'                     llm_model = "claude-haiku-4-5-20251001")
+#' # Pattern 2: Raw data
+#' loadings <- as.data.frame(unclass(fa_model$loadings))
+#' result2 <- interpret(
+#'   model_fit = loadings,
+#'   variable_info = var_info,
+#'   model_type = "fa",
+#'   llm_provider = "ollama",
+#'   llm_model = "gpt-oss:20b-cloud"
+#' )
+#'
+#' # Pattern 3: Structured list
+#' result3 <- interpret(
+#'   model_fit = list(
+#'     loadings = loadings,
+#'     Phi = fa_model$Phi
+#'   ),
+#'   variable_info = var_info,
+#'   model_type = "fa",
+#'   llm_provider = "ollama",
+#'   llm_model = "gpt-oss:20b-cloud"
+#' )
+#'
+#' # Pattern 4: Chat session
+#' chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+#' result4a <- interpret(chat_session = chat, model_fit = loadings, variable_info = var_info)
+#' result4b <- interpret(chat_session = chat, model_fit = loadings2, variable_info = var_info2)
+#' print(chat)  # Check token usage
 #' }
-interpret <- function(model, ...) {
-  UseMethod("interpret")
-}
+interpret <- function(chat_session = NULL,
+                     model_fit = NULL,
+                     variable_info = NULL,
+                     model_type = NULL,
+                     ...) {
 
+  # ============================================================================
+  # ARGUMENT VALIDATION AND PATTERN DETECTION
+  # ============================================================================
 
-#' @export
-interpret.default <- function(model, variable_info = NULL,
-                              model_type = NULL, chat_session = NULL, ...) {
-  # Validate arguments
-  validate_interpret_args(model, variable_info, model_type, chat_session)
-
-  # Check if this is raw data that should be routed
-  is_raw_data <- is.data.frame(model) || is.matrix(model) || is.list(model)
-
-  if (is_raw_data && (!is.null(model_type) || !is.null(chat_session))) {
-    # For raw data interpretation, validate variable_info
-    if (is.null(variable_info)) {
-      cli::cli_abort(
-        c(
-          "{.var variable_info} is required for raw data interpretation",
-          "i" = "Provide a data frame with 'variable' and 'description' columns"
-        )
-      )
-    }
-
-    # Validate variable_info structure
-    if (!is.data.frame(variable_info)) {
-      cli::cli_abort(
-        c(
-          "{.var variable_info} must be a data frame",
-          "i" = "Provide a data frame with 'variable' and 'description' columns"
-        )
-      )
-    }
-
-    if (!"variable" %in% names(variable_info)) {
-      cli::cli_abort(
-        c(
-          "{.var variable_info} must contain a 'variable' column",
-          "i" = "Ensure your data frame has columns: 'variable', 'description'"
-        )
-      )
-    }
-
-    # Route to model-specific function
-    return(handle_raw_data_interpret(model, variable_info, model_type,
-                                     chat_session, ...))
+  # Check if all key arguments are missing
+  if (is.null(chat_session) && is.null(model_fit) && is.null(variable_info)) {
+    cli::cli_abort(
+      c("No arguments provided to interpret()",
+        "i" = "Usage patterns:",
+        " " = "1. interpret(model_fit = model, variable_info = var_info, ...)",
+        " " = "2. interpret(model_fit = data, variable_info = var_info, model_type = 'fa', ...)",
+        " " = "3. interpret(model_fit = list(loadings = ...), variable_info = var_info, model_type = 'fa', ...)",
+        " " = "4. interpret(chat_session = chat, model_fit = ..., variable_info = var_info, ...)",
+        "i" = "See ?interpret for details")
+    )
   }
 
-  # Not raw data and no known class - error
+  # Check if model_fit is missing
+  if (is.null(model_fit)) {
+    cli::cli_abort(
+      c("{.var model_fit} is required",
+        "i" = "Provide one of:",
+        " " = "- Fitted model object (psych::fa, lavaan::cfa, etc.)",
+        " " = "- Raw data (loadings matrix)",
+        " " = "- Structured list (e.g., list(loadings = ...))")
+    )
+  }
+
+  # Check if variable_info is missing
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c("{.var variable_info} is required",
+        "i" = "Provide a data frame with 'variable' and 'description' columns")
+    )
+  }
+
+  # Validate variable_info structure
+  if (!is.data.frame(variable_info)) {
+    cli::cli_abort(
+      c("{.var variable_info} must be a data frame",
+        "x" = "You provided: {.cls {class(variable_info)}}",
+        "i" = "Use data.frame(variable = c(...), description = c(...))")
+    )
+  }
+
+  if (!"variable" %in% names(variable_info)) {
+    cli::cli_abort(
+      c("{.var variable_info} must contain a 'variable' column",
+        "x" = "Current columns: {.field {names(variable_info)}}",
+        "i" = "Ensure columns include: 'variable', 'description'")
+    )
+  }
+
+  # Validate chat_session if provided
+  if (!is.null(chat_session)) {
+    if (!is.chat_session(chat_session)) {
+      cli::cli_abort(
+        c("{.var chat_session} must be a chat_session object",
+          "x" = "You provided: {.cls {class(chat_session)}}",
+          "i" = "Create with: chat_session(model_type, provider, model)")
+      )
+    }
+  }
+
+  # Determine effective model_type
+  effective_model_type <- NULL
+  if (!is.null(chat_session)) {
+    effective_model_type <- chat_session$model_type
+
+    # Warn if both chat_session and model_type are provided and conflict
+    if (!is.null(model_type) && model_type != effective_model_type) {
+      cli::cli_warn(
+        c("!" = "Both {.var chat_session} and {.var model_type} provided with different values",
+          "i" = "Using model_type from chat_session: {.val {effective_model_type}}",
+          "i" = "Ignoring model_type argument: {.val {model_type}}")
+      )
+    }
+  } else {
+    effective_model_type <- model_type
+  }
+
+  # ============================================================================
+  # DISPATCH TO APPROPRIATE HANDLER
+  # ============================================================================
+
+  # Check if model_fit is a fitted model object (has a class that might have a method)
+  is_fitted_model <- !is.null(class(model_fit)) &&
+    (inherits(model_fit, "fa") ||
+     inherits(model_fit, "principal") ||
+     inherits(model_fit, "psych") ||
+     inherits(model_fit, "lavaan") ||
+     inherits(model_fit, "efaList") ||
+     inherits(model_fit, "SingleGroupClass"))
+
+  # Check if model_fit is a list (but not a data.frame, which is also a list)
+  is_structured_list <- is.list(model_fit) && !is.data.frame(model_fit) && !is_fitted_model
+
+  # Check if model_fit is raw data (matrix or data.frame)
+  is_raw_data <- (is.matrix(model_fit) || is.data.frame(model_fit)) && !is_fitted_model
+
+  # ============================================================================
+  # ROUTE 1: Fitted Model Object
+  # ============================================================================
+  if (is_fitted_model) {
+    # Use internal interpret_model() S3 generic
+    return(interpret_model(model_fit, variable_info, chat_session = chat_session, ...))
+  }
+
+  # ============================================================================
+  # ROUTE 2: Structured List
+  # ============================================================================
+  if (is_structured_list) {
+    # Need effective_model_type to know how to handle the list
+    if (is.null(effective_model_type)) {
+      cli::cli_abort(
+        c("{.var model_type} or {.var chat_session} required when using structured list",
+          "i" = "Specify model_type explicitly or provide a chat_session")
+      )
+    }
+
+    # Handle list structure based on model type
+    if (effective_model_type == "fa") {
+      # Validate and extract FA list components
+      extracted <- validate_fa_list_structure(model_fit)
+
+      # Call handle_raw_data_interpret with extracted loadings
+      return(handle_raw_data_interpret(
+        x = extracted$loadings,
+        variable_info = variable_info,
+        model_type = effective_model_type,
+        chat_session = chat_session,
+        factor_cor_mat = extracted$factor_cor_mat,
+        ...
+      ))
+    } else {
+      cli::cli_abort(
+        c("Structured list support not yet implemented for model_type: {.val {effective_model_type}}",
+          "i" = "Currently only 'fa' supports list structure")
+      )
+    }
+  }
+
+  # ============================================================================
+  # ROUTE 3: Raw Data (matrix or data.frame)
+  # ============================================================================
+  if (is_raw_data) {
+    # Need effective_model_type to know how to interpret the data
+    if (is.null(effective_model_type)) {
+      cli::cli_abort(
+        c("{.var model_type} or {.var chat_session} required when using raw data",
+          "i" = "Specify model_type explicitly or provide a chat_session")
+      )
+    }
+
+    # Route to model-specific handling
+    return(handle_raw_data_interpret(
+      x = model_fit,
+      variable_info = variable_info,
+      model_type = effective_model_type,
+      chat_session = chat_session,
+      ...
+    ))
+  }
+
+  # ============================================================================
+  # FALLBACK: Unknown model_fit type
+  # ============================================================================
   cli::cli_abort(
-    c("No interpret method available for object of class {.cls {class(model)}}",
-      "i" = "Supported classes: fa (psych), principal (psych), lavaan, efaList, SingleGroupClass, chat_session",
-      "i" = "For raw data, provide model_type or chat_session parameters",
-      "i" = "See {.help interpret} for details on supported packages")
+    c("Cannot interpret object of class {.cls {class(model_fit)}}",
+      "i" = "Supported types:",
+      " " = "- Fitted models: fa, principal, lavaan, efaList, SingleGroupClass",
+      " " = "- Raw data: matrix or data.frame",
+      " " = "- Structured list: list(loadings = ..., Phi = ...)",
+      "i" = "See ?interpret for details")
   )
 }
 
 
-#' Interpret with Chat Session
+# ==============================================================================
+# INTERNAL S3 GENERIC FOR FITTED MODEL OBJECTS
+# ==============================================================================
+
+#' Internal S3 Generic for Interpreting Fitted Model Objects
 #'
-#' S3 method for using a chat_session as the first argument to interpret().
-#' Extracts model_type from the session and routes to the appropriate
-#' model-specific interpretation function.
+#' This is an internal generic used by interpret() to dispatch on fitted
+#' model objects from various packages. Not exported - users should call
+#' interpret() directly.
 #'
-#' @param model A chat_session object
-#' @param model_data Model-specific data (e.g., loadings for FA, parameters for IRT)
+#' @param model Fitted model object
 #' @param variable_info Variable descriptions dataframe
-#' @param ... Additional arguments passed to model-specific function
+#' @param ... Additional arguments
 #'
-#' @return Interpretation object with model-specific class (e.g., "fa_interpretation", "gm_interpretation") plus base classes "interpretation" and "list"
-#'
-#' @export
-interpret.chat_session <- function(model, model_data, variable_info, ...) {
-  # model is the chat_session in this method (S3 dispatch uses first arg)
-  chat_session <- model
-
-  # Validate it's actually a chat_session
-  if (!is.chat_session(chat_session)) {
-    cli::cli_abort(
-      c(
-        "Object is not a valid chat_session",
-        "i" = "Create one with chat_session(model_type, provider, model)"
-      )
-    )
-  }
-
-  # Extract model_type from chat_session
-  model_type <- chat_session$model_type
-
-  # Validate inputs
-  if (missing(model_data)) {
-    cli::cli_abort(
-      c(
-        "model_data is required when using chat_session as first argument",
-        "i" = paste0(
-          "Usage: interpret(chat_session, model_data, variable_info, ...)"
-        )
-      )
-    )
-  }
-
-  # Route to model-specific function via handle_raw_data_interpret
-  handle_raw_data_interpret(model_data, variable_info,
-                           model_type = model_type,
-                           chat_session = chat_session, ...)
+#' @return Interpretation object
+#' @keywords internal
+interpret_model <- function(model, variable_info, ...) {
+  UseMethod("interpret_model")
 }
 
 
@@ -247,12 +353,13 @@ interpret.chat_session <- function(model, model_data, variable_info, ...) {
 # METHODS FOR PSYCH PACKAGE
 # ==============================================================================
 
-#' @export
-interpret.psych <- function(model, variable_info, ...) {
+#' @keywords internal
+#' @noRd
+interpret_model.psych <- function(model, variable_info, ...) {
   if (inherits(model, "fa")) {
-    interpret.fa(model, variable_info, ...)
+    interpret_model.fa(model, variable_info, ...)
   } else if (inherits(model, "principal")) {
-    interpret.principal(model, variable_info, ...)
+    interpret_model.principal(model, variable_info, ...)
   } else {
     cli::cli_abort(
       c("Unsupported psych model type",
@@ -264,7 +371,7 @@ interpret.psych <- function(model, variable_info, ...) {
 
 #' Interpret Results from psych::fa()
 #'
-#' S3 method to interpret exploratory factor analysis results from the psych package.
+#' Internal S3 method to interpret exploratory factor analysis results from the psych package.
 #' Automatically extracts factor loadings and factor correlations (for oblique rotations).
 #'
 #' @param model A fitted model from \code{psych::fa()}
@@ -278,7 +385,8 @@ interpret.psych <- function(model, variable_info, ...) {
 #' - Factor loadings from \code{model$loadings}
 #' - Factor correlations from \code{model$Phi} (for oblique rotations)
 #'
-#' @export
+#' @keywords internal
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -290,10 +398,10 @@ interpret.psych <- function(model, variable_info, ...) {
 #'   description = c("Miles per gallon", "Cylinders", "Displacement", "Horsepower")
 #' )
 #'
-#' result <- interpret(fa_model, variable_info = var_info,
-#'                     llm_provider = "openai", llm_model = "gpt-4o-mini")
+#' result <- interpret(model_fit = fa_model, variable_info = var_info,
+#'                     llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 #' }
-interpret.fa <- function(model, variable_info, ...) {
+interpret_model.fa <- function(model, variable_info, ...) {
   # Extract chat_session from ... if present
   dots <- list(...)
   chat_session <- dots$chat_session
@@ -339,7 +447,7 @@ interpret.fa <- function(model, variable_info, ...) {
 
 #' Interpret Results from psych::principal()
 #'
-#' S3 method to interpret principal components analysis results from the psych package.
+#' Internal S3 method to interpret principal components analysis results from the psych package.
 #' Automatically extracts component loadings.
 #'
 #' @param model A fitted model from \code{psych::principal()}
@@ -352,7 +460,8 @@ interpret.fa <- function(model, variable_info, ...) {
 #' This method extracts component loadings from \code{model$loadings}.
 #' Principal components are orthogonal, so no factor correlations are extracted.
 #'
-#' @export
+#' @keywords internal
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -364,10 +473,10 @@ interpret.fa <- function(model, variable_info, ...) {
 #'   description = c("Miles per gallon", "Cylinders", "Displacement", "Horsepower")
 #' )
 #'
-#' result <- interpret(pca_model, variable_info = var_info,
-#'                     llm_provider = "openai", llm_model = "gpt-4o-mini")
+#' result <- interpret(model_fit = pca_model, variable_info = var_info,
+#'                     llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 #' }
-interpret.principal <- function(model, variable_info, ...) {
+interpret_model.principal <- function(model, variable_info, ...) {
   # Extract chat_session from ... if present
   dots <- list(...)
   chat_session <- dots$chat_session
@@ -412,7 +521,7 @@ interpret.principal <- function(model, variable_info, ...) {
 
 #' Interpret Results from lavaan Models (CFA/SEM)
 #'
-#' S3 method to interpret confirmatory factor analysis or structural equation
+#' Internal S3 method to interpret confirmatory factor analysis or structural equation
 #' models from the lavaan package. Automatically extracts standardized factor
 #' loadings and factor correlations.
 #'
@@ -431,7 +540,8 @@ interpret.principal <- function(model, variable_info, ...) {
 #' The method filters for measurement model relationships (op == "=~") and
 #' reshapes them into a loadings matrix format.
 #'
-#' @export
+#' @keywords internal
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -448,11 +558,11 @@ interpret.principal <- function(model, variable_info, ...) {
 #'   description = paste("Visual/Textual/Speed indicator", 1:9)
 #' )
 #'
-#' result <- interpret(fit, variable_info = var_info,
-#'                     llm_provider = "anthropic",
-#'                     llm_model = "claude-haiku-4-5-20251001")
+#' result <- interpret(model_fit = fit, variable_info = var_info,
+#'                     llm_provider = "ollama",
+#'                     llm_model = "gpt-oss:20b-cloud")
 #' }
-interpret.lavaan <- function(model, variable_info, ...) {
+interpret_model.lavaan <- function(model, variable_info, ...) {
   # Extract chat_session from ... if present
   dots <- list(...)
   chat_session <- dots$chat_session
@@ -546,7 +656,7 @@ interpret.lavaan <- function(model, variable_info, ...) {
 
 #' Interpret Results from lavaan::efa()
 #'
-#' S3 method to interpret exploratory factor analysis results from lavaan's
+#' Internal S3 method to interpret exploratory factor analysis results from lavaan's
 #' efa() function when output="efa" is specified.
 #'
 #' @param model A fitted model from \code{lavaan::efa()} with output="efa"
@@ -559,7 +669,8 @@ interpret.lavaan <- function(model, variable_info, ...) {
 #' This method extracts factor loadings using the \code{loadings()} function
 #' from the stats package, which works on efaList objects.
 #'
-#' @export
+#' @keywords internal
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -573,10 +684,10 @@ interpret.lavaan <- function(model, variable_info, ...) {
 #'   description = paste("Indicator", 1:9)
 #' )
 #'
-#' result <- interpret(fit, variable_info = var_info,
-#'                     llm_provider = "openai", llm_model = "gpt-4o-mini")
+#' result <- interpret(model_fit = fit, variable_info = var_info,
+#'                     llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 #' }
-interpret.efaList <- function(model, variable_info, ...) {
+interpret_model.efaList <- function(model, variable_info, ...) {
   # Extract chat_session from ... if present
   dots <- list(...)
   chat_session <- dots$chat_session
@@ -633,7 +744,7 @@ interpret.efaList <- function(model, variable_info, ...) {
 
 #' Interpret Results from mirt::mirt()
 #'
-#' S3 method to interpret multidimensional item response theory models from
+#' Internal S3 method to interpret multidimensional item response theory models from
 #' the mirt package. Automatically extracts standardized factor loadings and
 #' factor correlations.
 #'
@@ -650,7 +761,8 @@ interpret.efaList <- function(model, variable_info, ...) {
 #' with the specified rotation. For multidimensional models, it also attempts
 #' to extract factor correlations.
 #'
-#' @export
+#' @keywords internal
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -664,10 +776,10 @@ interpret.efaList <- function(model, variable_info, ...) {
 #'   description = paste("LSAT item", 1:5)
 #' )
 #'
-#' result <- interpret(model, variable_info = var_info,
-#'                     llm_provider = "openai", llm_model = "gpt-4o-mini")
+#' result <- interpret(model_fit = model, variable_info = var_info,
+#'                     llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 #' }
-interpret.SingleGroupClass <- function(model, variable_info, rotate = "oblimin", ...) {
+interpret_model.SingleGroupClass <- function(model, variable_info, rotate = "oblimin", ...) {
   # Extract chat_session from ... if present
   dots <- list(...)
   chat_session <- dots$chat_session

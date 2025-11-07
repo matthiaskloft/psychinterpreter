@@ -164,31 +164,61 @@ interpret(loadings, variable_info, chat_session = chat)
 ### Dispatch Flow
 
 ```
-interpret()
+interpret(chat_session=NULL, model_fit=NULL, variable_info=NULL, model_type=NULL, ...)
     ↓
-interpret.{class}() method based on first argument:
+[Plain function with named arguments - no S3 dispatch on position]
     ↓
-├─ interpret.fa() ────────────→ Extract loadings from psych::fa result
-├─ interpret.principal() ─────→ Extract loadings from psych::principal result
-├─ interpret.lavaan() ────────→ Extract loadings from lavaan CFA/SEM result
-├─ interpret.efaList() ───────→ Extract loadings from lavaan::efa result
-├─ interpret.SingleGroupClass()→ Extract loadings from mirt::mirt result
-├─ interpret.chat_session() ──→ Route to model-specific function
-│                                (uses chat_session$model_type)
+Validate arguments (all named, no positional confusion):
+    ├─ Check model_fit provided
+    ├─ Check variable_info provided
+    ├─ Validate chat_session if provided
+    └─ Determine effective_model_type (from chat_session or model_type parameter)
+    ↓
+Detect model_fit type:
+    ↓
+├─ FITTED MODEL? (fa, principal, lavaan, efaList, SingleGroupClass)
+│       ↓
+│   Call interpret_model() S3 generic [INTERNAL, NOT EXPORTED]:
+│       ↓
+│   ├─ interpret_model.fa() ────────────→ Extract from psych::fa
+│   ├─ interpret_model.principal() ─────→ Extract from psych::principal
+│   ├─ interpret_model.lavaan() ────────→ Extract from lavaan CFA/SEM
+│   ├─ interpret_model.efaList() ───────→ Extract from lavaan::efa
+│   ├─ interpret_model.SingleGroupClass()→ Extract from mirt::mirt
+│   └─ interpret_model.psych() ─────────→ Dispatcher for psych objects
+│           ↓
+│       Each method calls interpret_fa(loadings, ..., chat_session=...)
 │
-└─ interpret.default() ───────→ Smart routing:
-       ↓
-   Is raw data + (model_type OR chat_session provided)?
-       ├─ YES → handle_raw_data_interpret()
-       │           ↓
-       │        Route to model-specific function:
-       │        - fa: interpret_fa()
-       │        - gm: [not implemented]
-       │        - irt: [not implemented]
-       │        - cdm: [not implemented]
-       │
-       └─ NO → Error: "No interpret method available"
+├─ STRUCTURED LIST? (is.list && !is.data.frame && !is_fitted_model)
+│       ↓
+│   Requires model_type or chat_session
+│       ↓
+│   validate_fa_list_structure():
+│       ├─ Extract loadings (required)
+│       ├─ Extract Phi or factor_cor_mat (optional)
+│       └─ Warn about unrecognized components
+│           ↓
+│       handle_raw_data_interpret(extracted$loadings, ...)
+│
+└─ RAW DATA? (matrix or data.frame)
+        ↓
+    Requires model_type or chat_session
+        ↓
+    handle_raw_data_interpret():
+        ↓
+    Route based on effective_model_type:
+        ├─ fa: interpret_fa()
+        ├─ gm: [not implemented - error]
+        ├─ irt: [not implemented - error]
+        └─ cdm: [not implemented - error]
 ```
+
+**Key Changes from Previous Architecture:**
+- interpret() is now a **plain function**, not S3 generic
+- All arguments are **named** (no positional dispatch confusion)
+- Internal interpret_model() S3 generic handles fitted model objects
+- Supports **structured lists** for model components
+- Single validation/routing logic in one place
 
 ---
 
