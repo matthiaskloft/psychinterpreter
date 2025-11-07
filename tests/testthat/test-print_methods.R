@@ -196,13 +196,14 @@ test_that("print.fa_interpretation respects suppress_heading parameter", {
 # TESTS FOR print.chat_fa
 # ==============================================================================
 
-test_that("print.chat_fa displays session information", {
+test_that("print.chat_session displays session information", {
   skip_if_no_llm()
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
+  # Use modern API
+  chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
   # Capture both stdout and stderr since cli may output to either
   output <- capture.output(print(chat), type = "output")
@@ -215,7 +216,7 @@ test_that("print.chat_fa displays session information", {
   expect_true(grepl("ollama", combined, ignore.case = TRUE))
 })
 
-test_that("print.chat_fa shows token usage after interpretation", {
+test_that("print.chat_session shows token usage after interpretation", {
   skip_if_no_llm()
 
   loadings <- sample_loadings()
@@ -224,7 +225,8 @@ test_that("print.chat_fa shows token usage after interpretation", {
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
+  # Use modern API
+  chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
   # Run interpretation
   results <- interpret_fa(loadings, var_info,
@@ -240,7 +242,7 @@ test_that("print.chat_fa shows token usage after interpretation", {
   expect_true(grepl("Output", output_text, ignore.case = TRUE))
 })
 
-test_that("print.chat_fa shows interpretation count", {
+test_that("print.chat_session shows interpretation count", {
   skip_if_no_llm()
 
   loadings <- sample_loadings()
@@ -249,7 +251,8 @@ test_that("print.chat_fa shows interpretation count", {
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
+  # Use modern API
+  chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
   # Initial count should be 0
   output0 <- capture.output(print(chat))
@@ -267,13 +270,14 @@ test_that("print.chat_fa shows interpretation count", {
   expect_true(grepl("Interpretations run.*1", output1_text, ignore.case = TRUE))
 })
 
-test_that("print.chat_fa displays creation timestamp", {
+test_that("print.chat_session displays creation timestamp", {
   skip_if_no_llm()
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
+  # Use modern API
+  chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
   # Capture both stdout and stderr since cli may output to either
   output <- capture.output(print(chat), type = "output")

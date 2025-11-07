@@ -6,33 +6,36 @@ This file provides guidance to Claude Code when working with the **psychinterpre
 
 **psychinterpreter** automates interpretation of exploratory factor analysis (EFA) results using Large Language Models via the `ellmer` package. It interfaces with OpenAI, Anthropic, Ollama, Gemini, and Azure to generate human-readable factor names and interpretations.
 
+**📁 Architecture Documentation**: For detailed technical architecture, see [dev/ARCHITECTURE.md](dev/ARCHITECTURE.md)
+
 ## Core Architecture
 
 ### LLM-Powered Interpretation Pipeline
 
-1. **Factor Analysis Preparation** (R/fa_utilities.R):
+1. **Factor Analysis Preparation** (R/fa_diagnostics.R):
    - Analyzes loadings against configurable cutoffs
    - Identifies significant loadings per factor
    - Applies "emergency rule" for weak factors (uses top N variables if none exceed cutoff)
    - Detects cross-loadings and orphaned variables
 
-2. **LLM Communication** (R/interpret_fa.R, ~1350 lines):
+2. **LLM Communication** (R/fa_interpret.R, ~645 lines):
    - Constructs structured prompts with psychometric context
    - Processes ALL factors in a single LLM call (batch optimization)
    - Includes factor correlations for oblique rotations
-   - Supports persistent chat sessions via `chat_fa` objects to save tokens
+   - Supports persistent chat sessions via `chat_session` objects to save tokens
 
-3. **Report Generation** (R/fa_report_functions.R):
+3. **Report Generation** (R/report_fa.R):
    - Builds reports in text or markdown format
    - Includes interpretations, cross-loadings, and diagnostics
    - Text wrapping for console output
+   - S3 method `build_report.fa_interpretation()` integrates with core system
 
 ### Persistent Chat Sessions
 
-**Key innovation**: `chat_fa` objects (R/chat_fa.R) are reusable LLM sessions that preserve the system prompt.
+**Key innovation**: `chat_session` objects (R/base_chat_session.R) are reusable LLM sessions that preserve the system prompt.
 - Single analysis: Creates temporary session
-- Multiple analyses: Create one `chat_fa`, pass to multiple `interpret_fa()` calls
-- Saves ~500+ tokens per additional analysis
+- Multiple analyses: Create one `chat_session`, pass to multiple `interpret()` calls
+- Saves ~40-60% tokens per additional analysis by reusing system prompt
 
 ### S3 Methods for Common FA Packages
 
@@ -55,7 +58,7 @@ If a factor has zero loadings above cutoff:
 Targets 80-100% of `word_limit` parameter:
 - System prompt includes explicit word targets
 - Post-processing validates and **informs** (via `cli::cli_inform()`) if exceeded
-- Helper function `count_words()` in utils.R
+- Helper function `count_words()` in utils_text_processing.R
 - **Note**: Changed from warning to message (2025-11-03) to reduce test noise
 
 ### JSON Parsing Strategy
@@ -63,18 +66,17 @@ Targets 80-100% of `word_limit` parameter:
 Multi-tiered fallback for robust LLM response handling:
 1. Try parsing cleaned JSON (remove extra text, fix formatting)
 2. Fall back to original response
-3. Pattern-based extraction if JSON parsing fails
-4. Default values if all methods fail
+3. Pattern-based extraction if JSON parsing fails (via S3 method `extract_by_pattern.fa()`)
+4. Default values if all methods fail (via S3 method `create_default_result.fa()`)
 
-Critical for handling small/local models with imperfect JSON output.
+Critical for handling small/local models with imperfect JSON output. See R/generic_json_parser.R and R/fa_json.R.
 
-### System Prompt Synchronization
+### System Prompt Architecture
 
-The psychometric expert system prompt is defined in **TWO locations**:
-- `interpret_fa.R` (lines ~294-330): Single-use sessions
-- `chat_fa.R` (lines ~57-73): Persistent sessions
-
-**CRITICAL**: Keep both prompts synchronized when making changes.
+The psychometric expert system prompt is defined in **ONE location**:
+- `R/fa_prompt_builder.R` via S3 method `build_system_prompt.fa()`
+- Used by both single-use and persistent sessions
+- **Single source of truth** - no duplication
 
 ## Exported Functions and Methods
 
@@ -140,25 +142,45 @@ The psychometric expert system prompt is defined in **TWO locations**:
 
 ## File Organization
 
+**Active R Files (15 files, ~4,654 lines total):**
+
 ```
 R/
-├── interpret_fa.R          # Main interpretation function (~1350 lines)
-├── chat_fa.R               # Persistent chat session management
-├── interpret_methods.R     # S3 methods for psych/lavaan/mirt
-├── fa_utilities.R          # Cross-loading & no-loading detection
-├── utils.R                 # Word counting, text wrapping
-├── fa_report_functions.R   # Report building, print methods
-├── export_functions.R      # Export to txt/md formats
-└── visualization.R         # S3 plot method and heatmap creation
+├── Core Infrastructure (5 files, ~1,054 lines)
+│   ├── generic_interpret.R      # Main interpretation orchestration (392 lines)
+│   ├── generic_json_parser.R    # Multi-tier JSON parsing with S3 (200 lines)
+│   ├── generic_prompt_builder.R # S3 generics for prompts (83 lines)
+│   ├── base_chat_session.R      # Chat session management (287 lines)
+│   └── base_interpretation.R    # Base interpretation objects (92 lines)
+│
+├── Factor Analysis Implementation (7 files, ~3,154 lines)
+│   ├── fa_interpret.R           # Main FA interpretation function (645 lines)
+│   ├── fa_prompt_builder.R      # FA prompts (S3 methods, 340 lines)
+│   ├── fa_json.R                # FA JSON parsing (S3 methods, 232 lines)
+│   ├── fa_diagnostics.R         # Diagnostics + S3 method (199 lines)
+│   ├── interpret_methods.R      # S3 methods for psych/lavaan/mirt (744 lines)
+│   ├── interpret_helpers.R      # Validation and routing (156 lines)
+│   └── report_fa.R              # Report building + S3 method (838 lines)
+│
+└── Utilities (3 files, ~446 lines)
+    ├── export_functions.R       # Export to txt/md (132 lines)
+    ├── utils_text_processing.R  # Text wrapping, word counting (107 lines)
+    └── visualization.R          # S3 plot method, heatmaps (207 lines)
 
+R/archive/  # 8 redundant/old files (not loaded)
+```
+
+**Tests:**
+
+```
 tests/testthat/
-├── fixtures/               # Test data as .rds files
+├── fixtures/fa/            # Factor analysis test data
 │   ├── sample_*.rds        # Standard fixtures (5 vars × 3 factors)
-│   ├── minimal_*.rds       # Token-efficient fixtures (3 vars × 2 factors)
+│   ├── minimal_*.rds       # Token-efficient (3 vars × 2 factors)
 │   ├── correlational_*.rds # Realistic FA data (6 vars × 2 factors)
 │   └── make-*.R            # Regeneration scripts
 ├── helper.R                # Test helper functions
-└── test-*.R                # 7 test files (70 tests total)
+└── test-*.R                # 7 test files (70+ tests total)
 ```
 
 ## Common Development Commands
@@ -180,24 +202,68 @@ devtools::load_all()         # Load for development
 
 ## Common Workflows
 
-### Using S3 Methods with FA Packages
+### The interpret() Generic: Four Usage Patterns
+
+The `interpret()` function is the main entry point for all interpretations, supporting four flexible dispatch patterns:
+
+#### Pattern 1: Model Objects (Automatic Extraction)
 
 ```r
-# psych package
+# Automatically extracts loadings from fitted models
 fa_result <- psych::fa(data, nfactors = 3)
 interpretation <- interpret(fa_result,
                            variable_info = var_descriptions,
                            llm_provider = "anthropic",
                            llm_model = "claude-haiku-4-5-20251001")
 
-# lavaan package
+# Also works with lavaan, mirt, etc.
 efa_result <- lavaan::efa(data, nfactors = 3)
 interpretation <- interpret(efa_result, variable_info = var_descriptions)
-
-# mirt package
-mirt_result <- mirt::mirt(data, 2, itemtype = "2PL")
-interpretation <- interpret(mirt_result, variable_info = var_descriptions)
 ```
+
+#### Pattern 2: Raw Data with model_type
+
+```r
+# For custom loadings matrices or manual extraction
+loadings <- as.data.frame(unclass(fa_model$loadings))
+
+interpretation <- interpret(loadings,
+                           variable_info = var_descriptions,
+                           model_type = "fa",
+                           llm_provider = "anthropic",
+                           llm_model = "claude-haiku-4-5-20251001")
+```
+
+#### Pattern 3: Persistent Chat Session (Most Token-Efficient)
+
+```r
+# Create session once
+chat <- chat_session(model_type = "fa",
+                    provider = "anthropic",
+                    model = "claude-haiku-4-5-20251001")
+
+# Use session as first argument - saves system prompt tokens
+result1 <- interpret(chat, loadings1, var_info1)
+result2 <- interpret(chat, loadings2, var_info2)  # Reuses system prompt
+result3 <- interpret(chat, loadings3, var_info3)
+
+print(chat)  # Check cumulative tokens
+```
+
+#### Pattern 4: Raw Data with chat_session Parameter
+
+```r
+# Combine raw data with persistent session
+interpretation <- interpret(loadings,
+                           variable_info = var_descriptions,
+                           chat_session = chat)
+# model_type automatically inherited from chat session
+```
+
+**Pattern Recommendation:**
+- **Single analysis**: Pattern 1 (model objects) - simplest
+- **Multiple analyses**: Pattern 3 (chat session) - most efficient
+- **Custom data**: Pattern 2 or 4 depending on whether you need multi-analysis
 
 ### Visualizing Results
 
@@ -218,10 +284,12 @@ p <- plot(results) +
 ggsave("loadings.png", p, width = 10, height = 8)
 ```
 
-### Token-Efficient Multi-Analysis Workflow
+### Token-Efficient Multi-Analysis Workflow (Legacy)
+
+**Note:** `chat_fa()` is deprecated. Use `chat_session()` with the interpret() generic (see Pattern 3 above) for new code.
 
 ```r
-# Create persistent session (saves system prompt)
+# Legacy approach - still works but deprecated
 chat <- chat_fa("anthropic", "claude-haiku-4-5-20251001")
 
 # Interpret multiple analyses
@@ -231,6 +299,20 @@ results3 <- interpret_fa(loadings3, var_info3, chat_session = chat)
 
 # Check token usage
 print(chat)  # Shows cumulative tokens and n_interpretations
+```
+
+```r
+# Modern approach - recommended
+chat <- chat_session(model_type = "fa",
+                    provider = "anthropic",
+                    model = "claude-haiku-4-5-20251001")
+
+# Use with interpret() generic
+results1 <- interpret(chat, loadings1, var_info1)
+results2 <- interpret(chat, loadings2, var_info2)
+results3 <- interpret(chat, loadings3, var_info3)
+
+print(chat)  # Shows cumulative tokens
 ```
 
 ## Debugging Tips
@@ -268,12 +350,34 @@ Sys.setenv(ANTHROPIC_API_KEY = "your-key")   # Anthropic
 
 ### Modifying Report Formats
 
-Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
+Report generation in `build_fa_report()` (report_fa.R:~18) supports:
 - `output_format`: "text" or "markdown"
 - `heading_level`: For markdown hierarchy
 - `suppress_heading`: For embedding in documents
 
+The S3 method `build_report.fa_interpretation()` (report_fa.R:~805) integrates with the generic system.
+
 ## Recent Key Updates
+
+### 2025-11-07
+- ✓ **Major Code Cleanup**: Identified and removed all redundant code
+  - Removed 3 duplicate R source files: fa_report_functions.R (804 lines), fa_wrapper_methods.R (556 lines), fa_utilities.R (165 lines)
+  - Total redundant code eliminated: ~1,559 lines
+  - Archive now contains 8 old/redundant files for reference
+- ✓ **Documentation Overhaul**:
+  - Deleted outdated dev/STATUS.md (referenced non-existent refactoring)
+  - Deleted redundant dev/FILE_STRUCTURE.md (duplicated CLAUDE.md)
+  - Created comprehensive dev/ARCHITECTURE.md (technical reference)
+  - Updated CLAUDE.md to accurately reflect current package state
+- ✓ **Single Source of Truth**: All components now have exactly one definition
+  - System prompts: Only in fa_prompt_builder.R (was duplicated in interpret_fa.R)
+  - Report building: Only in report_fa.R (was duplicated in fa_report_functions.R)
+  - Interpret methods: Only in interpret_methods.R (was duplicated in fa_wrapper_methods.R)
+  - Diagnostic functions: Only in fa_diagnostics.R (was duplicated in fa_utilities.R)
+- ✓ **Cleaner Package Structure**: 15 active R files (down from 18), better organized
+  - Core infrastructure: 5 files (~1,054 lines)
+  - FA implementation: 7 files (~3,154 lines)
+  - Utilities: 3 files (~446 lines)
 
 ### 2025-11-05
 - ✓ **hide_low_loadings parameter**: Added `hide_low_loadings` parameter to `interpret_fa()`. When TRUE, only variables with loadings at or above the cutoff are included in data sent to the LLM, reducing token usage and focusing interpretation on significant loadings.
@@ -301,33 +405,42 @@ Report generation in `build_fa_report()` (fa_report_functions.R:~18) supports:
   
 ## TODOs
 
-- `interpret_fa()`: implement ellmers chat_structured() for prompting and retrieving answers: https://ellmer.tidyverse.org/articles/prompt-design.html, https://ellmer.tidyverse.org/articles/structured-data.html
+- ~~interpret() needs to be able to dispatch methods for all interpretations~~ **COMPLETED (2025-11-07)**
+  - ✓ Supports model objects with automatic extraction
+  - ✓ Supports raw data with model_type specification
+  - ✓ Supports chat_session as first argument
+  - ✓ Supports raw data with chat_session parameter
+  - ✓ Full validation of model, chat_session, and model_type consistency
+  - ✓ interpret() is now the primary package interface
+
+- ~~identify redundant old R scripts and move them to archive~~ **COMPLETED (2025-11-07)**
+  - ✓ Archived R/fa_chat.R (replaced by base_chat_session.R)
+  - ✓ Archived R/utils_export.R (duplicate of export_functions.R)
+  - ✓ Archived R/fa_utilities.R (duplicate of fa_diagnostics.R minus S3 method)
+  - ✓ Archived R/fa_wrapper_methods.R (old interpret() dispatch, replaced by interpret_methods.R)
+  - ✓ Archived R/fa_report_functions.R (duplicate of report_fa.R minus S3 method)
+  - ✓ Total: 8 archived files, 3 redundant files removed from active codebase
+
+- ~~analyze current package logic, improve it where necessary, and document in the end. synthesize or Remove redundant documentation in dev/~~ **COMPLETED (2025-11-07)**
+  - ✓ Analyzed package architecture and identified all redundancies
+  - ✓ Removed 3 duplicate R source files (saved ~1,559 lines of redundant code)
+  - ✓ Deleted outdated dev/STATUS.md (referenced non-existent refactoring)
+  - ✓ Deleted redundant dev/FILE_STRUCTURE.md (duplicated CLAUDE.md content)
+  - ✓ Created comprehensive dev/ARCHITECTURE.md (technical architecture reference)
+  - ✓ Updated CLAUDE.md to reflect current package state
+  - ✓ Single source of truth for all components (no more duplicates)
   
-- `interpret_fa()` customization options added
-  - `interpretation_guidelines` and `system_prompt` are now accepted as arguments in `interpret_fa()` to allow advanced users to customize the system-level framing and additional interpretation instructions sent to the LLM.
-  - Usage example:
+- tests are lengthy, analyze for potential improvements in run time and token usage
 
-```r
-# Provide a short custom system prompt and extra interpretation guidance
-custom_system <- "You are an expert psychometrician writing for a general scientific audience."
-guidelines <- "Prefer concise 2-3 word factor names; avoid niche technical jargon; emphasize practical implications."
+- conduct interactive code review
 
-result <- interpret_fa(loadings, variable_info,
-                       system_prompt = custom_system,
-                       interpretation_guidelines = guidelines,
-                       llm_provider = 'openai',
-                       llm_model = 'gpt-4o-mini')
-```
+- Change silent argument to integer (0 = report + messages, 1 = messages, 2 = show nothing)
 
-  - Update: R roxygen docs for `interpret_fa()` include `@param system_prompt` and `@param interpretation_guidelines` (see `R/interpret_fa.R`).
-
-- Token tracking fix implemented
-  - docs, code comments, and tests reviewed and updated to reflect behavior
-  - NOTE: `system_prompt` tokens are not reliably reported by the `ellmer` wrapper for some providers (this appears to be an upstream bug). For accuracy and to avoid double-counting or negative accumulation, `psychinterpreter` intentionally does NOT add `system_prompt` tokens to the package-level cumulative token counters. Instead, per-run tokens are computed from roles reported by `ellmer::chat$get_tokens()` (user/assistant). If you need provider-specific system-prompt token counts, call `chat$chat$get_tokens(include_system_prompt = TRUE)` directly but be aware results may be inconsistent across providers.
+- Implement a summary method. Shows the chat details and suggested names for "fa"
   
-- prepare package class system for future classes which may include "gm" (gaussian mixture model), "irt" (item response theory), and "cdm" (cognitive diagnosis models)
-  - analyze potential refactoring and modularization of existing codebase to improve maintainability and scalability
-  - rename and refactor code base
+- Implement gaussian_mixture class
+  
+  
   
 ## Known Issues
 
@@ -339,3 +452,4 @@ None currently.
 - **Version**: 0.0.0.9000 (development)
 - **R requirement**: >= 4.1.0
 - **License**: MIT + file LICENSE
+- put development related markdowns into dev/

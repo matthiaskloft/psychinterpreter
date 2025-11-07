@@ -54,9 +54,9 @@ build_fa_report <- function(interpretation_results,
     if (!is.null(chat)) {
       report <- paste0(report,
                        "**LLM used:** ",
-                       chat$get_provider()@name,
+                       chat$provider,
                        " - ",
-                       chat$get_model(),
+                       chat$model %||% "default",
                        "  \n")
 
 
@@ -296,9 +296,9 @@ build_fa_report <- function(interpretation_results,
     if (!is.null(chat)) {
       report <- paste0(report,
                        "LLM used: ",
-                       chat$get_provider()@name,
+                       chat$provider,
                        " - ",
-                       chat$get_model(),
+                       chat$model %||% "default",
                        "\n")
 
       if (!is.null(interpretation_results$input_tokens) &&
@@ -801,4 +801,38 @@ print.fa_interpretation <- function(x,
   }
 
   return(invisible(NULL))
+}
+
+#' Build Report for FA Interpretation (S3 Method)
+#'
+#' S3 method that integrates with the core interpret_generic() workflow.
+#' Wraps the existing build_fa_report() function.
+#'
+#' @param interpretation fa_interpretation object
+#' @param output_format Character. "text" or "markdown"
+#' @param heading_level Integer. Markdown heading level
+#' @param suppress_heading Logical. Suppress report heading
+#' @param ... Additional arguments (unused)
+#'
+#' @return Character. Formatted report text
+#' @export
+#' @keywords internal
+build_report.fa_interpretation <- function(interpretation,
+                                          output_format = "text",
+                                          heading_level = 1,
+                                          suppress_heading = FALSE,
+                                          ...) {
+  # Extract parameters from interpretation object
+  n_factors <- length(interpretation$suggested_names)
+  cutoff <- interpretation$params$cutoff %||% 0.3
+
+  # Call existing build_fa_report function
+  build_fa_report(
+    interpretation_results = interpretation,
+    output_format = output_format,
+    heading_level = heading_level,
+    n_factors = n_factors,
+    cutoff = cutoff,
+    suppress_heading = suppress_heading
+  )
 }

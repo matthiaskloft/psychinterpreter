@@ -1,61 +1,63 @@
-test_that("chat_fa creates valid chat session object", {
+test_that("chat_session creates valid FA chat session object", {
   skip_if_no_llm()
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
+  # Use modern chat_session() API
+  chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
-  # Check structure
-  expect_s3_class(chat, "chat_fa")
-  expect_true(is.chat_fa(chat))
+  # Check structure - new class names
+  expect_s3_class(chat, "fa_chat_session")
+  expect_s3_class(chat, "chat_session")
+  expect_true(is.chat_session(chat))
 
   # Check fields
   expect_true(!is.null(chat$chat))
+  expect_equal(chat$model_type, "fa")
   expect_equal(chat$n_interpretations, 0)
-  # Token counters may have been removed from the chat object; if present they
-  # should initialize to zero. If not present, that's acceptable (package may
-  # handle token tracking elsewhere).
+  # Token counters should initialize to zero
   if ("total_input_tokens" %in% ls(envir = chat)) {
     expect_equal(chat$total_input_tokens, 0)
     expect_equal(chat$total_output_tokens, 0)
   }
 })
 
-test_that("is.chat_fa correctly identifies chat_fa objects", {
+test_that("is.chat_session correctly identifies chat_session objects", {
   skip_if_no_llm()
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
-  expect_true(is.chat_fa(chat))
+  # Use modern API
+  chat <- chat_session(model_type = "fa", provider = provider, model = model)
+  expect_true(is.chat_session(chat))
 
-  # Test with non-chat_fa objects
-  expect_false(is.chat_fa(list()))
-  expect_false(is.chat_fa(NULL))
-  expect_false(is.chat_fa("not a chat"))
+  # Test with non-chat_session objects
+  expect_false(is.chat_session(list()))
+  expect_false(is.chat_session(NULL))
+  expect_false(is.chat_session("not a chat"))
 })
 
-test_that("reset.chat_fa resets session state", {
+test_that("reset.chat_session resets session state", {
   skip_if_no_llm()
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
+  # Use modern API
+  chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
   # Simulate some usage
   chat$n_interpretations <- 5
-  # Only simulate token counters if the fields exist; some refactorings remove
-  # package-level cumulative counters.
+  # Only simulate token counters if the fields exist
   if ("total_input_tokens" %in% ls(envir = chat)) {
     chat$total_input_tokens <- 1000
     chat$total_output_tokens <- 500
   }
 
-  # Reset - returns a NEW object
-  chat_reset <- reset.chat_fa(chat)
+  # Reset - returns a NEW object (use modern function)
+  chat_reset <- reset.chat_session(chat)
 
   # Check that counters are reset in the new object
   expect_equal(chat_reset$n_interpretations, 0)
@@ -68,13 +70,14 @@ test_that("reset.chat_fa resets session state", {
   expect_equal(chat_reset$created_at, chat$created_at)
 })
 
-test_that("print.chat_fa displays session info", {
+test_that("print.chat_session displays session info", {
   skip_if_no_llm()
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
+  # Use modern API
+  chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
   # Capture both stdout and stderr since cli may output to either
   output <- capture.output(print(chat), type = "output")
@@ -90,11 +93,32 @@ test_that("print.chat_fa displays session info", {
   expect_true(grepl("ollama", combined, ignore.case = TRUE))
 })
 
-test_that("chat_fa handles invalid provider gracefully", {
+test_that("chat_session handles invalid provider gracefully", {
   skip_if_no_llm()
 
   expect_error(
-    chat_fa("invalid_provider", "model"),
+    chat_session(model_type = "fa", provider = "invalid_provider", model = "model"),
     class = "rlang_error"
   )
+})
+
+# ==============================================================================
+# Legacy API Tests (chat_fa - deprecated but still supported)
+# ==============================================================================
+
+test_that("chat_fa backward compatibility (deprecated)", {
+  skip_if_no_llm()
+
+  provider <- "ollama"
+  model <- "gpt-oss:20b-cloud"
+
+  # Suppress deprecation warnings for this test
+  suppressWarnings({
+    chat <- chat_fa(provider, model)
+
+    # Old class name should still work via backward compatibility
+    expect_true(is.chat_session(chat))
+    expect_true(is.chat_fa(chat))  # Should still return TRUE for FA sessions
+    expect_equal(chat$model_type, "fa")
+  })
 })

@@ -131,6 +131,7 @@ chat_fa <- function(provider,
   chat_obj$chat <- chat
   chat_obj$provider <- provider
   chat_obj$model <- model
+  chat_obj$model_type <- "fa"  # Add model_type for compatibility with core_interpret
   chat_obj$params <- params
   chat_obj$echo <- echo
   chat_obj$created_at <- Sys.time()
@@ -138,7 +139,7 @@ chat_fa <- function(provider,
   chat_obj$total_input_tokens <- 0
   chat_obj$total_output_tokens <- 0
 
-  class(chat_obj) <- "chat_fa"
+  class(chat_obj) <- c("chat_fa", "chat_session")  # Add chat_session for compatibility
   return(chat_obj)
 }
 

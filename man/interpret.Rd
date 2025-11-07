@@ -2,84 +2,149 @@
 % Please edit documentation in R/interpret_methods.R
 \name{interpret}
 \alias{interpret}
-\title{Interpret Factor Analysis Results Using S3 Methods}
+\title{Interpret Psychometric Analysis Results}
 \usage{
-interpret(model, variable_info, ...)
+interpret(model, ...)
 }
 \arguments{
-\item{model}{A factor analysis model object from supported packages}
-
-\item{variable_info}{A dataframe with at least two columns:
+\item{model}{One of:
 \itemize{
-\item variable: variable names matching the model variables
-\item description: labels or descriptions of the variables
+\item Fitted model object (psych::fa, lavaan::cfa, mirt::mirt, etc.)
+\item Raw model data (loadings matrix, parameters, etc.)
+\item chat_session object for multi-analysis workflows
 }}
 
-\item{...}{Additional arguments passed to \code{\link{interpret_fa}}, such as
-llm_provider, llm_model, cutoff, word_limit, etc.}
+\item{...}{Additional arguments passed to methods, including:
+\itemize{
+\item variable_info: Dataframe with 'variable' and 'description' columns
+\item model_type: Character. Type of analysis ("fa", "gm", "irt", "cdm") when using raw data
+\item chat_session: Persistent chat session (created with \code{chat_session()})
+\item llm_provider: LLM provider (e.g., "anthropic", "openai")
+\item llm_model: Model name (e.g., "claude-haiku-4-5-20251001")
+\item Other model-specific parameters (cutoff, word_limit, etc.)
+}}
 }
 \value{
-An \code{fa_interpretation} object (see \code{\link{interpret_fa}} for details)
+Model-specific interpretation object:
+\itemize{
+\item FA: \code{fa_interpretation} (see \code{\link{interpret_fa}})
+\item Future: \code{gm_interpretation}, \code{irt_interpretation}, etc.
+}
 }
 \description{
-Generic function to interpret factor analysis results from various R packages
-(psych, lavaan, mirt). This function extracts loadings and factor correlations
-from fitted model objects and passes them to \code{\link{interpret_fa}} for
-LLM-powered interpretation.
+Unified interface for interpreting psychometric analysis results with LLMs.
+Supports model objects from popular R packages, raw data with model_type specification,
+and persistent chat sessions for efficient multi-analysis workflows.
 }
 \details{
-This generic function provides a unified interface for interpreting factor
-analysis results from multiple R packages. Package-specific methods automatically
-extract loadings and factor correlations from fitted model objects.
+This generic function provides four usage patterns:
+
+\strong{1. Model Object (Automatic Extraction)}
+\code{interpret(model_object, variable_info, ...)}
+\itemize{
+\item Automatically extracts loadings/parameters from fitted models
+\item Supported: psych::fa, psych::principal, lavaan::cfa/efa, mirt::mirt
+}
+
+\strong{2. Raw Data with model_type}
+\code{interpret(data, variable_info, model_type = "fa", ...)}
+\itemize{
+\item For custom data structures or manual loading matrices
+\item Requires explicit model_type specification
+}
+
+\strong{3. Persistent Chat Session (Efficient Multi-Analysis)}
+\code{interpret(chat_session, model_data, variable_info, ...)}
+\itemize{
+\item Reuses chat session across multiple analyses
+\item Saves tokens by not repeating system prompt
+}
+
+\strong{4. Raw Data with chat_session}
+\code{interpret(data, variable_info, chat_session = chat, ...)}
+\itemize{
+\item Combines raw data with persistent session
+\item Model type inherited from chat_session
+}
 
 \strong{Supported Model Types:}
 \itemize{
-\item \code{psych::fa()} - Exploratory factor analysis (class: psych.fa)
-\item \code{psych::principal()} - Principal components analysis (class: psych.principal)
-\item \code{lavaan::cfa()}, \code{lavaan::sem()}, \code{lavaan::lavaan()} - CFA/SEM (class: lavaan)
-\item \code{lavaan::efa()} with output="efa" - EFA (class: efaList)
-\item \code{mirt::mirt()} - Multidimensional IRT (class: SingleGroupClass)
-}
-
-Methods automatically detect and extract:
-\itemize{
-\item Factor loadings matrix (variables × factors)
-\item Factor correlations for oblique rotations (when available)
+\item \strong{fa} (Factor Analysis): psych::fa(), psych::principal(), lavaan::cfa/efa(), mirt::mirt()
+\item \strong{gm} (Gaussian Mixture): Not yet implemented
+\item \strong{irt} (Item Response Theory): Not yet implemented
+\item \strong{cdm} (Cognitive Diagnosis Models): Not yet implemented
 }
 }
 \examples{
 \dontrun{
 # Set up API credentials
-Sys.setenv(OPENAI_API_KEY = "your-api-key-here")
-
-# Example with psych package
-library(psych)
-fa_model <- fa(mtcars[,1:4], nfactors = 2, rotate = "oblimin")
+Sys.setenv(ANTHROPIC_API_KEY = "your-api-key-here")
 
 var_info <- data.frame(
   variable = c("mpg", "cyl", "disp", "hp"),
-  description = c("Miles per gallon", "Number of cylinders",
-                  "Displacement", "Horsepower")
+  description = c("Miles per gallon", "Cylinders", "Displacement", "Horsepower")
 )
 
-# Interpret using S3 method
-result <- interpret(fa_model, variable_info = var_info,
-                    llm_provider = "openai",
-                    llm_model = "gpt-4o-mini")
+# ============================================================================
+# PATTERN 1: Model Object (Automatic Extraction)
+# ============================================================================
+library(psych)
+fa_model <- fa(mtcars[,1:4], nfactors = 2, rotate = "oblimin")
 
-# Example with lavaan package
+# S3 method automatically extracts loadings
+result1 <- interpret(fa_model, variable_info = var_info,
+                     llm_provider = "anthropic",
+                     llm_model = "claude-haiku-4-5-20251001")
+
+# ============================================================================
+# PATTERN 2: Raw Data with model_type
+# ============================================================================
+# Extract loadings manually
+loadings <- as.data.frame(unclass(fa_model$loadings))
+
+# Interpret raw data by specifying model_type
+result2 <- interpret(loadings, variable_info = var_info,
+                     model_type = "fa",
+                     llm_provider = "anthropic",
+                     llm_model = "claude-haiku-4-5-20251001")
+
+# ============================================================================
+# PATTERN 3: Persistent Chat Session (Token-Efficient)
+# ============================================================================
+# Create persistent chat session
+chat <- chat_session(model_type = "fa",
+                     provider = "anthropic",
+                     model = "claude-haiku-4-5-20251001")
+
+# Use session as first argument (saves tokens on repeated analyses)
+result3a <- interpret(chat, loadings, variable_info)
+result3b <- interpret(chat, loadings2, variable_info2)  # Reuses system prompt
+
+print(chat)  # Check cumulative token usage
+
+# ============================================================================
+# PATTERN 4: Raw Data with chat_session Parameter
+# ============================================================================
+result4 <- interpret(loadings, variable_info, chat_session = chat)
+# Model type automatically inherited from chat session
+}
+
+\dontrun{
+# Additional examples with other packages
+
+# lavaan CFA
 library(lavaan)
-model <- 'visual  =~ x1 + x2 + x3
-          textual =~ x4 + x5 + x6
-          speed   =~ x7 + x8 + x9'
-fit <- cfa(model, data = HolzingerSwineford1939)
+model_spec <- 'visual  =~ x1 + x2 + x3
+               textual =~ x4 + x5 + x6
+               speed   =~ x7 + x8 + x9'
+fit <- cfa(model_spec, data = HolzingerSwineford1939)
 
-var_info_lavaan <- data.frame(
+var_info <- data.frame(
   variable = paste0("x", 1:9),
   description = paste("Indicator", 1:9)
 )
 
-result <- interpret(fit, variable_info = var_info_lavaan,
+result <- interpret(fit, variable_info = var_info,
                     llm_provider = "anthropic",
                     llm_model = "claude-haiku-4-5-20251001")
 }

@@ -83,16 +83,16 @@ test_that("interpret_fa validates chat_session parameter", {
   # Test with invalid chat_session
   expect_error(
     interpret_fa(loadings, var_info, chat_session = "not a chat_fa"),
-    "chat_session must be a chat_fa object"
+    "chat_session.*must be a chat_session object"
   )
 
   expect_error(
     interpret_fa(loadings, var_info, chat_session = list()),
-    "chat_session must be a chat_fa object"
+    "chat_session.*must be a chat_session object"
   )
 })
 
-test_that("interpret_fa warns when chat_session overrides provider/model", {
+test_that("interpret_fa informs when chat_session overrides provider/model", {
   skip_if_no_llm()
 
   # Use minimal fixtures for token efficiency
@@ -102,9 +102,11 @@ test_that("interpret_fa warns when chat_session overrides provider/model", {
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
+  # Use modern API
+  chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
   # Should inform user that chat_session overrides provider/model
+  # (Informational message, not a warning - this is expected behavior)
   expect_message(
     interpret_fa(loadings, var_info,
                 chat_session = chat,

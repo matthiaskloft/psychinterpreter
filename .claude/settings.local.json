@@ -13,7 +13,11 @@
       "Bash(CI=true Rscript:*)",
       "WebFetch(domain:r-pkgs.org)",
       "Bash(for file in /mnt/c/Users/Matze/Documents/GitHub/psychinterpreter/tests/testthat/test-*.R)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(tree:*)",
+      "Bash(awk:*)",
+      "Bash(git mv:*)",
+      "Bash(R CMD build:*)"
     ],
     "deny": [],
     "ask": []
