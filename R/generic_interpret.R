@@ -11,7 +11,7 @@
 #' @param chat_session Chat session object or NULL. If NULL, creates temporary session
 #' @param word_limit Integer. Word limit for interpretations (default = 100)
 #' @param additional_info Character or NULL. Additional context for LLM
-#' @param output_format Character. Report format: "text" or "markdown" (default = "text")
+#' @param output_format Character. Report format: "cli" or "markdown" (default = "cli")
 #' @param heading_level Integer. Markdown heading level (default = 1)
 #' @param suppress_heading Logical. Suppress report heading (default = FALSE)
 #' @param max_line_length Integer. Maximum line length for text wrapping (default = 120)
@@ -43,7 +43,7 @@ interpret_generic <- function(model_data,
                           chat_session = NULL,
                           word_limit = 100,
                           additional_info = NULL,
-                          output_format = "text",
+                          output_format = "cli",
                           heading_level = 1,
                           suppress_heading = FALSE,
                           max_line_length = 120,
@@ -260,6 +260,7 @@ interpret_generic <- function(model_data,
     params = list(
       word_limit = word_limit,
       output_format = output_format,
+      additional_info = additional_info,
       ...
     ),
     variable_info = variable_info
@@ -356,7 +357,7 @@ create_diagnostics.default <- function(model_type, model_data, variable_info, ..
 #' Model-specific report building
 #'
 #' @param interpretation Interpretation object
-#' @param output_format Character. "text" or "markdown"
+#' @param output_format Character. "cli" or "markdown"
 #' @param heading_level Integer. Markdown heading level
 #' @param suppress_heading Logical. Suppress report heading
 #' @param ... Additional arguments for model-specific report building
@@ -365,7 +366,7 @@ create_diagnostics.default <- function(model_type, model_data, variable_info, ..
 #' @export
 #' @keywords internal
 build_report <- function(interpretation,
-                        output_format = "text",
+                        output_format = "cli",
                         heading_level = 1,
                         suppress_heading = FALSE,
                         ...) {
@@ -376,7 +377,7 @@ build_report <- function(interpretation,
 #' @export
 #' @keywords internal
 build_report.default <- function(interpretation,
-                                 output_format = "text",
+                                 output_format = "cli",
                                  heading_level = 1,
                                  suppress_heading = FALSE,
                                  ...) {

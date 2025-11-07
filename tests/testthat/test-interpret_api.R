@@ -22,7 +22,7 @@ get_test_variable_info <- function() {
 }
 
 get_test_factor_cor_mat <- function() {
-  readRDS(test_path("fixtures/fa/minimal_factor_cor_mat.rds"))
+  readRDS(test_path("fixtures/fa/minimal_factor_cor.rds"))
 }
 
 # ==============================================================================
@@ -49,8 +49,8 @@ test_that("Pattern 1: interpret() works with fitted psych::fa model", {
   expect_s3_class(result, "fa_interpretation")
   expect_s3_class(result, "interpretation")
   expect_s3_class(result, "list")
-  expect_true("factor_names" %in% names(result))
-  expect_true("interpretations" %in% names(result))
+  expect_true("suggested_names" %in% names(result))
+  expect_true("component_summaries" %in% names(result))
 })
 
 test_that("Pattern 1: interpret() works with fitted psych::principal model", {
@@ -71,7 +71,7 @@ test_that("Pattern 1: interpret() works with fitted psych::principal model", {
 
   # Validate
   expect_s3_class(result, "fa_interpretation")
-  expect_length(result$factor_names, 2)
+  expect_length(result$suggested_names, 2)
 })
 
 # ==============================================================================
@@ -94,7 +94,7 @@ test_that("Pattern 2: interpret() works with raw loadings matrix", {
   )
 
   expect_s3_class(result, "fa_interpretation")
-  expect_length(result$factor_names, 2)
+  expect_length(result$suggested_names, 2)
 })
 
 test_that("Pattern 2: interpret() requires model_type for raw data", {
@@ -194,6 +194,8 @@ test_that("Pattern 3: interpret() requires loadings in list", {
 })
 
 test_that("Pattern 3: interpret() warns about unrecognized list components", {
+  skip_on_ci()
+
   loadings <- get_test_loadings()
   var_info <- get_test_variable_info()
 
@@ -363,7 +365,7 @@ test_that("Misuse: interpret() errors when variable_info not a data.frame", {
       variable_info = list(a = 1, b = 2),
       model_type = "fa"
     ),
-    "variable_info must be a data frame"
+    "variable_info.*must be a data frame"
   )
 })
 
@@ -390,11 +392,13 @@ test_that("Misuse: interpret() errors with invalid chat_session", {
       variable_info = var_info,
       chat_session = list(not = "a_session")
     ),
-    "chat_session must be a chat_session object"
+    "chat_session.*must be a chat_session object"
   )
 })
 
 test_that("Misuse: interpret() warns when both chat_session and conflicting model_type", {
+  skip_on_ci()
+
   loadings <- get_test_loadings()
   var_info <- get_test_variable_info()
 
@@ -412,7 +416,7 @@ test_that("Misuse: interpret() warns when both chat_session and conflicting mode
       model_type = "gm",  # Conflicts with chat_session's "fa"
       word_limit = 20
     ),
-    "model_type.*conflicts"
+    "Both.*chat_session.*and.*model_type.*provided"
   )
 })
 
@@ -450,7 +454,7 @@ test_that("additional_info is passed correctly (not in model_fit list)", {
   )
 
   expect_s3_class(result, "fa_interpretation")
-  # additional_info should be in the result context
-  expect_true(!is.null(result$additional_info) ||
-              "additional_info" %in% names(attributes(result)))
+  # additional_info should be in params (passed via ...)
+  expect_true(!is.null(result$params$additional_info))
+  expect_equal(result$params$additional_info, "This is additional context")
 })

@@ -2,27 +2,60 @@
 
 This file provides guidance to Claude Code when working with the **psychinterpreter** R package.
 
-## Package Overview
+---
 
-**psychinterpreter** automates interpretation of exploratory factor analysis (EFA) results using Large Language Models via the `ellmer` package. It interfaces with OpenAI, Anthropic, Ollama, Gemini, and Azure to generate human-readable factor names and interpretations.
+## Quick Reference
 
-**📁 Architecture Documentation**: For detailed technical architecture, see [dev/ARCHITECTURE.md](dev/ARCHITECTURE.md)
+**Package Purpose**: Automates interpretation of exploratory factor analysis (EFA) results using Large Language Models via the `ellmer` package.
 
-## Core Architecture
+**Main Entry Points**:
+- `interpret()` - Universal generic (recommended for all uses)
+- `interpret_fa()` - Direct FA interpretation
+- `chat_session()` - Create persistent LLM session (token-efficient for multiple analyses)
 
-### LLM-Powered Interpretation Pipeline
+**Documentation**:
+- **CLAUDE.md** (this file): Usage guide, workflows, and quick reference
+- **dev/DEVELOPER_GUIDE.md**: Technical architecture and deep implementation details
 
-1. **Factor Analysis Preparation** (R/fa_diagnostics.R):
+**Test/Example Standards**:
+- Always use `provider = "ollama"` and `model = "gpt-oss:20b-cloud"`
+- For LLM tests: `word_limit = 20` (minimum allowed) for token efficiency
+
+---
+
+## Table of Contents
+
+1. [Package Overview](#package-overview)
+2. [Quick Start Guide](#quick-start-guide)
+3. [Usage Patterns](#usage-patterns)
+4. [File Organization](#file-organization)
+5. [Development Workflow](#development-workflow)
+6. [Testing Guidelines](#testing-guidelines)
+7. [Common Pitfalls](#common-pitfalls)
+8. [Troubleshooting](#troubleshooting)
+9. [TODOs & Future Work](#todos--future-work)
+
+---
+
+# Package Overview
+
+## What It Does
+
+**psychinterpreter** automates interpretation of exploratory factor analysis (EFA) results using Large Language Models. It interfaces with OpenAI, Anthropic, Ollama, Gemini, and Azure to generate human-readable factor names and interpretations.
+
+## Core Features
+
+1. **LLM-Powered Interpretation** (R/fa_interpret.R, ~645 lines):
+   - Constructs structured prompts with psychometric context
+   - Processes ALL factors in a single LLM call (batch optimization)
+   - Includes factor correlations for oblique rotations
+   - Supports persistent chat sessions to save tokens (~40-60% savings)
+
+2. **Factor Analysis Preparation** (R/fa_diagnostics.R):
    - Analyzes loadings against configurable cutoffs
    - Identifies significant loadings per factor
    - Applies "emergency rule" for weak factors (uses top N variables if none exceed cutoff)
    - Detects cross-loadings and orphaned variables
-
-2. **LLM Communication** (R/fa_interpret.R, ~645 lines):
-   - Constructs structured prompts with psychometric context
-   - Processes ALL factors in a single LLM call (batch optimization)
-   - Includes factor correlations for oblique rotations
-   - Supports persistent chat sessions via `chat_session` objects to save tokens
 
 3. **Report Generation** (R/report_fa.R):
    - Builds reports in text or markdown format
@@ -30,157 +63,262 @@ This file provides guidance to Claude Code when working with the **psychinterpre
    - Text wrapping for console output
    - S3 method `build_report.fa_interpretation()` integrates with core system
 
-### Persistent Chat Sessions
+4. **S3 Methods for Common Packages**:
+   - `psych::fa()` and `psych::principal()`
+   - `lavaan::cfa()`, `lavaan::sem()`, and `lavaan::efa()`
+   - `mirt::mirt()`
 
-**Key innovation**: `chat_session` objects (R/base_chat_session.R) are reusable LLM sessions that preserve the system prompt.
-- Single analysis: Creates temporary session
-- Multiple analyses: Create one `chat_session`, pass to multiple `interpret()` calls
-- Saves ~40-60% tokens per additional analysis by reusing system prompt
+## Key Architectural Points
 
-### S3 Methods for Common FA Packages
+- **S3 Dispatch System**: Generic `interpret()` function with model-specific S3 methods
+- **Persistent Chat Sessions**: Reusable LLM sessions that preserve system prompts (R/base_chat_session.R)
+- **Dual-Tier Token Tracking**: Cumulative (session-level) + per-run tracking
+- **Extensible Design**: Adding new model types requires implementing 7 S3 methods
 
-The `interpret()` generic (R/interpret_methods.R) auto-extracts loadings from:
-- `psych::fa()` and `psych::principal()` results
-- `lavaan::cfa()`, `lavaan::sem()`, and `lavaan::efa()` results
-- `mirt::mirt()` results
+**📁 For detailed architecture**: See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md)
 
-## Key Implementation Details
+---
 
-### Emergency Rule Logic
+# Quick Start Guide
 
-If a factor has zero loadings above cutoff:
-- Uses top `n_emergency` highest absolute loadings instead
-- Clearly marked with WARNING in output
-- Prevents empty factor interpretations
+## Installation
 
-### Word Limit Enforcement
-
-Targets 80-100% of `word_limit` parameter:
-- System prompt includes explicit word targets
-- Post-processing validates and **informs** (via `cli::cli_inform()`) if exceeded
-- Helper function `count_words()` in utils_text_processing.R
-- **Note**: Changed from warning to message (2025-11-03) to reduce test noise
-
-### JSON Parsing Strategy
-
-Multi-tiered fallback for robust LLM response handling:
-1. Try parsing cleaned JSON (remove extra text, fix formatting)
-2. Fall back to original response
-3. Pattern-based extraction if JSON parsing fails (via S3 method `extract_by_pattern.fa()`)
-4. Default values if all methods fail (via S3 method `create_default_result.fa()`)
-
-Critical for handling small/local models with imperfect JSON output. See R/generic_json_parser.R and R/fa_json.R.
-
-### System Prompt Architecture
-
-The psychometric expert system prompt is defined in **ONE location**:
-- `R/fa_prompt_builder.R` via S3 method `build_system_prompt.fa()`
-- Used by both single-use and persistent sessions
-- **Single source of truth** - no duplication
-
-## Exported Functions and Methods
-
-**9 exported functions:**
-- `interpret_fa()` - Core factor interpretation with LLM
-- `interpret()` - S3 generic for common FA packages
-- `chat_fa()`, `is.chat_fa()`, `reset.chat_fa()` - Session management
-- `find_cross_loadings()`, `find_no_loadings()` - Diagnostic utilities
-- `export_interpretation()` - Export to txt/md formats
-- `create_factor_plot()` - Plotting wrapper
-
-**10 S3 methods:**
-- `interpret.fa()`, `interpret.principal()`, `interpret.lavaan()`, `interpret.efaList()`, `interpret.SingleGroupClass()`, `interpret.psych()`, `interpret.default()`
-- `print.fa_interpretation()`, `print.chat_fa()`
-- `plot.fa_interpretation()`
-
-## Dependencies
-
-**Imports (required):**
-- `ellmer` - LLM communication
-- `dplyr`, `tidyr` - Data manipulation
-- `ggplot2` - Visualization
-- `cli` - User messaging
-- `jsonlite` - JSON parsing
-
-**Suggests (optional):**
-- `psych`, `lavaan`, `mirt` - For S3 method support
-- `testthat` - Testing framework
-- `knitr`, `rmarkdown` - Vignettes
-
-## Code Style Conventions
-
-- **Roxygen2 documentation**: Required for all exported functions
-- **Explicit namespacing**: Use `package::function()` (e.g., `dplyr::mutate()`)
-- **CLI messaging**: Use `cli` package (`cli_alert_info`, `cli_abort`, `cli_inform`)
-- **Pipe operator**: Base R `|>` (not magrittr `%>%`)
-- **Parameter validation**: Extensive validation with informative errors at function start
-
-## Testing
-
-**70 tests** across 7 files following [R Packages 2e](https://r-pkgs.org/testing-design.html) best practices:
-
-**Test files:**
-- `test-chat_fa.R` - Chat session management and token tracking
-- `test-export_functions.R` - Export to txt/md formats
-- `test-fa_utilities.R` - Cross-loading and no-loading detection
-- `test-interpret_fa.R` - Core interpretation logic, emergency rules
-- `test-interpret_methods.R` - S3 methods for psych/lavaan/mirt
-- `test-print_methods.R` - Print methods
-- `test-visualization.R` - Plot methods and heatmap generation
-
-**Test infrastructure:**
-- Uses `testthat 3.0` framework
-- Fixtures stored in `tests/testthat/fixtures/` as `.rds` files
-- Helper functions in `helper.R` use `test_path()` for portability
-- **Environment caching**: Fixtures cached in `.test_cache` environment (loaded once per session)
-  - 40x+ speedup on repeated fixture access
-  - 97.6% time reduction for fixture loading
-  - Zero impact on package size (cache only exists during testing)
-- **Minimal LLM testing**: LLM interpretation tested once per class, S3 methods test only data extraction
-  - Core interpretation: 2 LLM tests (1 comprehensive + 1 edge case)
-  - S3 methods: 4 LLM tests (1 integration per package: psych, lavaan, mirt, efaList)
-  - Chat sessions: 1 LLM test (session reuse with 2 interpretations)
-  - Print/visualization: 0 LLM tests (use cached `sample_interpretation()`)
-  - Total: ~7 LLM calls (down from 33+ before optimization)
-- LLM-requiring tests skip automatically on CI (GitHub Actions)
-- Token-efficient fixtures: `minimal_*` fixtures use `word_limit = 20` (minimum allowed)
-
-**Three fixture sets:**
-1. **Standard fixtures**: 5 variables × 3 factors (~400-500 tokens)
-2. **Minimal fixtures**: 3 variables × 2 factors (~150-200 tokens, 60-70% reduction)
-3. **Correlational fixtures**: Realistic FA data with proper factor structure (eliminates Heywood case warnings)
-
-## File Organization
-
-**Active R Files (15 files, ~4,654 lines total):**
-
-```
-R/
-├── Core Infrastructure (5 files, ~1,054 lines)
-│   ├── generic_interpret.R      # Main interpretation orchestration (392 lines)
-│   ├── generic_json_parser.R    # Multi-tier JSON parsing with S3 (200 lines)
-│   ├── generic_prompt_builder.R # S3 generics for prompts (83 lines)
-│   ├── base_chat_session.R      # Chat session management (287 lines)
-│   └── base_interpretation.R    # Base interpretation objects (92 lines)
-│
-├── Factor Analysis Implementation (7 files, ~3,154 lines)
-│   ├── fa_interpret.R           # Main FA interpretation function (645 lines)
-│   ├── fa_prompt_builder.R      # FA prompts (S3 methods, 340 lines)
-│   ├── fa_json.R                # FA JSON parsing (S3 methods, 232 lines)
-│   ├── fa_diagnostics.R         # Diagnostics + S3 method (199 lines)
-│   ├── interpret_methods.R      # S3 methods for psych/lavaan/mirt (744 lines)
-│   ├── interpret_helpers.R      # Validation and routing (156 lines)
-│   └── report_fa.R              # Report building + S3 method (838 lines)
-│
-└── Utilities (3 files, ~446 lines)
-    ├── export_functions.R       # Export to txt/md (132 lines)
-    ├── utils_text_processing.R  # Text wrapping, word counting (107 lines)
-    └── visualization.R          # S3 plot method, heatmaps (207 lines)
-
-R/archive/  # 8 redundant/old files (not loaded)
+```r
+# Install from GitHub (adjust path as needed)
+devtools::install_github("username/psychinterpreter")
 ```
 
-**Tests:**
+## Basic Usage
+
+```r
+library(psychinterpreter)
+
+# 1. Run factor analysis
+fa_result <- psych::fa(data, nfactors = 3)
+
+# 2. Prepare variable descriptions
+var_info <- c(
+  "var1" = "Description of variable 1",
+  "var2" = "Description of variable 2",
+  # ...
+)
+
+# 3. Get interpretation
+interpretation <- interpret(
+  model_fit = fa_result,
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# 4. View results
+print(interpretation)
+plot(interpretation)
+```
+
+## Token-Efficient Multiple Analyses
+
+```r
+# Create session once
+chat <- chat_session(
+  model_type = "fa",
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
+)
+
+# Use for multiple interpretations (saves ~40-60% tokens)
+result1 <- interpret(chat_session = chat, model_fit = fa1, variable_info = vars1)
+result2 <- interpret(chat_session = chat, model_fit = fa2, variable_info = vars2)
+result3 <- interpret(chat_session = chat, model_fit = fa3, variable_info = vars3)
+
+# Check token usage
+print(chat)
+```
+
+---
+
+# Usage Patterns
+
+The `interpret()` function is the main entry point. All arguments are **named** to prevent positional confusion.
+
+## Pattern 1: Fitted Model Objects (Recommended)
+
+**Automatically extracts loadings from fitted models**
+
+```r
+# Works with psych::fa()
+fa_result <- psych::fa(data, nfactors = 3)
+interpretation <- interpret(
+  model_fit = fa_result,
+  variable_info = var_descriptions,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# Also works with lavaan
+efa_result <- lavaan::efa(data, nfactors = 3)
+interpretation <- interpret(
+  model_fit = efa_result,
+  variable_info = var_descriptions,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# And mirt
+mirt_result <- mirt::mirt(data, model = 3)
+interpretation <- interpret(
+  model_fit = mirt_result,
+  variable_info = var_descriptions,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+```
+
+## Pattern 2: Raw Data (Matrix/Data Frame)
+
+**For custom loadings matrices or manual extraction**
+
+```r
+loadings <- as.data.frame(unclass(fa_model$loadings))
+
+interpretation <- interpret(
+  model_fit = loadings,
+  variable_info = var_descriptions,
+  model_type = "fa",  # Required for raw data
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+```
+
+## Pattern 3: Structured List
+
+**For providing loadings + factor correlations separately**
+
+```r
+# With factor correlations (oblique rotation)
+interpretation <- interpret(
+  model_fit = list(
+    loadings = loadings_matrix,
+    Phi = factor_cor_mat  # or factor_cor_mat = ...
+  ),
+  variable_info = var_descriptions,
+  model_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# Minimal (orthogonal rotation, no Phi needed)
+interpretation <- interpret(
+  model_fit = list(loadings = loadings_matrix),
+  variable_info = var_descriptions,
+  model_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+```
+
+## Pattern 4: Chat Session (Most Efficient for Multiple Analyses)
+
+**Token-efficient: Reuses system prompt across interpretations**
+
+```r
+# Create session once
+chat <- chat_session(
+  model_type = "fa",
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
+)
+
+# Use for multiple interpretations
+result1 <- interpret(
+  chat_session = chat,
+  model_fit = loadings1,
+  variable_info = var_info1
+)
+
+result2 <- interpret(
+  chat_session = chat,
+  model_fit = loadings2,
+  variable_info = var_info2
+)
+
+result3 <- interpret(
+  chat_session = chat,
+  model_fit = list(loadings = loadings3, Phi = phi3),  # Works with all input types
+  variable_info = var_info3
+)
+
+print(chat)  # Check cumulative tokens
+```
+
+**Key Points:**
+- All arguments are **named** - no positional confusion
+- `model_fit` accepts: fitted models, matrices, data.frames, or structured lists
+- `additional_info` is a separate parameter, not part of model_fit list
+- Chat sessions work with any model_fit type
+
+**Pattern Recommendations:**
+- **Single analysis**: Pattern 1 (fitted model) - simplest
+- **Multiple analyses**: Pattern 4 (chat session) - most efficient
+- **Custom data**: Pattern 2 (raw matrix) or Pattern 3 (structured list)
+
+## Visualizing Results
+
+```r
+# S3 plot method (recommended)
+plot(interpretation)
+
+# Or backward-compatible wrapper
+create_factor_plot(interpretation)
+
+# Customize and save
+p <- plot(interpretation) +
+  ggplot2::labs(title = "Factor Loadings") +
+  ggplot2::theme(axis.text.y = ggplot2::element_text(size = 8))
+ggsave("loadings.png", p, width = 10, height = 8)
+```
+
+## Exporting Results
+
+```r
+# Export to text file
+export_interpretation(interpretation, "results.txt", format = "txt")
+
+# Export to markdown
+export_interpretation(interpretation, "results.md", format = "md")
+```
+
+---
+
+# File Organization
+
+## Active R Files (15 files, ~4,654 lines)
+
+### Core Infrastructure (5 files, ~1,054 lines)
+- `generic_interpret.R` (392) - Main interpretation orchestration
+- `generic_json_parser.R` (200) - Multi-tier JSON parsing with S3
+- `generic_prompt_builder.R` (83) - S3 generics for prompts
+- `base_chat_session.R` (287) - Chat session management
+- `base_interpretation.R` (92) - Base interpretation objects
+
+### Factor Analysis Implementation (7 files, ~3,154 lines)
+- `fa_interpret.R` (645) - Main FA interpretation function
+- `fa_prompt_builder.R` (340) - FA prompts (S3 methods)
+- `fa_json.R` (232) - FA JSON parsing (S3 methods)
+- `fa_diagnostics.R` (199) - Diagnostics + S3 method
+- `interpret_methods.R` (744) - S3 methods for psych/lavaan/mirt
+- `interpret_helpers.R` (156) - Validation and routing
+- `report_fa.R` (838) - Report building + S3 method
+
+### Utilities (3 files, ~446 lines)
+- `export_functions.R` (132) - Export to txt/md
+- `utils_text_processing.R` (107) - Text wrapping, word counting
+- `visualization.R` (207) - S3 plot method, heatmaps
+
+### Archive (8 files, not loaded)
+Old implementations kept for reference in `R/archive/`
+
+## Test Structure
 
 ```
 tests/testthat/
@@ -193,12 +331,15 @@ tests/testthat/
 └── test-*.R                # 7 test files (70+ tests total)
 ```
 
-## Common Development Commands
+---
+
+# Development Workflow
+
+## Common Commands
 
 ```r
 # Documentation
-roxygen2::roxygenise()       # Generate docs from roxygen2 comments
-devtools::document()         # Alternative
+devtools::document()         # Generate docs from roxygen2 comments
 
 # Testing
 devtools::test()             # Run all tests
@@ -210,182 +351,7 @@ devtools::install()          # Install locally
 devtools::load_all()         # Load for development
 ```
 
-## Common Workflows
-
-### The interpret() Generic: Usage Patterns
-
-The `interpret()` function is the main entry point for all interpretations. All arguments are named to prevent positional confusion.
-
-#### Pattern 1: Fitted Model Objects (Automatic Extraction)
-
-```r
-# Automatically extracts loadings from fitted models
-fa_result <- psych::fa(data, nfactors = 3)
-interpretation <- interpret(
-  model_fit = fa_result,
-  variable_info = var_descriptions,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-
-# Also works with lavaan, mirt, etc.
-efa_result <- lavaan::efa(data, nfactors = 3)
-interpretation <- interpret(
-  model_fit = efa_result,
-  variable_info = var_descriptions,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-```
-
-#### Pattern 2: Raw Data (Matrix/Data Frame) with model_type
-
-```r
-# For custom loadings matrices or manual extraction
-loadings <- as.data.frame(unclass(fa_model$loadings))
-
-interpretation <- interpret(
-  model_fit = loadings,
-  variable_info = var_descriptions,
-  model_type = "fa",
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-```
-
-#### Pattern 3: Structured List
-
-```r
-# For FA: Provide loadings (required) and optionally Phi/factor_cor_mat
-interpretation <- interpret(
-  model_fit = list(
-    loadings = loadings_matrix,
-    Phi = factor_cor_mat  # or factor_cor_mat = ...
-  ),
-  variable_info = var_descriptions,
-  model_type = "fa",
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-
-# Minimal list (orthogonal rotation, no Phi needed)
-interpretation <- interpret(
-  model_fit = list(loadings = loadings_matrix),
-  variable_info = var_descriptions,
-  model_type = "fa"
-)
-```
-
-#### Pattern 4: Chat Session (Token-Efficient for Multiple Analyses)
-
-```r
-# Create session once
-chat <- chat_session(
-  model_type = "fa",
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
-)
-
-# Use with named chat_session parameter - saves system prompt tokens
-result1 <- interpret(
-  chat_session = chat,
-  model_fit = loadings1,
-  variable_info = var_info1
-)
-
-result2 <- interpret(
-  chat_session = chat,
-  model_fit = loadings2,
-  variable_info = var_info2
-)  # Reuses system prompt
-
-result3 <- interpret(
-  chat_session = chat,
-  model_fit = list(loadings = loadings3, Phi = phi3),
-  variable_info = var_info3
-)  # Works with lists too
-
-print(chat)  # Check cumulative tokens
-```
-
-**Key Points:**
-- All arguments are **named** - no positional confusion
-- `model_fit` accepts: fitted models, matrices, data.frames, or structured lists
-- `additional_info` is a separate parameter, not part of model_fit list
-- Chat sessions work with any model_fit type (fitted models, raw data, or lists)
-
-**Pattern Recommendation:**
-- **Single analysis**: Pattern 1 (fitted model) - simplest
-- **Multiple analyses**: Pattern 4 (chat session) - most efficient
-- **Custom data**: Pattern 2 (raw matrix) or Pattern 3 (structured list)
-
-### Visualizing Results
-
-```r
-# Get interpretation
-results <- interpret_fa(loadings, variable_info)
-
-# Plot with S3 method (recommended)
-plot(results)
-
-# Or use backward-compatible wrapper
-create_factor_plot(results)
-
-# Save and customize
-p <- plot(results) +
-  ggplot2::labs(title = "Custom Title") +
-  ggplot2::theme(axis.text.y = ggplot2::element_text(size = 8))
-ggsave("loadings.png", p, width = 10, height = 8)
-```
-
-### Token-Efficient Multi-Analysis Workflow (Legacy)
-
-**Note:** `chat_fa()` is deprecated. Use `chat_session()` with the interpret() generic (see Pattern 4 above) for new code.
-
-```r
-# Legacy approach - still works but deprecated
-chat <- chat_fa("ollama", "gpt-oss:20b-cloud")
-
-# Interpret multiple analyses
-results1 <- interpret_fa(loadings1, var_info1, chat_session = chat)
-results2 <- interpret_fa(loadings2, var_info2, chat_session = chat)
-results3 <- interpret_fa(loadings3, var_info3, chat_session = chat)
-
-# Check token usage
-print(chat)  # Shows cumulative tokens and n_interpretations
-```
-
-```r
-# Modern approach - recommended (all arguments named)
-chat <- chat_session(
-  model_type = "fa",
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
-)
-
-# Use with interpret() generic - all arguments are named
-results1 <- interpret(
-  chat_session = chat,
-  model_fit = loadings1,
-  variable_info = var_info1
-)
-
-results2 <- interpret(
-  chat_session = chat,
-  model_fit = loadings2,
-  variable_info = var_info2
-)
-
-results3 <- interpret(
-  chat_session = chat,
-  model_fit = loadings3,
-  variable_info = var_info3
-)
-
-print(chat)  # Shows cumulative tokens
-```
-
-## Debugging Tips
+## Debugging
 
 ```r
 # Enable LLM prompt/response visibility
@@ -406,9 +372,6 @@ result <- interpret(
   variable_info = var_info
 )
 print(chat)  # Displays token counts
-
-# Validate JSON parsing
-# Look for messages about word limit exceedances or JSON parsing issues
 ```
 
 ## LLM Provider Configuration
@@ -421,126 +384,507 @@ Sys.setenv(ANTHROPIC_API_KEY = "your-key")   # Anthropic
 # Ollama (local): no key needed
 ```
 
-## Extending the Package
+## Code Style Conventions
 
-### Adding New Output Formats to export_interpretation()
+**Required:**
+- **Roxygen2 documentation** for all exported functions
+- **Explicit namespacing**: Use `package::function()` (e.g., `dplyr::mutate()`)
+- **CLI messaging**: Use `cli` package (`cli_alert_info`, `cli_abort`, `cli_inform`)
+- **Pipe operator**: Base R `|>` (not magrittr `%>%`)
+- **Parameter validation**: Extensive validation with informative errors at function start
 
-1. Add format to switch statement (export_functions.R:~93)
-2. Implement format-specific logic
-3. Update documentation
+**Naming Conventions:**
+- **Files**: `generic_*` (core), `fa_*` (FA-specific), `base_*` (infrastructure), `utils_*` (utilities)
+- **Functions**: snake_case
+- **S3 methods**: `method.class()` format
+- **Internal functions**: Prefix with `.` (e.g., `.internal_helper()`)
 
-### Modifying Report Formats
+---
 
-Report generation in `build_fa_report()` (report_fa.R:~18) supports:
-- `output_format`: "text" or "markdown"
-- `heading_level`: For markdown hierarchy
-- `suppress_heading`: For embedding in documents
+# Testing Guidelines
 
-The S3 method `build_report.fa_interpretation()` (report_fa.R:~805) integrates with the generic system.
+## Test Infrastructure
 
-## Recent Key Updates
+- **Framework**: testthat 3.0
+- **Fixtures**: Stored in `tests/testthat/fixtures/` as `.rds` files
+- **Helper functions**: In `helper.R`, use `test_path()` for portability
+- **Environment caching**: Fixtures cached in `.test_cache` environment
+  - 40x+ speedup on repeated fixture access
+  - 97.6% time reduction for fixture loading
+  - Zero impact on package size (cache only exists during testing)
 
-### 2025-11-07
-- ✓ **Test Suite Optimization**: Minimized LLM calls and optimized fixture loading
-  - **Fixture caching**: Environment-based caching provides 40x speedup on repeated access (97.6% time reduction)
-  - **LLM testing strategy**: Reduced from 33+ LLM calls to ~7 LLM calls
-    - Core interpretation: 2 tests (1 comprehensive + 1 edge case)
-    - S3 methods: 4 integration tests (1 per package), all other tests focus on data extraction only
-    - Chat sessions: 1 test with session reuse
-    - Print/visualization: 0 LLM tests (use cached `sample_interpretation()`)
-  - Tests now separate concerns: data extraction vs. LLM interpretation
-  - Faster test execution, lower token usage, better test isolation
-- ✓ **Major Code Cleanup**: Identified and removed all redundant code
-  - Removed 3 duplicate R source files: fa_report_functions.R (804 lines), fa_wrapper_methods.R (556 lines), fa_utilities.R (165 lines)
-  - Total redundant code eliminated: ~1,559 lines
-  - Archive now contains 8 old/redundant files for reference
-- ✓ **Documentation Overhaul**:
-  - Deleted outdated dev/STATUS.md (referenced non-existent refactoring)
-  - Deleted redundant dev/FILE_STRUCTURE.md (duplicated CLAUDE.md)
-  - Created comprehensive dev/ARCHITECTURE.md (technical reference)
-  - Updated CLAUDE.md to accurately reflect current package state
-- ✓ **Single Source of Truth**: All components now have exactly one definition
-  - System prompts: Only in fa_prompt_builder.R (was duplicated in interpret_fa.R)
-  - Report building: Only in report_fa.R (was duplicated in fa_report_functions.R)
-  - Interpret methods: Only in interpret_methods.R (was duplicated in fa_wrapper_methods.R)
-  - Diagnostic functions: Only in fa_diagnostics.R (was duplicated in fa_utilities.R)
-- ✓ **Cleaner Package Structure**: 15 active R files (down from 18), better organized
-  - Core infrastructure: 5 files (~1,054 lines)
-  - FA implementation: 7 files (~3,154 lines)
-  - Utilities: 3 files (~446 lines)
+## Minimal LLM Testing Strategy
 
-### 2025-11-05
-- ✓ **hide_low_loadings parameter**: Added `hide_low_loadings` parameter to `interpret_fa()`. When TRUE, only variables with loadings at or above the cutoff are included in data sent to the LLM, reducing token usage and focusing interpretation on significant loadings.
-- ✓ **n_emergency = 0 support**: `n_emergency` parameter now accepts 0. When set to 0, factors with no significant loadings are labeled as "undefined" with "NA" interpretations, providing explicit handling of weak/undefined factors instead of forcing interpretation of weak loadings.
-- ✓ **Emergency rule indicator**: Factor names from the emergency rule (when no loadings exceed cutoff) now automatically receive a "(n.s.)" suffix to clearly indicate non-significant loadings were used for interpretation.
+**Goal**: Reduce token usage and test execution time
 
-### 2025-11-04
-- ✓ **System prompt token tracking**: Fixed token tracking for persistent chat sessions. System prompt tokens are now correctly captured on first use (when first message is sent) rather than at initialization. Added `system_prompt_captured` flag to track whether tokens have been extracted.
+**Core Principle**: Separate data extraction tests from LLM interpretation tests
 
-### 2025-11-03
-- ✓ **Token tracking fix**: Dual-tier system prevents negative accumulation
-- ✓ **S3 method system**: `interpret()` generic for psych/lavaan/mirt packages
-- ✓ **Export simplification**: Only txt/md formats (removed CSV/JSON/RDS)
-- ✓ **Test fixtures**: Three sets (standard, minimal, correlational) for comprehensive testing
-- ✓ **Word limit messaging**: Changed from `cli_warn()` to `cli_inform()` for less noise
-- ✓ **Parameter limits relaxed**: `word_limit` minimum 20→20, `max_line_length` max 200→300
+- **Core interpretation**: 2 LLM tests (1 comprehensive + 1 edge case)
+- **S3 methods**: 4 LLM tests (1 integration per package: psych, lavaan, mirt, efaList)
+  - All other S3 method tests focus on data extraction only (no LLM calls)
+- **Chat sessions**: 1 LLM test (session reuse with 2 interpretations)
+- **Print/visualization**: 0 LLM tests (use cached `sample_interpretation()`)
+- **Total**: ~7 LLM calls (down from 33+ before optimization)
 
-## Future Features
+## Test Fixture Strategy
 
-- Additional interpretation classes:
-  - Cluster analysis
-  - IRT models (item diagnostics focus)
-  - CDM models (q-matrix interpretation)
-  
-  
-## TODOs
+**Three fixture sets:**
 
-- ~~interpret() needs to be able to dispatch methods for all interpretations~~ **COMPLETED (2025-11-07)**
-  - ✓ Supports model objects with automatic extraction
-  - ✓ Supports raw data with model_type specification
-  - ✓ Supports chat_session as first argument
-  - ✓ Supports raw data with chat_session parameter
-  - ✓ Full validation of model, chat_session, and model_type consistency
-  - ✓ interpret() is now the primary package interface
+1. **Standard fixtures** (`sample_*`): 5 variables × 3 factors (~400-500 tokens)
+   - Use for comprehensive tests requiring realistic data
 
-- ~~identify redundant old R scripts and move them to archive~~ **COMPLETED (2025-11-07)**
-  - ✓ Archived R/fa_chat.R (replaced by base_chat_session.R)
-  - ✓ Archived R/utils_export.R (duplicate of export_functions.R)
-  - ✓ Archived R/fa_utilities.R (duplicate of fa_diagnostics.R minus S3 method)
-  - ✓ Archived R/fa_wrapper_methods.R (old interpret() dispatch, replaced by interpret_methods.R)
-  - ✓ Archived R/fa_report_functions.R (duplicate of report_fa.R minus S3 method)
-  - ✓ Total: 8 archived files, 3 redundant files removed from active codebase
+2. **Minimal fixtures** (`minimal_*`): 3 variables × 2 factors (~150-200 tokens, 60-70% reduction)
+   - Use for token-efficient LLM tests
+   - Set `word_limit = 20` (minimum allowed)
 
-- ~~analyze current package logic, improve it where necessary, and document in the end. synthesize or Remove redundant documentation in dev/~~ **COMPLETED (2025-11-07)**
-  - ✓ Analyzed package architecture and identified all redundancies
-  - ✓ Removed 3 duplicate R source files (saved ~1,559 lines of redundant code)
-  - ✓ Deleted outdated dev/STATUS.md (referenced non-existent refactoring)
-  - ✓ Deleted redundant dev/FILE_STRUCTURE.md (duplicated CLAUDE.md content)
-  - ✓ Created comprehensive dev/ARCHITECTURE.md (technical architecture reference)
-  - ✓ Updated CLAUDE.md to reflect current package state
-  - ✓ Single source of truth for all components (no more duplicates)
-  
-- tests are lengthy, analyze for potential improvements in run time and token usage
+3. **Correlational fixtures** (`correlational_*`): 6 variables × 2 factors
+   - Realistic FA data with proper factor structure
+   - Eliminates Heywood case warnings
 
-- conduct interactive code review
+## Writing Tests
 
-- Change silent argument to integer (0 = report + messages, 1 = messages, 2 = show nothing)
+### Test Organization
+```r
+test_that("descriptive name", {
+  # Setup
+  data <- load_fixture("sample_loadings")
 
-- Implement a summary method. Shows the chat details and suggested names for "fa"
-  
-- Implement gaussian_mixture class
-  
-  
-  
-## Known Issues
+  # Exercise
+  result <- interpret_fa(data$loadings, data$var_info)
 
-None currently.
+  # Verify
+  expect_s3_class(result, "fa_interpretation")
+  expect_equal(length(result$suggested_names), 3)
+})
+```
 
+### LLM Test Guidelines
+```r
+test_that("interpretation with LLM (uses tokens)", {
+  skip_on_ci()  # Skip on CI
+
+  # Use minimal fixtures
+  data <- load_fixture("minimal_loadings")
+
+  # Use token-efficient parameters
+  result <- interpret_fa(
+    data$loadings,
+    data$var_info,
+    word_limit = 20,  # Minimum allowed
+    llm_provider = "ollama",
+    llm_model = "gpt-oss:20b-cloud"
+  )
+
+  expect_s3_class(result, "fa_interpretation")
+  expect_type(result$suggested_names, "character")
+})
+```
+
+### Non-LLM Test Guidelines
+```r
+test_that("data extraction from psych::fa object", {
+  # No skip_on_ci() needed - no LLM call
+
+  fa_result <- psych::fa(data, nfactors = 3)
+
+  # Test extraction only, use cached interpretation for rest
+  cached_interp <- sample_interpretation()
+
+  expect_equal(nrow(extract_loadings(fa_result)), 5)
+  expect_equal(ncol(extract_loadings(fa_result)), 3)
+})
+```
+
+---
+
+# Common Pitfalls
+
+## 1. Positional Argument Confusion
+
+**Problem**: Calling `interpret()` with positional arguments instead of named arguments
+
+```r
+# ❌ WRONG - positional arguments
+interpret(chat, loadings, var_info)
+
+# ✅ CORRECT - named arguments
+interpret(
+  chat_session = chat,
+  model_fit = loadings,
+  variable_info = var_info
+)
+```
+
+## 2. Missing model_type for Raw Data
+
+**Problem**: Forgetting to specify `model_type` when using raw matrices/data.frames
+
+```r
+# ❌ WRONG - missing model_type
+interpret(
+  model_fit = loadings_matrix,
+  variable_info = var_info
+)
+
+# ✅ CORRECT - include model_type
+interpret(
+  model_fit = loadings_matrix,
+  variable_info = var_info,
+  model_type = "fa"
+)
+```
+
+## 3. Not Using Chat Sessions for Multiple Analyses
+
+**Problem**: Creating new sessions for each interpretation (wastes tokens)
+
+```r
+# ❌ INEFFICIENT - creates new session each time
+result1 <- interpret(model_fit = fa1, variable_info = vars1, llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+result2 <- interpret(model_fit = fa2, variable_info = vars2, llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+result3 <- interpret(model_fit = fa3, variable_info = vars3, llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+
+# ✅ EFFICIENT - reuse session (saves ~40-60% tokens)
+chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+result1 <- interpret(chat_session = chat, model_fit = fa1, variable_info = vars1)
+result2 <- interpret(chat_session = chat, model_fit = fa2, variable_info = vars2)
+result3 <- interpret(chat_session = chat, model_fit = fa3, variable_info = vars3)
+```
+
+## 4. Using Magrittr Pipe Instead of Base Pipe
+
+**Problem**: Using `%>%` instead of `|>` in package code
+
+```r
+# ❌ WRONG - magrittr pipe
+data %>% dplyr::filter(x > 0)
+
+# ✅ CORRECT - base R pipe
+data |> dplyr::filter(x > 0)
+```
+
+## 5. Forgetting to Document After Roxygen2 Changes
+
+**Problem**: Modifying roxygen2 comments but not regenerating documentation
+
+```r
+# After modifying roxygen2 comments in R files:
+devtools::document()  # ✅ ALWAYS run this
+```
+
+## 6. Including additional_info in model_fit List
+
+**Problem**: Treating `additional_info` as part of the model_fit list
+
+```r
+# ❌ WRONG - additional_info inside model_fit
+interpret(
+  model_fit = list(
+    loadings = loadings_matrix,
+    Phi = phi_matrix,
+    additional_info = "Some context"  # Wrong!
+  ),
+  variable_info = var_info,
+  model_type = "fa"
+)
+
+# ✅ CORRECT - additional_info as separate parameter
+interpret(
+  model_fit = list(
+    loadings = loadings_matrix,
+    Phi = phi_matrix
+  ),
+  variable_info = var_info,
+  additional_info = "Some context",  # Separate parameter
+  model_type = "fa"
+)
+```
+
+## 7. Testing with High word_limit
+
+**Problem**: Using high word_limit in tests (wastes tokens and time)
+
+```r
+# ❌ INEFFICIENT - high word limit
+interpret_fa(loadings, var_info, word_limit = 150)  # Default
+
+# ✅ EFFICIENT - minimum word limit for tests
+interpret_fa(loadings, var_info, word_limit = 20)  # Minimum allowed
+```
+
+---
+
+# Troubleshooting
+
+## Issue: "Error: model_type must be specified"
+
+**Cause**: Using raw data (matrix/data.frame) without specifying model_type
+
+**Solution**: Add `model_type = "fa"` parameter
+```r
+interpret(
+  model_fit = loadings,
+  variable_info = var_info,
+  model_type = "fa"  # Add this
+)
+```
+
+## Issue: "Error: Documented arguments not in usage"
+
+**Cause**: Roxygen2 documentation out of sync with function signature
+
+**Solution**: Regenerate documentation
+```r
+devtools::document()
+```
+
+## Issue: Tests Taking Too Long
+
+**Cause**: Too many LLM tests or using high word_limit
+
+**Solution**:
+1. Use cached interpretations instead of LLM calls
+2. Set `word_limit = 20` in LLM tests
+3. Use `minimal_*` fixtures instead of `sample_*` fixtures
+4. Skip LLM tests on CI with `skip_on_ci()`
+
+## Issue: Negative Token Counts
+
+**Cause**: System prompt caching issue (should be fixed in current version)
+
+**Solution**: Update to latest version (token tracking uses `max(0, delta)` protection)
+
+## Issue: JSON Parsing Failures
+
+**Cause**: LLM returned malformed JSON
+
+**Solution**: Package has multi-tier fallback:
+1. Cleaned JSON parsing
+2. Pattern-based extraction
+3. Default values
+
+Check output with `echo = "all"` to see raw LLM response:
+```r
+interpret_fa(..., echo = "all")
+```
+
+## Issue: Word Limit Messages
+
+**Cause**: LLM response exceeded word_limit parameter
+
+**Solution**: This is informational (uses `cli_inform()`, not an error). Options:
+1. Increase `word_limit` parameter
+2. Ignore if acceptable
+3. Check interpretation quality
+
+---
+
+# TODOs & Future Work
+
+## Completed TODOs
+
+- ✅ **interpret() generic dispatch** (2025-11-07)
+  - Supports model objects with automatic extraction
+  - Supports raw data with model_type specification
+  - Supports chat_session as first argument
+  - Full validation of model, chat_session, and model_type consistency
+
+- ✅ **Code cleanup and archiving** (2025-11-07)
+  - Archived 8 redundant/old files
+  - Removed 3 duplicate R source files (~1,559 lines)
+  - Established single source of truth for all components
+
+- ✅ **Documentation overhaul** (2025-11-07)
+  - Deleted outdated dev/STATUS.md and dev/FILE_STRUCTURE.md
+  - Created comprehensive dev/DEVELOPER_GUIDE.md
+  - Updated CLAUDE.md to reflect current package state
+
+- ✅ **Test suite optimization** (2025-11-07)
+  - Fixture caching (40x speedup)
+  - Reduced LLM calls from 33+ to ~7
+  - Separated data extraction from LLM interpretation tests
+
+## Active TODOs
+
+### High Priority
+
+1. **Analyze tests for runtime/token improvements**
+   - Tests are lengthy
+   - Further optimization opportunities may exist
+   - Review fixture usage patterns
+
+2. **Conduct interactive code review**
+   - Review architecture decisions
+   - Identify potential improvements
+   - Document best practices
+
+### Medium Priority
+
+3. **Change silent argument to integer**
+   - Current: boolean
+   - Proposed: 0 = report + messages, 1 = messages, 2 = show nothing
+   - More granular control
+
+4. **Implement summary method**
+   - For chat_session objects: Show chat details
+   - For fa_interpretation objects: Show suggested names only
+   - Quick overview without full report
+
+### Low Priority
+
+5. **Implement gaussian_mixture class**
+   - Add GM interpretation support
+   - Requires 7 S3 methods (see dev/DEVELOPER_GUIDE.md section 1.8)
+
+6. **Implement IRT interpretation class**
+   - Focus on item diagnostics
+
+7. **Implement CDM interpretation class**
+   - Focus on q-matrix interpretation
+
+## Future Enhancements
+
+- **Custom Prompt System**: User-provided system prompts via parameters
+- **Batch Interpretation**: Interpret multiple models in single LLM call
+- **Caching**: Cache interpretations for identical inputs
+- **Progress Tracking**: Progress bars for long analyses
+- **CLI Output Format**: Add "cli" as third format option (see dev/DEVELOPER_GUIDE.md section 3.6)
+
+---
+
+# Key Implementation Details
+
+## Emergency Rule Logic
+
+If a factor has zero loadings above cutoff:
+- Uses top `n_emergency` highest absolute loadings instead
+- Clearly marked with WARNING in output
+- Factor names get "(n.s.)" suffix to indicate non-significant loadings
+- Can set `n_emergency = 0` to label as "undefined" instead
+
+## Word Limit Enforcement
+
+Targets 80-100% of `word_limit` parameter:
+- System prompt includes explicit word targets
+- Post-processing validates and **informs** (via `cli::cli_inform()`) if exceeded
+- Helper function `count_words()` in utils_text_processing.R
+- Changed from warning to message (2025-11-03) to reduce noise
+
+## JSON Parsing Strategy
+
+Multi-tiered fallback for robust LLM response handling:
+1. Try parsing cleaned JSON (remove extra text, fix formatting)
+2. Fall back to original response
+3. Pattern-based extraction if JSON parsing fails (via S3 method `extract_by_pattern.fa()`)
+4. Default values if all methods fail (via S3 method `create_default_result.fa()`)
+
+Critical for handling small/local models with imperfect JSON output.
+See R/generic_json_parser.R and R/fa_json.R.
+
+## System Prompt Architecture
+
+The psychometric expert system prompt is defined in **ONE location**:
+- `R/fa_prompt_builder.R` via S3 method `build_system_prompt.fa()`
+- Used by both single-use and persistent sessions
+- **Single source of truth** - no duplication
+
+## Token Tracking System
+
+**Dual-tier system** prevents negative accumulation:
+- **Cumulative** (session-level): `chat_session$total_input_tokens`, `chat_session$total_output_tokens`
+- **Per-run** (interpretation-level): `interpretation$run_tokens`
+- **System prompt**: Tracked separately in `chat_session$system_prompt_tokens`
+
+**Key feature**: Conditional system prompt inclusion
+- Temporary session: System prompt included in run_tokens
+- Persistent session: System prompt excluded from run_tokens (sent previously)
+
+See dev/DEVELOPER_GUIDE.md section 2 for full details.
+
+---
+
+# Recent Changes
+
+## 2025-11-07: Test Suite Optimization & Code Cleanup
+
+- **Test Suite Optimization**:
+  - Fixture caching: 40x speedup (97.6% time reduction)
+  - LLM testing strategy: 33+ calls → ~7 calls
+  - Separated data extraction from LLM interpretation tests
+
+- **Major Code Cleanup**:
+  - Removed 3 duplicate R files (~1,559 lines)
+  - Archive contains 8 old/redundant files
+  - Established single source of truth for all components
+
+- **Documentation Overhaul**:
+  - Created comprehensive dev/DEVELOPER_GUIDE.md
+  - Deleted outdated dev/STATUS.md and dev/FILE_STRUCTURE.md
+  - Refactored CLAUDE.md for maximum utility
+
+## 2025-11-05: Enhanced Parameters
+
+- **hide_low_loadings parameter**: Hide non-significant loadings to reduce token usage
+- **n_emergency = 0 support**: Allow undefined factors instead of forcing interpretation
+- **Emergency rule indicator**: "(n.s.)" suffix on factor names from emergency rule
+
+## 2025-11-04: Token Tracking Fix
+
+- Fixed system prompt token capture for persistent chat sessions
+- Added `system_prompt_captured` flag
+
+## 2025-11-03: Major Refactoring
+
+- Dual-tier token tracking system
+- `interpret()` generic for psych/lavaan/mirt packages
+- Export simplification (txt/md only)
+- Three test fixture sets
+- Word limit messaging improvement
+
+---
+
+# Package Information
+
+## Exported Functions (9)
+
+- `interpret_fa()` - Core factor interpretation with LLM
+- `interpret()` - S3 generic for common FA packages
+- `chat_fa()`, `is.chat_fa()`, `reset.chat_fa()` - Session management (deprecated, use `chat_session()`)
+- `find_cross_loadings()`, `find_no_loadings()` - Diagnostic utilities
+- `export_interpretation()` - Export to txt/md formats
+- `create_factor_plot()` - Plotting wrapper
+
+## Exported S3 Methods (10+)
+
+- `interpret.fa()`, `interpret.principal()`, `interpret.lavaan()`, `interpret.efaList()`, `interpret.SingleGroupClass()`, `interpret.psych()`, `interpret.default()`
+- `print.fa_interpretation()`, `print.chat_fa()`
+- `plot.fa_interpretation()`
+
+## Dependencies
+
+**Imports (required):**
+- `ellmer` - LLM communication
+- `dplyr`, `tidyr` - Data manipulation
+- `ggplot2` - Visualization
+- `cli` - User messaging
+- `jsonlite` - JSON parsing
+
+**Suggests (optional):**
+- `psych`, `lavaan`, `mirt` - For S3 method support
+- `testthat` - Testing framework
+- `knitr`, `rmarkdown` - Vignettes
 
 ## Version & License
 
 - **Version**: 0.0.0.9000 (development)
 - **R requirement**: >= 4.1.0
 - **License**: MIT + file LICENSE
-- put development related markdowns into dev/
-- for examples and tests, always use "ollama" as the provider and "gpt-oss:20b-cloud"
+
+## Known Issues
+
+None currently.
+
+---
+
+**Last Updated**: 2025-11-07
+**Maintainer**: Update when making significant changes

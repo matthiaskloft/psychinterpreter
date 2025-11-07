@@ -35,11 +35,11 @@ File extension is automatically added if not provided by the user.
 \strong{Supported Export Formats:}
 \itemize{
 \item \strong{"txt"}: Exports the report in plain text format. If the report in
-\code{interpretation_results} was generated with \code{output_format = "text"}, it will
-be exported as-is. Otherwise, markdown formatting may be present.
+\code{interpretation_results} was generated with \code{output_format = "cli"}, ANSI
+color codes will be stripped for clean text output. Otherwise, markdown formatting may be present.
 \item \strong{"md"}: Exports the report in markdown format. If the report in
 \code{interpretation_results} was generated with \code{output_format = "markdown"}, it will
-be exported with proper markdown formatting. Otherwise, it will export the text version.
+be exported with proper markdown formatting. Otherwise, it will export the cli version.
 }
 
 \strong{File Extension Handling:}
@@ -53,9 +53,9 @@ The function intelligently handles file extensions:
 }
 \examples{
 \dontrun{
-# Get interpretation results in text format
+# Get interpretation results in cli format
 results_txt <- interpret_fa(loadings, variable_info,
-                           output_format = "text",
+                           output_format = "cli",
                            silent = TRUE)
 
 # Export as plain text

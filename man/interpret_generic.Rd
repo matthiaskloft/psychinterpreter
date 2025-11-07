@@ -13,7 +13,7 @@ interpret_generic(
   chat_session = NULL,
   word_limit = 100,
   additional_info = NULL,
-  output_format = "text",
+  output_format = "cli",
   heading_level = 1,
   suppress_heading = FALSE,
   max_line_length = 120,
@@ -40,7 +40,7 @@ interpret_generic(
 
 \item{additional_info}{Character or NULL. Additional context for LLM}
 
-\item{output_format}{Character. Report format: "text" or "markdown" (default = "text")}
+\item{output_format}{Character. Report format: "cli" or "markdown" (default = "cli")}
 
 \item{heading_level}{Integer. Markdown heading level (default = 1)}
 

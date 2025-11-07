@@ -72,21 +72,14 @@ print.interpretation <- function(x, ...) {
 #' @export
 #' @method plot interpretation
 plot.interpretation <- function(x, ...) {
-  UseMethod("plot", x)
-}
+  # Check if there's a specific method for this interpretation type
+  # If not, provide informative error
+  model_type <- x$model_type
 
-#' Default plot method
-#' @export
-#' @keywords internal
-plot.default <- function(x, ...) {
-  if (is.interpretation(x)) {
-    cli::cli_abort(
-      c(
-        "No plot method for model type: {.val {x$model_type}}",
-        "i" = "Implement plot.{x$model_type}_interpretation()"
-      )
+  cli::cli_abort(
+    c(
+      "No plot method for model type: {.val {model_type}}",
+      "i" = "Implement plot.{model_type}_interpretation()"
     )
-  } else {
-    NextMethod()
-  }
+  )
 }

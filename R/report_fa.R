@@ -6,7 +6,7 @@
 #'
 #' @param interpretation_results A list containing factor analysis interpretation results with components:
 #'   factor_summaries, suggested_names, llm_info, chat, cross_loadings, no_loadings, elapsed_time, factor_cor_mat
-#' @param output_format Character. Output format: "text" or "markdown" (default = "text")
+#' @param output_format Character. Output format: "cli" or "markdown" (default = "cli")
 #' @param heading_level Integer. Starting heading level for markdown output (default = 1)
 #' @param n_factors Integer. Number of factors in the analysis
 #' @param cutoff Numeric. Loading cutoff value used in the analysis
@@ -16,7 +16,7 @@
 #' @keywords internal
 #' @noRd
 build_fa_report <- function(interpretation_results,
-                            output_format = "text",
+                            output_format = "cli",
                             heading_level = 1,
                             n_factors,
                             cutoff,
@@ -279,23 +279,21 @@ build_fa_report <- function(interpretation_results,
       }
     }
   } else {
-    # Original text format
+    # CLI format with semantic styling
     # Add main heading unless suppressed
     if (!suppress_heading) {
-      report <- "==========================================\n"
-      report <- paste0(report, "FACTOR ANALYSIS INTERPRETATION\n")
-      report <- paste0(report,
-                       "==========================================\n\n")
+      report <- paste0(cli::col_cyan(cli::style_bold("FACTOR ANALYSIS INTERPRETATION")), "\n")
+      report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
     } else {
       report <- ""
     }
-    report <- paste0(report, "Number of factors: ", n_factors, "\n")
-    report <- paste0(report, "Loading cutoff: ", cutoff, "\n")
+    report <- paste0(report, cli::style_bold("Number of factors:"), " ", n_factors, "\n")
+    report <- paste0(report, cli::style_bold("Loading cutoff:"), " ", cutoff, "\n")
 
     # Handle LLM info safely
     if (!is.null(chat)) {
       report <- paste0(report,
-                       "LLM used: ",
+                       cli::style_bold("LLM used:"), " ",
                        chat$provider,
                        " - ",
                        chat$model %||% "default",
@@ -305,36 +303,36 @@ build_fa_report <- function(interpretation_results,
           !is.null(interpretation_results$output_tokens)) {
         report <- paste0(
           report,
-          "**Tokens:**  \n  Input: ",
+          cli::style_bold("Tokens:"), "\n  Input: ",
           interpretation_results$input_tokens,
-          "  \n  Output: ",
+          "\n  Output: ",
           interpretation_results$output_tokens,
-          "  \n"
+          "\n"
         )
       }
 
     } else if (!is.null(llm_info)) {
       report <- paste0(report,
-                       "LLM used: ",
+                       cli::style_bold("LLM used:"), " ",
                        llm_info$provider,
                        " - ",
                        llm_info$model %||% "default",
                        "\n")
     }
 
-    report <- paste0(report, "\nSUGGESTED FACTOR NAMES:\n")
-    report <- paste0(report, "=======================\n\n")
+    report <- paste0(report, "\n", cli::col_cyan(cli::style_bold("SUGGESTED FACTOR NAMES")), "\n")
+    report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
     for (i in 1:length(suggested_names)) {
       name <- names(suggested_names)[i]
       var_explained <- factor_summaries[[name]]$variance_explained
       report <- paste0(
         report,
-        "Factor ",
-        i,
+        cli::symbol$bullet, " ",
+        cli::style_bold(paste0("Factor ", i)),
         " (",
         round(var_explained * 100, 1),
         "%): ",
-        suggested_names[[name]],
+        cli::col_green(suggested_names[[name]]),
         "\n"
       )
     }
@@ -343,14 +341,15 @@ build_fa_report <- function(interpretation_results,
     total_variance <- sum(sapply(factor_summaries, function(x)
       x$variance_explained))
     report <- paste0(report,
-                     "\n\nTotal variance explained: ",
+                     "\n",
+                     cli::style_bold("Total variance explained:"), " ",
                      round(total_variance * 100, 1),
                      "%\n")
 
     # Add factor correlations section if provided
     if (!is.null(factor_cor_mat)) {
-      report <- paste0(report, "\nFACTOR CORRELATIONS:\n")
-      report <- paste0(report, "====================\n\n")
+      report <- paste0(report, "\n", cli::col_cyan(cli::style_bold("FACTOR CORRELATIONS")), "\n")
+      report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
 
       # Convert matrix to dataframe if needed and get factor names
       if (is.matrix(factor_cor_mat)) {
@@ -388,8 +387,8 @@ build_fa_report <- function(interpretation_results,
       }
     }
 
-    report <- paste0(report, "\n\nDETAILED FACTOR INTERPRETATIONS:\n")
-    report <- paste0(report, "=================================\n\n")
+    report <- paste0(report, "\n", cli::col_cyan(cli::style_bold("DETAILED FACTOR INTERPRETATIONS")), "\n")
+    report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
 
     for (i in 1:n_factors) {
       factor_name <- factor_cols[i]
@@ -399,9 +398,9 @@ build_fa_report <- function(interpretation_results,
   remaining_summary <- factor_summaries[[factor_name]]$summary %||% ""
 
       # Add factor header with suggested name
-      report <- paste0(report, factor_header)
+      report <- paste0(report, cli::style_bold(factor_header))
       if (!is.null(suggested_names[[factor_name]])) {
-        report <- paste0(report, " - ", suggested_names[[factor_name]])
+        report <- paste0(report, " - ", cli::col_green(suggested_names[[factor_name]]))
       }
       # Parse summary to insert factor correlations after "Variance explained" line
       modified_summary <- remaining_summary
@@ -466,12 +465,12 @@ build_fa_report <- function(interpretation_results,
       if (!is.null(factor_summaries[[factor_name]]$llm_interpretation)) {
         report <- paste0(
           report,
-          "\nLLM Interpretation:\n",
+          "\n", cli::style_bold("LLM Interpretation:"), "\n",
           factor_summaries[[factor_name]]$llm_interpretation,
           "\n\n"
         )
       }
-      report <- paste0(report, "------------------------\n\n")
+      report <- paste0(report, cli::rule(line = 2, line_col = "grey"), "\n\n")
     }
   }
 
@@ -484,8 +483,8 @@ build_fa_report <- function(interpretation_results,
                        cutoff,
                        "):\n\n")
     } else {
-      report <- paste0(report, "\nCROSS-LOADING VARIABLES:\n")
-      report <- paste0(report, "=========================\n\n")
+      report <- paste0(report, "\n", cli::col_yellow(cli::style_bold("CROSS-LOADING VARIABLES")), "\n")
+      report <- paste0(report, cli::rule(line = 1, line_col = "yellow"), "\n\n")
       report <- paste0(report,
                        "Variables loading on multiple factors (>= ",
                        cutoff,
@@ -533,8 +532,8 @@ build_fa_report <- function(interpretation_results,
         " (highest absolute loading shown):\n\n"
       )
     } else {
-      report <- paste0(report, "\n\nVARIABLES NOT COVERED BY ANY FACTOR:\n")
-      report <- paste0(report, "=====================================\n\n")
+      report <- paste0(report, "\n", cli::col_red(cli::style_bold("VARIABLES NOT COVERED BY ANY FACTOR")), "\n")
+      report <- paste0(report, cli::rule(line = 1, line_col = "red"), "\n\n")
       report <- paste0(
         report,
         "Variables with no absolute loadings >= ",
@@ -631,8 +630,8 @@ build_fa_report <- function(interpretation_results,
   # Clean up any remaining formatting issues
   report <- gsub("\\n{3,}", "\n\n", report)                      # Remove excessive line breaks
 
-  # Text format specific fixes
-  if (output_format == "text") {
+  # CLI format specific fixes
+  if (output_format == "cli") {
     # Ensure numbered list items are on separate lines
     report <- gsub("(\\)) ([0-9]+\\. )", "\\1\n\\2", report)
     report <- gsub("([0-9]{1,2}\\. [^)]+\\)) ([0-9]+\\. )", "\\1\n\\2", report)
@@ -650,8 +649,8 @@ build_fa_report <- function(interpretation_results,
 #' @param x fa_interpretation object from interpret_fa()
 #' @param max_line_length Integer. Maximum line length for text wrapping (default = 80).
 #'   Lines longer than this will be wrapped at word boundaries while preserving
-#'   formatting like headers, indentation, and separators. Only applies to text format.
-#' @param output_format Character. Output format: "text", "markdown", or NULL (default = NULL).
+#'   formatting like headers, indentation, and separators. Only applies to cli format.
+#' @param output_format Character. Output format: "cli", "markdown", or NULL (default = NULL).
 #'   If NULL, uses the existing report format. If specified, regenerates the report
 #'   in the specified format using the stored analysis results.
 #' @param heading_level Integer. Starting heading level for markdown output (default = 1).
@@ -676,8 +675,8 @@ build_fa_report <- function(interpretation_results,
 #' # Convert to markdown format for integration
 #' print(results, output_format = "markdown", heading_level = 3)
 #'
-#' # Convert back to text format
-#' print(results, output_format = "text")
+#' # Convert back to cli format
+#' print(results, output_format = "cli")
 #' }
 #'
 #' @export
@@ -731,12 +730,12 @@ print.fa_interpretation <- function(x,
         )
       )
     }
-    if (!output_format %in% c("text", "markdown")) {
+    if (!output_format %in% c("cli", "markdown")) {
       cli::cli_abort(
         c(
-          "{.var output_format} must be either 'text' or 'markdown'",
+          "{.var output_format} must be either 'cli' or 'markdown'",
           "x" = "You supplied: {.val {output_format}}",
-          "i" = "Supported formats: 'text', 'markdown'"
+          "i" = "Supported formats: 'cli', 'markdown'"
         )
       )
     }
@@ -791,8 +790,8 @@ print.fa_interpretation <- function(x,
     report_text <- x$report
   }
 
-  # Wrap and print the report (only for text format)
-  if (is.null(output_format) || output_format == "text") {
+  # Wrap and print the report (only for cli format)
+  if (is.null(output_format) || output_format == "cli") {
     wrapped_report <- wrap_text(report_text, max_line_length)
     cat(wrapped_report)
   } else {
@@ -809,7 +808,7 @@ print.fa_interpretation <- function(x,
 #' Wraps the existing build_fa_report() function.
 #'
 #' @param interpretation fa_interpretation object
-#' @param output_format Character. "text" or "markdown"
+#' @param output_format Character. "cli" or "markdown"
 #' @param heading_level Integer. Markdown heading level
 #' @param suppress_heading Logical. Suppress report heading
 #' @param ... Additional arguments (unused)
@@ -818,7 +817,7 @@ print.fa_interpretation <- function(x,
 #' @export
 #' @keywords internal
 build_report.fa_interpretation <- function(interpretation,
-                                          output_format = "text",
+                                          output_format = "cli",
                                           heading_level = 1,
                                           suppress_heading = FALSE,
                                           ...) {

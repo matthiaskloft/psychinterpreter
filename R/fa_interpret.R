@@ -50,7 +50,7 @@
 #' @param echo Character. Controls what is echoed during LLM interaction. One of "none" (no output),
 #'   "output" (show only LLM responses), or "all" (show prompts and responses). Passed directly
 #'   to the ellmer chat function for debugging and transparency (default = "none")
-#' @param output_format Character. Output format for the report: "text" or "markdown" (default = "text")
+#' @param output_format Character. Output format for the report: "cli" or "markdown" (default = "cli")
 #' @param heading_level Integer. Starting heading level for markdown output (default = 1). Used when output_format = "markdown"
 #' @param suppress_heading Logical. If TRUE, suppresses the main "Exploratory Factor Analysis Interpretation"
 #'   heading, allowing for better integration into existing documents that already have appropriate headings
@@ -160,7 +160,7 @@ interpret_fa <- function(loadings,
                          interpretation_guidelines = NULL,
                          additional_info = NULL,
                          word_limit = 150,
-                         output_format = "text",
+                         output_format = "cli",
                          heading_level = 1,
                          suppress_heading = FALSE,
                          max_line_length = 80,
@@ -304,10 +304,10 @@ interpret_fa <- function(loadings,
   # Validate output_format
   if (!is.character(output_format) ||
       length(output_format) != 1 ||
-      !output_format %in% c("text", "markdown")) {
+      !output_format %in% c("cli", "markdown")) {
     cli::cli_abort(
       c(
-        "{.var output_format} must be either 'text' or 'markdown'",
+        "{.var output_format} must be either 'cli' or 'markdown'",
         "x" = "You supplied: {.val {output_format}}"
       )
     )
@@ -555,11 +555,25 @@ interpret_fa <- function(loadings,
       }
     }
 
-    # Build summary text
-    summary_text <- sprintf(
-      "%s\nVariance explained: %.1f%%\n",
+    # Create factor header and body summary. The report builder is responsible
+    # for formatting headers consistently, so we store the header separately and
+    # keep the summary body without the header line.
+    header_text <- paste0(
+      "Factor ",
+      i,
+      " (",
       factor_name,
-      variance_explained * 100
+      ")"
+    )
+
+    # Body of the summary (exclude header line)
+    summary_text <- paste0(
+      "Number of significant loadings: ",
+      ifelse(has_significant, nrow(factor_data), 0),
+      "\n",
+      "Variance explained: ",
+      round(variance_explained * 100, 2),
+      "%\n"
     )
 
     if (!has_significant) {
@@ -584,14 +598,50 @@ interpret_fa <- function(loadings,
       }
     }
 
+    summary_text <- paste0(summary_text, "\nVariables:\n")
+
+    # Add top variables
+    if (nrow(factor_data) > 0) {
+      for (j in 1:nrow(factor_data)) {
+        var_desc <- ifelse(
+          !is.na(factor_data$description[j]),
+          factor_data$description[j],
+          factor_data$variable[j]
+        )
+        summary_text <- paste0(
+          summary_text,
+          "  ",
+          j,
+          ". ",
+          factor_data$variable[j],
+          ", ",
+          var_desc,
+          " (",
+          factor_data$direction[j],
+          ", ",
+          factor_data$strength[j],
+          ", ",
+          sub(
+            "^(-?)0\\.",
+            "\\1.",
+            sprintf("%.3f", factor_data$loading[j])
+          ),
+          ")\n"
+        )
+      }
+    } else {
+      summary_text <- paste0(summary_text, "  No variables in this factor\n")
+    }
+
     # Store factor summary
     factor_summaries[[factor_name]] <- list(
+      header = header_text,
+      summary = summary_text,
       variables = factor_data,
       n_loadings = ifelse(has_significant, nrow(factor_data), 0),
       has_significant = has_significant,
       used_emergency_rule = used_emergency_rule,
-      variance_explained = variance_explained,
-      summary = summary_text
+      variance_explained = variance_explained
     )
   }
 

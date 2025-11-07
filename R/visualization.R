@@ -145,7 +145,7 @@ plot.fa_interpretation <- function(x, type = "heatmap", cutoff = NULL, ...) {
         title = "Factor Loadings Heatmap",
         x = "Factor",
         y = "Variable",
-        caption = paste0("Generated with interpret_fa() | Black outline indicates |loading| >= ", cutoff)
+        caption = paste0("Generated with interpret_fa() | Black outline indicates |loading| >= cutoff (", cutoff, ")")
       )
   } else {
     cli::cli_abort(c(

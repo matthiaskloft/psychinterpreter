@@ -6,7 +6,7 @@
 \usage{
 \method{build_report}{default}(
   interpretation,
-  output_format = "text",
+  output_format = "cli",
   heading_level = 1,
   suppress_heading = FALSE,
   ...

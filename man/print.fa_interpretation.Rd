@@ -18,9 +18,9 @@
 
 \item{max_line_length}{Integer. Maximum line length for text wrapping (default = 80).
 Lines longer than this will be wrapped at word boundaries while preserving
-formatting like headers, indentation, and separators. Only applies to text format.}
+formatting like headers, indentation, and separators. Only applies to cli format.}
 
-\item{output_format}{Character. Output format: "text", "markdown", or NULL (default = NULL).
+\item{output_format}{Character. Output format: "cli", "markdown", or NULL (default = NULL).
 If NULL, uses the existing report format. If specified, regenerates the report
 in the specified format using the stored analysis results.}
 
@@ -54,8 +54,8 @@ print(results, max_line_length = 60)
 # Convert to markdown format for integration
 print(results, output_format = "markdown", heading_level = 3)
 
-# Convert back to text format
-print(results, output_format = "text")
+# Convert back to cli format
+print(results, output_format = "cli")
 }
 
 }

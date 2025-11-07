@@ -57,11 +57,11 @@ test_that("print.fa_interpretation validates output_format parameter", {
   # Test invalid output_format values
   expect_error(
     print(results, output_format = "invalid"),
-    "must be either 'text' or 'markdown'"
+    "must be either 'cli' or 'markdown'"
   )
 
   expect_error(
-    print(results, output_format = c("text", "markdown")),
+    print(results, output_format = c("cli", "markdown")),
     "must be a single character string"
   )
 
@@ -136,7 +136,7 @@ test_that("print.fa_interpretation regenerates report when output_format specifi
   expect_true(grepl("#", output_text))
 })
 
-test_that("print.fa_interpretation wraps text in text format", {
+test_that("print.fa_interpretation wraps text in cli format", {
   results <- sample_interpretation()
 
   # Print with short line length

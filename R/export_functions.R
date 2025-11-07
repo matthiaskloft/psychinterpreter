@@ -16,12 +16,12 @@
 #' **Supported Export Formats:**
 #'
 #' - **"txt"**: Exports the report in plain text format. If the report in
-#'   `interpretation_results` was generated with `output_format = "text"`, it will
-#'   be exported as-is. Otherwise, markdown formatting may be present.
+#'   `interpretation_results` was generated with `output_format = "cli"`, ANSI
+#'   color codes will be stripped for clean text output. Otherwise, markdown formatting may be present.
 #'
 #' - **"md"**: Exports the report in markdown format. If the report in
 #'   `interpretation_results` was generated with `output_format = "markdown"`, it will
-#'   be exported with proper markdown formatting. Otherwise, it will export the text version.
+#'   be exported with proper markdown formatting. Otherwise, it will export the cli version.
 #'
 #' **File Extension Handling:**
 #'
@@ -34,9 +34,9 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Get interpretation results in text format
+#' # Get interpretation results in cli format
 #' results_txt <- interpret_fa(loadings, variable_info,
-#'                            output_format = "text",
+#'                            output_format = "cli",
 #'                            silent = TRUE)
 #'
 #' # Export as plain text
@@ -107,7 +107,7 @@ export_interpretation <- function(interpretation_results,
     cli::cli_abort("Directory does not exist: {.path {file_dir}}")
   }
 
-  output_format <- if (format == "txt") "text" else "markdown"
+  output_format <- if (format == "txt") "cli" else "markdown"
 
 
   # build report
@@ -121,6 +121,10 @@ export_interpretation <- function(interpretation_results,
   )
 
   # Write report to file
+  # Strip ANSI codes if exporting cli format to txt file
+  if (format == "txt") {
+    report <- cli::ansi_strip(report)
+  }
   # Use cat() to properly interpret escape sequences like \n
   cat(report, file = output_file, sep = "")
 

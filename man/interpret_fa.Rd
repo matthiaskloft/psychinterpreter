@@ -20,7 +20,7 @@ interpret_fa(
   interpretation_guidelines = NULL,
   additional_info = NULL,
   word_limit = 150,
-  output_format = "text",
+  output_format = "cli",
   heading_level = 1,
   suppress_heading = FALSE,
   max_line_length = 80,
@@ -84,7 +84,7 @@ research area information, or domain-specific knowledge to inform factor interpr
 
 \item{word_limit}{Integer. Maximum number of words for LLM interpretations (default = 150)}
 
-\item{output_format}{Character. Output format for the report: "text" or "markdown" (default = "text")}
+\item{output_format}{Character. Output format for the report: "cli" or "markdown" (default = "cli")}
 
 \item{heading_level}{Integer. Starting heading level for markdown output (default = 1). Used when output_format = "markdown"}
 

@@ -6,7 +6,7 @@
 \usage{
 \method{build_report}{fa_interpretation}(
   interpretation,
-  output_format = "text",
+  output_format = "cli",
   heading_level = 1,
   suppress_heading = FALSE,
   ...
@@ -15,7 +15,7 @@
 \arguments{
 \item{interpretation}{fa_interpretation object}
 
-\item{output_format}{Character. "text" or "markdown"}
+\item{output_format}{Character. "cli" or "markdown"}
 
 \item{heading_level}{Integer. Markdown heading level}
 
