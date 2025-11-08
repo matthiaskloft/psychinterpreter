@@ -539,9 +539,13 @@ interpret_fa(..., echo = "all")
   - Updated 4 core files: generic_interpret.R, fa_interpret.R, interpret_method_dispatch.R, generic_export.R
   - All 70 tests passing
 
+- ✅ **Parameter reorganization in interpret()** (2025-11-08)
+  - Moved `system_prompt` and `interpretation_guidelines` from FA-specific `...` section to general parameters
+  - Positioned after LLM-specific arguments (params) for better logical grouping
+  - Updated roxygen documentation with comprehensive parameter descriptions
+  - All 172 tests passing after changes
+
 ## Active TODOs
-- in interpret(), system_prompt and interpretation_guidelines are not specific to the class but are available arguments for all classes. Relocate them accordingly in the docs and in the argument order, maybe after llm specific arguments.
-- revisit the LLM call guidelines in the TEST_GUIDELINES.md
 
 
 ### High Priority

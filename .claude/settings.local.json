@@ -1,5 +1,4 @@
 {
-  "description": "Comprehensive permissions for active development. Allows most development tools and operations while maintaining security boundaries. Ideal for trusted development environments where productivity is prioritized. Extended for R package development.",
   "permissions": {
     "allow": [
       "Bash(npm:*)",
@@ -42,7 +41,8 @@
       "Write(**/*.Qmd)",
       "Write(**/*.md)",
       "Write(**/DESCRIPTION)",
-      "Write(**/NAMESPACE)"
+      "Write(**/NAMESPACE)",
+      "Bash(quarto preview:*)"
     ],
     "deny": [
       "Read(./.env*)",
@@ -51,6 +51,6 @@
       "Bash(sudo:*)"
     ],
     "ask": []
-  }
+  },
+  "description": "Comprehensive permissions for active development. Allows most development tools and operations while maintaining security boundaries. Ideal for trusted development environments where productivity is prioritized. Extended for R package development."
 }
-

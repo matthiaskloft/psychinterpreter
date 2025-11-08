@@ -25,6 +25,7 @@ We'll test all major features of psychinterpreter including:
 - Basic factor analysis interpretation
 - Persistent chat sessions for efficient LLM usage
 - Export functionality across multiple formats
+- Report generation as in console (`output_format` = "cli") or markdown style (`output_format` = "markdown")
 - Wrappers for popular R packages such as `psych`, `lavaan`, and `mirt`
 
 ## Setup and Data Preparation
@@ -153,7 +154,7 @@ We now generate factor interpretations using the specified LLM:
 ```{r}
 #| output: asis
 
-word_limit <-  50
+word_limit <- 50
 result <- interpret(
   chat_session = chat,
   model_fit = loadings_matrix,
@@ -172,6 +173,8 @@ result <- interpret(
 ```
 
 ```{r}
+#| output: asis
+#| 
 print(result, output_format = "cli")
 ```
 

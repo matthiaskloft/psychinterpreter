@@ -32,6 +32,14 @@
 #' @param params Parameters for the LLM created using ellmer::params() (e.g., params(temperature = 0.7, seed = 42)).
 #'   Provides provider-agnostic interface for setting model parameters like temperature, seed, max_tokens, etc.
 #'   If NULL, uses provider defaults (default = NULL).
+#' @param system_prompt Character. Optional custom system prompt to override the package default psychometric
+#'   system prompt. Use this to provide institution- or project-specific framing for the LLM (e.g., preferred
+#'   terminology, audience level, or reporting conventions). If NULL, the internal default system prompt is used.
+#'   Note: This parameter is ignored if chat_session is provided, as the system prompt has already been set
+#'   during chat session initialization (default = NULL).
+#' @param interpretation_guidelines Character. Optional custom interpretation guidelines for the LLM that override
+#'   the package default guidelines. Use this to specify particular theoretical frameworks, interpretation styles,
+#'   or domain-specific conventions. If NULL, built-in interpretation guidelines are applied (default = NULL).
 #' @param additional_info Character. Optional additional context for the LLM, such as theoretical background,
 #'   research area information, or domain-specific knowledge to inform interpretation (default = NULL).
 #' @param word_limit Integer. Maximum number of words for LLM interpretations (default = 150).
@@ -55,11 +63,9 @@
 #'    - `cutoff`: Minimum loading value to consider (default = 0.3)
 #'    - `n_emergency`: Number of highest loadings to use when no loadings exceed cutoff (default = 2)
 #'    - `hide_low_loadings`: Hide loadings below cutoff in LLM prompt (default = FALSE).
-#'    This prevents the LLM from considering them for interpretation, which might happen otherwise.2
+#'    This prevents the LLM from considering them for interpretation, which might happen otherwise.
 #'    - `sort_loadings`: Sort variables by loading strength within factors (default = TRUE)
 #'    - `factor_cor_mat`: Factor correlation matrix for oblique rotations (default = NULL)
-#'    - `system_prompt`: Custom system prompt to override package default (default = NULL)
-#'    - `interpretation_guidelines`: Custom interpretation guidelines (default = NULL)
 #'
 #'
 #' @details
@@ -182,6 +188,8 @@ interpret <- function(chat_session = NULL,
                       llm_provider = NULL,
                       llm_model = NULL,
                       params = NULL,
+                      system_prompt = NULL,
+                      interpretation_guidelines = NULL,
                       additional_info = NULL,
                       word_limit = 150,
                       output_format = "cli",

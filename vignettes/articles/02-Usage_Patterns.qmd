@@ -136,14 +136,14 @@ result1 <- interpret(
   model_fit = fa_model,
   variable_info = var_info,
   word_limit = 50,
-  silent = 2
+  silent = 1
 )
 result2 <- interpret(
   chat_session = chat,
   model_fit = fa_model,
   variable_info = var_info,
   word_limit = 50,
-  silent = 2
+  silent = 1
 )
 ```
 

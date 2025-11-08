@@ -14,6 +14,7 @@
 - Core: 2 tests (comprehensive + edge case) per implemented interpretation model class using the generic interpretation API
 - S3 methods: do not test LLM calls! Only test the API components for the specific package.
 - Chat sessions: 1 test
+- Ensure that word_limit = 20 for all LLM tests to minimize token usage.
 
 ## Fixture Selection
 
