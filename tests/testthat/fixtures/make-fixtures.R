@@ -42,26 +42,53 @@ sample_interpretation <- list(
     ML1 = list(
       header = "Factor 1 (ML1)",
       summary = "Number of significant loadings: 2\nVariance explained: 28%\n\nVariables:\n  1. var1, First variable description (Positive, Very Strong, .800)\n  2. var2, Second variable description (Positive, Strong, .700)\n",
+      variables = data.frame(
+        variable = c("var1", "var2"),
+        description = c("First variable description", "Second variable description"),
+        loading = c(0.80, 0.70),
+        strength = c("Very Strong", "Strong"),
+        direction = c("Positive", "Positive"),
+        stringsAsFactors = FALSE
+      ),
       n_loadings = 2,
       has_significant = TRUE,
       used_emergency_rule = FALSE,
-      variance_explained = 0.28
+      variance_explained = 0.28,
+      llm_interpretation = "This factor captures cognitive ability and reasoning skills, with strong loadings from variables 1 and 2 (0.80, 0.70)."
     ),
     ML2 = list(
       header = "Factor 2 (ML2)",
       summary = "Number of significant loadings: 2\nVariance explained: 25%\n\nVariables:\n  1. var3, Third variable description (Positive, Strong, .750)\n  2. var4, Fourth variable description (Positive, Very Strong, .820)\n",
+      variables = data.frame(
+        variable = c("var3", "var4"),
+        description = c("Third variable description", "Fourth variable description"),
+        loading = c(0.75, 0.82),
+        strength = c("Strong", "Very Strong"),
+        direction = c("Positive", "Positive"),
+        stringsAsFactors = FALSE
+      ),
       n_loadings = 2,
       has_significant = TRUE,
       used_emergency_rule = FALSE,
-      variance_explained = 0.25
+      variance_explained = 0.25,
+      llm_interpretation = "This factor represents numerical skills and quantitative reasoning, with strong loadings from variables 3 and 4 (0.75, 0.82)."
     ),
     ML3 = list(
       header = "Factor 3 (ML3)",
       summary = "Number of significant loadings: 1\nVariance explained: 18%\n\nVariables:\n  1. var5, Fifth variable description (Positive, Very Strong, .850)\n",
+      variables = data.frame(
+        variable = c("var5"),
+        description = c("Fifth variable description"),
+        loading = c(0.85),
+        strength = c("Very Strong"),
+        direction = c("Positive"),
+        stringsAsFactors = FALSE
+      ),
       n_loadings = 1,
       has_significant = TRUE,
       used_emergency_rule = FALSE,
-      variance_explained = 0.18
+      variance_explained = 0.18,
+      llm_interpretation = "This factor reflects memory performance and recall ability, with a dominant loading from variable 5 (0.85)."
     )
   ),
   loading_matrix = data.frame(

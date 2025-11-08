@@ -18,9 +18,33 @@
 #' @param model_type Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
 #'   raw data without chat_session. Automatically inferred from chat_session if provided.
 #' @param ... Additional model-specific parameters:
-#'   - **LLM settings**: llm_provider, llm_model
-#'   - **FA-specific**: cutoff, n_emergency, additional_info, factor_cor_mat, sort_loadings,
-#'     word_limit, max_line_length, silent, echo, output_format, heading_level, suppress_heading
+#'
+#'  **LLM settings**:
+#'    - llm_provider:
+#'    - llm_model:
+#'    - params:
+#'    - system_prompt:
+#'    - interpretation_guidelines:
+#'    - additional_info:
+#'    - word_limit:
+#'
+#'  **Report settings**:
+#'    - max_line_length:
+#'    - output_format:
+#'    - heading_level:
+#'    - suppress_heading
+#'
+#'  **Verbosity settings**:
+#'    - silent:
+#'    - echo:
+#'
+#'  **FA-specific** (see [interpret_fa()]:
+#'    - factor_cor_mat:
+#'    - hide_low_loadings:
+#'    - sort_loadings:
+#'    - cutoff:
+#'    - n_emergency:
+#'
 #'
 #' @details
 #' All arguments are named to prevent positional confusion. The function detects which pattern

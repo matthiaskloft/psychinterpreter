@@ -161,11 +161,14 @@ result <- interpret(
   max_line_length = 80,
   silent = FALSE,
   echo = "none",
-  output_format = "markdown",
-  heading_level = 2,
-  suppress_heading = TRUE
+  output_format = "cli"
 )
 ```
+
+```{r}
+print(result, output_format = "cli")
+```
+
 
 Let's check the global token usage tracked by the chat:
 ```{r usage1}
@@ -218,7 +221,7 @@ result_psych <- interpret(
   word_limit =  word_limit,
   heading_level = 3,
   suppress_heading = TRUE,
-  output_format = "markdown",
+  output_format = "cli",
   silent = TRUE
 )
 result_psych$suggested_names
@@ -245,65 +248,8 @@ result_lavaan_efa <- interpret(
 result_lavaan_efa$suggested_names
 ```
 
-Also works with lavaa::cfa():
-```{r method-lavaan-cfa}
-#| output: asis
+Also works with lavaa::cfa() and mir::mirt()
 
-# specify and fit a CFA model
-cfa_model <- "
-  O =~ O1 + O2 + O3 + O4 + O5
-  C =~ C1 + C2 + C3 + C4 + C5
-  E =~ E1 + E2 + E3 + E4 + E5
-  A =~ A1 + A2 + A3 + A4 + A5
-  N =~ N1 + N2 + N3 + N4 + N5
-  "
-cfa_fit <- lavaan::cfa(cfa_model, data = bfi, std.lv = TRUE)
-
-# interpret lavaan cfa model
-result_lavaan_cfa <- interpret(
-  cfa_fit,
-  variable_info = variable_info,
-  cutoff = 0.3,
-  chat_session = chat,
-  word_limit =  word_limit,
-  output_format = "markdown",
-  heading_level = 3,
-  suppress_heading = TRUE,
-  silent = TRUE
-)
-
-result_lavaan_cfa$suggested_names
-```
-
-### mirt Package
-```{r method-mirt}
-#| output: asis
-
-# Fit a unidimensional IRT model
-suppressMessages(
-  irt_model <- mirt::mirt(
-    data = bfi,
-    model =  pa_result$nfact,
-    itemtype = "graded",
-    method = "MHRM"
-  )
-)
-
-# interpret mirt model
-result_mirt <- interpret(
-  irt_model,
-  variable_info = variable_info,
-  cutoff = 0.3,
-  chat_session = chat,
-  word_limit =  word_limit,
-  heading_level = 3,
-  suppress_heading = TRUE,
-  output_format = "markdown",
-  silent = TRUE
-)
-
-result_mirt$ suggested_names
-```
 
 # Cluster Analysis
 

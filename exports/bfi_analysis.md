@@ -2,20 +2,20 @@
 
 **Number of factors:** 6  
 **Loading cutoff:** 0.23  
-**LLM used:** ollama - gpt-oss:20b-cloud  
+**LLM used:** ollama - qwen3-vl:235b-instruct-cloud  
 **Tokens:**  
-  Input: 1975  
-  Output: 2891  
-**Elapsed time:** 22.1  
+  Input: 11829  
+  Output: 2762  
+**Elapsed time:** 11.4  
 
 ## Suggested Factor Names
 
-- **Factor 1 (9.2%):** *Negative Affectivity*
-- **Factor 2 (7.9%):** *Extraversion*
-- **Factor 3 (7.7%):** *Conscientiousness*
-- **Factor 4 (6.8%):** *Agreeableness*
-- **Factor 5 (6.3%):** *Openness*
-- **Factor 6 (3.1%):** *Surface Interaction*
+- **Factor 1 (9.2%):** *Emotional Volatility*
+- **Factor 2 (7.9%):** *Social Reserve*
+- **Factor 3 (7.7%):** *Conscientious Precision*
+- **Factor 4 (6.8%):** *Empathic Warmth*
+- **Factor 5 (6.3%):** *Intellectual Curiosity*
+- **Factor 6 (3.1%):** *Casual Engagement*
 
 **Total variance explained by all factors: 41%**
 
@@ -36,69 +36,122 @@
 
 ## Detailed Factor Interpretations
 
-### Factor 1 (ML2): Negative Affectivity
+### Factor 1 (ML2): Emotional Volatility
 
-ML2
-**Variance explained:** 9.2%  
+**Number of significant loadings:** 5  
+**Variance explained:** 9.22%  
 **Factor Correlations:** ML1 = .25, ML3 = -.18, ML5 = -.10,    
 
 ML4 = .02, ML6 = .18
 
+**Variables:**
+
+  1. N2, Get irritated easily. (Positive, Very Strong, .851)
+  2. N1, Get angry easily. (Positive, Very Strong, .851)
+  3. N3, Have frequent mood swings. (Positive, Strong, .639)
+  4. N5, Panic easily. (Positive, Moderate, .402)
+  5. N4, Often feel blue. (Positive, Weak, .389)
+
 **LLM Interpretation:**  
-This factor captures the tendency toward emotional instability and distress. Strong loadings on anger, irritability, mood swings, sadness, and panic indicate a core negative affectivity construct. It is distinct from extraversion and conscientiousness, showing modest positive links to surface interaction but negative ties to agreeableness.
+Captures neurotic instability with high loadings on anger, irritability, and mood swings. Low loadings elsewhere confirm discriminant validity. Explains 9.2% variance, indicating core affective dysregulation. Moderate correlation with introversion suggests shared vulnerability, yet conceptually distinct from social or cognitive traits.
 
-### Factor 2 (ML1): Extraversion
+### Factor 2 (ML1): Social Reserve
 
-ML1
+**Number of significant loadings:** 8  
 **Variance explained:** 7.9%  
 **Factor Correlations:** ML2 = .25, ML3 = -.22, ML5 = -.31,    
 
 ML4 = -.19, ML6 = -.06
 
+**Variables:**
+
+  1. E2, Find it difficult to approach others. (Positive, Strong, .686)
+  2. E1, Don't talk a lot. (Positive, Strong, .587)
+  3. E4, Make friends easily. (Negative, Strong, -.550)
+  4. N4, Often feel blue. (Positive, Moderate, .436)
+  5. E5, Take charge. (Negative, Moderate, -.405)
+  6. O4, Spend time reflecting on things. (Positive, Weak, .355)
+  7. E3, Know how to captivate people. (Negative, Weak, -.349)
+  8. N5, Panic easily. (Positive, Weak, .256)
+
 **LLM Interpretation:**  
-Extraversion is defined by sociability and assertiveness. High loadings on low talk, social approach difficulty, and social influence reflect a tendency toward outward energy. The factor inversely loads on friendliness and leadership, indicating a distinct, socially driven construct that weakly correlates with other personality dimensions.
+Defined by quietness and social hesitancy, with high loadings on difficulty approaching others. Negative loadings on sociability and leadership reinforce withdrawal. Moderate correlation with emotional volatility suggests shared vulnerability, yet conceptually distinct as behavioral inhibition rather than affective instability.
 
-### Factor 3 (ML3): Conscientiousness
+### Factor 3 (ML3): Conscientious Precision
 
-ML3
-**Variance explained:** 7.7%  
+**Number of significant loadings:** 6  
+**Variance explained:** 7.71%  
 **Factor Correlations:** ML2 = -.18, ML1 = -.22, ML5 = .19,    
 
 ML4 = .19, ML6 = -.03
 
+**Variables:**
+
+  1. C2, Continue until everything is perfect. (Positive, Strong, .680)
+  2. C4, Do things in a half-way manner. (Negative, Strong, -.634)
+  3. C3, Do things according to a plan. (Positive, Strong, .551)
+  4. C1, Am exacting in my work. (Positive, Strong, .547)
+  5. C5, Waste my time. (Negative, Strong, -.541)
+  6. E5, Take charge. (Positive, Weak, .264)
+
 **LLM Interpretation:**  
-Conscientiousness reflects orderliness and goal orientation. Strong loadings on exactness, perfectionism, and planning, coupled with negative loadings on half‑way effort and time waste, delineate a disciplined, self‑regulated construct. It is negatively related to extraversion and agreeableness, but positively to openness.
+Reflects structured, perfectionistic work habits with high loadings on exacting standards and planning. Negative loadings on half-hearted effort reinforce diligence. Strong discriminant validity from low correlations with emotional or social factors. Represents self-regulated, goal-oriented behavior essential for task mastery.
 
-### Factor 4 (ML5): Agreeableness
+### Factor 4 (ML5): Empathic Warmth
 
-ML5
-**Variance explained:** 6.8%  
+**Number of significant loadings:** 5  
+**Variance explained:** 6.79%  
 **Factor Correlations:** ML2 = -.10, ML1 = -.31, ML3 = .19,    
 
 ML4 = .25, ML6 = .14
 
+**Variables:**
+
+  1. A2, Inquire about others' well-being. (Positive, Strong, .688)
+  2. A3, Know how to comfort others. (Positive, Strong, .617)
+  3. A1, Am indifferent to the feelings of others. (Negative, Strong, -.560)
+  4. A5, Make people feel at ease. (Positive, Moderate, .451)
+  5. A4, Love children. (Positive, Weak, .391)
+
 **LLM Interpretation:**  
-Agreeableness captures warmth and cooperation. High loadings on caring, comforting, and child affection, with a negative loading on indifference, define a prosocial construct. It correlates positively with openness and surface interaction, yet shows weak negative associations with extraversion and conscientiousness.
+Measures prosocial sensitivity with high loadings on inquiring about well-being and comforting others. Strong negative loading on indifference confirms compassionate orientation. Low correlation with neuroticism suggests emotional stability supports but isn't required for empathy, ensuring discriminant validity.
 
-### Factor 5 (ML4): Openness
+### Factor 5 (ML4): Intellectual Curiosity
 
-ML4
-**Variance explained:** 6.3%  
+**Number of significant loadings:** 6  
+**Variance explained:** 6.27%  
 **Factor Correlations:** ML2 = .02, ML1 = -.19, ML3 = .19,    
 
 ML5 = .25, ML6 = .02
 
+**Variables:**
+
+  1. O3, Carry the conversation to a higher level. (Positive, Strong, .656)
+  2. O1, Am full of ideas. (Positive, Strong, .564)
+  3. O5, Will not probe deeply into a subject. (Negative, Moderate, -.451)
+  4. E3, Know how to captivate people. (Positive, Weak, .392)
+  5. O4, Spend time reflecting on things. (Positive, Weak, .376)
+  6. O2, Avoid difficult reading material. (Negative, Weak, -.367)
+
 **LLM Interpretation:**  
-Openness is characterized by intellectual curiosity and imaginative engagement. Strong loadings on idea generation, higher‑level conversation, and reflection, alongside negative loadings on avoidance of difficult reading and shallow probing, delineate a creative, exploratory construct. It is moderately linked to agreeableness and surface interaction.
+Captures cognitive engagement with high loadings on idea generation and elevating conversations. Negative loadings on avoiding complex material reinforce depth-seeking. Moderate correlation with empathy suggests complementary traits in reflective, socially aware thinkers, yet conceptually distinct from emotional or behavioral domains.
 
-### Factor 6 (ML6): Surface Interaction
+### Factor 6 (ML6): Casual Engagement
 
-ML6
-**Variance explained:** 3.1%  
+**Number of significant loadings:** 5  
+**Variance explained:** 3.12%  
 **Factor Correlations:** ML2 = .18, ML1 = -.06, ML3 = -.03,    
 
 ML5 = .14, ML4 = .02
 
+**Variables:**
+
+  1. O5, Will not probe deeply into a subject. (Positive, Moderate, .403)
+  2. O2, Avoid difficult reading material. (Positive, Weak, .353)
+  3. C4, Do things in a half-way manner. (Positive, Weak, .300)
+  4. E4, Make friends easily. (Positive, Weak, .287)
+  5. A1, Am indifferent to the feelings of others. (Positive, Weak, .281)
+
 **LLM Interpretation:**  
-Surface Interaction captures shallow social engagement. It loads on avoidance of complex reading, limited probing, half‑way task completion, and easy friendship formation. The factor also includes warmth and child affection, suggesting a socially oriented but cognitively light construct that is weakly related to other traits.
+Represents low-effort participation with moderate loadings on superficial interaction and cognitive avoidance. Weak loadings across domains suggest diffuse, peripheral involvement. Minimal correlations with other factors indicate it captures a non-committal, disengaged behavioral style rather than a core personality dimension.
 

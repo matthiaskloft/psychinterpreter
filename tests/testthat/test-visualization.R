@@ -18,10 +18,11 @@ test_that("plot.fa_interpretation validates input object", {
 
   # Test with wrong object type
   bad_object <- list(data = "test")
+  class(bad_object) <- c("fa_interpretation", "list")  # Set class to trigger method
 
   expect_error(
-    plot.fa_interpretation(bad_object),
-    "must be an fa_interpretation object"
+    plot(bad_object),
+    "must contain.*loading_matrix"
   )
 
   # Test with fa_interpretation object missing loading_matrix
@@ -29,7 +30,7 @@ test_that("plot.fa_interpretation validates input object", {
   class(bad_object) <- c("fa_interpretation", "list")
 
   expect_error(
-    plot.fa_interpretation(bad_object),
+    plot(bad_object),
     "must contain a 'loading_matrix'"
   )
 })

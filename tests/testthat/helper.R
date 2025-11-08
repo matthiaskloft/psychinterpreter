@@ -106,6 +106,28 @@ minimal_factor_cor <- function() {
   .test_cache[[cache_key]]
 }
 
+#' Load minimal FA model fixture (for token-efficient LLM tests)
+#'
+#' @return A psych::fa fitted model object with 3 variables × 2 factors
+minimal_fa_model <- function() {
+  cache_key <- "minimal_fa_model"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_fa_model.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load minimal PCA model fixture (for token-efficient LLM tests)
+#'
+#' @return A psych::principal fitted model object with 3 variables × 2 components
+minimal_pca_model <- function() {
+  cache_key <- "minimal_pca_model"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_pca_model.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
 # Correlational Data Fixtures (for S3 method testing) ----
 # These fixtures have proper correlational structure for psych/lavaan/mirt
 

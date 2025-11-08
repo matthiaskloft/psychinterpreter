@@ -7,10 +7,11 @@
 test_that("print.fa_interpretation validates input object", {
   # Test with wrong object type
   bad_object <- list(data = "test")
+  class(bad_object) <- c("fa_interpretation", "list")  # Set class to trigger method
 
   expect_error(
-    print.fa_interpretation(bad_object),
-    "must be a fa_interpretation object"
+    print(bad_object),
+    "must contain.*report.*or.*factor_summaries"
   )
 
   # Test with fa_interpretation object missing required components
@@ -18,7 +19,7 @@ test_that("print.fa_interpretation validates input object", {
   class(bad_object) <- c("fa_interpretation", "list")
 
   expect_error(
-    print.fa_interpretation(bad_object),
+    print(bad_object),
     "must contain 'report' or 'factor_summaries'"
   )
 })
