@@ -25,8 +25,8 @@ Default is "fa_interpretation"}
 \item{silent}{Integer or logical. Controls output verbosity:
 \itemize{
 \item 0 or FALSE: Show success message (default)
-\item 1 or TRUE: Suppress success message (same as 2 for this function)
-\item 2: Suppress success message
+\item 1: Suppress success message (same as 2 for this function)
+\item 2 or TRUE: Suppress success message
 For backward compatibility, logical values are accepted and converted to integers.
 }}
 }

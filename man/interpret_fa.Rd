@@ -97,8 +97,8 @@ above the analysis output (default = FALSE)}
 \item{silent}{Integer or logical. Controls output verbosity:
 \itemize{
 \item 0 or FALSE: Show report and all messages (default)
-\item 1 or TRUE: Show messages only, suppress report
-\item 2: Completely silent, suppress all output
+\item 1: Show messages only, suppress report
+\item 2 or TRUE: Completely silent, suppress all output
 For backward compatibility, logical values are accepted and converted to integers.
 }}
 

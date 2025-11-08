@@ -17,7 +17,7 @@ interpret_generic(
   heading_level = 1,
   suppress_heading = FALSE,
   max_line_length = 120,
-  silent = FALSE,
+  silent = 0,
   echo = "none",
   params = NULL,
   ...
@@ -48,7 +48,13 @@ interpret_generic(
 
 \item{max_line_length}{Integer. Maximum line length for text wrapping (default = 120)}
 
-\item{silent}{Logical. Suppress status messages (default = FALSE)}
+\item{silent}{Integer or logical. Controls output verbosity:
+\itemize{
+\item 0 or FALSE: Show report and all messages (default)
+\item 1: Show messages only, suppress report
+\item 2 or TRUE: Completely silent, suppress all output
+For backward compatibility, logical values are accepted and converted to integers.
+}}
 
 \item{echo}{Character. Echo level: "none", "output", "all" (default = "none")}
 

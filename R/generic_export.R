@@ -12,8 +12,8 @@
 #'   Default is "fa_interpretation"
 #' @param silent Integer or logical. Controls output verbosity:
 #'   - 0 or FALSE: Show success message (default)
-#'   - 1 or TRUE: Suppress success message (same as 2 for this function)
-#'   - 2: Suppress success message
+#'   - 1: Suppress success message (same as 2 for this function)
+#'   - 2 or TRUE: Suppress success message
 #'   For backward compatibility, logical values are accepted and converted to integers.
 #'
 #' @details
@@ -73,7 +73,7 @@ export_interpretation <- function(interpretation_results,
 
   # Handle backward compatibility: Convert logical to integer
   if (is.logical(silent)) {
-    silent <- as.integer(silent)  # FALSE -> 0, TRUE -> 1
+    silent <- ifelse(silent, 2, 0)  # FALSE -> 0, TRUE -> 2
   }
 
   # Validate inputs

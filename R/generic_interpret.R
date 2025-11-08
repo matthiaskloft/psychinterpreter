@@ -15,7 +15,11 @@
 #' @param heading_level Integer. Markdown heading level (default = 1)
 #' @param suppress_heading Logical. Suppress report heading (default = FALSE)
 #' @param max_line_length Integer. Maximum line length for text wrapping (default = 120)
-#' @param silent Logical. Suppress status messages (default = FALSE)
+#' @param silent Integer or logical. Controls output verbosity:
+#'   - 0 or FALSE: Show report and all messages (default)
+#'   - 1: Show messages only, suppress report
+#'   - 2 or TRUE: Completely silent, suppress all output
+#'   For backward compatibility, logical values are accepted and converted to integers.
 #' @param echo Character. Echo level: "none", "output", "all" (default = "none")
 #' @param params ellmer params object or NULL
 #' @param ... Additional arguments passed to model-specific methods
@@ -47,7 +51,7 @@ interpret_generic <- function(model_data,
                           heading_level = 1,
                           suppress_heading = FALSE,
                           max_line_length = 120,
-                          silent = FALSE,
+                          silent = 0,
                           echo = "none",
                           params = NULL,
                           ...) {
@@ -58,6 +62,12 @@ interpret_generic <- function(model_data,
   # ==========================================================================
   # STEP 1: VALIDATE INPUTS
   # ==========================================================================
+
+  # Handle backward compatibility: Convert logical to integer
+  if (is.logical(silent)) {
+    silent <- ifelse(silent, 2, 0)  # FALSE -> 0, TRUE -> 2
+  }
+
   # Validate existing chat session
   if (!is.null(chat_session) && !is.chat_session(chat_session)) {
     cli::cli_abort(
@@ -70,10 +80,10 @@ interpret_generic <- function(model_data,
 
   # Inherit model_type from chat_session
   if (!is.null(chat_session)) {
-    if (!is.null(model_type)) {
+    # Only show message if there's an actual mismatch
+    if (!is.null(model_type) && model_type != chat_session$model_type) {
       cli::cli_alert_info(
-        "The inherited chat session model_type ({.val {chat_session$model_type}}) was used instead of the passed interpretation model_type",
-        "i" = "The inherited chat session model_type ({.val {chat_session$model_type}}) was used instead of the passed interpretation model_type"
+        "The inherited chat session model_type ({.val {chat_session$model_type}}) was used instead of the passed interpretation model_type ({.val {model_type}})"
       )
     }
     model_type <- chat_session$model_type
@@ -100,7 +110,7 @@ interpret_generic <- function(model_data,
     )
   }
 
-  if (!silent) {
+  if (silent < 2) {
     cli::cli_alert_info("Starting {model_type} interpretation...")
   }
 
@@ -145,7 +155,7 @@ interpret_generic <- function(model_data,
 
   if (is.null(chat_session)) {
     # Create temporary chat session
-    if (!silent) {
+    if (silent < 2) {
       cli::cli_alert_info("Creating temporary chat session...")
     }
 
@@ -169,7 +179,7 @@ interpret_generic <- function(model_data,
   # ==========================================================================
   # STEP 4: BUILD USER PROMPT
   # ==========================================================================
-  if (!silent) {
+  if (silent < 2) {
     cli::cli_alert_info("Building prompt...")
   }
 
@@ -185,7 +195,7 @@ interpret_generic <- function(model_data,
   # ==========================================================================
   # STEP 5: SEND TO LLM AND GET RESPONSE
   # ==========================================================================
-  if (!silent) {
+  if (silent < 2) {
     cli::cli_alert_info("Querying LLM...")
   }
 
@@ -204,7 +214,7 @@ interpret_generic <- function(model_data,
   # ==========================================================================
   # STEP 6: PARSE JSON RESPONSE
   # ==========================================================================
-  if (!silent) {
+  if (silent < 2) {
     cli::cli_alert_info("Parsing LLM response...")
   }
 
@@ -236,7 +246,7 @@ interpret_generic <- function(model_data,
   # ==========================================================================
   # STEP 8: CREATE DIAGNOSTICS
   # ==========================================================================
-  if (!silent) {
+  if (silent < 2) {
     cli::cli_alert_info("Creating diagnostics...")
   }
 
@@ -303,7 +313,7 @@ interpret_generic <- function(model_data,
   # ==========================================================================
   # STEP 10: BUILD REPORT
   # ==========================================================================
-  if (!silent) {
+  if (silent < 2) {
     cli::cli_alert_info("Building report...")
   }
 
@@ -318,8 +328,11 @@ interpret_generic <- function(model_data,
   # ==========================================================================
   # STEP 11: PRINT REPORT (UNLESS SILENT)
   # ==========================================================================
-  if (!silent) {
+  if (silent < 2) {
     cli::cli_alert_success("Interpretation complete!")
+  }
+
+  if (silent == 0) {
     cat("\n")
     print(interpretation, max_line_length = max_line_length)
   }

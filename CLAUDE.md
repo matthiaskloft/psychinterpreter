@@ -529,9 +529,17 @@ interpret_fa(..., echo = "all")
   - Message now only appears when there's an actual mismatch between passed model_type and chat_session's model_type
   - Prevents confusing message when model_type is automatically inferred from fitted model objects
 
-## Active TODOs
+- ✅ **Fix silent parameter behavior** (2025-11-08)
+  - Fixed bug where `silent = 0` and `silent = 1` both showed the report
+  - Changed TRUE conversion from `TRUE -> 1` to `TRUE -> 2` for complete silence
+  - Now works correctly:
+    - `silent = 0` or `FALSE`: Show report + messages
+    - `silent = 1`: Show messages only, suppress report
+    - `silent = 2` or `TRUE`: Completely silent (no report, no messages)
+  - Updated 4 core files: generic_interpret.R, fa_interpret.R, interpret_method_dispatch.R, generic_export.R
+  - All 70 tests passing
 
-- in interpret(), silent = 0 and silent = 1 produce the same report. Also associate silent = 2 with silent = TRUE.
+## Active TODOs
 - in interpret(), system_prompt and interpretation_guidelines are not specific to the class but are available arguments for all classes. Relocate them accordingly in the docs and in the argument order, maybe after llm specific arguments.
 - revisit the LLM call guidelines in the TEST_GUIDELINES.md
 

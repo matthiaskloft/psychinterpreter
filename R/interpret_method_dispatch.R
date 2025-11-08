@@ -44,8 +44,8 @@
 #'
 #' @param silent Integer or logical. Controls output verbosity:
 #'   - 0 or FALSE: Show report and all messages (default)
-#'   - 1 or TRUE: Show messages only, suppress report
-#'   - 2: Completely silent, suppress all output
+#'   - 1: Show messages only, suppress report
+#'   - 2 or TRUE: Completely silent, suppress all output
 #'   For backward compatibility, logical values are accepted and converted to integers.
 #' @param echo Character. Controls what is echoed during LLM interaction. One of "none" (no output),
 #'   "output" (show only LLM responses), or "all" (show prompts and responses). Useful for debugging (default = "none").
@@ -197,7 +197,7 @@ interpret <- function(chat_session = NULL,
 
   # Handle backward compatibility: Convert logical to integer
   if (is.logical(silent)) {
-    silent <- as.integer(silent)  # FALSE -> 0, TRUE -> 1
+    silent <- ifelse(silent, 2, 0)  # FALSE -> 0, TRUE -> 2
   }
 
   # Check if all key arguments are missing
