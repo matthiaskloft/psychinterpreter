@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Matthias Kloft">
-<meta name="dcterms.date" content="2025-11-07">
+<meta name="dcterms.date" content="2025-11-08">
 
 <title>psychinterpreter: Getting Started</title>
 <style>
@@ -72,6 +72,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="01-Basic_Usage_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="01-Basic_Usage_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="01-Basic_Usage_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="01-Basic_Usage_files/libs/kePrint-0.0.1/kePrint.js"></script>
+
+<link href="01-Basic_Usage_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
 <link href="01-Basic_Usage_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
 
 <script src="01-Basic_Usage_files/libs/pagedtable-1.1/js/pagedtable.js"></script>
@@ -134,7 +138,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 7, 2025</p>
+      <p class="date">November 8, 2025</p>
     </div>
   </div>
   
@@ -154,7 +158,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Basic factor analysis interpretation</li>
 <li>Persistent chat sessions for efficient LLM usage</li>
 <li>Export functionality across multiple formats</li>
-<li>Advanced interpretation features</li>
+<li>Wrappers for popular R packages such as <code>psych</code>, <code>lavaan</code>, and <code>mirt</code></li>
 </ul>
 </section>
 <section id="setup-and-data-preparation" class="level2">
@@ -171,10 +175,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mirt"</span>,</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"here"</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pander"</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"kableExtra"</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pander"</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Lade nötiges Paket: pacman</code></pre>
@@ -203,28 +208,442 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(bfi,<span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(bfi,<span class="dv">10</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div data-pagedtable="false">
-  <script data-pagedtable-source="" type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["A1"],"name":[1],"type":["int"],"align":["right"]},{"label":["A2"],"name":[2],"type":["int"],"align":["right"]},{"label":["A3"],"name":[3],"type":["int"],"align":["right"]},{"label":["A4"],"name":[4],"type":["int"],"align":["right"]},{"label":["A5"],"name":[5],"type":["int"],"align":["right"]},{"label":["C1"],"name":[6],"type":["int"],"align":["right"]},{"label":["C2"],"name":[7],"type":["int"],"align":["right"]},{"label":["C3"],"name":[8],"type":["int"],"align":["right"]},{"label":["C4"],"name":[9],"type":["int"],"align":["right"]},{"label":["C5"],"name":[10],"type":["int"],"align":["right"]},{"label":["E1"],"name":[11],"type":["int"],"align":["right"]},{"label":["E2"],"name":[12],"type":["int"],"align":["right"]},{"label":["E3"],"name":[13],"type":["int"],"align":["right"]},{"label":["E4"],"name":[14],"type":["int"],"align":["right"]},{"label":["E5"],"name":[15],"type":["int"],"align":["right"]},{"label":["N1"],"name":[16],"type":["int"],"align":["right"]},{"label":["N2"],"name":[17],"type":["int"],"align":["right"]},{"label":["N3"],"name":[18],"type":["int"],"align":["right"]},{"label":["N4"],"name":[19],"type":["int"],"align":["right"]},{"label":["N5"],"name":[20],"type":["int"],"align":["right"]},{"label":["O1"],"name":[21],"type":["int"],"align":["right"]},{"label":["O2"],"name":[22],"type":["int"],"align":["right"]},{"label":["O3"],"name":[23],"type":["int"],"align":["right"]},{"label":["O4"],"name":[24],"type":["int"],"align":["right"]},{"label":["O5"],"name":[25],"type":["int"],"align":["right"]}],"data":[{"1":"2","2":"4","3":"3","4":"4","5":"4","6":"2","7":"3","8":"3","9":"4","10":"4","11":"3","12":"3","13":"3","14":"4","15":"4","16":"3","17":"4","18":"2","19":"2","20":"3","21":"3","22":"6","23":"3","24":"4","25":"3","_rn_":"61617"},{"1":"2","2":"4","3":"5","4":"2","5":"5","6":"5","7":"4","8":"4","9":"3","10":"4","11":"1","12":"1","13":"6","14":"4","15":"3","16":"3","17":"3","18":"3","19":"5","20":"5","21":"4","22":"2","23":"4","24":"3","25":"3","_rn_":"61618"},{"1":"5","2":"4","3":"5","4":"4","5":"4","6":"4","7":"5","8":"4","9":"2","10":"5","11":"2","12":"4","13":"4","14":"4","15":"5","16":"4","17":"5","18":"4","19":"2","20":"3","21":"4","22":"2","23":"5","24":"5","25":"2","_rn_":"61620"},{"1":"4","2":"4","3":"6","4":"5","5":"5","6":"4","7":"4","8":"3","9":"5","10":"5","11":"5","12":"3","13":"4","14":"4","15":"4","16":"2","17":"5","18":"2","19":"4","20":"1","21":"3","22":"3","23":"4","24":"3","25":"5","_rn_":"61621"},{"1":"2","2":"3","3":"3","4":"4","5":"5","6":"4","7":"4","8":"5","9":"3","10":"2","11":"2","12":"2","13":"5","14":"4","15":"5","16":"2","17":"3","18":"4","19":"4","20":"3","21":"3","22":"3","23":"4","24":"3","25":"3","_rn_":"61622"},{"1":"6","2":"6","3":"5","4":"6","5":"5","6":"6","7":"6","8":"6","9":"1","10":"3","11":"2","12":"1","13":"6","14":"5","15":"6","16":"3","17":"5","18":"2","19":"2","20":"3","21":"4","22":"3","23":"5","24":"6","25":"1","_rn_":"61623"},{"1":"2","2":"5","3":"5","4":"3","5":"5","6":"5","7":"4","8":"4","9":"2","10":"3","11":"4","12":"3","13":"4","14":"5","15":"5","16":"1","17":"2","18":"2","19":"1","20":"1","21":"5","22":"2","23":"5","24":"6","25":"1","_rn_":"61624"},{"1":"4","2":"3","3":"1","4":"5","5":"1","6":"3","7":"2","8":"4","9":"2","10":"4","11":"3","12":"6","13":"4","14":"2","15":"1","16":"6","17":"3","18":"2","19":"6","20":"4","21":"3","22":"2","23":"4","24":"5","25":"3","_rn_":"61629"},{"1":"4","2":"3","3":"6","4":"3","5":"3","6":"6","7":"6","8":"3","9":"4","10":"5","11":"5","12":"3","13":"NA","14":"4","15":"3","16":"5","17":"5","18":"2","19":"3","20":"3","21":"6","22":"6","23":"6","24":"6","25":"1","_rn_":"61630"},{"1":"2","2":"5","3":"6","4":"6","5":"5","6":"6","7":"5","8":"6","9":"2","10":"1","11":"2","12":"2","13":"4","14":"5","15":"5","16":"5","17":"5","18":"5","19":"2","20":"4","21":"5","22":"1","23":"5","24":"5","25":"2","_rn_":"61633"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+<table class="table caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">A1</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">A2</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">A3</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">A4</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">A5</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">C1</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">C2</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">C3</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">C4</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">C5</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">E1</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">E2</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">E3</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">E4</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">E5</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N1</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N2</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N3</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N4</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N5</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">O1</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">O2</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">O3</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">O4</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">O5</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">61617</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">61618</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">61620</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">61621</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">61622</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">61623</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">61624</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">61629</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">61630</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">61633</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>Display the BFI dictionary showing item descriptions:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="sc">|&gt;</span> <span class="fu">select</span>(Item) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="sc">|&gt;</span> <span class="fu">select</span>(Item) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div data-pagedtable="false">
-  <script data-pagedtable-source="" type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Item"],"name":[1],"type":["fct"],"align":["left"]}],"data":[{"1":"Am indifferent to the feelings of others.","_rn_":"A1"},{"1":"Inquire about others' well-being.","_rn_":"A2"},{"1":"Know how to comfort others.","_rn_":"A3"},{"1":"Love children.","_rn_":"A4"},{"1":"Make people feel at ease.","_rn_":"A5"},{"1":"Am exacting in my work.","_rn_":"C1"},{"1":"Continue until everything is perfect.","_rn_":"C2"},{"1":"Do things according to a plan.","_rn_":"C3"},{"1":"Do things in a half-way manner.","_rn_":"C4"},{"1":"Waste my time.","_rn_":"C5"},{"1":"Don't talk a lot.","_rn_":"E1"},{"1":"Find it difficult to approach others.","_rn_":"E2"},{"1":"Know how to captivate people.","_rn_":"E3"},{"1":"Make friends easily.","_rn_":"E4"},{"1":"Take charge.","_rn_":"E5"},{"1":"Get angry easily.","_rn_":"N1"},{"1":"Get irritated easily.","_rn_":"N2"},{"1":"Have frequent mood swings.","_rn_":"N3"},{"1":"Often feel blue.","_rn_":"N4"},{"1":"Panic easily.","_rn_":"N5"},{"1":"Am full of ideas.","_rn_":"O1"},{"1":"Avoid difficult reading material.","_rn_":"O2"},{"1":"Carry the conversation to a higher level.","_rn_":"O3"},{"1":"Spend time reflecting on things.","_rn_":"O4"},{"1":"Will not probe deeply into a subject.","_rn_":"O5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+<table class="table caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Item</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">A1</td>
+<td style="text-align: left;">Am indifferent to the feelings of others.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">A2</td>
+<td style="text-align: left;">Inquire about others' well-being.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">A3</td>
+<td style="text-align: left;">Know how to comfort others.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">A4</td>
+<td style="text-align: left;">Love children.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">A5</td>
+<td style="text-align: left;">Make people feel at ease.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">C1</td>
+<td style="text-align: left;">Am exacting in my work.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">C2</td>
+<td style="text-align: left;">Continue until everything is perfect.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">C3</td>
+<td style="text-align: left;">Do things according to a plan.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">C4</td>
+<td style="text-align: left;">Do things in a half-way manner.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">C5</td>
+<td style="text-align: left;">Waste my time.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">E1</td>
+<td style="text-align: left;">Don't talk a lot.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">E2</td>
+<td style="text-align: left;">Find it difficult to approach others.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">E3</td>
+<td style="text-align: left;">Know how to captivate people.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">E4</td>
+<td style="text-align: left;">Make friends easily.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">E5</td>
+<td style="text-align: left;">Take charge.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N1</td>
+<td style="text-align: left;">Get angry easily.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N2</td>
+<td style="text-align: left;">Get irritated easily.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N3</td>
+<td style="text-align: left;">Have frequent mood swings.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N4</td>
+<td style="text-align: left;">Often feel blue.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N5</td>
+<td style="text-align: left;">Panic easily.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">O1</td>
+<td style="text-align: left;">Am full of ideas.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">O2</td>
+<td style="text-align: left;">Avoid difficult reading material.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">O3</td>
+<td style="text-align: left;">Carry the conversation to a higher level.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">O4</td>
+<td style="text-align: left;">Spend time reflecting on things.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">O5</td>
+<td style="text-align: left;">Will not probe deeply into a subject.</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </section>
@@ -294,32 +713,335 @@ ML4  0.02 -0.19  0.19  0.25  1.00  0.02
 ML6  0.18 -0.06 -0.03  0.14  0.02  1.00</code></pre>
 </div>
 </div>
+<p>Loadings:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract loading matrix for interpretation</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>loadings_matrix <span class="ot">&lt;-</span> <span class="fu">unclass</span>(fa_result<span class="sc">$</span>loadings) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(loadings_matrix, <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(loadings_matrix, <span class="dv">2</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div data-pagedtable="false">
-  <script data-pagedtable-source="" type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["ML2"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["ML1"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["ML3"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["ML5"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["ML4"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["ML6"],"name":[6],"type":["dbl"],"align":["right"]}],"data":[{"1":"0.10","2":"-0.11","3":"0.08","4":"-0.56","5":"0.06","6":"0.28","_rn_":"A1"},{"1":"0.04","2":"-0.03","3":"0.07","4":"0.69","5":"0.00","6":"-0.06","_rn_":"A2"},{"1":"-0.01","2":"-0.12","3":"0.03","4":"0.62","5":"0.06","6":"0.10","_rn_":"A3"},{"1":"-0.07","2":"-0.06","3":"0.20","4":"0.39","5":"-0.11","6":"0.15","_rn_":"A4"},{"1":"-0.15","2":"-0.21","3":"0.01","4":"0.45","5":"0.12","6":"0.21","_rn_":"A5"},{"1":"0.01","2":"0.05","3":"0.55","4":"-0.06","5":"0.18","6":"0.07","_rn_":"C1"},{"1":"0.06","2":"0.13","3":"0.68","4":"0.01","5":"0.11","6":"0.17","_rn_":"C2"},{"1":"0.01","2":"0.06","3":"0.55","4":"0.09","5":"-0.05","6":"0.05","_rn_":"C3"},{"1":"0.05","2":"0.08","3":"-0.63","4":"-0.07","5":"0.06","6":"0.30","_rn_":"C4"},{"1":"0.14","2":"0.19","3":"-0.54","4":"-0.01","5":"0.11","6":"0.07","_rn_":"C5"},{"1":"-0.13","2":"0.59","3":"0.11","4":"-0.12","5":"-0.09","6":"0.08","_rn_":"E1"},{"1":"0.05","2":"0.69","3":"-0.01","4":"-0.07","5":"-0.07","6":"0.03","_rn_":"E2"},{"1":"0.00","2":"-0.35","3":"0.01","4":"0.15","5":"0.39","6":"0.21","_rn_":"E3"},{"1":"-0.05","2":"-0.55","3":"0.03","4":"0.19","5":"0.03","6":"0.29","_rn_":"E4"},{"1":"0.17","2":"-0.40","3":"0.26","4":"0.07","5":"0.22","6":"-0.02","_rn_":"E5"},{"1":"0.85","2":"-0.09","3":"0.00","4":"-0.06","5":"-0.05","6":"0.00","_rn_":"N1"},{"1":"0.85","2":"-0.04","3":"0.01","4":"-0.02","5":"-0.01","6":"-0.08","_rn_":"N2"},{"1":"0.64","2":"0.15","3":"-0.04","4":"0.07","5":"0.06","6":"0.11","_rn_":"N3"},{"1":"0.39","2":"0.44","3":"-0.13","4":"0.07","5":"0.11","6":"0.09","_rn_":"N4"},{"1":"0.40","2":"0.26","3":"0.00","4":"0.16","5":"-0.09","6":"0.20","_rn_":"N5"},{"1":"-0.05","2":"-0.05","3":"0.07","4":"-0.04","5":"0.56","6":"0.03","_rn_":"O1"},{"1":"0.11","2":"-0.01","3":"-0.07","4":"0.08","5":"-0.37","6":"0.35","_rn_":"O2"},{"1":"-0.02","2":"-0.10","3":"0.02","4":"0.03","5":"0.66","6":"-0.01","_rn_":"O3"},{"1":"0.08","2":"0.35","3":"-0.02","4":"0.15","5":"0.38","6":"-0.02","_rn_":"O4"},{"1":"0.03","2":"-0.06","3":"-0.02","4":"-0.05","5":"-0.45","6":"0.40","_rn_":"O5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
+<table class="table caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML2</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML1</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML3</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML5</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML4</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">A1</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">-0.11</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">-0.56</td>
+<td style="text-align: right;">0.06</td>
+<td style="text-align: right;">0.28</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">A2</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">-0.03</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">0.69</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">-0.06</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">A3</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">-0.12</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.62</td>
+<td style="text-align: right;">0.06</td>
+<td style="text-align: right;">0.10</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">A4</td>
+<td style="text-align: right;">-0.07</td>
+<td style="text-align: right;">-0.06</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.39</td>
+<td style="text-align: right;">-0.11</td>
+<td style="text-align: right;">0.15</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">A5</td>
+<td style="text-align: right;">-0.15</td>
+<td style="text-align: right;">-0.21</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.45</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.21</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">C1</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.55</td>
+<td style="text-align: right;">-0.06</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.07</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">C2</td>
+<td style="text-align: right;">0.06</td>
+<td style="text-align: right;">0.13</td>
+<td style="text-align: right;">0.68</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">0.17</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">C3</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.06</td>
+<td style="text-align: right;">0.55</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: right;">-0.05</td>
+<td style="text-align: right;">0.05</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">C4</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">-0.63</td>
+<td style="text-align: right;">-0.07</td>
+<td style="text-align: right;">0.06</td>
+<td style="text-align: right;">0.30</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">C5</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">-0.54</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">0.07</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">E1</td>
+<td style="text-align: right;">-0.13</td>
+<td style="text-align: right;">0.59</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">-0.12</td>
+<td style="text-align: right;">-0.09</td>
+<td style="text-align: right;">0.08</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">E2</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.69</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">-0.07</td>
+<td style="text-align: right;">-0.07</td>
+<td style="text-align: right;">0.03</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">E3</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">-0.35</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.15</td>
+<td style="text-align: right;">0.39</td>
+<td style="text-align: right;">0.21</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">E4</td>
+<td style="text-align: right;">-0.05</td>
+<td style="text-align: right;">-0.55</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.29</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">E5</td>
+<td style="text-align: right;">0.17</td>
+<td style="text-align: right;">-0.40</td>
+<td style="text-align: right;">0.26</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">0.22</td>
+<td style="text-align: right;">-0.02</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N1</td>
+<td style="text-align: right;">0.85</td>
+<td style="text-align: right;">-0.09</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">-0.06</td>
+<td style="text-align: right;">-0.05</td>
+<td style="text-align: right;">0.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N2</td>
+<td style="text-align: right;">0.85</td>
+<td style="text-align: right;">-0.04</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">-0.02</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">-0.08</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N3</td>
+<td style="text-align: right;">0.64</td>
+<td style="text-align: right;">0.15</td>
+<td style="text-align: right;">-0.04</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">0.06</td>
+<td style="text-align: right;">0.11</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N4</td>
+<td style="text-align: right;">0.39</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">-0.13</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">0.09</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N5</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">0.26</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.16</td>
+<td style="text-align: right;">-0.09</td>
+<td style="text-align: right;">0.20</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">O1</td>
+<td style="text-align: right;">-0.05</td>
+<td style="text-align: right;">-0.05</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">-0.04</td>
+<td style="text-align: right;">0.56</td>
+<td style="text-align: right;">0.03</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">O2</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">-0.07</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">-0.37</td>
+<td style="text-align: right;">0.35</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">O3</td>
+<td style="text-align: right;">-0.02</td>
+<td style="text-align: right;">-0.10</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.66</td>
+<td style="text-align: right;">-0.01</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">O4</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.35</td>
+<td style="text-align: right;">-0.02</td>
+<td style="text-align: right;">0.15</td>
+<td style="text-align: right;">0.38</td>
+<td style="text-align: right;">-0.02</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">O5</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">-0.06</td>
+<td style="text-align: right;">-0.02</td>
+<td style="text-align: right;">-0.05</td>
+<td style="text-align: right;">-0.45</td>
+<td style="text-align: right;">0.40</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
+<p>Factor Correlation Matrix</p>
+<div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract factor correlation matrix</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>factor_cor_mat <span class="ot">&lt;-</span> fa_result<span class="sc">$</span>Phi <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(factor_cor_mat, <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(factor_cor_mat, <span class="dv">2</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div data-pagedtable="false">
-  <script data-pagedtable-source="" type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["ML2"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["ML1"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["ML3"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["ML5"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["ML4"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["ML6"],"name":[6],"type":["dbl"],"align":["right"]}],"data":[{"1":"1.00","2":"0.25","3":"-0.18","4":"-0.10","5":"0.02","6":"0.18","_rn_":"ML2"},{"1":"0.25","2":"1.00","3":"-0.22","4":"-0.31","5":"-0.19","6":"-0.06","_rn_":"ML1"},{"1":"-0.18","2":"-0.22","3":"1.00","4":"0.19","5":"0.19","6":"-0.03","_rn_":"ML3"},{"1":"-0.10","2":"-0.31","3":"0.19","4":"1.00","5":"0.25","6":"0.14","_rn_":"ML5"},{"1":"0.02","2":"-0.19","3":"0.19","4":"0.25","5":"1.00","6":"0.02","_rn_":"ML4"},{"1":"0.18","2":"-0.06","3":"-0.03","4":"0.14","5":"0.02","6":"1.00","_rn_":"ML6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+<table class="table caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML2</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML1</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML3</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML5</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML4</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ML6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">ML2</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">-0.18</td>
+<td style="text-align: right;">-0.10</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.18</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ML1</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">-0.22</td>
+<td style="text-align: right;">-0.31</td>
+<td style="text-align: right;">-0.19</td>
+<td style="text-align: right;">-0.06</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ML3</td>
+<td style="text-align: right;">-0.18</td>
+<td style="text-align: right;">-0.22</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">-0.03</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ML5</td>
+<td style="text-align: right;">-0.10</td>
+<td style="text-align: right;">-0.31</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">0.14</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ML4</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">-0.19</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.02</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ML6</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">-0.06</td>
+<td style="text-align: right;">-0.03</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </section>
@@ -349,7 +1071,7 @@ ML6  0.18 -0.06 -0.03  0.14  0.02  1.00</code></pre>
 <pre><code>Factor Analysis Chat Session
 Provider: ollama 
 Model: qwen3-vl:235b-instruct-cloud 
-Created: 2025-11-07 19:29:25.166482 
+Created: 2025-11-08 15:41:00.094911 
 Interpretations run: 0 
 Total tokens - Input: 0 , Output: 0 </code></pre>
 </div>
@@ -367,14 +1089,59 @@ Total tokens - Input: 0 , Output: 0 </code></pre>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span></span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(variable_info, <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(variable_info, <span class="dv">10</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div data-pagedtable="false">
-  <script data-pagedtable-source="" type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["variable"],"name":[1],"type":["chr"],"align":["left"]},{"label":["description"],"name":[2],"type":["chr"],"align":["left"]}],"data":[{"1":"A1","2":"Am indifferent to the feelings of others.","_rn_":"1"},{"1":"A2","2":"Inquire about others' well-being.","_rn_":"2"},{"1":"A3","2":"Know how to comfort others.","_rn_":"3"},{"1":"A4","2":"Love children.","_rn_":"4"},{"1":"A5","2":"Make people feel at ease.","_rn_":"5"},{"1":"C1","2":"Am exacting in my work.","_rn_":"6"},{"1":"C2","2":"Continue until everything is perfect.","_rn_":"7"},{"1":"C3","2":"Do things according to a plan.","_rn_":"8"},{"1":"C4","2":"Do things in a half-way manner.","_rn_":"9"},{"1":"C5","2":"Waste my time.","_rn_":"10"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+<table class="table caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">variable</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">A1</td>
+<td style="text-align: left;">Am indifferent to the feelings of others.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">A2</td>
+<td style="text-align: left;">Inquire about others' well-being.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">A3</td>
+<td style="text-align: left;">Know how to comfort others.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">A4</td>
+<td style="text-align: left;">Love children.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">A5</td>
+<td style="text-align: left;">Make people feel at ease.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">C1</td>
+<td style="text-align: left;">Am exacting in my work.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">C2</td>
+<td style="text-align: left;">Continue until everything is perfect.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">C3</td>
+<td style="text-align: left;">Do things according to a plan.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">C4</td>
+<td style="text-align: left;">Do things in a half-way manner.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">C5</td>
+<td style="text-align: left;">Waste my time.</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>We now generate factor interpretations using the specified LLM:</p>
@@ -406,7 +1173,7 @@ Total tokens - Input: 0 , Output: 0 </code></pre>
 <pre><code>ℹ Building report...</code></pre>
 <pre><code>✔ Interpretation complete!</code></pre>
 <p>FACTOR ANALYSIS INTERPRETATION ────────────────────────────────────────────────────────────────────────────────</p>
-<p>Number of factors: 6 Loading cutoff: 0.23 LLM used: ollama - qwen3-vl:235b-instruct-cloud Tokens: Input: 2243 Output: 432 Elapsed time: 6.97</p>
+<p>Number of factors: 6 Loading cutoff: 0.23 LLM used: ollama - qwen3-vl:235b-instruct-cloud Tokens: Input: 2243 Output: 441 Elapsed time: 8.92</p>
 <p>SUGGESTED FACTOR NAMES ────────────────────────────────────────────────────────────────────────────────</p>
 <p>• Factor 1 (9.2%): Emotional Instability • Factor 2 (7.9%): Introverted Reserve • Factor 3 (7.7%): Conscientious Discipline • Factor 4 (6.8%): Compassionate Engagement • Factor 5 (6.3%): Intellectual Curiosity • Factor 6 (3.1%): Casual Sociability</p>
 <p>Total variance explained: 41%</p>
@@ -421,19 +1188,19 @@ Total tokens - Input: 0 , Output: 0 </code></pre>
 <p>════════════════════════════════════════════════════════════════════════════════</p>
 <p>Factor 3 (ML3) - Conscientious Discipline Number of significant loadings: 6 Variance explained: 7.71%</p>
 <p>Variables: 1. C2, Continue until everything is perfect. (Positive, Strong, .680) 2. C4, Do things in a half-way manner. (Negative, Strong, -.634) 3. C3, Do things according to a plan. (Positive, Strong, .551) 4. C1, Am exacting in my work. (Positive, Strong, .547) 5. C5, Waste my time. (Negative, Strong, -.541) 6. E5, Take charge. (Positive, Weak, .264)</p>
-<p>LLM Interpretation: Reflects structured, goal-oriented behavior with high loadings on perfectionism and planning. Negative loadings on procrastination and half-hearted effort reinforce self-discipline. Low correlations with other factors confirm its independence as a work ethic and organizational trait.</p>
+<p>LLM Interpretation: Reflects structured, goal-oriented behavior with high loadings on perfectionism and planning. Negative loadings on procrastination and half-hearted effort reinforce self-discipline. Low correlations with other factors confirm its unique role in behavioral regulation and task persistence.</p>
 <p>════════════════════════════════════════════════════════════════════════════════</p>
 <p>Factor 4 (ML5) - Compassionate Engagement Number of significant loadings: 5 Variance explained: 6.79%</p>
 <p>Variables: 1. A2, Inquire about others’ well-being. (Positive, Strong, .688) 2. A3, Know how to comfort others. (Positive, Strong, .617) 3. A1, Am indifferent to the feelings of others. (Negative, Strong, -.560) 4. A5, Make people feel at ease. (Positive, Moderate, .451) 5. A4, Love children. (Positive, Weak, .391)</p>
-<p>LLM Interpretation: Captures empathic concern and interpersonal warmth, with strong loadings on inquiring about others and comforting. Negative loading on indifference highlights prosocial orientation. Moderate correlations with other factors suggest complementary roles in social functioning.</p>
+<p>LLM Interpretation: Captures empathic concern and interpersonal warmth, with strong loadings on inquiring about others and comforting. Negative loading on indifference highlights prosocial orientation. Moderate correlations with other factors suggest it complements, rather than overlaps, with emotional or social traits.</p>
 <p>════════════════════════════════════════════════════════════════════════════════</p>
 <p>Factor 5 (ML4) - Intellectual Curiosity Number of significant loadings: 6 Variance explained: 6.27%</p>
 <p>Variables: 1. O3, Carry the conversation to a higher level. (Positive, Strong, .656) 2. O1, Am full of ideas. (Positive, Strong, .564) 3. O5, Will not probe deeply into a subject. (Negative, Moderate, -.451) 4. E3, Know how to captivate people. (Positive, Weak, .392) 5. O4, Spend time reflecting on things. (Positive, Weak, .376) 6. O2, Avoid difficult reading material. (Negative, Weak, -.367)</p>
-<p>LLM Interpretation: Represents openness to ideas and cognitive exploration, with high loadings on ideation and deep conversation. Negative loadings on avoiding complex material reinforce intellectual engagement. Weak correlations with other factors support its distinctiveness as a cognitive openness dimension.</p>
+<p>LLM Interpretation: Represents openness to ideas and cognitive exploration, with high loadings on ideation and deep reflection. Negative loadings on avoiding complex material reinforce intellectual engagement. Weak correlations with other factors support its distinctiveness as a cognitive openness dimension.</p>
 <p>════════════════════════════════════════════════════════════════════════════════</p>
 <p>Factor 6 (ML6) - Casual Sociability Number of significant loadings: 5 Variance explained: 3.12%</p>
 <p>Variables: 1. O5, Will not probe deeply into a subject. (Positive, Moderate, .403) 2. O2, Avoid difficult reading material. (Positive, Weak, .353) 3. C4, Do things in a half-way manner. (Positive, Weak, .300) 4. E4, Make friends easily. (Positive, Weak, .287) 5. A1, Am indifferent to the feelings of others. (Positive, Weak, .281)</p>
-<p>LLM Interpretation: Reflects spontaneous, low-effort social interaction, with moderate loadings on making friends and casual engagement. Weak ties to assertiveness or deep conversation suggest surface-level sociability. Low variance explained indicates it’s a minor, supplementary social trait.</p>
+<p>LLM Interpretation: Reflects spontaneous, low-effort social interaction, with moderate loadings on making friends and casual engagement. Weak ties to assertiveness or emotional depth suggest surface-level sociability. Its low variance and minimal correlations indicate a peripheral, supplementary social trait.</p>
 <p>════════════════════════════════════════════════════════════════════════════════</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -449,8 +1216,8 @@ Loading cutoff: 0.3
 LLM used: ollama - qwen3-vl:235b-instruct-cloud
 Tokens:
   Input: 2243
-  Output: 432
-Elapsed time: 6.97
+  Output: 441
+Elapsed time: 8.92
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
@@ -537,7 +1304,7 @@ LLM Interpretation:
 Reflects structured, goal-oriented behavior with high loadings on perfectionism
 and planning. Negative loadings on procrastination and half-hearted effort
 reinforce self-discipline. Low correlations with other factors confirm its
-independence as a work ethic and organizational trait.
+unique role in behavioral regulation and task persistence.
 
 ════════════════════════════════════════════════════════════════════════════════
 
@@ -557,7 +1324,7 @@ LLM Interpretation:
 Captures empathic concern and interpersonal warmth, with strong loadings on
 inquiring about others and comforting. Negative loading on indifference
 highlights prosocial orientation. Moderate correlations with other factors
-suggest complementary roles in social functioning.
+suggest it complements, rather than overlaps, with emotional or social traits.
 
 ════════════════════════════════════════════════════════════════════════════════
 
@@ -576,7 +1343,7 @@ Variables:
 
 LLM Interpretation:
 Represents openness to ideas and cognitive exploration, with high loadings on
-ideation and deep conversation. Negative loadings on avoiding complex material
+ideation and deep reflection. Negative loadings on avoiding complex material
 reinforce intellectual engagement. Weak correlations with other factors support
 its distinctiveness as a cognitive openness dimension.
 
@@ -596,9 +1363,9 @@ Variables:
 
 LLM Interpretation:
 Reflects spontaneous, low-effort social interaction, with moderate loadings on
-making friends and casual engagement. Weak ties to assertiveness or deep
-conversation suggest surface-level sociability. Low variance explained indicates
-it’s a minor, supplementary social trait.
+making friends and casual engagement. Weak ties to assertiveness or emotional
+depth suggest surface-level sociability. Its low variance and minimal
+correlations indicate a peripheral, supplementary social trait.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -613,9 +1380,9 @@ it’s a minor, supplementary social trait.
 <pre><code>Factor Analysis Chat Session
 Provider: ollama 
 Model: qwen3-vl:235b-instruct-cloud 
-Created: 2025-11-07 19:29:25.166482 
+Created: 2025-11-08 15:41:00.094911 
 Interpretations run: 1 
-Total tokens - Input: 2243 , Output: 432 </code></pre>
+Total tokens - Input: 2243 , Output: 441 </code></pre>
 </div>
 </div>
 <p>We can also examine the prompt:</p>
@@ -768,7 +1535,7 @@ Respond with ONLY valid JSON using factor names as object keys:
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="01-Basic_Usage_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="01-Basic_Usage_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -812,14 +1579,42 @@ Respond with ONLY valid JSON using factor names as object keys:
 <pre><code>ℹ The inherited chat session model_type ("fa") was used instead of the passed interpretation model_type</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>result_psych<span class="sc">$</span>suggested_names</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>result_psych<span class="sc">$</span>suggested_names <span class="sc">|&gt;</span> <span class="fu">unlist</span>() <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="st">"Suggested Name"</span>) <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<p>$ML2 [1] “Emotional Reactivity”</p>
-<p>$ML1 [1] “Social Withdrawal”</p>
-<p>$ML3 [1] “Work Discipline”</p>
-<p>$ML5 [1] “Empathic Warmth”</p>
-<p>$ML4 [1] “Intellectual Engagement”</p>
-<p>$ML6 [1] “Casual Sociability”</p>
+<table class="table caption-top">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Suggested Name</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">ML2</td>
+<td style="text-align: left;">Emotional Volatility</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ML1</td>
+<td style="text-align: left;">Social Withdrawal</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ML3</td>
+<td style="text-align: left;">Perfectionist Discipline</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ML5</td>
+<td style="text-align: left;">Empathic Warmth</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ML4</td>
+<td style="text-align: left;">Intellectual Openness</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ML6</td>
+<td style="text-align: left;">Casual Sociability</td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="lavaan-package" class="level3">
 <h3 class="anchored" data-anchor-id="lavaan-package">lavaan Package</h3>
@@ -843,14 +1638,42 @@ Respond with ONLY valid JSON using factor names as object keys:
 <pre><code>ℹ The inherited chat session model_type ("fa") was used instead of the passed interpretation model_type</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>result_lavaan_efa<span class="sc">$</span>suggested_names</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>result_lavaan_efa<span class="sc">$</span>suggested_names <span class="sc">|&gt;</span> <span class="fu">unlist</span>() <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="st">"Suggested Name"</span>) <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<p>$f1 [1] “Empathic Concern”</p>
-<p>$f2 [1] “Work Conscientiousness”</p>
-<p>$f3 [1] “Social Introversion”</p>
-<p>$f4 [1] “Casual Sociability”</p>
-<p>$f5 [1] “Emotional Instability”</p>
-<p>$f6 [1] “Intellectual Openness”</p>
+<table class="table caption-top">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Suggested Name</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">f1</td>
+<td style="text-align: left;">Empathic Concern</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">f2</td>
+<td style="text-align: left;">Conscientious Discipline</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">f3</td>
+<td style="text-align: left;">Social Withdrawal</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">f4</td>
+<td style="text-align: left;">Casual Sociability</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">f5</td>
+<td style="text-align: left;">Emotional Instability</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">f6</td>
+<td style="text-align: left;">Intellectual Openness</td>
+</tr>
+</tbody>
+</table>
 <p>Also works with lavaa::cfa() and mir::mirt()</p>
 </section>
 </section>
@@ -870,9 +1693,9 @@ Respond with ONLY valid JSON using factor names as object keys:
 <pre><code>Factor Analysis Chat Session
 Provider: ollama 
 Model: qwen3-vl:235b-instruct-cloud 
-Created: 2025-11-07 19:29:25.166482 
+Created: 2025-11-08 15:41:00.094911 
 Interpretations run: 3 
-Total tokens - Input: 12600 , Output: 2655 </code></pre>
+Total tokens - Input: 12600 , Output: 2735 </code></pre>
 </div>
 </div>
 </section>
@@ -889,8 +1712,8 @@ Total tokens - Input: 12600 , Output: 2655 </code></pre>
 <p><strong>Platform:</strong> x86_64-w64-mingw32/x64</p>
 <p><strong>locale:</strong> <em>LC_COLLATE=German_Germany.utf8</em>, <em>LC_CTYPE=German_Germany.utf8</em>, <em>LC_MONETARY=German_Germany.utf8</em>, <em>LC_NUMERIC=C</em> and <em>LC_TIME=German_Germany.utf8</em></p>
 <p><strong>attached base packages:</strong> <em>stats4</em>, <em>stats</em>, <em>graphics</em>, <em>grDevices</em>, <em>utils</em>, <em>datasets</em>, <em>methods</em> and <em>base</em></p>
-<p><strong>other attached packages:</strong> <em>pander(v.0.6.6)</em>, <em>here(v.1.0.2)</em>, <em>dplyr(v.1.1.4)</em>, <em>mirt(v.1.45.1)</em>, <em>lattice(v.0.22-7)</em>, <em>lavaan(v.0.6-20)</em>, <em>psych(v.2.5.6)</em>, <em>ollamar(v.1.2.2)</em>, <em>ellmer(v.0.3.2)</em>, <em>psychinterpreter(v.0.0.0.9000)</em> and <em>pacman(v.0.5.1)</em></p>
-<p><strong>loaded via a namespace (and not attached):</strong> <em>tidyselect(v.1.2.1)</em>, <em>farver(v.2.1.2)</em>, <em>R.utils(v.2.13.0)</em>, <em>S7(v.0.2.0)</em>, <em>fastmap(v.1.2.0)</em>, <em>digest(v.0.6.37)</em>, <em>lifecycle(v.1.0.4)</em>, <em>Deriv(v.4.2.0)</em>, <em>dcurver(v.0.9.3)</em>, <em>cluster(v.2.1.8.1)</em>, <em>magrittr(v.2.0.3)</em>, <em>compiler(v.4.5.2)</em>, <em>rlang(v.1.1.6)</em>, <em>tools(v.4.5.2)</em>, <em>yaml(v.2.3.10)</em>, <em>knitr(v.1.50)</em>, <em>labeling(v.0.4.3)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>mnormt(v.2.1.1)</em>, <em>curl(v.7.0.0)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>numDeriv(v.2016.8-1.1)</em>, <em>withr(v.3.0.2)</em>, <em>purrr(v.1.0.4)</em>, <em>R.oo(v.1.27.1)</em>, <em>grid(v.4.5.2)</em>, <em>future(v.1.67.0)</em>, <em>progressr(v.0.17.0)</em>, <em>GPArotation(v.2025.3-1)</em>, <em>ggplot2(v.4.0.0)</em>, <em>globals(v.0.18.0)</em>, <em>scales(v.1.4.0)</em>, <em>MASS(v.7.3-65)</em>, <em>cli(v.3.6.5)</em>, <em>rmarkdown(v.2.30)</em>, <em>vegan(v.2.7-2)</em>, <em>crayon(v.1.5.3)</em>, <em>generics(v.0.1.4)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>future.apply(v.1.20.0)</em>, <em>SimDesign(v.2.21)</em>, <em>sessioninfo(v.1.2.3)</em>, <em>pbapply(v.1.7-4)</em>, <em>audio(v.0.1-11)</em>, <em>splines(v.4.5.2)</em>, <em>parallel(v.4.5.2)</em>, <em>beepr(v.2.0)</em>, <em>coro(v.1.1.0)</em>, <em>vctrs(v.0.6.5)</em>, <em>Matrix(v.1.7-4)</em>, <em>jsonlite(v.2.0.0)</em>, <em>listenv(v.0.9.1)</em>, <em>testthat(v.3.2.3)</em>, <em>clipr(v.0.8.0)</em>, <em>tidyr(v.1.3.1)</em>, <em>glue(v.1.8.0)</em>, <em>parallelly(v.1.45.1)</em>, <em>codetools(v.0.2-20)</em>, <em>gtable(v.0.3.6)</em>, <em>quadprog(v.1.5-8)</em>, <em>tibble(v.3.3.0)</em>, <em>pillar(v.1.11.1)</em>, <em>rappdirs(v.0.3.3)</em>, <em>htmltools(v.0.5.8.1)</em>, <em>brio(v.1.1.5)</em>, <em>R6(v.2.6.1)</em>, <em>httr2(v.1.2.1)</em>, <em>rprojroot(v.2.1.1)</em>, <em>evaluate(v.1.0.5)</em>, <em>pbivnorm(v.0.6.0)</em>, <em>R.methodsS3(v.1.8.2)</em>, <em>Rcpp(v.1.1.0)</em>, <em>gridExtra(v.2.3)</em>, <em>nlme(v.3.1-168)</em>, <em>permute(v.0.9-8)</em>, <em>mgcv(v.1.9-3)</em>, <em>xfun(v.0.53)</em> and <em>pkgconfig(v.2.0.3)</em></p>
+<p><strong>other attached packages:</strong> <em>pander(v.0.6.6)</em>, <em>kableExtra(v.1.4.0)</em>, <em>here(v.1.0.2)</em>, <em>dplyr(v.1.1.4)</em>, <em>mirt(v.1.45.1)</em>, <em>lattice(v.0.22-7)</em>, <em>lavaan(v.0.6-20)</em>, <em>psych(v.2.5.6)</em>, <em>ollamar(v.1.2.2)</em>, <em>ellmer(v.0.3.2)</em>, <em>psychinterpreter(v.0.0.0.9000)</em> and <em>pacman(v.0.5.1)</em></p>
+<p><strong>loaded via a namespace (and not attached):</strong> <em>tidyselect(v.1.2.1)</em>, <em>viridisLite(v.0.4.2)</em>, <em>farver(v.2.1.2)</em>, <em>R.utils(v.2.13.0)</em>, <em>S7(v.0.2.0)</em>, <em>fastmap(v.1.2.0)</em>, <em>digest(v.0.6.37)</em>, <em>lifecycle(v.1.0.4)</em>, <em>Deriv(v.4.2.0)</em>, <em>dcurver(v.0.9.3)</em>, <em>cluster(v.2.1.8.1)</em>, <em>magrittr(v.2.0.3)</em>, <em>compiler(v.4.5.2)</em>, <em>rlang(v.1.1.6)</em>, <em>tools(v.4.5.2)</em>, <em>yaml(v.2.3.10)</em>, <em>knitr(v.1.50)</em>, <em>labeling(v.0.4.3)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>curl(v.7.0.0)</em>, <em>mnormt(v.2.1.1)</em>, <em>xml2(v.1.4.0)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>numDeriv(v.2016.8-1.1)</em>, <em>withr(v.3.0.2)</em>, <em>purrr(v.1.0.4)</em>, <em>R.oo(v.1.27.1)</em>, <em>grid(v.4.5.2)</em>, <em>future(v.1.67.0)</em>, <em>progressr(v.0.17.0)</em>, <em>GPArotation(v.2025.3-1)</em>, <em>ggplot2(v.4.0.0)</em>, <em>globals(v.0.18.0)</em>, <em>scales(v.1.4.0)</em>, <em>MASS(v.7.3-65)</em>, <em>cli(v.3.6.5)</em>, <em>rmarkdown(v.2.30)</em>, <em>vegan(v.2.7-2)</em>, <em>crayon(v.1.5.3)</em>, <em>generics(v.0.1.4)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>future.apply(v.1.20.0)</em>, <em>SimDesign(v.2.21)</em>, <em>sessioninfo(v.1.2.3)</em>, <em>pbapply(v.1.7-4)</em>, <em>stringr(v.1.6.0)</em>, <em>audio(v.0.1-11)</em>, <em>splines(v.4.5.2)</em>, <em>parallel(v.4.5.2)</em>, <em>beepr(v.2.0)</em>, <em>coro(v.1.1.0)</em>, <em>vctrs(v.0.6.5)</em>, <em>Matrix(v.1.7-4)</em>, <em>jsonlite(v.2.0.0)</em>, <em>listenv(v.0.9.1)</em>, <em>systemfonts(v.1.3.1)</em>, <em>testthat(v.3.2.3)</em>, <em>clipr(v.0.8.0)</em>, <em>tidyr(v.1.3.1)</em>, <em>glue(v.1.8.0)</em>, <em>parallelly(v.1.45.1)</em>, <em>codetools(v.0.2-20)</em>, <em>stringi(v.1.8.7)</em>, <em>gtable(v.0.3.6)</em>, <em>quadprog(v.1.5-8)</em>, <em>tibble(v.3.3.0)</em>, <em>pillar(v.1.11.1)</em>, <em>rappdirs(v.0.3.3)</em>, <em>htmltools(v.0.5.8.1)</em>, <em>brio(v.1.1.5)</em>, <em>R6(v.2.6.1)</em>, <em>httr2(v.1.2.1)</em>, <em>textshaping(v.1.0.4)</em>, <em>rprojroot(v.2.1.1)</em>, <em>evaluate(v.1.0.5)</em>, <em>pbivnorm(v.0.6.0)</em>, <em>R.methodsS3(v.1.8.2)</em>, <em>Rcpp(v.1.1.0)</em>, <em>svglite(v.2.2.2)</em>, <em>gridExtra(v.2.3)</em>, <em>nlme(v.3.1-168)</em>, <em>permute(v.0.9-8)</em>, <em>mgcv(v.1.9-3)</em>, <em>xfun(v.0.53)</em> and <em>pkgconfig(v.2.0.3)</em></p>
 </div>
 </div>
 <!-- -->
@@ -1377,7 +2200,7 @@ Total tokens - Input: 12600 , Output: 2655 </code></pre>
 <span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Basic factor analysis interpretation</span>
 <span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Persistent chat sessions for efficient LLM usage</span>
 <span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Export functionality across multiple formats</span>
-<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Advanced interpretation features</span>
+<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Wrappers for popular R packages such as <span class="in">`psych`</span>, <span class="in">`lavaan`</span>, and <span class="in">`mirt`</span></span>
 <span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a><span class="fu">## Setup and Data Preparation</span></span>
 <span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a></span>
@@ -1391,234 +2214,239 @@ Total tokens - Input: 12600 , Output: 2655 </code></pre>
 <span id="cb42-39"><a href="#cb42-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mirt"</span>,</span>
 <span id="cb42-40"><a href="#cb42-40" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
 <span id="cb42-41"><a href="#cb42-41" aria-hidden="true" tabindex="-1"></a>  <span class="st">"here"</span>,</span>
-<span id="cb42-42"><a href="#cb42-42" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pander"</span></span>
-<span id="cb42-43"><a href="#cb42-43" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb42-44"><a href="#cb42-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
-<span id="cb42-45"><a href="#cb42-45" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span>
-<span id="cb42-46"><a href="#cb42-46" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="at">char =</span> packages)</span>
-<span id="cb42-47"><a href="#cb42-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-48"><a href="#cb42-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the BFI dataset and dictionary</span></span>
-<span id="cb42-49"><a href="#cb42-49" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"bfi"</span>)</span>
-<span id="cb42-50"><a href="#cb42-50" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"bfi.dictionary"</span>)</span>
-<span id="cb42-51"><a href="#cb42-51" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-52"><a href="#cb42-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-53"><a href="#cb42-53" aria-hidden="true" tabindex="-1"></a><span class="fu"># Preparing the BFI Data</span></span>
-<span id="cb42-54"><a href="#cb42-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-55"><a href="#cb42-55" aria-hidden="true" tabindex="-1"></a>Exclude demographic variables for factor analysis</span>
-<span id="cb42-56"><a href="#cb42-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-59"><a href="#cb42-59" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb42-60"><a href="#cb42-60" aria-hidden="true" tabindex="-1"></a>bfi <span class="ot">&lt;-</span> bfi[,<span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>]</span>
-<span id="cb42-61"><a href="#cb42-61" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="ot">&lt;-</span> bfi.dictionary[<span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>, ]</span>
-<span id="cb42-62"><a href="#cb42-62" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-63"><a href="#cb42-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-64"><a href="#cb42-64" aria-hidden="true" tabindex="-1"></a>Show the first few rows of the BFI data:</span>
-<span id="cb42-65"><a href="#cb42-65" aria-hidden="true" tabindex="-1"></a><span class="in">```{r data-exploration}</span></span>
-<span id="cb42-66"><a href="#cb42-66" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(bfi,<span class="dv">10</span>)</span>
-<span id="cb42-67"><a href="#cb42-67" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-68"><a href="#cb42-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-69"><a href="#cb42-69" aria-hidden="true" tabindex="-1"></a>Display the BFI dictionary showing item descriptions:</span>
-<span id="cb42-72"><a href="#cb42-72" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb42-73"><a href="#cb42-73" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="sc">|&gt;</span> <span class="fu">select</span>(Item) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
-<span id="cb42-74"><a href="#cb42-74" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-75"><a href="#cb42-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-42"><a href="#cb42-42" aria-hidden="true" tabindex="-1"></a>  <span class="st">"kableExtra"</span>,</span>
+<span id="cb42-43"><a href="#cb42-43" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pander"</span></span>
+<span id="cb42-44"><a href="#cb42-44" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-45"><a href="#cb42-45" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
+<span id="cb42-46"><a href="#cb42-46" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span>
+<span id="cb42-47"><a href="#cb42-47" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="at">char =</span> packages)</span>
+<span id="cb42-48"><a href="#cb42-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-49"><a href="#cb42-49" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the BFI dataset and dictionary</span></span>
+<span id="cb42-50"><a href="#cb42-50" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"bfi"</span>)</span>
+<span id="cb42-51"><a href="#cb42-51" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"bfi.dictionary"</span>)</span>
+<span id="cb42-52"><a href="#cb42-52" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-53"><a href="#cb42-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-54"><a href="#cb42-54" aria-hidden="true" tabindex="-1"></a><span class="fu"># Preparing the BFI Data</span></span>
+<span id="cb42-55"><a href="#cb42-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-56"><a href="#cb42-56" aria-hidden="true" tabindex="-1"></a>Exclude demographic variables for factor analysis</span>
+<span id="cb42-57"><a href="#cb42-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-60"><a href="#cb42-60" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb42-61"><a href="#cb42-61" aria-hidden="true" tabindex="-1"></a>bfi <span class="ot">&lt;-</span> bfi[,<span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>]</span>
+<span id="cb42-62"><a href="#cb42-62" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="ot">&lt;-</span> bfi.dictionary[<span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>, ]</span>
+<span id="cb42-63"><a href="#cb42-63" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-64"><a href="#cb42-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-65"><a href="#cb42-65" aria-hidden="true" tabindex="-1"></a>Show the first few rows of the BFI data:</span>
+<span id="cb42-66"><a href="#cb42-66" aria-hidden="true" tabindex="-1"></a><span class="in">```{r data-exploration}</span></span>
+<span id="cb42-67"><a href="#cb42-67" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(bfi,<span class="dv">10</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb42-68"><a href="#cb42-68" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-69"><a href="#cb42-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-70"><a href="#cb42-70" aria-hidden="true" tabindex="-1"></a>Display the BFI dictionary showing item descriptions:</span>
+<span id="cb42-73"><a href="#cb42-73" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb42-74"><a href="#cb42-74" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="sc">|&gt;</span> <span class="fu">select</span>(Item) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb42-75"><a href="#cb42-75" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb42-76"><a href="#cb42-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-77"><a href="#cb42-77" aria-hidden="true" tabindex="-1"></a><span class="fu"># Factor Analysis</span></span>
-<span id="cb42-78"><a href="#cb42-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-79"><a href="#cb42-79" aria-hidden="true" tabindex="-1"></a><span class="fu">## Determining Number of Factors</span></span>
-<span id="cb42-80"><a href="#cb42-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-81"><a href="#cb42-81" aria-hidden="true" tabindex="-1"></a><span class="in">```{r parallel-analysis}</span></span>
-<span id="cb42-82"><a href="#cb42-82" aria-hidden="true" tabindex="-1"></a><span class="co"># Parallel analysis to determine optimal number of factors</span></span>
-<span id="cb42-83"><a href="#cb42-83" aria-hidden="true" tabindex="-1"></a>pa_result <span class="ot">&lt;-</span> <span class="fu">fa.parallel</span>(</span>
-<span id="cb42-84"><a href="#cb42-84" aria-hidden="true" tabindex="-1"></a>  bfi,</span>
-<span id="cb42-85"><a href="#cb42-85" aria-hidden="true" tabindex="-1"></a>  <span class="at">fa =</span> <span class="st">"fa"</span>,</span>
-<span id="cb42-86"><a href="#cb42-86" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.iter =</span> <span class="dv">100</span>,</span>
-<span id="cb42-87"><a href="#cb42-87" aria-hidden="true" tabindex="-1"></a>  <span class="at">use =</span> <span class="st">"pairwise.complete.obs"</span>,</span>
-<span id="cb42-88"><a href="#cb42-88" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Parallel Analysis: BFI Data"</span></span>
-<span id="cb42-89"><a href="#cb42-89" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb42-90"><a href="#cb42-90" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-91"><a href="#cb42-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-92"><a href="#cb42-92" aria-hidden="true" tabindex="-1"></a><span class="fu">## Exploratory Factor Analysis Using 6 Factors</span></span>
-<span id="cb42-93"><a href="#cb42-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-94"><a href="#cb42-94" aria-hidden="true" tabindex="-1"></a>Perform FA with 6 factors identified by the parallel analysis</span>
-<span id="cb42-95"><a href="#cb42-95" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fa-analysis}</span></span>
-<span id="cb42-96"><a href="#cb42-96" aria-hidden="true" tabindex="-1"></a>fa_result <span class="ot">&lt;-</span> <span class="fu">fa</span>(</span>
-<span id="cb42-97"><a href="#cb42-97" aria-hidden="true" tabindex="-1"></a>  bfi,</span>
-<span id="cb42-98"><a href="#cb42-98" aria-hidden="true" tabindex="-1"></a>  <span class="at">nfactors =</span> pa_result<span class="sc">$</span>nfact,</span>
-<span id="cb42-99"><a href="#cb42-99" aria-hidden="true" tabindex="-1"></a>  <span class="at">rotate =</span> <span class="st">"oblimin"</span>,</span>
-<span id="cb42-100"><a href="#cb42-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">fm =</span> <span class="st">"ml"</span></span>
-<span id="cb42-101"><a href="#cb42-101" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb42-102"><a href="#cb42-102" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fa_result)</span>
-<span id="cb42-103"><a href="#cb42-103" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-104"><a href="#cb42-104" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-107"><a href="#cb42-107" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb42-108"><a href="#cb42-108" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract loading matrix for interpretation</span></span>
-<span id="cb42-109"><a href="#cb42-109" aria-hidden="true" tabindex="-1"></a>loadings_matrix <span class="ot">&lt;-</span> <span class="fu">unclass</span>(fa_result<span class="sc">$</span>loadings) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
-<span id="cb42-110"><a href="#cb42-110" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(loadings_matrix, <span class="dv">2</span>)</span>
-<span id="cb42-111"><a href="#cb42-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-112"><a href="#cb42-112" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract factor correlation matrix</span></span>
-<span id="cb42-113"><a href="#cb42-113" aria-hidden="true" tabindex="-1"></a>factor_cor_mat <span class="ot">&lt;-</span> fa_result<span class="sc">$</span>Phi <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
-<span id="cb42-114"><a href="#cb42-114" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(factor_cor_mat, <span class="dv">2</span>)</span>
-<span id="cb42-115"><a href="#cb42-115" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-116"><a href="#cb42-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-117"><a href="#cb42-117" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-118"><a href="#cb42-118" aria-hidden="true" tabindex="-1"></a><span class="fu">## Chat Setup</span></span>
-<span id="cb42-119"><a href="#cb42-119" aria-hidden="true" tabindex="-1"></a>Set up persistent chat session. If you use Ollama, make sure to start the server befor running this.</span>
-<span id="cb42-120"><a href="#cb42-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-121"><a href="#cb42-121" aria-hidden="true" tabindex="-1"></a><span class="in">```{r test-chat-sessions}</span></span>
-<span id="cb42-122"><a href="#cb42-122" aria-hidden="true" tabindex="-1"></a><span class="co"># test the connection to the Ollama server</span></span>
-<span id="cb42-123"><a href="#cb42-123" aria-hidden="true" tabindex="-1"></a><span class="co">#ollamar::test_connection()</span></span>
+<span id="cb42-77"><a href="#cb42-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-78"><a href="#cb42-78" aria-hidden="true" tabindex="-1"></a><span class="fu"># Factor Analysis</span></span>
+<span id="cb42-79"><a href="#cb42-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-80"><a href="#cb42-80" aria-hidden="true" tabindex="-1"></a><span class="fu">## Determining Number of Factors</span></span>
+<span id="cb42-81"><a href="#cb42-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-82"><a href="#cb42-82" aria-hidden="true" tabindex="-1"></a><span class="in">```{r parallel-analysis}</span></span>
+<span id="cb42-83"><a href="#cb42-83" aria-hidden="true" tabindex="-1"></a><span class="co"># Parallel analysis to determine optimal number of factors</span></span>
+<span id="cb42-84"><a href="#cb42-84" aria-hidden="true" tabindex="-1"></a>pa_result <span class="ot">&lt;-</span> <span class="fu">fa.parallel</span>(</span>
+<span id="cb42-85"><a href="#cb42-85" aria-hidden="true" tabindex="-1"></a>  bfi,</span>
+<span id="cb42-86"><a href="#cb42-86" aria-hidden="true" tabindex="-1"></a>  <span class="at">fa =</span> <span class="st">"fa"</span>,</span>
+<span id="cb42-87"><a href="#cb42-87" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.iter =</span> <span class="dv">100</span>,</span>
+<span id="cb42-88"><a href="#cb42-88" aria-hidden="true" tabindex="-1"></a>  <span class="at">use =</span> <span class="st">"pairwise.complete.obs"</span>,</span>
+<span id="cb42-89"><a href="#cb42-89" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Parallel Analysis: BFI Data"</span></span>
+<span id="cb42-90"><a href="#cb42-90" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-91"><a href="#cb42-91" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-92"><a href="#cb42-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-93"><a href="#cb42-93" aria-hidden="true" tabindex="-1"></a><span class="fu">## Exploratory Factor Analysis Using 6 Factors</span></span>
+<span id="cb42-94"><a href="#cb42-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-95"><a href="#cb42-95" aria-hidden="true" tabindex="-1"></a>Perform FA with 6 factors identified by the parallel analysis</span>
+<span id="cb42-96"><a href="#cb42-96" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fa-analysis}</span></span>
+<span id="cb42-97"><a href="#cb42-97" aria-hidden="true" tabindex="-1"></a>fa_result <span class="ot">&lt;-</span> <span class="fu">fa</span>(</span>
+<span id="cb42-98"><a href="#cb42-98" aria-hidden="true" tabindex="-1"></a>  bfi,</span>
+<span id="cb42-99"><a href="#cb42-99" aria-hidden="true" tabindex="-1"></a>  <span class="at">nfactors =</span> pa_result<span class="sc">$</span>nfact,</span>
+<span id="cb42-100"><a href="#cb42-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">rotate =</span> <span class="st">"oblimin"</span>,</span>
+<span id="cb42-101"><a href="#cb42-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">fm =</span> <span class="st">"ml"</span></span>
+<span id="cb42-102"><a href="#cb42-102" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-103"><a href="#cb42-103" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fa_result)</span>
+<span id="cb42-104"><a href="#cb42-104" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-105"><a href="#cb42-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-106"><a href="#cb42-106" aria-hidden="true" tabindex="-1"></a>Loadings:</span>
+<span id="cb42-109"><a href="#cb42-109" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb42-110"><a href="#cb42-110" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract loading matrix for interpretation</span></span>
+<span id="cb42-111"><a href="#cb42-111" aria-hidden="true" tabindex="-1"></a>loadings_matrix <span class="ot">&lt;-</span> <span class="fu">unclass</span>(fa_result<span class="sc">$</span>loadings) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb42-112"><a href="#cb42-112" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(loadings_matrix, <span class="dv">2</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb42-113"><a href="#cb42-113" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-114"><a href="#cb42-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-115"><a href="#cb42-115" aria-hidden="true" tabindex="-1"></a>Factor Correlation Matrix</span>
+<span id="cb42-118"><a href="#cb42-118" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb42-119"><a href="#cb42-119" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract factor correlation matrix</span></span>
+<span id="cb42-120"><a href="#cb42-120" aria-hidden="true" tabindex="-1"></a>factor_cor_mat <span class="ot">&lt;-</span> fa_result<span class="sc">$</span>Phi <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb42-121"><a href="#cb42-121" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(factor_cor_mat, <span class="dv">2</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb42-122"><a href="#cb42-122" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-123"><a href="#cb42-123" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb42-124"><a href="#cb42-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-125"><a href="#cb42-125" aria-hidden="true" tabindex="-1"></a><span class="co"># optionally pull the model from ollama</span></span>
-<span id="cb42-126"><a href="#cb42-126" aria-hidden="true" tabindex="-1"></a><span class="co">#ollamar::pull("gpt-oss:20b-cloud")</span></span>
+<span id="cb42-125"><a href="#cb42-125" aria-hidden="true" tabindex="-1"></a><span class="fu">## Chat Setup</span></span>
+<span id="cb42-126"><a href="#cb42-126" aria-hidden="true" tabindex="-1"></a>Set up persistent chat session. If you use Ollama, make sure to start the server befor running this.</span>
 <span id="cb42-127"><a href="#cb42-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-128"><a href="#cb42-128" aria-hidden="true" tabindex="-1"></a>chat <span class="ot">&lt;-</span> <span class="fu">chat_session</span>(<span class="at">model_type =</span> <span class="st">"fa"</span>,</span>
-<span id="cb42-129"><a href="#cb42-129" aria-hidden="true" tabindex="-1"></a>  <span class="at">provider =</span> <span class="st">"ollama"</span>,</span>
-<span id="cb42-130"><a href="#cb42-130" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">"qwen3-vl:235b-instruct-cloud"</span>,</span>
-<span id="cb42-131"><a href="#cb42-131" aria-hidden="true" tabindex="-1"></a>  <span class="co">#model = "gpt-oss:20b-cloud",</span></span>
-<span id="cb42-132"><a href="#cb42-132" aria-hidden="true" tabindex="-1"></a>  <span class="co"># set temperature and seed for reproducibility</span></span>
-<span id="cb42-133"><a href="#cb42-133" aria-hidden="true" tabindex="-1"></a>  <span class="at">params =</span> <span class="fu">params</span>(<span class="at">temperature =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
-<span id="cb42-134"><a href="#cb42-134" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb42-135"><a href="#cb42-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-136"><a href="#cb42-136" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
-<span id="cb42-137"><a href="#cb42-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-138"><a href="#cb42-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-139"><a href="#cb42-139" aria-hidden="true" tabindex="-1"></a><span class="fu">## Interpreting Factor Analysis Results</span></span>
-<span id="cb42-140"><a href="#cb42-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-141"><a href="#cb42-141" aria-hidden="true" tabindex="-1"></a>Create variable information dataframe from BFI dictionary</span>
-<span id="cb42-142"><a href="#cb42-142" aria-hidden="true" tabindex="-1"></a><span class="in">```{r test-basic-interpretation}</span></span>
-<span id="cb42-143"><a href="#cb42-143" aria-hidden="true" tabindex="-1"></a>variable_info <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb42-144"><a href="#cb42-144" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">rownames</span>(bfi.dictionary),</span>
-<span id="cb42-145"><a href="#cb42-145" aria-hidden="true" tabindex="-1"></a>  <span class="at">description =</span> <span class="fu">as.character</span>(bfi.dictionary<span class="sc">$</span>Item),</span>
-<span id="cb42-146"><a href="#cb42-146" aria-hidden="true" tabindex="-1"></a>  <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span></span>
-<span id="cb42-147"><a href="#cb42-147" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb42-148"><a href="#cb42-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-149"><a href="#cb42-149" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(variable_info, <span class="dv">10</span>)</span>
-<span id="cb42-150"><a href="#cb42-150" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-151"><a href="#cb42-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-152"><a href="#cb42-152" aria-hidden="true" tabindex="-1"></a>We now generate factor interpretations using the specified LLM:</span>
-<span id="cb42-155"><a href="#cb42-155" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb42-156"><a href="#cb42-156" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
-<span id="cb42-157"><a href="#cb42-157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-158"><a href="#cb42-158" aria-hidden="true" tabindex="-1"></a>word_limit <span class="ot">&lt;-</span>  <span class="dv">50</span></span>
-<span id="cb42-159"><a href="#cb42-159" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
-<span id="cb42-160"><a href="#cb42-160" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
-<span id="cb42-161"><a href="#cb42-161" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> loadings_matrix,</span>
-<span id="cb42-162"><a href="#cb42-162" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> variable_info,</span>
-<span id="cb42-163"><a href="#cb42-163" aria-hidden="true" tabindex="-1"></a>  <span class="at">cutoff =</span> <span class="fl">0.23</span>,</span>
-<span id="cb42-164"><a href="#cb42-164" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_emergency =</span> <span class="dv">2</span>,</span>
-<span id="cb42-165"><a href="#cb42-165" aria-hidden="true" tabindex="-1"></a>  <span class="at">additional_info =</span> <span class="cn">NULL</span>,</span>
-<span id="cb42-166"><a href="#cb42-166" aria-hidden="true" tabindex="-1"></a>  <span class="at">factor_cor_mat =</span> factor_cor_mat,</span>
-<span id="cb42-167"><a href="#cb42-167" aria-hidden="true" tabindex="-1"></a>  <span class="at">sort_loadings =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb42-168"><a href="#cb42-168" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span>  word_limit,</span>
-<span id="cb42-169"><a href="#cb42-169" aria-hidden="true" tabindex="-1"></a>  <span class="at">max_line_length =</span> <span class="dv">80</span>,</span>
-<span id="cb42-170"><a href="#cb42-170" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb42-171"><a href="#cb42-171" aria-hidden="true" tabindex="-1"></a>  <span class="at">echo =</span> <span class="st">"none"</span>,</span>
-<span id="cb42-172"><a href="#cb42-172" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_format =</span> <span class="st">"cli"</span></span>
-<span id="cb42-173"><a href="#cb42-173" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb42-174"><a href="#cb42-174" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-175"><a href="#cb42-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-178"><a href="#cb42-178" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb42-179"><a href="#cb42-179" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(result, <span class="at">output_format =</span> <span class="st">"cli"</span>)</span>
-<span id="cb42-180"><a href="#cb42-180" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-181"><a href="#cb42-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-128"><a href="#cb42-128" aria-hidden="true" tabindex="-1"></a><span class="in">```{r test-chat-sessions}</span></span>
+<span id="cb42-129"><a href="#cb42-129" aria-hidden="true" tabindex="-1"></a><span class="co"># test the connection to the Ollama server</span></span>
+<span id="cb42-130"><a href="#cb42-130" aria-hidden="true" tabindex="-1"></a><span class="co">#ollamar::test_connection()</span></span>
+<span id="cb42-131"><a href="#cb42-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-132"><a href="#cb42-132" aria-hidden="true" tabindex="-1"></a><span class="co"># optionally pull the model from ollama</span></span>
+<span id="cb42-133"><a href="#cb42-133" aria-hidden="true" tabindex="-1"></a><span class="co">#ollamar::pull("gpt-oss:20b-cloud")</span></span>
+<span id="cb42-134"><a href="#cb42-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-135"><a href="#cb42-135" aria-hidden="true" tabindex="-1"></a>chat <span class="ot">&lt;-</span> <span class="fu">chat_session</span>(<span class="at">model_type =</span> <span class="st">"fa"</span>,</span>
+<span id="cb42-136"><a href="#cb42-136" aria-hidden="true" tabindex="-1"></a>  <span class="at">provider =</span> <span class="st">"ollama"</span>,</span>
+<span id="cb42-137"><a href="#cb42-137" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">"qwen3-vl:235b-instruct-cloud"</span>,</span>
+<span id="cb42-138"><a href="#cb42-138" aria-hidden="true" tabindex="-1"></a>  <span class="co">#model = "gpt-oss:20b-cloud",</span></span>
+<span id="cb42-139"><a href="#cb42-139" aria-hidden="true" tabindex="-1"></a>  <span class="co"># set temperature and seed for reproducibility</span></span>
+<span id="cb42-140"><a href="#cb42-140" aria-hidden="true" tabindex="-1"></a>  <span class="at">params =</span> <span class="fu">params</span>(<span class="at">temperature =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb42-141"><a href="#cb42-141" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-142"><a href="#cb42-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-143"><a href="#cb42-143" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
+<span id="cb42-144"><a href="#cb42-144" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-145"><a href="#cb42-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-146"><a href="#cb42-146" aria-hidden="true" tabindex="-1"></a><span class="fu">## Interpreting Factor Analysis Results</span></span>
+<span id="cb42-147"><a href="#cb42-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-148"><a href="#cb42-148" aria-hidden="true" tabindex="-1"></a>Create variable information dataframe from BFI dictionary</span>
+<span id="cb42-149"><a href="#cb42-149" aria-hidden="true" tabindex="-1"></a><span class="in">```{r test-basic-interpretation}</span></span>
+<span id="cb42-150"><a href="#cb42-150" aria-hidden="true" tabindex="-1"></a>variable_info <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb42-151"><a href="#cb42-151" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">rownames</span>(bfi.dictionary),</span>
+<span id="cb42-152"><a href="#cb42-152" aria-hidden="true" tabindex="-1"></a>  <span class="at">description =</span> <span class="fu">as.character</span>(bfi.dictionary<span class="sc">$</span>Item),</span>
+<span id="cb42-153"><a href="#cb42-153" aria-hidden="true" tabindex="-1"></a>  <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span></span>
+<span id="cb42-154"><a href="#cb42-154" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-155"><a href="#cb42-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-156"><a href="#cb42-156" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(variable_info, <span class="dv">10</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>() <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb42-157"><a href="#cb42-157" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-158"><a href="#cb42-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-159"><a href="#cb42-159" aria-hidden="true" tabindex="-1"></a>We now generate factor interpretations using the specified LLM:</span>
+<span id="cb42-162"><a href="#cb42-162" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb42-163"><a href="#cb42-163" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
+<span id="cb42-164"><a href="#cb42-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-165"><a href="#cb42-165" aria-hidden="true" tabindex="-1"></a>word_limit <span class="ot">&lt;-</span>  <span class="dv">50</span></span>
+<span id="cb42-166"><a href="#cb42-166" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
+<span id="cb42-167"><a href="#cb42-167" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
+<span id="cb42-168"><a href="#cb42-168" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> loadings_matrix,</span>
+<span id="cb42-169"><a href="#cb42-169" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> variable_info,</span>
+<span id="cb42-170"><a href="#cb42-170" aria-hidden="true" tabindex="-1"></a>  <span class="at">cutoff =</span> <span class="fl">0.23</span>,</span>
+<span id="cb42-171"><a href="#cb42-171" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_emergency =</span> <span class="dv">2</span>,</span>
+<span id="cb42-172"><a href="#cb42-172" aria-hidden="true" tabindex="-1"></a>  <span class="at">additional_info =</span> <span class="cn">NULL</span>,</span>
+<span id="cb42-173"><a href="#cb42-173" aria-hidden="true" tabindex="-1"></a>  <span class="at">factor_cor_mat =</span> factor_cor_mat,</span>
+<span id="cb42-174"><a href="#cb42-174" aria-hidden="true" tabindex="-1"></a>  <span class="at">sort_loadings =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb42-175"><a href="#cb42-175" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span>  word_limit,</span>
+<span id="cb42-176"><a href="#cb42-176" aria-hidden="true" tabindex="-1"></a>  <span class="at">max_line_length =</span> <span class="dv">80</span>,</span>
+<span id="cb42-177"><a href="#cb42-177" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb42-178"><a href="#cb42-178" aria-hidden="true" tabindex="-1"></a>  <span class="at">echo =</span> <span class="st">"none"</span>,</span>
+<span id="cb42-179"><a href="#cb42-179" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_format =</span> <span class="st">"cli"</span></span>
+<span id="cb42-180"><a href="#cb42-180" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-181"><a href="#cb42-181" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb42-182"><a href="#cb42-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-183"><a href="#cb42-183" aria-hidden="true" tabindex="-1"></a>Let's check the global token usage tracked by the chat:</span>
-<span id="cb42-184"><a href="#cb42-184" aria-hidden="true" tabindex="-1"></a><span class="in">```{r usage1}</span></span>
-<span id="cb42-185"><a href="#cb42-185" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
-<span id="cb42-186"><a href="#cb42-186" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-187"><a href="#cb42-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-188"><a href="#cb42-188" aria-hidden="true" tabindex="-1"></a>We can also examine the prompt:</span>
-<span id="cb42-189"><a href="#cb42-189" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prompt}</span></span>
-<span id="cb42-190"><a href="#cb42-190" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(</span>
-<span id="cb42-191"><a href="#cb42-191" aria-hidden="true" tabindex="-1"></a>  <span class="st">"System Prompt: </span><span class="sc">\n\n</span><span class="st">"</span>,</span>
-<span id="cb42-192"><a href="#cb42-192" aria-hidden="true" tabindex="-1"></a>  result<span class="sc">$</span>llm_info<span class="sc">$</span>system_prompt, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb42-193"><a href="#cb42-193" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Main Prompt: </span><span class="sc">\n\n</span><span class="st">"</span>,</span>
-<span id="cb42-194"><a href="#cb42-194" aria-hidden="true" tabindex="-1"></a>    result<span class="sc">$</span>llm_info<span class="sc">$</span>main_prompt)</span>
-<span id="cb42-195"><a href="#cb42-195" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-196"><a href="#cb42-196" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-197"><a href="#cb42-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-198"><a href="#cb42-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-199"><a href="#cb42-199" aria-hidden="true" tabindex="-1"></a>Plot the loading matrix with factor names:</span>
-<span id="cb42-202"><a href="#cb42-202" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb42-203"><a href="#cb42-203" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(result,</span>
-<span id="cb42-204"><a href="#cb42-204" aria-hidden="true" tabindex="-1"></a>     <span class="at">cutoff =</span> <span class="fl">0.3</span>)</span>
-<span id="cb42-205"><a href="#cb42-205" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-206"><a href="#cb42-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-207"><a href="#cb42-207" aria-hidden="true" tabindex="-1"></a><span class="fu">## Export Functionality</span></span>
-<span id="cb42-208"><a href="#cb42-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-209"><a href="#cb42-209" aria-hidden="true" tabindex="-1"></a>We can export the results to multiple formats</span>
-<span id="cb42-210"><a href="#cb42-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-211"><a href="#cb42-211" aria-hidden="true" tabindex="-1"></a><span class="in">```{r exports, eval=FALSE}</span></span>
-<span id="cb42-212"><a href="#cb42-212" aria-hidden="true" tabindex="-1"></a><span class="co"># TXT export</span></span>
-<span id="cb42-213"><a href="#cb42-213" aria-hidden="true" tabindex="-1"></a><span class="fu">export_interpretation</span>(result,</span>
-<span id="cb42-214"><a href="#cb42-214" aria-hidden="true" tabindex="-1"></a>                      <span class="at">format =</span> <span class="st">"txt"</span>,</span>
-<span id="cb42-215"><a href="#cb42-215" aria-hidden="true" tabindex="-1"></a>                      <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"exports"</span>, <span class="st">"bfi_analysis"</span>))</span>
-<span id="cb42-216"><a href="#cb42-216" aria-hidden="true" tabindex="-1"></a><span class="co"># MD export</span></span>
-<span id="cb42-217"><a href="#cb42-217" aria-hidden="true" tabindex="-1"></a><span class="fu">export_interpretation</span>(result,</span>
-<span id="cb42-218"><a href="#cb42-218" aria-hidden="true" tabindex="-1"></a>                      <span class="at">format =</span> <span class="st">"md"</span>,</span>
-<span id="cb42-219"><a href="#cb42-219" aria-hidden="true" tabindex="-1"></a>                      <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"exports"</span>, <span class="st">"bfi_analysis"</span>))</span>
-<span id="cb42-220"><a href="#cb42-220" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-221"><a href="#cb42-221" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-222"><a href="#cb42-222" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generic Methods for 'psych', 'lavaan', and 'mirt' Objects</span></span>
-<span id="cb42-223"><a href="#cb42-223" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-224"><a href="#cb42-224" aria-hidden="true" tabindex="-1"></a><span class="fu">### psych Package</span></span>
-<span id="cb42-225"><a href="#cb42-225" aria-hidden="true" tabindex="-1"></a><span class="in">```{r method-psych}</span></span>
-<span id="cb42-226"><a href="#cb42-226" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
-<span id="cb42-227"><a href="#cb42-227" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-228"><a href="#cb42-228" aria-hidden="true" tabindex="-1"></a>result_psych <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
-<span id="cb42-229"><a href="#cb42-229" aria-hidden="true" tabindex="-1"></a>  fa_result,</span>
-<span id="cb42-230"><a href="#cb42-230" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> variable_info,</span>
-<span id="cb42-231"><a href="#cb42-231" aria-hidden="true" tabindex="-1"></a>  <span class="at">cutoff =</span> <span class="fl">0.3</span>,</span>
-<span id="cb42-232"><a href="#cb42-232" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
-<span id="cb42-233"><a href="#cb42-233" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span>  word_limit,</span>
-<span id="cb42-234"><a href="#cb42-234" aria-hidden="true" tabindex="-1"></a>  <span class="at">heading_level =</span> <span class="dv">3</span>,</span>
-<span id="cb42-235"><a href="#cb42-235" aria-hidden="true" tabindex="-1"></a>  <span class="at">suppress_heading =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb42-236"><a href="#cb42-236" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_format =</span> <span class="st">"cli"</span>,</span>
-<span id="cb42-237"><a href="#cb42-237" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="cn">TRUE</span></span>
-<span id="cb42-238"><a href="#cb42-238" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb42-239"><a href="#cb42-239" aria-hidden="true" tabindex="-1"></a>result_psych<span class="sc">$</span>suggested_names</span>
-<span id="cb42-240"><a href="#cb42-240" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-241"><a href="#cb42-241" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-242"><a href="#cb42-242" aria-hidden="true" tabindex="-1"></a><span class="fu">### lavaan Package</span></span>
-<span id="cb42-243"><a href="#cb42-243" aria-hidden="true" tabindex="-1"></a><span class="in">```{r method-lavaan-efa}</span></span>
-<span id="cb42-244"><a href="#cb42-244" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
-<span id="cb42-245"><a href="#cb42-245" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-246"><a href="#cb42-246" aria-hidden="true" tabindex="-1"></a><span class="co"># Specify a CFA model for BFI data</span></span>
-<span id="cb42-247"><a href="#cb42-247" aria-hidden="true" tabindex="-1"></a>fa_lavaan <span class="ot">&lt;-</span> lavaan<span class="sc">::</span><span class="fu">efa</span>(bfi, <span class="at">nfactors =</span> pa_result<span class="sc">$</span>nfact, <span class="at">rotation =</span> <span class="st">"oblimin"</span>)</span>
-<span id="cb42-248"><a href="#cb42-248" aria-hidden="true" tabindex="-1"></a><span class="co"># interpret lavaan model</span></span>
-<span id="cb42-249"><a href="#cb42-249" aria-hidden="true" tabindex="-1"></a>result_lavaan_efa <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
-<span id="cb42-250"><a href="#cb42-250" aria-hidden="true" tabindex="-1"></a>  fa_lavaan,</span>
-<span id="cb42-251"><a href="#cb42-251" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> variable_info,</span>
-<span id="cb42-252"><a href="#cb42-252" aria-hidden="true" tabindex="-1"></a>  <span class="at">cutoff =</span> <span class="fl">0.3</span>,</span>
-<span id="cb42-253"><a href="#cb42-253" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
-<span id="cb42-254"><a href="#cb42-254" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span>  word_limit,</span>
-<span id="cb42-255"><a href="#cb42-255" aria-hidden="true" tabindex="-1"></a>  <span class="at">heading_level =</span> <span class="dv">3</span>,</span>
-<span id="cb42-256"><a href="#cb42-256" aria-hidden="true" tabindex="-1"></a>  <span class="at">suppress_heading =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb42-257"><a href="#cb42-257" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_format =</span> <span class="st">"markdown"</span>,</span>
-<span id="cb42-258"><a href="#cb42-258" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="cn">TRUE</span></span>
-<span id="cb42-259"><a href="#cb42-259" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb42-260"><a href="#cb42-260" aria-hidden="true" tabindex="-1"></a>result_lavaan_efa<span class="sc">$</span>suggested_names</span>
-<span id="cb42-261"><a href="#cb42-261" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb42-262"><a href="#cb42-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-263"><a href="#cb42-263" aria-hidden="true" tabindex="-1"></a>Also works with lavaa::cfa() and mir::mirt()</span>
-<span id="cb42-264"><a href="#cb42-264" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-265"><a href="#cb42-265" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-266"><a href="#cb42-266" aria-hidden="true" tabindex="-1"></a><span class="fu"># Cluster Analysis</span></span>
-<span id="cb42-267"><a href="#cb42-267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-268"><a href="#cb42-268" aria-hidden="true" tabindex="-1"></a>Coming soon ...</span>
+<span id="cb42-185"><a href="#cb42-185" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb42-186"><a href="#cb42-186" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(result, <span class="at">output_format =</span> <span class="st">"cli"</span>)</span>
+<span id="cb42-187"><a href="#cb42-187" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-188"><a href="#cb42-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-189"><a href="#cb42-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-190"><a href="#cb42-190" aria-hidden="true" tabindex="-1"></a>Let's check the global token usage tracked by the chat:</span>
+<span id="cb42-191"><a href="#cb42-191" aria-hidden="true" tabindex="-1"></a><span class="in">```{r usage1}</span></span>
+<span id="cb42-192"><a href="#cb42-192" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
+<span id="cb42-193"><a href="#cb42-193" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-194"><a href="#cb42-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-195"><a href="#cb42-195" aria-hidden="true" tabindex="-1"></a>We can also examine the prompt:</span>
+<span id="cb42-196"><a href="#cb42-196" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prompt}</span></span>
+<span id="cb42-197"><a href="#cb42-197" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(</span>
+<span id="cb42-198"><a href="#cb42-198" aria-hidden="true" tabindex="-1"></a>  <span class="st">"System Prompt: </span><span class="sc">\n\n</span><span class="st">"</span>,</span>
+<span id="cb42-199"><a href="#cb42-199" aria-hidden="true" tabindex="-1"></a>  result<span class="sc">$</span>llm_info<span class="sc">$</span>system_prompt, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb42-200"><a href="#cb42-200" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Main Prompt: </span><span class="sc">\n\n</span><span class="st">"</span>,</span>
+<span id="cb42-201"><a href="#cb42-201" aria-hidden="true" tabindex="-1"></a>    result<span class="sc">$</span>llm_info<span class="sc">$</span>main_prompt)</span>
+<span id="cb42-202"><a href="#cb42-202" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-203"><a href="#cb42-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-204"><a href="#cb42-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-205"><a href="#cb42-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-206"><a href="#cb42-206" aria-hidden="true" tabindex="-1"></a>Plot the loading matrix with factor names:</span>
+<span id="cb42-209"><a href="#cb42-209" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb42-210"><a href="#cb42-210" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(result,</span>
+<span id="cb42-211"><a href="#cb42-211" aria-hidden="true" tabindex="-1"></a>     <span class="at">cutoff =</span> <span class="fl">0.3</span>)</span>
+<span id="cb42-212"><a href="#cb42-212" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-213"><a href="#cb42-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-214"><a href="#cb42-214" aria-hidden="true" tabindex="-1"></a><span class="fu">## Export Functionality</span></span>
+<span id="cb42-215"><a href="#cb42-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-216"><a href="#cb42-216" aria-hidden="true" tabindex="-1"></a>We can export the results to multiple formats</span>
+<span id="cb42-217"><a href="#cb42-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-218"><a href="#cb42-218" aria-hidden="true" tabindex="-1"></a><span class="in">```{r exports, eval=FALSE}</span></span>
+<span id="cb42-219"><a href="#cb42-219" aria-hidden="true" tabindex="-1"></a><span class="co"># TXT export</span></span>
+<span id="cb42-220"><a href="#cb42-220" aria-hidden="true" tabindex="-1"></a><span class="fu">export_interpretation</span>(result,</span>
+<span id="cb42-221"><a href="#cb42-221" aria-hidden="true" tabindex="-1"></a>                      <span class="at">format =</span> <span class="st">"txt"</span>,</span>
+<span id="cb42-222"><a href="#cb42-222" aria-hidden="true" tabindex="-1"></a>                      <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"exports"</span>, <span class="st">"bfi_analysis"</span>))</span>
+<span id="cb42-223"><a href="#cb42-223" aria-hidden="true" tabindex="-1"></a><span class="co"># MD export</span></span>
+<span id="cb42-224"><a href="#cb42-224" aria-hidden="true" tabindex="-1"></a><span class="fu">export_interpretation</span>(result,</span>
+<span id="cb42-225"><a href="#cb42-225" aria-hidden="true" tabindex="-1"></a>                      <span class="at">format =</span> <span class="st">"md"</span>,</span>
+<span id="cb42-226"><a href="#cb42-226" aria-hidden="true" tabindex="-1"></a>                      <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"exports"</span>, <span class="st">"bfi_analysis"</span>))</span>
+<span id="cb42-227"><a href="#cb42-227" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-228"><a href="#cb42-228" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-229"><a href="#cb42-229" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generic Methods for 'psych', 'lavaan', and 'mirt' Objects</span></span>
+<span id="cb42-230"><a href="#cb42-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-231"><a href="#cb42-231" aria-hidden="true" tabindex="-1"></a><span class="fu">### psych Package</span></span>
+<span id="cb42-232"><a href="#cb42-232" aria-hidden="true" tabindex="-1"></a><span class="in">```{r method-psych}</span></span>
+<span id="cb42-233"><a href="#cb42-233" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
+<span id="cb42-234"><a href="#cb42-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-235"><a href="#cb42-235" aria-hidden="true" tabindex="-1"></a>result_psych <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
+<span id="cb42-236"><a href="#cb42-236" aria-hidden="true" tabindex="-1"></a>  fa_result,</span>
+<span id="cb42-237"><a href="#cb42-237" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> variable_info,</span>
+<span id="cb42-238"><a href="#cb42-238" aria-hidden="true" tabindex="-1"></a>  <span class="at">cutoff =</span> <span class="fl">0.3</span>,</span>
+<span id="cb42-239"><a href="#cb42-239" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
+<span id="cb42-240"><a href="#cb42-240" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span>  word_limit,</span>
+<span id="cb42-241"><a href="#cb42-241" aria-hidden="true" tabindex="-1"></a>  <span class="at">heading_level =</span> <span class="dv">3</span>,</span>
+<span id="cb42-242"><a href="#cb42-242" aria-hidden="true" tabindex="-1"></a>  <span class="at">suppress_heading =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb42-243"><a href="#cb42-243" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_format =</span> <span class="st">"cli"</span>,</span>
+<span id="cb42-244"><a href="#cb42-244" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="cn">TRUE</span></span>
+<span id="cb42-245"><a href="#cb42-245" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-246"><a href="#cb42-246" aria-hidden="true" tabindex="-1"></a>result_psych<span class="sc">$</span>suggested_names <span class="sc">|&gt;</span> <span class="fu">unlist</span>() <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="st">"Suggested Name"</span>) <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb42-247"><a href="#cb42-247" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-248"><a href="#cb42-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-249"><a href="#cb42-249" aria-hidden="true" tabindex="-1"></a><span class="fu">### lavaan Package</span></span>
+<span id="cb42-250"><a href="#cb42-250" aria-hidden="true" tabindex="-1"></a><span class="in">```{r method-lavaan-efa}</span></span>
+<span id="cb42-251"><a href="#cb42-251" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
+<span id="cb42-252"><a href="#cb42-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-253"><a href="#cb42-253" aria-hidden="true" tabindex="-1"></a><span class="co"># Specify a CFA model for BFI data</span></span>
+<span id="cb42-254"><a href="#cb42-254" aria-hidden="true" tabindex="-1"></a>fa_lavaan <span class="ot">&lt;-</span> lavaan<span class="sc">::</span><span class="fu">efa</span>(bfi, <span class="at">nfactors =</span> pa_result<span class="sc">$</span>nfact, <span class="at">rotation =</span> <span class="st">"oblimin"</span>)</span>
+<span id="cb42-255"><a href="#cb42-255" aria-hidden="true" tabindex="-1"></a><span class="co"># interpret lavaan model</span></span>
+<span id="cb42-256"><a href="#cb42-256" aria-hidden="true" tabindex="-1"></a>result_lavaan_efa <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
+<span id="cb42-257"><a href="#cb42-257" aria-hidden="true" tabindex="-1"></a>  fa_lavaan,</span>
+<span id="cb42-258"><a href="#cb42-258" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> variable_info,</span>
+<span id="cb42-259"><a href="#cb42-259" aria-hidden="true" tabindex="-1"></a>  <span class="at">cutoff =</span> <span class="fl">0.3</span>,</span>
+<span id="cb42-260"><a href="#cb42-260" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
+<span id="cb42-261"><a href="#cb42-261" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span>  word_limit,</span>
+<span id="cb42-262"><a href="#cb42-262" aria-hidden="true" tabindex="-1"></a>  <span class="at">heading_level =</span> <span class="dv">3</span>,</span>
+<span id="cb42-263"><a href="#cb42-263" aria-hidden="true" tabindex="-1"></a>  <span class="at">suppress_heading =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb42-264"><a href="#cb42-264" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_format =</span> <span class="st">"markdown"</span>,</span>
+<span id="cb42-265"><a href="#cb42-265" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="cn">TRUE</span></span>
+<span id="cb42-266"><a href="#cb42-266" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-267"><a href="#cb42-267" aria-hidden="true" tabindex="-1"></a>result_lavaan_efa<span class="sc">$</span>suggested_names <span class="sc">|&gt;</span> <span class="fu">unlist</span>() <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="st">"Suggested Name"</span>) <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb42-268"><a href="#cb42-268" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb42-269"><a href="#cb42-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-270"><a href="#cb42-270" aria-hidden="true" tabindex="-1"></a><span class="fu">## Total Usage of the Chat Session</span></span>
+<span id="cb42-270"><a href="#cb42-270" aria-hidden="true" tabindex="-1"></a>Also works with lavaa::cfa() and mir::mirt()</span>
 <span id="cb42-271"><a href="#cb42-271" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-272"><a href="#cb42-272" aria-hidden="true" tabindex="-1"></a>We can again check the total global token usage:</span>
-<span id="cb42-273"><a href="#cb42-273" aria-hidden="true" tabindex="-1"></a><span class="in">```{r usage2}</span></span>
-<span id="cb42-274"><a href="#cb42-274" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
-<span id="cb42-275"><a href="#cb42-275" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-272"><a href="#cb42-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-273"><a href="#cb42-273" aria-hidden="true" tabindex="-1"></a><span class="fu"># Cluster Analysis</span></span>
+<span id="cb42-274"><a href="#cb42-274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-275"><a href="#cb42-275" aria-hidden="true" tabindex="-1"></a>Coming soon ...</span>
 <span id="cb42-276"><a href="#cb42-276" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-277"><a href="#cb42-277" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-278"><a href="#cb42-278" aria-hidden="true" tabindex="-1"></a><span class="fu"># Session Info</span></span>
-<span id="cb42-281"><a href="#cb42-281" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb42-282"><a href="#cb42-282" aria-hidden="true" tabindex="-1"></a>pander<span class="sc">::</span><span class="fu">pander</span>(<span class="fu">sessionInfo</span>())</span>
-<span id="cb42-283"><a href="#cb42-283" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-277"><a href="#cb42-277" aria-hidden="true" tabindex="-1"></a><span class="fu">## Total Usage of the Chat Session</span></span>
+<span id="cb42-278"><a href="#cb42-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-279"><a href="#cb42-279" aria-hidden="true" tabindex="-1"></a>We can again check the total global token usage:</span>
+<span id="cb42-280"><a href="#cb42-280" aria-hidden="true" tabindex="-1"></a><span class="in">```{r usage2}</span></span>
+<span id="cb42-281"><a href="#cb42-281" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
+<span id="cb42-282"><a href="#cb42-282" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb42-283"><a href="#cb42-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-284"><a href="#cb42-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-285"><a href="#cb42-285" aria-hidden="true" tabindex="-1"></a><span class="fu"># Session Info</span></span>
+<span id="cb42-288"><a href="#cb42-288" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb42-289"><a href="#cb42-289" aria-hidden="true" tabindex="-1"></a>pander<span class="sc">::</span><span class="fu">pander</span>(<span class="fu">sessionInfo</span>())</span>
+<span id="cb42-290"><a href="#cb42-290" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

@@ -512,9 +512,13 @@ interpret_fa(..., echo = "all")
   - S3 methods: do not test LLM calls! Only test the API components for the specific package.
   - Chat sessions: 1 test"
 
+- change silent argument to integer (0 = report + messages, 1 = messages, 2 = show nothing)
+
 - update class specific interpret functions, e.g., interpret_fa(), with current documentation from interpret()
 
 - screen the package for inconsistent and redundant code
+
+- update pkgdown yml
 
 - do an interactive code review of the core functionality
 

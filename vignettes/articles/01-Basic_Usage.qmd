@@ -25,7 +25,7 @@ We'll test all major features of psychinterpreter including:
 - Basic factor analysis interpretation
 - Persistent chat sessions for efficient LLM usage
 - Export functionality across multiple formats
-- Advanced interpretation features
+- Wrappers for popular R packages such as `psych`, `lavaan`, and `mirt`
 
 ## Setup and Data Preparation
 
@@ -39,6 +39,7 @@ packages <- c(
   "mirt",
   "dplyr",
   "here",
+  "kableExtra",
   "pander"
 )
 # Load required packages using pacman
@@ -61,12 +62,12 @@ bfi.dictionary <- bfi.dictionary[1:25, ]
 
 Show the first few rows of the BFI data:
 ```{r data-exploration}
-head(bfi,10)
+head(bfi,10) |> kable() |> kable_styling(full_width = FALSE)
 ```
 
 Display the BFI dictionary showing item descriptions:
 ```{r}
-bfi.dictionary |> select(Item) |> as.data.frame()
+bfi.dictionary |> select(Item) |> as.data.frame() |> kable() |> kable_styling(full_width = FALSE)
 ```
 
 
@@ -98,14 +99,18 @@ fa_result <- fa(
 summary(fa_result)
 ```
 
+Loadings:
 ```{r}
 # Extract loading matrix for interpretation
 loadings_matrix <- unclass(fa_result$loadings) |> as.data.frame()
-round(loadings_matrix, 2)
+round(loadings_matrix, 2) |> kable() |> kable_styling(full_width = FALSE)
+```
 
+Factor Correlation Matrix
+```{r}
 # Extract factor correlation matrix
 factor_cor_mat <- fa_result$Phi |> as.data.frame()
-round(factor_cor_mat, 2)
+round(factor_cor_mat, 2) |> kable() |> kable_styling(full_width = FALSE)
 ```
 
 
@@ -140,7 +145,7 @@ variable_info <- data.frame(
   stringsAsFactors = FALSE
 )
 
-head(variable_info, 10)
+head(variable_info, 10) |> kable() |> kable_styling(full_width = FALSE)
 ```
 
 We now generate factor interpretations using the specified LLM:
@@ -224,7 +229,7 @@ result_psych <- interpret(
   output_format = "cli",
   silent = TRUE
 )
-result_psych$suggested_names
+result_psych$suggested_names |> unlist() |> kable(col.names = "Suggested Name") |> kable_styling(full_width = FALSE)
 ```
 
 ### lavaan Package
@@ -245,7 +250,7 @@ result_lavaan_efa <- interpret(
   output_format = "markdown",
   silent = TRUE
 )
-result_lavaan_efa$suggested_names
+result_lavaan_efa$suggested_names |> unlist() |> kable(col.names = "Suggested Name") |> kable_styling(full_width = FALSE)
 ```
 
 Also works with lavaa::cfa() and mir::mirt()
