@@ -18,7 +18,7 @@ interpret(
   heading_level = 1,
   suppress_heading = FALSE,
   max_line_length = 80,
-  silent = FALSE,
+  silent = 0,
   echo = "none",
   ...
 )
@@ -74,7 +74,13 @@ allowing better integration into existing documents (default = FALSE).}
 
 \item{max_line_length}{Integer. Maximum line length for console output text wrapping (default = 80).}
 
-\item{silent}{Logical. If TRUE, suppresses printing the interpretation report and progress messages to console (default = FALSE).}
+\item{silent}{Integer or logical. Controls output verbosity:
+\itemize{
+\item 0 or FALSE: Show report and all messages (default)
+\item 1 or TRUE: Show messages only, suppress report
+\item 2: Completely silent, suppress all output
+For backward compatibility, logical values are accepted and converted to integers.
+}}
 
 \item{echo}{Character. Controls what is echoed during LLM interaction. One of "none" (no output),
 "output" (show only LLM responses), or "all" (show prompts and responses). Useful for debugging (default = "none").}
@@ -85,7 +91,8 @@ allowing better integration into existing documents (default = FALSE).}
 \itemize{
 \item \code{cutoff}: Minimum loading value to consider (default = 0.3)
 \item \code{n_emergency}: Number of highest loadings to use when no loadings exceed cutoff (default = 2)
-\item \code{hide_low_loadings}: Hide loadings below cutoff in LLM prompt (default = FALSE)
+\item \code{hide_low_loadings}: Hide loadings below cutoff in LLM prompt (default = FALSE).
+This prevents the LLM from considering them for interpretation, which might happen otherwise.2
 \item \code{sort_loadings}: Sort variables by loading strength within factors (default = TRUE)
 \item \code{factor_cor_mat}: Factor correlation matrix for oblique rotations (default = NULL)
 \item \code{system_prompt}: Custom system prompt to override package default (default = NULL)

@@ -24,7 +24,7 @@ interpret_fa(
   heading_level = 1,
   suppress_heading = FALSE,
   max_line_length = 80,
-  silent = FALSE,
+  silent = 0,
   echo = "none"
 )
 }
@@ -94,7 +94,13 @@ above the analysis output (default = FALSE)}
 
 \item{max_line_length}{Integer. Maximum line length for console output text wrapping (default = 80)}
 
-\item{silent}{Logical. If TRUE, suppresses printing the interpretation report and progress bars to console (default = FALSE)}
+\item{silent}{Integer or logical. Controls output verbosity:
+\itemize{
+\item 0 or FALSE: Show report and all messages (default)
+\item 1 or TRUE: Show messages only, suppress report
+\item 2: Completely silent, suppress all output
+For backward compatibility, logical values are accepted and converted to integers.
+}}
 
 \item{echo}{Character. Controls what is echoed during LLM interaction. One of "none" (no output),
 "output" (show only LLM responses), or "all" (show prompts and responses). Passed directly

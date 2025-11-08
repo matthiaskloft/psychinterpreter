@@ -42,7 +42,11 @@
 #'   allowing better integration into existing documents (default = FALSE).
 #' @param max_line_length Integer. Maximum line length for console output text wrapping (default = 80).
 #'
-#' @param silent Logical. If TRUE, suppresses printing the interpretation report and progress messages to console (default = FALSE).
+#' @param silent Integer or logical. Controls output verbosity:
+#'   - 0 or FALSE: Show report and all messages (default)
+#'   - 1 or TRUE: Show messages only, suppress report
+#'   - 2: Completely silent, suppress all output
+#'   For backward compatibility, logical values are accepted and converted to integers.
 #' @param echo Character. Controls what is echoed during LLM interaction. One of "none" (no output),
 #'   "output" (show only LLM responses), or "all" (show prompts and responses). Useful for debugging (default = "none").
 #'
@@ -50,7 +54,8 @@
 #'  - **FA-specific** (see \code{\link{interpret_fa}}):
 #'    - `cutoff`: Minimum loading value to consider (default = 0.3)
 #'    - `n_emergency`: Number of highest loadings to use when no loadings exceed cutoff (default = 2)
-#'    - `hide_low_loadings`: Hide loadings below cutoff in LLM prompt (default = FALSE)
+#'    - `hide_low_loadings`: Hide loadings below cutoff in LLM prompt (default = FALSE).
+#'    This prevents the LLM from considering them for interpretation, which might happen otherwise.2
 #'    - `sort_loadings`: Sort variables by loading strength within factors (default = TRUE)
 #'    - `factor_cor_mat`: Factor correlation matrix for oblique rotations (default = NULL)
 #'    - `system_prompt`: Custom system prompt to override package default (default = NULL)
@@ -171,70 +176,82 @@
 #' print(chat)  # Check token usage
 #' }
 interpret <- function(chat_session = NULL,
-                     model_fit = NULL,
-                     variable_info = NULL,
-                     model_type = NULL,
-                     llm_provider = NULL,
-                     llm_model = NULL,
-                     params = NULL,
-                     additional_info = NULL,
-                     word_limit = 150,
-                     output_format = "cli",
-                     heading_level = 1,
-                     suppress_heading = FALSE,
-                     max_line_length = 80,
-                     silent = FALSE,
-                     echo = "none",
-                     ...) {
-
+                      model_fit = NULL,
+                      variable_info = NULL,
+                      model_type = NULL,
+                      llm_provider = NULL,
+                      llm_model = NULL,
+                      params = NULL,
+                      additional_info = NULL,
+                      word_limit = 150,
+                      output_format = "cli",
+                      heading_level = 1,
+                      suppress_heading = FALSE,
+                      max_line_length = 80,
+                      silent = 0,
+                      echo = "none",
+                      ...) {
   # ============================================================================
   # ARGUMENT VALIDATION AND PATTERN DETECTION
   # ============================================================================
 
+  # Handle backward compatibility: Convert logical to integer
+  if (is.logical(silent)) {
+    silent <- as.integer(silent)  # FALSE -> 0, TRUE -> 1
+  }
+
   # Check if all key arguments are missing
-  if (is.null(chat_session) && is.null(model_fit) && is.null(variable_info)) {
+  if (is.null(chat_session) &&
+      is.null(model_fit) && is.null(variable_info)) {
     cli::cli_abort(
-      c("No arguments provided to interpret()",
+      c(
+        "No arguments provided to interpret()",
         "i" = "Usage patterns:",
         " " = "1. interpret(model_fit = model, variable_info = var_info, llm_provider = ...)",
         " " = "2. interpret(model_fit = list(loadings = ...), variable_info = var_info, model_type = 'fa', llm_provider = ...)",
         " " = "3. interpret(chat_session = chat, model_fit = ..., variable_info = var_info)",
-        "i" = "See ?interpret for details")
+        "i" = "See ?interpret for details"
+      )
     )
   }
 
   # Check if model_fit is missing
   if (is.null(model_fit)) {
     cli::cli_abort(
-      c("{.var model_fit} is required",
+      c(
+        "{.var model_fit} is required",
         "i" = "Provide one of:",
         " " = "- Fitted model: psych::fa/principal, lavaan::cfa/sem/efa, mirt::mirt",
-        " " = "- Structured list: list(loadings = matrix, factor_cor_mat = matrix)")
+        " " = "- Structured list: list(loadings = matrix, factor_cor_mat = matrix)"
+      )
     )
   }
 
   # Check if variable_info is missing
   if (is.null(variable_info)) {
     cli::cli_abort(
-      c("{.var variable_info} is required",
-        "i" = "Provide a data frame with 'variable' and 'description' columns")
+      c("{.var variable_info} is required", "i" = "Provide a data frame with 'variable' and 'description' columns")
     )
   }
 
   # Validate variable_info structure
   if (!is.data.frame(variable_info)) {
     cli::cli_abort(
-      c("{.var variable_info} must be a data frame",
+      c(
+        "{.var variable_info} must be a data frame",
         "x" = "You provided: {.cls {class(variable_info)}}",
-        "i" = "Use data.frame(variable = c(...), description = c(...))")
+        "i" = "Use data.frame(variable = c(...), description = c(...))"
+      )
     )
   }
 
   if (!"variable" %in% names(variable_info)) {
     cli::cli_abort(
-      c("{.var variable_info} must contain a 'variable' column",
+      c(
+        "{.var variable_info} must contain a 'variable' column",
         "x" = "Current columns: {.field {names(variable_info)}}",
-        "i" = "Ensure columns include: 'variable', 'description'")
+        "i" = "Ensure columns include: 'variable', 'description'"
+      )
     )
   }
 
@@ -242,9 +259,11 @@ interpret <- function(chat_session = NULL,
   if (!is.null(chat_session)) {
     if (!is.chat_session(chat_session)) {
       cli::cli_abort(
-        c("{.var chat_session} must be a chat_session object",
+        c(
+          "{.var chat_session} must be a chat_session object",
           "x" = "You provided: {.cls {class(chat_session)}}",
-          "i" = "Create with: chat_session(model_type, provider, model)")
+          "i" = "Create with: chat_session(model_type, provider, model)"
+        )
       )
     }
   }
@@ -252,9 +271,11 @@ interpret <- function(chat_session = NULL,
   # Validate llm_provider when chat_session is NULL
   if (is.null(chat_session) && is.null(llm_provider)) {
     cli::cli_abort(
-      c("{.var llm_provider} is required when {.var chat_session} is NULL",
+      c(
+        "{.var llm_provider} is required when {.var chat_session} is NULL",
         "i" = "Specify llm_provider (e.g., 'anthropic', 'openai', 'ollama', 'gemini')",
-        "i" = "Or provide a chat_session created with chat_session()")
+        "i" = "Or provide a chat_session created with chat_session()"
+      )
     )
   }
 
@@ -264,11 +285,14 @@ interpret <- function(chat_session = NULL,
     effective_model_type <- chat_session$model_type
 
     # Warn if both chat_session and model_type are provided and conflict
-    if (!is.null(model_type) && model_type != effective_model_type) {
+    if (!is.null(model_type) &&
+        model_type != effective_model_type) {
       cli::cli_warn(
-        c("!" = "Both {.var chat_session} and {.var model_type} provided with different values",
+        c(
+          "!" = "Both {.var chat_session} and {.var model_type} provided with different values",
           "i" = "Using model_type from chat_session: {.val {effective_model_type}}",
-          "i" = "Ignoring model_type argument: {.val {model_type}}")
+          "i" = "Ignoring model_type argument: {.val {model_type}}"
+        )
       )
     }
   } else {
@@ -281,18 +305,22 @@ interpret <- function(chat_session = NULL,
 
   # Check if model_fit is a fitted model object (has a class that might have a method)
   is_fitted_model <- !is.null(class(model_fit)) &&
-    (inherits(model_fit, "fa") ||
-     inherits(model_fit, "principal") ||
-     inherits(model_fit, "psych") ||
-     inherits(model_fit, "lavaan") ||
-     inherits(model_fit, "efaList") ||
-     inherits(model_fit, "SingleGroupClass"))
+    (
+      inherits(model_fit, "fa") ||
+        inherits(model_fit, "principal") ||
+        inherits(model_fit, "psych") ||
+        inherits(model_fit, "lavaan") ||
+        inherits(model_fit, "efaList") ||
+        inherits(model_fit, "SingleGroupClass")
+    )
 
   # Check if model_fit is a list (but not a data.frame, which is also a list)
-  is_structured_list <- is.list(model_fit) && !is.data.frame(model_fit) && !is_fitted_model
+  is_structured_list <- is.list(model_fit) &&
+    !is.data.frame(model_fit) && !is_fitted_model
 
   # Check if model_fit is raw data (matrix or data.frame)
-  is_raw_data <- (is.matrix(model_fit) || is.data.frame(model_fit)) && !is_fitted_model
+  is_raw_data <- (is.matrix(model_fit) ||
+                    is.data.frame(model_fit)) && !is_fitted_model
 
   # ============================================================================
   # ROUTE 1: Fitted Model Object
@@ -300,49 +328,11 @@ interpret <- function(chat_session = NULL,
   if (is_fitted_model) {
     # Use internal interpret_model() S3 generic
     # Pass all explicit parameters that were made non-anonymous
-    return(interpret_model(
-      model_fit,
-      variable_info,
-      chat_session = chat_session,
-      llm_provider = llm_provider,
-      llm_model = llm_model,
-      params = params,
-      additional_info = additional_info,
-      word_limit = word_limit,
-      output_format = output_format,
-      heading_level = heading_level,
-      suppress_heading = suppress_heading,
-      max_line_length = max_line_length,
-      silent = silent,
-      echo = echo,
-      ...
-    ))
-  }
-
-  # ============================================================================
-  # ROUTE 2: Structured List
-  # ============================================================================
-  if (is_structured_list) {
-    # Need effective_model_type to know how to handle the list
-    if (is.null(effective_model_type)) {
-      cli::cli_abort(
-        c("{.var model_type} or {.var chat_session} required when using structured list",
-          "i" = "Specify model_type explicitly or provide a chat_session")
-      )
-    }
-
-    # Handle list structure based on model type
-    if (effective_model_type == "fa") {
-      # Validate and extract FA list components
-      extracted <- validate_fa_list_structure(model_fit)
-
-      # Call handle_raw_data_interpret with extracted loadings
-      return(handle_raw_data_interpret(
-        x = extracted$loadings,
-        variable_info = variable_info,
-        model_type = effective_model_type,
+    return(
+      interpret_model(
+        model_fit,
+        variable_info,
         chat_session = chat_session,
-        factor_cor_mat = extracted$factor_cor_mat,
         llm_provider = llm_provider,
         llm_model = llm_model,
         params = params,
@@ -355,11 +345,57 @@ interpret <- function(chat_session = NULL,
         silent = silent,
         echo = echo,
         ...
-      ))
+      )
+    )
+  }
+
+  # ============================================================================
+  # ROUTE 2: Structured List
+  # ============================================================================
+  if (is_structured_list) {
+    # Need effective_model_type to know how to handle the list
+    if (is.null(effective_model_type)) {
+      cli::cli_abort(
+        c(
+          "{.var model_type} or {.var chat_session} required when using structured list",
+          "i" = "Specify model_type explicitly or provide a chat_session"
+        )
+      )
+    }
+
+    # Handle list structure based on model type
+    if (effective_model_type == "fa") {
+      # Validate and extract FA list components
+      extracted <- validate_fa_list_structure(model_fit)
+
+      # Call handle_raw_data_interpret with extracted loadings
+      return(
+        handle_raw_data_interpret(
+          x = extracted$loadings,
+          variable_info = variable_info,
+          model_type = effective_model_type,
+          chat_session = chat_session,
+          factor_cor_mat = extracted$factor_cor_mat,
+          llm_provider = llm_provider,
+          llm_model = llm_model,
+          params = params,
+          additional_info = additional_info,
+          word_limit = word_limit,
+          output_format = output_format,
+          heading_level = heading_level,
+          suppress_heading = suppress_heading,
+          max_line_length = max_line_length,
+          silent = silent,
+          echo = echo,
+          ...
+        )
+      )
     } else {
       cli::cli_abort(
-        c("Structured list support not yet implemented for model_type: {.val {effective_model_type}}",
-          "i" = "Currently only 'fa' supports list structure")
+        c(
+          "Structured list support not yet implemented for model_type: {.val {effective_model_type}}",
+          "i" = "Currently only 'fa' supports list structure"
+        )
       )
     }
   }
@@ -371,41 +407,36 @@ interpret <- function(chat_session = NULL,
     # Need effective_model_type to know how to interpret the data
     if (is.null(effective_model_type)) {
       cli::cli_abort(
-        c("{.var model_type} or {.var chat_session} required when using raw data",
-          "i" = "Specify model_type explicitly or provide a chat_session")
+        c(
+          "{.var model_type} or {.var chat_session} required when using raw data",
+          "i" = "Specify model_type explicitly or provide a chat_session"
+        )
       )
     }
 
     # Route to model-specific handling
-    return(handle_raw_data_interpret(
-      x = model_fit,
-      variable_info = variable_info,
-      model_type = effective_model_type,
-      chat_session = chat_session,
-      llm_provider = llm_provider,
-      llm_model = llm_model,
-      params = params,
-      additional_info = additional_info,
-      word_limit = word_limit,
-      output_format = output_format,
-      heading_level = heading_level,
-      suppress_heading = suppress_heading,
-      max_line_length = max_line_length,
-      silent = silent,
-      echo = echo,
-      ...
-    ))
+    return(
+      handle_raw_data_interpret(
+        x = model_fit,
+        variable_info = variable_info,
+        model_type = effective_model_type,
+        chat_session = chat_session,
+        ...
+      )
+    )
   }
 
   # ============================================================================
   # FALLBACK: Unknown model_fit type
   # ============================================================================
   cli::cli_abort(
-    c("Cannot interpret object of class {.cls {class(model_fit)}}",
+    c(
+      "Cannot interpret object of class {.cls {class(model_fit)}}",
       "i" = "Supported types:",
       " " = "- Fitted models: psych (fa, principal), lavaan (cfa, sem, efa), mirt (mirt)",
       " " = "- Structured list: list(loadings = matrix, factor_cor_mat = matrix)",
-      "i" = "See ?interpret for details")
+      "i" = "See ?interpret for details"
+    )
   )
 }
 
@@ -443,10 +474,7 @@ interpret_model.psych <- function(model, variable_info, ...) {
   } else if (inherits(model, "principal")) {
     interpret_model.principal(model, variable_info, ...)
   } else {
-    cli::cli_abort(
-      c("Unsupported psych model type",
-        "x" = "Class of object: {.cls {class(model)}}")
-    )
+    cli::cli_abort(c("Unsupported psych model type", "x" = "Class of object: {.cls {class(model)}}"))
   }
 }
 
@@ -494,8 +522,7 @@ interpret_model.fa <- function(model, variable_info, ...) {
   # Validate model structure
   if (!inherits(model, "psych") && !inherits(model, "fa")) {
     cli::cli_abort(
-      c("Model must be of class {.cls psych.fa}",
-        "x" = "You supplied class: {.cls {class(model)}}")
+      c("Model must be of class {.cls psych.fa}", "x" = "You supplied class: {.cls {class(model)}}")
     )
   }
 
@@ -567,10 +594,9 @@ interpret_model.principal <- function(model, variable_info, ...) {
   validate_chat_session_for_model_type(chat_session, "fa")
 
   # Validate model structure
-  if (!inherits(model, "psych") &&!inherits(model, "principal")) {
+  if (!inherits(model, "psych") && !inherits(model, "principal")) {
     cli::cli_abort(
-      c("Model must be of class {.cls psych.principal}",
-        "x" = "You supplied class: {.cls {class(model)}}")
+      c("Model must be of class {.cls psych.principal}", "x" = "You supplied class: {.cls {class(model)}}")
     )
   }
 
@@ -655,16 +681,14 @@ interpret_model.lavaan <- function(model, variable_info, ...) {
   # Check if lavaan is available
   if (!requireNamespace("lavaan", quietly = TRUE)) {
     cli::cli_abort(
-      c("Package {.pkg lavaan} is required for this method",
-        "i" = "Install with: install.packages(\"lavaan\")")
+      c("Package {.pkg lavaan} is required for this method", "i" = "Install with: install.packages(\"lavaan\")")
     )
   }
 
   # Validate model
   if (!inherits(model, "lavaan")) {
     cli::cli_abort(
-      c("Model must be of class {.cls lavaan}",
-        "x" = "You supplied class: {.cls {class(model)}}")
+      c("Model must be of class {.cls lavaan}", "x" = "You supplied class: {.cls {class(model)}}")
     )
   }
 
@@ -676,8 +700,7 @@ interpret_model.lavaan <- function(model, variable_info, ...) {
 
   if (nrow(loadings_long) == 0) {
     cli::cli_abort(
-      c("No factor loadings found in model",
-        "i" = "Make sure the model contains measurement model relationships (=~)")
+      c("No factor loadings found in model", "i" = "Make sure the model contains measurement model relationships (=~)")
     )
   }
 
@@ -780,16 +803,14 @@ interpret_model.efaList <- function(model, variable_info, ...) {
   # Check if lavaan is available
   if (!requireNamespace("lavaan", quietly = TRUE)) {
     cli::cli_abort(
-      c("Package {.pkg lavaan} is required for this method",
-        "i" = "Install with: install.packages(\"lavaan\")")
+      c("Package {.pkg lavaan} is required for this method", "i" = "Install with: install.packages(\"lavaan\")")
     )
   }
 
   # Validate model
   if (!inherits(model, "efaList")) {
     cli::cli_abort(
-      c("Model must be of class {.cls efaList}",
-        "x" = "You supplied class: {.cls {class(model)}}")
+      c("Model must be of class {.cls efaList}", "x" = "You supplied class: {.cls {class(model)}}")
     )
   }
 
@@ -872,16 +893,14 @@ interpret_model.SingleGroupClass <- function(model, variable_info, rotate = "obl
   # Check if mirt is available
   if (!requireNamespace("mirt", quietly = TRUE)) {
     cli::cli_abort(
-      c("Package {.pkg mirt} is required for this method",
-        "i" = "Install with: install.packages(\"mirt\")")
+      c("Package {.pkg mirt} is required for this method", "i" = "Install with: install.packages(\"mirt\")")
     )
   }
 
   # Validate model
   if (!inherits(model, "SingleGroupClass")) {
     cli::cli_abort(
-      c("Model must be of class {.cls SingleGroupClass}",
-        "x" = "You supplied class: {.cls {class(model)}}")
+      c("Model must be of class {.cls SingleGroupClass}", "x" = "You supplied class: {.cls {class(model)}}")
     )
   }
 

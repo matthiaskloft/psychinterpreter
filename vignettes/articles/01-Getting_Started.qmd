@@ -62,7 +62,8 @@ bfi.dictionary <- bfi.dictionary[1:25, ]
 
 Show the first few rows of the BFI data:
 ```{r data-exploration}
-head(bfi,10) |> kable() |> kable_styling(full_width = FALSE)
+head(bfi,10) |> kable() |> kable_styling(full_width = TRUE)|> 
+  kableExtra::scroll_box(width = "100%")
 ```
 
 Display the BFI dictionary showing item descriptions:
@@ -110,12 +111,12 @@ Factor Correlation Matrix
 ```{r}
 # Extract factor correlation matrix
 factor_cor_mat <- fa_result$Phi |> as.data.frame()
-round(factor_cor_mat, 2) |> kable() |> kable_styling(full_width = FALSE)
+round(factor_cor_mat, 2) |> kable(format = "html") |> kable_styling()
 ```
 
 
 ## Chat Setup
-Set up persistent chat session. If you use Ollama, make sure to start the server befor running this.
+Set up persistent chat session. If you use Ollama, make sure to start the server before running this.
 
 ```{r test-chat-sessions}
 # test the connection to the Ollama server

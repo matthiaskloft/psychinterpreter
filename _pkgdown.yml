@@ -14,19 +14,29 @@ exclude: |
 reference:
   - title: "Main Interpretation Functions"
     desc: >
-      Core functions for interpreting factor analysis results using LLMs.
+      Core functions for interpreting psychometric analysis results using LLMs.
     contents:
+      - interpret
       - interpret_fa
+
+  - title: "Chat Session Management"
+    desc: >
+      Functions for creating and managing persistent LLM chat sessions for token-efficient
+      multi-analysis workflows. Chat sessions preserve system prompts across multiple interpretations,
+      reducing API costs by 40-60%.
+    contents:
+      - chat_session
+      - is.chat_session
+      - reset.chat_session
       - chat_fa
       - is.chat_fa
       - reset.chat_fa
 
   - title: "S3 Methods for Package Integration"
     desc: >
-      Convenient S3 methods for interpreting results from popular factor analysis packages.
+      S3 methods for interpreting results from popular psychometric packages.
       Automatically extract loadings and factor correlations from fitted model objects.
     contents:
-      - interpret
       - interpret.fa
       - interpret.principal
       - interpret.lavaan
@@ -48,14 +58,16 @@ reference:
 
   - title: "Utility Functions"
     desc: >
-      Helper functions for analyzing factor loading patterns.
+      Helper functions for analyzing factor loading patterns and checking object types.
     contents:
       - find_cross_loadings
       - find_no_loadings
+      - is.interpretation
 
   - title: "Print Methods"
     desc: >
-      S3 methods for displaying interpretation results.
+      S3 methods for displaying interpretation results and chat session information.
     contents:
       - print.fa_interpretation
+      - print.chat_session
       - print.chat_fa

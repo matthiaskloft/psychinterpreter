@@ -8,7 +8,7 @@ export_interpretation(
   interpretation_results,
   format = "txt",
   file = "fa_interpretation",
-  silent = FALSE
+  silent = 0
 )
 }
 \arguments{
@@ -22,7 +22,13 @@ factor analysis interpretation results with a 'report' element}
 (.txt or .md) will be added automatically if missing. Can include directory path.
 Default is "fa_interpretation"}
 
-\item{silent}{Logical. If TRUE, suppresses success message (default = FALSE)}
+\item{silent}{Integer or logical. Controls output verbosity:
+\itemize{
+\item 0 or FALSE: Show success message (default)
+\item 1 or TRUE: Suppress success message (same as 2 for this function)
+\item 2: Suppress success message
+For backward compatibility, logical values are accepted and converted to integers.
+}}
 }
 \value{
 Invisible TRUE on success

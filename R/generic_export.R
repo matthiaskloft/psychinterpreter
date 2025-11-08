@@ -10,7 +10,11 @@
 #' @param file Character. File path with or without extension. The appropriate extension
 #'   (.txt or .md) will be added automatically if missing. Can include directory path.
 #'   Default is "fa_interpretation"
-#' @param silent Logical. If TRUE, suppresses success message (default = FALSE)
+#' @param silent Integer or logical. Controls output verbosity:
+#'   - 0 or FALSE: Show success message (default)
+#'   - 1 or TRUE: Suppress success message (same as 2 for this function)
+#'   - 2: Suppress success message
+#'   For backward compatibility, logical values are accepted and converted to integers.
 #'
 #' @details
 #' **Supported Export Formats:**
@@ -65,7 +69,12 @@
 export_interpretation <- function(interpretation_results,
                                  format = "txt",
                                  file = "fa_interpretation",
-                                 silent = FALSE) {
+                                 silent = 0) {
+
+  # Handle backward compatibility: Convert logical to integer
+  if (is.logical(silent)) {
+    silent <- as.integer(silent)  # FALSE -> 0, TRUE -> 1
+  }
 
   # Validate inputs
   if (!is.list(interpretation_results)) {
@@ -128,7 +137,7 @@ export_interpretation <- function(interpretation_results,
   # Use cat() to properly interpret escape sequences like \n
   cat(report, file = output_file, sep = "")
 
-  if (!silent) {
+  if (silent == 0) {
     cli::cli_alert_success("Report exported to: {.file {output_file}}")
   }
 

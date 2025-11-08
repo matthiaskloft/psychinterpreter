@@ -294,7 +294,9 @@ Sys.setenv(ANTHROPIC_API_KEY = "your-key")   # Anthropic
 
 # Testing Guidelines
 
-See dev/TESTING_GUIDELINES.md
+- See dev/TESTING_GUIDELINES.md for specific testing guidelines
+- After making changes to the code base, always run the full test suite. Fix errors and warnings if necessary.
+
 
 ---
 
@@ -505,66 +507,78 @@ interpret_fa(..., echo = "all")
   - Reduced LLM calls from 33+ to ~7
   - Separated data extraction from LLM interpretation tests
 
+- ✅ **LLM testing strategy implementation** (2025-11-08)
+  - Integrated into dev/TESTING_GUIDELINES.md
+  - Current targets: 2 tests per model class using generic API, S3 methods without LLM calls, 1 test for chat sessions
+  - Test files follow pattern: test-interpret_fa.R, test-interpret_api.R, test-chat_fa.R
+
+- ✅ **Silent parameter enhancement** (2025-11-08)
+  - Changed from boolean to integer (0, 1, 2) for granular output control
+  - 0 = report + messages, 1 = messages only, 2 = completely silent
+  - Full backward compatibility (TRUE→1, FALSE→0)
+  - Updated: fa_interpret.R, generic_interpret.R, interpret_method_dispatch.R, generic_export.R
+  - Documentation regenerated for all affected functions
+
+- ✅ **_pkgdown.yml audit and update** (2025-11-08)
+  - Added missing functions: chat_session(), is.chat_session(), reset.chat_session(), is.interpretation(), print.chat_session()
+  - Created new "Chat Session Management" section
+  - Reorganized reference structure for better navigation
+
+- ✅ **Fix chat session model_type message** (2025-11-08)
+  - Fixed spurious message "ℹ The inherited chat session model_type ("fa") was used instead of the passed interpretation model_type"
+  - Message now only appears when there's an actual mismatch between passed model_type and chat_session's model_type
+  - Prevents confusing message when model_type is automatically inferred from fitted model objects
+
 ## Active TODOs
 
-- implement changed LLM testing guideline: "**Current targets**:
-  - Core: 2 tests (comprehensive + edge case) per implemented interpretation model class using the generic interpretation API
-  - S3 methods: do not test LLM calls! Only test the API components for the specific package.
-  - Chat sessions: 1 test"
+- in interpret(), silent = 0 and silent = 1 produce the same report. Also associate silent = 2 with silent = TRUE.
+- in interpret(), system_prompt and interpretation_guidelines are not specific to the class but are available arguments for all classes. Relocate them accordingly in the docs and in the argument order, maybe after llm specific arguments.
+- revisit the LLM call guidelines in the TEST_GUIDELINES.md
 
-- change silent argument to integer (0 = report + messages, 1 = messages, 2 = show nothing)
-
-- update class specific interpret functions, e.g., interpret_fa(), with current documentation from interpret()
-
-- screen the package for inconsistent and redundant code
-
-- update pkgdown yml
-
-- do an interactive code review of the core functionality
 
 ### High Priority
 
-1. **Analyze tests for runtime/token improvements**
-   - Tests are lengthy
-   - Further optimization opportunities may exist
-   - Review fixture usage patterns
+1. **Update class-specific interpret functions documentation**
+   - Sync interpret_fa() roxygen docs with interpret() generic
+   - Ensure all parameters consistently documented
+   - Verify examples are current
+
+### Medium Priority
 
 2. **Conduct interactive code review**
+   - Scope: generic_interpret.R, fa_interpret.R, base_chat_session.R
    - Review architecture decisions
    - Identify potential improvements
    - Document best practices
 
-### Medium Priority
-
-3. **Change silent argument to integer**
-   - Current: boolean
-   - Proposed: 0 = report + messages, 1 = messages, 2 = show nothing
-   - More granular control
+3. **Screen package for inconsistent and redundant code**
+   - Last audit: 2025-11-07 (removed 3 duplicate files)
+   - Check for logic duplication in core functions
+   - Consider using automated code analysis tools
 
 4. **Implement summary method**
-   - For chat_session objects: Show chat details
-   - For fa_interpretation objects: Show suggested names only
+   - For chat_session objects: Show session stats and token usage
+   - For fa_interpretation objects: Show suggested factor names only
    - Quick overview without full report
+
+5. **Analyze tests for runtime/token improvements**
+   - Tests are optimized but may have further opportunities
+   - Review fixture usage patterns
+   - Consider additional caching strategies
 
 ### Low Priority
 
-5. **Implement gaussian_mixture class**
+6. **Implement gaussian_mixture class**
    - Add GM interpretation support
    - Requires 7 S3 methods (see dev/DEVELOPER_GUIDE.md section 1.8)
 
-6. **Implement IRT interpretation class**
+7. **Implement IRT interpretation class**
    - Focus on item diagnostics
+   - Support mirt package outputs
 
-7. **Implement CDM interpretation class**
+8. **Implement CDM interpretation class**
    - Focus on q-matrix interpretation
-
-## Future Enhancements
-
-- **Custom Prompt System**: User-provided system prompts via parameters
-- **Batch Interpretation**: Interpret multiple models in single LLM call
-- **Caching**: Cache interpretations for identical inputs
-- **Progress Tracking**: Progress bars for long analyses
-- **CLI Output Format**: Add "cli" as third format option (see dev/DEVELOPER_GUIDE.md section 3.6)
+   - Support GDINA package outputs
 
 ---
 
@@ -620,6 +634,24 @@ See dev/DEVELOPER_GUIDE.md section 2 for full details.
 ---
 
 # Recent Changes
+
+## 2025-11-08: Silent Parameter Enhancement & Documentation Updates
+
+- **Silent Parameter Refactor**:
+  - Changed from boolean to integer (0, 1, 2) for granular output control
+  - 0 = show report and messages, 1 = messages only, 2 = completely silent
+  - Full backward compatibility maintained (TRUE→1, FALSE→0)
+  - Updated 4 core R files with comprehensive roxygen documentation
+
+- **_pkgdown.yml Improvements**:
+  - Added 5 missing exported functions to reference
+  - Created dedicated "Chat Session Management" section
+  - Reorganized structure for better navigation
+
+- **CLAUDE.md Cleanup**:
+  - Removed duplicate TODOs between Active and prioritized sections
+  - Moved completed items to "Completed TODOs" section
+  - Renumbered and reorganized for clarity
 
 ## 2025-11-07: Test Suite Optimization & Code Cleanup
 
@@ -703,5 +735,5 @@ None currently.
 
 ---
 
-**Last Updated**: 2025-11-07
+**Last Updated**: 2025-11-08
 **Maintainer**: Update when making significant changes

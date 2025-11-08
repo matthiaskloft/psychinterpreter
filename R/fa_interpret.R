@@ -46,7 +46,11 @@
 #'   If NULL, uses provider defaults. See ellmer::params() documentation for supported parameters.
 #' @param word_limit Integer. Maximum number of words for LLM interpretations (default = 150)
 #' @param max_line_length Integer. Maximum line length for console output text wrapping (default = 80)
-#' @param silent Logical. If TRUE, suppresses printing the interpretation report and progress bars to console (default = FALSE)
+#' @param silent Integer or logical. Controls output verbosity:
+#'   - 0 or FALSE: Show report and all messages (default)
+#'   - 1 or TRUE: Show messages only, suppress report
+#'   - 2: Completely silent, suppress all output
+#'   For backward compatibility, logical values are accepted and converted to integers.
 #' @param echo Character. Controls what is echoed during LLM interaction. One of "none" (no output),
 #'   "output" (show only LLM responses), or "all" (show prompts and responses). Passed directly
 #'   to the ellmer chat function for debugging and transparency (default = "none")
@@ -164,12 +168,17 @@ interpret_fa <- function(loadings,
                          heading_level = 1,
                          suppress_heading = FALSE,
                          max_line_length = 80,
-                         silent = FALSE,
+                         silent = 0,
                          echo = "none") {
 
   # ==========================================================================
   # SECTION 1: PARAMETER VALIDATION
   # ==========================================================================
+
+  # Handle backward compatibility: Convert logical to integer
+  if (is.logical(silent)) {
+    silent <- as.integer(silent)  # FALSE -> 0, TRUE -> 1
+  }
 
   # Validate chat_session if provided
   if (!is.null(chat_session)) {
@@ -200,7 +209,7 @@ interpret_fa <- function(loadings,
 
   # Inform user if chat_session overrides provider/model
   if (!is.null(chat_session) && (!is.null(llm_provider) || !is.null(llm_model))) {
-    if (!silent) {
+    if (silent < 2) {
       cli::cli_inform(
         c("i" = "Using provided {.field chat_session} (overrides {.field llm_provider} and {.field llm_model} arguments)")
       )
@@ -292,11 +301,12 @@ interpret_fa <- function(loadings,
   }
 
   # Validate silent
-  if (!is.logical(silent) || length(silent) != 1 || is.na(silent)) {
+  if (!is.numeric(silent) || length(silent) != 1 || is.na(silent) || !silent %in% c(0, 1, 2)) {
     cli::cli_abort(
       c(
-        "{.var silent} must be a single logical value (TRUE or FALSE)",
-        "x" = "You supplied: {.val {silent}}"
+        "{.var silent} must be 0, 1, or 2 (or logical TRUE/FALSE for backward compatibility)",
+        "x" = "You supplied: {.val {silent}}",
+        "i" = "0 = show report and messages, 1 = show messages only, 2 = completely silent"
       )
     )
   }
