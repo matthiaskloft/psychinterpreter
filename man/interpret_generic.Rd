@@ -8,7 +8,7 @@ interpret_generic(
   model_data,
   model_type = NULL,
   variable_info,
-  llm_provider = "anthropic",
+  llm_provider = NULL,
   llm_model = NULL,
   chat_session = NULL,
   word_limit = 100,
@@ -30,7 +30,7 @@ interpret_generic(
 
 \item{variable_info}{Data frame. Variable descriptions with 'variable' and 'description' columns}
 
-\item{llm_provider}{Character. LLM provider (e.g., "anthropic", "openai", "ollama")}
+\item{llm_provider}{Character. LLM provider (e.g., "anthropic", "openai", "ollama"). Required when chat_session is NULL (default = NULL)}
 
 \item{llm_model}{Character or NULL. Model name}
 

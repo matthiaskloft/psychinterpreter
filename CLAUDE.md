@@ -140,116 +140,7 @@ print(chat)
 # Usage Patterns
 
 The `interpret()` function is the main entry point. All arguments are **named** to prevent positional confusion.
-
-## Pattern 1: Fitted Model Objects (Recommended)
-
-**Automatically extracts loadings from fitted models**
-
-```r
-# Works with psych::fa()
-fa_result <- psych::fa(data, nfactors = 3)
-interpretation <- interpret(
-  model_fit = fa_result,
-  variable_info = var_descriptions,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-
-# Also works with lavaan
-efa_result <- lavaan::efa(data, nfactors = 3)
-interpretation <- interpret(
-  model_fit = efa_result,
-  variable_info = var_descriptions,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-
-# And mirt
-mirt_result <- mirt::mirt(data, model = 3)
-interpretation <- interpret(
-  model_fit = mirt_result,
-  variable_info = var_descriptions,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-```
-
-## Pattern 2: Raw Data (Matrix/Data Frame)
-
-**For custom loadings matrices or manual extraction**
-
-```r
-loadings <- as.data.frame(unclass(fa_model$loadings))
-
-interpretation <- interpret(
-  model_fit = loadings,
-  variable_info = var_descriptions,
-  model_type = "fa",  # Required for raw data
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-```
-
-## Pattern 3: Structured List
-
-**For providing loadings + factor correlations separately**
-
-```r
-# With factor correlations (oblique rotation)
-interpretation <- interpret(
-  model_fit = list(
-    loadings = loadings_matrix,
-    Phi = factor_cor_mat  # or factor_cor_mat = ...
-  ),
-  variable_info = var_descriptions,
-  model_type = "fa",
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-
-# Minimal (orthogonal rotation, no Phi needed)
-interpretation <- interpret(
-  model_fit = list(loadings = loadings_matrix),
-  variable_info = var_descriptions,
-  model_type = "fa",
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
-)
-```
-
-## Pattern 4: Chat Session (Most Efficient for Multiple Analyses)
-
-**Token-efficient: Reuses system prompt across interpretations**
-
-```r
-# Create session once
-chat <- chat_session(
-  model_type = "fa",
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
-)
-
-# Use for multiple interpretations
-result1 <- interpret(
-  chat_session = chat,
-  model_fit = loadings1,
-  variable_info = var_info1
-)
-
-result2 <- interpret(
-  chat_session = chat,
-  model_fit = loadings2,
-  variable_info = var_info2
-)
-
-result3 <- interpret(
-  chat_session = chat,
-  model_fit = list(loadings = loadings3, Phi = phi3),  # Works with all input types
-  variable_info = var_info3
-)
-
-print(chat)  # Check cumulative tokens
-```
+For usage patterns see the roxygen docs in R/interpret_method_dispatch.R
 
 **Key Points:**
 - All arguments are **named** - no positional confusion
@@ -403,97 +294,7 @@ Sys.setenv(ANTHROPIC_API_KEY = "your-key")   # Anthropic
 
 # Testing Guidelines
 
-## Test Infrastructure
-
-- **Framework**: testthat 3.0
-- **Fixtures**: Stored in `tests/testthat/fixtures/` as `.rds` files
-- **Helper functions**: In `helper.R`, use `test_path()` for portability
-- **Environment caching**: Fixtures cached in `.test_cache` environment
-  - 40x+ speedup on repeated fixture access
-  - 97.6% time reduction for fixture loading
-  - Zero impact on package size (cache only exists during testing)
-
-## Minimal LLM Testing Strategy
-
-**Goal**: Reduce token usage and test execution time
-
-**Core Principle**: Separate data extraction tests from LLM interpretation tests
-
-- **Core interpretation**: 2 LLM tests (1 comprehensive + 1 edge case)
-- **S3 methods**: 4 LLM tests (1 integration per package: psych, lavaan, mirt, efaList)
-  - All other S3 method tests focus on data extraction only (no LLM calls)
-- **Chat sessions**: 1 LLM test (session reuse with 2 interpretations)
-- **Print/visualization**: 0 LLM tests (use cached `sample_interpretation()`)
-- **Total**: ~7 LLM calls (down from 33+ before optimization)
-
-## Test Fixture Strategy
-
-**Three fixture sets:**
-
-1. **Standard fixtures** (`sample_*`): 5 variables × 3 factors (~400-500 tokens)
-   - Use for comprehensive tests requiring realistic data
-
-2. **Minimal fixtures** (`minimal_*`): 3 variables × 2 factors (~150-200 tokens, 60-70% reduction)
-   - Use for token-efficient LLM tests
-   - Set `word_limit = 20` (minimum allowed)
-
-3. **Correlational fixtures** (`correlational_*`): 6 variables × 2 factors
-   - Realistic FA data with proper factor structure
-   - Eliminates Heywood case warnings
-
-## Writing Tests
-
-### Test Organization
-```r
-test_that("descriptive name", {
-  # Setup
-  data <- load_fixture("sample_loadings")
-
-  # Exercise
-  result <- interpret_fa(data$loadings, data$var_info)
-
-  # Verify
-  expect_s3_class(result, "fa_interpretation")
-  expect_equal(length(result$suggested_names), 3)
-})
-```
-
-### LLM Test Guidelines
-```r
-test_that("interpretation with LLM (uses tokens)", {
-  skip_on_ci()  # Skip on CI
-
-  # Use minimal fixtures
-  data <- load_fixture("minimal_loadings")
-
-  # Use token-efficient parameters
-  result <- interpret_fa(
-    data$loadings,
-    data$var_info,
-    word_limit = 20,  # Minimum allowed
-    llm_provider = "ollama",
-    llm_model = "gpt-oss:20b-cloud"
-  )
-
-  expect_s3_class(result, "fa_interpretation")
-  expect_type(result$suggested_names, "character")
-})
-```
-
-### Non-LLM Test Guidelines
-```r
-test_that("data extraction from psych::fa object", {
-  # No skip_on_ci() needed - no LLM call
-
-  fa_result <- psych::fa(data, nfactors = 3)
-
-  # Test extraction only, use cached interpretation for rest
-  cached_interp <- sample_interpretation()
-
-  expect_equal(nrow(extract_loadings(fa_result)), 5)
-  expect_equal(ncol(extract_loadings(fa_result)), 3)
-})
-```
+See dev/TESTING_GUIDELINES.md
 
 ---
 
@@ -706,6 +507,17 @@ interpret_fa(..., echo = "all")
 
 ## Active TODOs
 
+- implement changed LLM testing guideline: "**Current targets**:
+  - Core: 2 tests (comprehensive + edge case) per implemented interpretation model class using the generic interpretation API
+  - S3 methods: do not test LLM calls! Only test the API components for the specific package.
+  - Chat sessions: 1 test"
+
+- update class specific interpret functions, e.g., interpret_fa(), with current documentation from interpret()
+
+- screen the package for inconsistent and redundant code
+
+- do an interactive code review of the core functionality
+
 ### High Priority
 
 1. **Analyze tests for runtime/token improvements**
@@ -883,6 +695,7 @@ See dev/DEVELOPER_GUIDE.md section 2 for full details.
 ## Known Issues
 
 None currently.
+
 
 ---
 

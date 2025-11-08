@@ -17,7 +17,8 @@
       "Bash(tree:*)",
       "Bash(awk:*)",
       "Bash(git mv:*)",
-      "Bash(R CMD build:*)"
+      "Bash(R CMD build:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

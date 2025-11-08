@@ -6,7 +6,7 @@
 #' @param model_data List. Model-specific data structure (loadings, parameters, etc.)
 #' @param model_type Character. Type of analysis ("fa", "gm", "irt", "cdm")
 #' @param variable_info Data frame. Variable descriptions with 'variable' and 'description' columns
-#' @param llm_provider Character. LLM provider (e.g., "anthropic", "openai", "ollama")
+#' @param llm_provider Character. LLM provider (e.g., "anthropic", "openai", "ollama"). Required when chat_session is NULL (default = NULL)
 #' @param llm_model Character or NULL. Model name
 #' @param chat_session Chat session object or NULL. If NULL, creates temporary session
 #' @param word_limit Integer. Word limit for interpretations (default = 100)
@@ -38,7 +38,7 @@
 interpret_generic <- function(model_data,
                           model_type = NULL,
                           variable_info,
-                          llm_provider = "anthropic",
+                          llm_provider = NULL,
                           llm_model = NULL,
                           chat_session = NULL,
                           word_limit = 100,
@@ -85,6 +85,17 @@ interpret_generic <- function(model_data,
       c(
         "{.var model_type} must be provided if {.var chat_session} is NULL",
         "i" = "Either provide a chat_session or specify the model_type"
+      )
+    )
+  }
+
+  # Validate llm_provider when chat_session is NULL
+  if (is.null(chat_session) && is.null(llm_provider)) {
+    cli::cli_abort(
+      c(
+        "{.var llm_provider} is required when {.var chat_session} is NULL",
+        "i" = "Specify llm_provider (e.g., 'anthropic', 'openai', 'ollama', 'gemini')",
+        "i" = "Or provide a chat_session created with chat_session()"
       )
     )
   }

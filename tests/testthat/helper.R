@@ -153,6 +153,70 @@ correlational_var_info <- function() {
   .test_cache[[cache_key]]
 }
 
+# Psych Package Fixtures (for S3 method testing) ----
+# These fixtures cache psych::fa and psych::principal models
+
+#' Load sample FA model with oblimin rotation (for S3 method tests)
+#'
+#' @return A fitted psych::fa object (2 factors, oblique rotation)
+sample_fa_oblimin <- function() {
+  cache_key <- "sample_fa_oblimin"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_fa_oblimin.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load sample FA model with varimax rotation (for S3 method tests)
+#'
+#' @return A fitted psych::fa object (2 factors, orthogonal rotation)
+sample_fa_varimax <- function() {
+  cache_key <- "sample_fa_varimax"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_fa_varimax.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load sample PCA model with varimax rotation (for S3 method tests)
+#'
+#' @return A fitted psych::principal object (2 components, orthogonal rotation)
+sample_pca_varimax <- function() {
+  cache_key <- "sample_pca_varimax"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_pca_varimax.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+# Lavaan Package Fixtures (for S3 method testing) ----
+# These fixtures cache lavaan CFA models
+
+#' Load sample lavaan CFA model (for S3 method tests)
+#'
+#' @return A fitted lavaan CFA object (2 factors on HolzingerSwineford1939 data)
+sample_lavaan_cfa <- function() {
+  cache_key <- "sample_lavaan_cfa"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_lavaan_cfa.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+# MIRT Fixtures (for S3 method testing) ----
+# These fixtures cache expensive MIRT model fits
+
+#' Load sample MIRT model (for S3 method tests)
+#'
+#' @return A fitted mirt::SingleGroupClass object (2-dimensional 2PL model)
+sample_mirt_model <- function() {
+  cache_key <- "sample_mirt_model"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_mirt_model.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
 # LLM Availability Functions ----
 
 #' Check if Ollama/LLM is available for testing

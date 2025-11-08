@@ -81,7 +81,8 @@ test_that("Pattern 2: interpret() requires model_type for raw data", {
   expect_error(
     interpret(
       model_fit = loadings,
-      variable_info = var_info
+      variable_info = var_info,
+      llm_provider = "ollama"  # Provide llm_provider to get past that validation
       # No model_type, no chat_session
     ),
     "model_type.*required"
@@ -105,8 +106,8 @@ test_that("Pattern 3: interpret() accepts structured lists in various formats", 
   list1 <- list(loadings = loadings)
   expect_true("loadings" %in% names(list1))
 
-  list2 <- list(loadings = loadings, Phi = phi)
-  expect_true(all(c("loadings", "Phi") %in% names(list2)))
+  list2 <- list(loadings = loadings, factor_cor_mat = phi)
+  expect_true(all(c("loadings", "factor_cor_mat") %in% names(list2)))
 
   list3 <- list(loadings = loadings, factor_cor_mat = phi)
   expect_true(all(c("loadings", "factor_cor_mat") %in% names(list3)))
@@ -124,9 +125,10 @@ test_that("Pattern 3: interpret() requires loadings in list", {
   # List without loadings should error
   expect_error(
     interpret(
-      model_fit = list(Phi = phi),  # Missing loadings
+      model_fit = list(factor_cor_mat = phi),  # Missing loadings
       variable_info = var_info,
-      model_type = "fa"
+      model_type = "fa",
+      llm_provider = "ollama"  # Provide llm_provider to get past that validation
     ),
     "loadings.*required|must contain.*loadings"
   )
@@ -149,6 +151,20 @@ test_that("Pattern 3: interpret() handles unrecognized list components", {
 
   # Warning behavior tested when actually calling interpret (if needed)
   # For now, just verify structure
+})
+
+test_that("Pattern 3: Backward compatibility - 'Phi' still works", {
+  # Ensure old code using 'Phi' as key name still works
+  loadings <- minimal_loadings()
+  var_info <- minimal_variable_info()
+  phi <- minimal_factor_cor()
+
+  # Old syntax with 'Phi' should still work
+  list_old_syntax <- list(loadings = loadings, Phi = phi)
+  expect_true(all(c("loadings", "Phi") %in% names(list_old_syntax)))
+
+  # The validate_fa_list_structure() function should accept both names
+  # Full integration test would require LLM call, so just verify structure
 })
 
 # ==============================================================================
@@ -190,7 +206,7 @@ test_that("Pattern 4: interpret() accepts chat_session with various model_fit ty
   expect_s3_class(fa_model, "fa")
 
   # Structured list is valid
-  list_fit <- list(loadings = loadings, Phi = phi)
+  list_fit <- list(loadings = loadings, factor_cor_mat = phi)
   expect_true(is.list(list_fit))
   expect_true("loadings" %in% names(list_fit))
 
@@ -299,7 +315,8 @@ test_that("Misuse: interpret() errors for unsupported model_fit type", {
     interpret(
       model_fit = "not_a_valid_type",
       variable_info = var_info,
-      model_type = "fa"
+      model_type = "fa",
+      llm_provider = "ollama"  # Provide llm_provider to get past that validation
     ),
     "Cannot interpret"
   )

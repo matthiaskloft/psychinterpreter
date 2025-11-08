@@ -200,7 +200,7 @@ test_that("interpret() with chat_session accepts different model_fit formats", {
   # Format 1: Raw data (already tested in integration test above)
   # Format 2: Structured list - just verify structure is accepted
   phi <- minimal_factor_cor()
-  structured_list <- list(loadings = loadings, Phi = phi)
+  structured_list <- list(loadings = loadings, factor_cor_mat = phi)
 
   # Should not error on parameter validation
   expect_silent({

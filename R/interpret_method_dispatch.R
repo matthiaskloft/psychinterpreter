@@ -11,39 +11,50 @@
 #' @param chat_session Optional. A chat_session object created with \code{\link{chat_session}}
 #'   for token-efficient multi-analysis workflows.
 #' @param model_fit One of:
-#'   - Fitted model object (psych::fa, lavaan::cfa, mirt::mirt, etc.)
-#'   - Raw data (loadings matrix as data.frame/matrix)
-#'   - Structured list with model components (e.g., \code{list(loadings = ..., Phi = ...)})
+#'   - **Fitted model object**:
+#'     - psych package: \code{fa()}, \code{principal()}
+#'     - lavaan package: \code{cfa()}, \code{sem()}, \code{efa()}
+#'     - mirt package: \code{mirt()}
+#'   - **Structured list** with model components (raw data):
+#'     - For FA: \code{list(loadings = matrix, factor_cor_mat = matrix)} or \code{list(loadings = matrix)}
+#'     - For GM: Not yet implemented
+#'     - For IRT: Not yet implemented
+#'     - For CDM: Not yet implemented
 #' @param variable_info Dataframe with 'variable' and 'description' columns describing the variables.
 #' @param model_type Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
-#'   raw data without chat_session. Automatically inferred from chat_session if provided.
+#'   structured list without chat_session. Automatically inferred from chat_session if provided.
+#'
+#' @param llm_provider Character. LLM provider to use (e.g., "openai", "anthropic", "ollama", "gemini").
+#'   Any provider supported by ellmer::chat(). Required when chat_session is NULL. See ellmer documentation
+#'   for complete list (default = NULL).
+#' @param llm_model Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b").
+#'   If NULL, uses provider default (default = NULL).
+#' @param params Parameters for the LLM created using ellmer::params() (e.g., params(temperature = 0.7, seed = 42)).
+#'   Provides provider-agnostic interface for setting model parameters like temperature, seed, max_tokens, etc.
+#'   If NULL, uses provider defaults (default = NULL).
+#' @param additional_info Character. Optional additional context for the LLM, such as theoretical background,
+#'   research area information, or domain-specific knowledge to inform interpretation (default = NULL).
+#' @param word_limit Integer. Maximum number of words for LLM interpretations (default = 150).
+#'
+#' @param output_format Character. Output format for the report: "cli" or "markdown" (default = "cli").
+#' @param heading_level Integer. Starting heading level for markdown output (default = 1). Used when output_format = "markdown".
+#' @param suppress_heading Logical. If TRUE, suppresses the main interpretation heading for `output_format` = "markdown,
+#'   allowing better integration into existing documents (default = FALSE).
+#' @param max_line_length Integer. Maximum line length for console output text wrapping (default = 80).
+#'
+#' @param silent Logical. If TRUE, suppresses printing the interpretation report and progress messages to console (default = FALSE).
+#' @param echo Character. Controls what is echoed during LLM interaction. One of "none" (no output),
+#'   "output" (show only LLM responses), or "all" (show prompts and responses). Useful for debugging (default = "none").
+#'
 #' @param ... Additional model-specific parameters:
-#'
-#'  **LLM settings**:
-#'    - llm_provider:
-#'    - llm_model:
-#'    - params:
-#'    - system_prompt:
-#'    - interpretation_guidelines:
-#'    - additional_info:
-#'    - word_limit:
-#'
-#'  **Report settings**:
-#'    - max_line_length:
-#'    - output_format:
-#'    - heading_level:
-#'    - suppress_heading
-#'
-#'  **Verbosity settings**:
-#'    - silent:
-#'    - echo:
-#'
-#'  **FA-specific** (see [interpret_fa()]:
-#'    - factor_cor_mat:
-#'    - hide_low_loadings:
-#'    - sort_loadings:
-#'    - cutoff:
-#'    - n_emergency:
+#'  - **FA-specific** (see \code{\link{interpret_fa}}):
+#'    - `cutoff`: Minimum loading value to consider (default = 0.3)
+#'    - `n_emergency`: Number of highest loadings to use when no loadings exceed cutoff (default = 2)
+#'    - `hide_low_loadings`: Hide loadings below cutoff in LLM prompt (default = FALSE)
+#'    - `sort_loadings`: Sort variables by loading strength within factors (default = TRUE)
+#'    - `factor_cor_mat`: Factor correlation matrix for oblique rotations (default = NULL)
+#'    - `system_prompt`: Custom system prompt to override package default (default = NULL)
+#'    - `interpretation_guidelines`: Custom interpretation guidelines (default = NULL)
 #'
 #'
 #' @details
@@ -65,36 +76,24 @@
 #' )
 #' }
 #'
-#' **Pattern 2: Raw Data with model_type**
+#' **Pattern 2: Structured List (Raw Data)**
 #'
-#' For custom data structures or manual extraction.
+#' For custom data structures or manual extraction. Always use a structured list.
 #'
-#' \preformatted{
-#' interpret(
-#'   model_fit = loadings_matrix,
-#'   variable_info = var_info,
-#'   model_type = "fa",
-#'   llm_provider = "ollama",
-#'   llm_model = "gpt-oss:20b-cloud"
-#' )
-#' }
-#'
-#' **Pattern 3: Structured List**
-#'
-#' For FA: Provide loadings (required) and optionally Phi/factor_cor_mat.
+#' For FA, provide loadings (required) and optionally factor_cor_mat:
 #'
 #' \preformatted{
 #' interpret(
 #'   model_fit = list(
 #'     loadings = loadings_matrix,
-#'     Phi = factor_cor_mat
+#'     factor_cor_mat = factor_cor_mat
 #'   ),
 #'   variable_info = var_info,
 #'   model_type = "fa"
 #' )
 #' }
 #'
-#' **Pattern 4: Chat Session (Token-Efficient)**
+#' **Pattern 3: Chat Session (Token-Efficient)**
 #'
 #' Reuse chat session across analyses to save tokens.
 #'
@@ -140,21 +139,24 @@
 #'   llm_model = "gpt-oss:20b-cloud"
 #' )
 #'
-#' # Pattern 2: Raw data
+#' # Pattern 2: Structured list (raw data)
+#' # Extract loadings from fitted model
 #' loadings <- as.data.frame(unclass(fa_model$loadings))
-#' result2 <- interpret(
-#'   model_fit = loadings,
+#'
+#' # Option A: Loadings only (orthogonal rotation)
+#' result2a <- interpret(
+#'   model_fit = list(loadings = loadings),
 #'   variable_info = var_info,
 #'   model_type = "fa",
 #'   llm_provider = "ollama",
 #'   llm_model = "gpt-oss:20b-cloud"
 #' )
 #'
-#' # Pattern 3: Structured list
-#' result3 <- interpret(
+#' # Option B: Loadings + factor correlations (oblique rotation)
+#' result2b <- interpret(
 #'   model_fit = list(
 #'     loadings = loadings,
-#'     Phi = fa_model$Phi
+#'     factor_cor_mat = fa_model$Phi  # Extract Phi from fitted model
 #'   ),
 #'   variable_info = var_info,
 #'   model_type = "fa",
@@ -162,16 +164,27 @@
 #'   llm_model = "gpt-oss:20b-cloud"
 #' )
 #'
-#' # Pattern 4: Chat session
+#' # Pattern 3: Chat session (token-efficient for multiple analyses)
 #' chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
-#' result4a <- interpret(chat_session = chat, model_fit = loadings, variable_info = var_info)
-#' result4b <- interpret(chat_session = chat, model_fit = loadings2, variable_info = var_info2)
+#' result3a <- interpret(chat_session = chat, model_fit = fa_model, variable_info = var_info)
+#' result3b <- interpret(chat_session = chat, model_fit = fa_model2, variable_info = var_info2)
 #' print(chat)  # Check token usage
 #' }
 interpret <- function(chat_session = NULL,
                      model_fit = NULL,
                      variable_info = NULL,
                      model_type = NULL,
+                     llm_provider = NULL,
+                     llm_model = NULL,
+                     params = NULL,
+                     additional_info = NULL,
+                     word_limit = 150,
+                     output_format = "cli",
+                     heading_level = 1,
+                     suppress_heading = FALSE,
+                     max_line_length = 80,
+                     silent = FALSE,
+                     echo = "none",
                      ...) {
 
   # ============================================================================
@@ -183,10 +196,9 @@ interpret <- function(chat_session = NULL,
     cli::cli_abort(
       c("No arguments provided to interpret()",
         "i" = "Usage patterns:",
-        " " = "1. interpret(model_fit = model, variable_info = var_info, ...)",
-        " " = "2. interpret(model_fit = data, variable_info = var_info, model_type = 'fa', ...)",
-        " " = "3. interpret(model_fit = list(loadings = ...), variable_info = var_info, model_type = 'fa', ...)",
-        " " = "4. interpret(chat_session = chat, model_fit = ..., variable_info = var_info, ...)",
+        " " = "1. interpret(model_fit = model, variable_info = var_info, llm_provider = ...)",
+        " " = "2. interpret(model_fit = list(loadings = ...), variable_info = var_info, model_type = 'fa', llm_provider = ...)",
+        " " = "3. interpret(chat_session = chat, model_fit = ..., variable_info = var_info)",
         "i" = "See ?interpret for details")
     )
   }
@@ -196,9 +208,8 @@ interpret <- function(chat_session = NULL,
     cli::cli_abort(
       c("{.var model_fit} is required",
         "i" = "Provide one of:",
-        " " = "- Fitted model object (psych::fa, lavaan::cfa, etc.)",
-        " " = "- Raw data (loadings matrix)",
-        " " = "- Structured list (e.g., list(loadings = ...))")
+        " " = "- Fitted model: psych::fa/principal, lavaan::cfa/sem/efa, mirt::mirt",
+        " " = "- Structured list: list(loadings = matrix, factor_cor_mat = matrix)")
     )
   }
 
@@ -236,6 +247,15 @@ interpret <- function(chat_session = NULL,
           "i" = "Create with: chat_session(model_type, provider, model)")
       )
     }
+  }
+
+  # Validate llm_provider when chat_session is NULL
+  if (is.null(chat_session) && is.null(llm_provider)) {
+    cli::cli_abort(
+      c("{.var llm_provider} is required when {.var chat_session} is NULL",
+        "i" = "Specify llm_provider (e.g., 'anthropic', 'openai', 'ollama', 'gemini')",
+        "i" = "Or provide a chat_session created with chat_session()")
+    )
   }
 
   # Determine effective model_type
@@ -279,7 +299,24 @@ interpret <- function(chat_session = NULL,
   # ============================================================================
   if (is_fitted_model) {
     # Use internal interpret_model() S3 generic
-    return(interpret_model(model_fit, variable_info, chat_session = chat_session, ...))
+    # Pass all explicit parameters that were made non-anonymous
+    return(interpret_model(
+      model_fit,
+      variable_info,
+      chat_session = chat_session,
+      llm_provider = llm_provider,
+      llm_model = llm_model,
+      params = params,
+      additional_info = additional_info,
+      word_limit = word_limit,
+      output_format = output_format,
+      heading_level = heading_level,
+      suppress_heading = suppress_heading,
+      max_line_length = max_line_length,
+      silent = silent,
+      echo = echo,
+      ...
+    ))
   }
 
   # ============================================================================
@@ -306,6 +343,17 @@ interpret <- function(chat_session = NULL,
         model_type = effective_model_type,
         chat_session = chat_session,
         factor_cor_mat = extracted$factor_cor_mat,
+        llm_provider = llm_provider,
+        llm_model = llm_model,
+        params = params,
+        additional_info = additional_info,
+        word_limit = word_limit,
+        output_format = output_format,
+        heading_level = heading_level,
+        suppress_heading = suppress_heading,
+        max_line_length = max_line_length,
+        silent = silent,
+        echo = echo,
         ...
       ))
     } else {
@@ -334,6 +382,17 @@ interpret <- function(chat_session = NULL,
       variable_info = variable_info,
       model_type = effective_model_type,
       chat_session = chat_session,
+      llm_provider = llm_provider,
+      llm_model = llm_model,
+      params = params,
+      additional_info = additional_info,
+      word_limit = word_limit,
+      output_format = output_format,
+      heading_level = heading_level,
+      suppress_heading = suppress_heading,
+      max_line_length = max_line_length,
+      silent = silent,
+      echo = echo,
       ...
     ))
   }
@@ -344,9 +403,8 @@ interpret <- function(chat_session = NULL,
   cli::cli_abort(
     c("Cannot interpret object of class {.cls {class(model_fit)}}",
       "i" = "Supported types:",
-      " " = "- Fitted models: fa, principal, lavaan, efaList, SingleGroupClass",
-      " " = "- Raw data: matrix or data.frame",
-      " " = "- Structured list: list(loadings = ..., Phi = ...)",
+      " " = "- Fitted models: psych (fa, principal), lavaan (cfa, sem, efa), mirt (mirt)",
+      " " = "- Structured list: list(loadings = matrix, factor_cor_mat = matrix)",
       "i" = "See ?interpret for details")
   )
 }

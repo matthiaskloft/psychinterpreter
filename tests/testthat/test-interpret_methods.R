@@ -10,16 +10,18 @@ test_that("interpret generic function exists and dispatches correctly", {
 })
 
 test_that("interpret throws informative error for unsupported types", {
-  # Test with unsupported object type (list without model_type)
-  unsupported <- list(data = "test")
+  # Test with unsupported object type (not a fitted model, not list, not matrix/df)
+  unsupported <- "not_a_valid_model"
   class(unsupported) <- "unsupported_class"
 
   expect_error(
     interpret(
       model_fit = unsupported,
-      variable_info = data.frame(variable = "test", description = "test")
+      variable_info = data.frame(variable = "test", description = "test"),
+      llm_provider = "ollama",  # Provide to get past validation
+      model_type = "fa"  # Provide to get past validation
     ),
-    "model_type.*chat_session.*required"
+    "Cannot interpret"
   )
 })
 
@@ -32,9 +34,8 @@ test_that("interpret.fa correctly extracts loadings from psych::fa objects", {
 
   library(psych)
 
-  # Use fixture with proper correlational structure
-  data <- correlational_data()
-  fa_model <- fa(data, nfactors = 2, rotate = "oblimin", warnings = FALSE)
+  # Use cached FA model (saves fitting time)
+  fa_model <- sample_fa_oblimin()
 
   # Check that model has expected structure
   expect_true("loadings" %in% names(fa_model))
@@ -52,8 +53,8 @@ test_that("interpret.fa correctly extracts factor correlations from oblique rota
 
   library(psych)
 
-  data <- correlational_data()
-  fa_model <- fa(data, nfactors = 2, rotate = "oblimin", warnings = FALSE)
+  # Use cached FA model (saves fitting time)
+  fa_model <- sample_fa_oblimin()
 
   # Check that Phi (factor correlations) is present for oblique rotation
   expect_true(!is.null(fa_model$Phi))
@@ -66,8 +67,8 @@ test_that("interpret.fa handles orthogonal rotation (no Phi)", {
 
   library(psych)
 
-  data <- correlational_data()
-  fa_model <- fa(data, nfactors = 2, rotate = "varimax", warnings = FALSE)
+  # Use cached FA model with orthogonal rotation (saves fitting time)
+  fa_model <- sample_fa_varimax()
 
   # Varimax is orthogonal - Phi should be NULL
   expect_true(is.null(fa_model$Phi))
@@ -88,7 +89,8 @@ test_that("interpret validates input model for psych::fa", {
     interpret(
       model_fit = bad_model,
       variable_info = var_info,
-      model_type = "fa"
+      model_type = "fa",
+      llm_provider = "ollama"  # Provide to get past validation
     ),
     "No variables.*found in.*variable_info"
   )
@@ -99,8 +101,8 @@ test_that("interpret.principal correctly extracts component loadings", {
 
   library(psych)
 
-  data <- correlational_data()
-  pca_model <- principal(data, nfactors = 2, rotate = "varimax")
+  # Use cached PCA model (saves fitting time)
+  pca_model <- sample_pca_varimax()
 
   # Check that model has expected structure
   expect_true("loadings" %in% names(pca_model))
@@ -117,8 +119,8 @@ test_that("interpret.principal does not extract factor correlations (orthogonal)
 
   library(psych)
 
-  data <- correlational_data()
-  pca_model <- principal(data, nfactors = 2, rotate = "varimax")
+  # Use cached PCA model (saves fitting time)
+  pca_model <- sample_pca_varimax()
 
   # PCA should have NULL Phi (components are orthogonal)
   expect_true(is.null(pca_model$Phi))
@@ -133,13 +135,8 @@ test_that("interpret.lavaan correctly extracts loadings from CFA models", {
 
   library(lavaan)
 
-  # Simple CFA model
-  model_syntax <- '
-    visual  =~ x1 + x2 + x3
-    textual =~ x4 + x5 + x6
-  '
-
-  fit <- cfa(model_syntax, data = HolzingerSwineford1939, std.lv = TRUE)
+  # Use cached lavaan CFA model (saves fitting time)
+  fit <- sample_lavaan_cfa()
 
   # Check that model is fitted
   expect_true(inherits(fit, "lavaan"))
@@ -157,13 +154,8 @@ test_that("interpret.lavaan extracts factor correlations when present", {
 
   library(lavaan)
 
-  # CFA model with factor correlation
-  model_syntax <- '
-    visual  =~ x1 + x2 + x3
-    textual =~ x4 + x5 + x6
-  '
-
-  fit <- cfa(model_syntax, data = HolzingerSwineford1939, std.lv = TRUE)
+  # Use cached lavaan CFA model (saves fitting time)
+  fit <- sample_lavaan_cfa()
 
   # Check for factor correlations in standardizedSolution
   std_sol <- lavaan::standardizedSolution(fit)
@@ -190,7 +182,8 @@ test_that("interpret.lavaan validates input model", {
     interpret(
       model_fit = bad_model,
       variable_info = var_info,
-      model_type = "fa"
+      model_type = "fa",
+      llm_provider = "ollama"  # Provide to get past validation
     ),
     "must contain.*loadings"
   )
@@ -205,11 +198,8 @@ test_that("interpret.SingleGroupClass correctly extracts factor loadings from mi
 
   library(mirt)
 
-  # Use LSAT7 dataset
-  data <- expand.table(LSAT7)
-
-  # Fit a 2-dimensional model
-  mirt_model <- mirt(data, 2, itemtype = "2PL", verbose = FALSE)
+  # Use cached MIRT model (saves ~4 seconds per test run)
+  mirt_model <- sample_mirt_model()
 
   # Check that model is fitted
   expect_true(inherits(mirt_model, "SingleGroupClass"))
@@ -239,7 +229,8 @@ test_that("interpret validates input model for mirt", {
     interpret(
       model_fit = bad_model,
       variable_info = var_info,
-      model_type = "fa"
+      model_type = "fa",
+      llm_provider = "ollama"  # Provide to get past validation
     ),
     "must contain.*loadings"
   )
@@ -255,10 +246,9 @@ test_that("interpret.fa end-to-end integration with psych::fa", {
 
   library(psych)
 
-  # Use correlational fixture (realistic FA structure)
-  data <- correlational_data()
+  # Use cached FA model and correlational variable info (saves fitting time)
+  fa_model <- sample_fa_oblimin()
   var_info <- correlational_var_info()
-  fa_model <- fa(data, nfactors = 2, rotate = "oblimin", warnings = FALSE)
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -288,9 +278,9 @@ test_that("interpret.principal end-to-end integration with psych::principal", {
 
   library(psych)
 
-  data <- correlational_data()
+  # Use cached PCA model and correlational variable info (saves fitting time)
+  pca_model <- sample_pca_varimax()
   var_info <- correlational_var_info()
-  pca_model <- principal(data, nfactors = 2, rotate = "varimax")
 
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
@@ -317,12 +307,8 @@ test_that("interpret.lavaan end-to-end integration with CFA", {
 
   library(lavaan)
 
-  model_syntax <- '
-    visual  =~ x1 + x2 + x3
-    textual =~ x4 + x5 + x6
-  '
-
-  fit <- cfa(model_syntax, data = HolzingerSwineford1939, std.lv = TRUE)
+  # Use cached lavaan CFA model (saves fitting time)
+  fit <- sample_lavaan_cfa()
 
   var_info <- data.frame(
     variable = paste0("x", 1:6),
@@ -352,9 +338,11 @@ test_that("interpret.SingleGroupClass end-to-end integration with mirt", {
 
   library(mirt)
 
-  data <- expand.table(LSAT7)
-  mirt_model <- mirt(data, 2, itemtype = "2PL", verbose = FALSE)
+  # Use cached MIRT model (saves ~4 seconds per test run)
+  mirt_model <- sample_mirt_model()
 
+  # Get data for variable info
+  data <- expand.table(LSAT7)
   var_info <- data.frame(
     variable = colnames(data),
     description = paste("LSAT item", 1:5)

@@ -179,7 +179,7 @@ validate_fa_list_structure <- function(model_fit_list) {
         "{.var model_fit} list must contain a 'loadings' component",
         "x" = "Current components: {.field {names(model_fit_list)}}",
         "i" = "Minimum required structure: list(loadings = matrix(...))",
-        "i" = "Optional components: Phi or factor_cor_mat"
+        "i" = "Optional components: factor_cor_mat"
       )
     )
   }
