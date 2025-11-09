@@ -631,6 +631,98 @@ Eliminated **~1,559 lines of redundant code** across 3 duplicate R source files.
 - Three test fixture sets
 - Word limit messaging improvement
 
+## 4.3 Code Simplification (2025-11-09)
+
+Systematic refactoring of FA implementation to improve maintainability and reduce duplication.
+
+### Objectives
+- Apply DRY (Don't Repeat Yourself) principle
+- Separate data preparation from presentation logic
+- Remove dead code and redundant validation
+- Centralize utility functions
+
+### Phase 1: Utility Function Extraction
+**Created 3 utility functions** in `utils_text_processing.R`:
+
+1. **`format_loading(x, digits = 3)`** - Formats loading values with consistent precision
+   - Removes leading zeros: `0.456 → ".456"`, `-0.456 → "-.456"`
+   - Replaces ~10 lines of inline formatting across 5 files
+
+2. **`normalize_token_count(value)`** - Ensures token values are always valid numeric scalars
+   - Handles NULL, NA, numeric(0) edge cases
+   - Returns 0.0 for invalid values
+   - Critical for Ollama compatibility (no token tracking)
+
+3. **`add_emergency_suffix(name, used_emergency_rule)`** - Adds "(n.s.)" suffix to factor names
+   - Centralizes emergency rule indicator logic
+   - Replaced 2 duplicate implementations in `fa_json.R`
+
+**Impact**: +60 lines of well-documented utilities, -24 lines of inline code
+
+### Phase 2: Data Structure Refinement
+**Streamlined `factor_summaries` structure** from 7 fields to 3 essential fields:
+
+```r
+# Before (7 fields):
+header, summary, variables, n_loadings, has_significant,
+used_emergency_rule, variance_explained
+
+# After (3 fields):
+variables, used_emergency_rule, variance_explained
+```
+
+**Key Changes**:
+- Removed premature formatting (~77 lines) from `fa_interpret.R`
+- Created `build_factor_summary_text()` helper in `fa_report.R` (generates formatted text on-demand)
+- Updated `fa_prompt_builder.R` to calculate `n_loadings` and `has_significant` from data
+- Fixed test checking removed `summary` field
+
+**Impact**: -77 lines, better separation of concerns (data vs presentation)
+
+### Phase 3: Validation & Logic Consolidation
+
+**3.1 Removed Duplicate Validation** (~40 lines from `fa_interpret.R`):
+- Silent parameter conversion (logical → integer)
+- Chat session validation
+- LLM provider requirement check
+- All handled by `interpret_generic()` dispatcher
+
+**3.2 Centralized Emergency Rule Logic** (~14 lines from `fa_json.R`):
+- Used `add_emergency_suffix()` utility in 2 locations
+- Eliminated duplicate conditional logic
+
+**3.3 Dead Code Elimination** (~55 lines from `utils_interpret.R`):
+- Removed `validate_interpret_args()` function (never called)
+- Verified remaining helpers are actively used:
+  - `handle_raw_data_interpret()` ✓
+  - `validate_chat_session_for_model_type()` ✓
+  - `validate_fa_list_structure()` ✓
+
+**Impact**: -109 lines of duplicate/dead code
+
+### Summary Statistics
+
+| Metric | Value |
+|--------|-------|
+| **Total Lines Removed** | ~186 lines |
+| **Utility Functions Added** | 3 |
+| **Data Fields Removed** | 4 (from factor_summaries) |
+| **Duplicate Validations Removed** | 3 |
+| **Dead Functions Removed** | 1 |
+| **Tests Passing** | 172/172 ✓ |
+
+### Benefits Achieved
+
+1. **DRY Principle**: Eliminated duplication in formatting, validation, and emergency rule logic
+2. **Separation of Concerns**: Data preparation in `fa_interpret.R`, formatting in `fa_report.R`
+3. **Better Maintainability**: Centralized utilities easier to update and test
+4. **Leaner Codebase**: ~186 lines removed while improving clarity
+5. **Consistent Behavior**: Single source of truth for token normalization, loading formatting, emergency suffixes
+
+### Related Decision: Model-Specific Validation
+
+Decided to keep `validate_fa_list_structure()` model-specific rather than creating generic abstraction (documented in section 1.7, Step 4). Following YAGNI principle and Rule of Three: wait for 2-3 implementations before abstracting.
+
 ---
 
 # 5. Development Reference
