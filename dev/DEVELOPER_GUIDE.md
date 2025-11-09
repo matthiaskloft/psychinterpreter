@@ -271,7 +271,67 @@ handle_raw_data_interpret <- function(x, variable_info, model_type, chat_session
 }
 ```
 
-### Step 4: Done!
+### Step 4: Create Model-Specific List Validation (if needed)
+
+If your model type needs to support structured list input (like `list(loadings = ..., Phi = ...)`), create a validation function following the FA pattern:
+
+```r
+# In utils_interpret.R or model-specific file
+validate_gm_list_structure <- function(model_fit_list) {
+  # Check required components
+  if (!"means" %in% names(model_fit_list)) {
+    cli::cli_abort("model_fit list must contain 'means' component")
+  }
+
+  # Validate types
+  means <- model_fit_list$means
+  if (!is.matrix(means)) {
+    cli::cli_abort("means component must be a matrix")
+  }
+
+  # Extract optional components
+  covariances <- model_fit_list$covariances %||% NULL
+
+  # Warn about unrecognized components
+  recognized <- c("means", "covariances", "mixing_proportions")
+  unrecognized <- setdiff(names(model_fit_list), recognized)
+  if (length(unrecognized) > 0) {
+    cli::cli_warn("Unrecognized components will be ignored: {unrecognized}")
+  }
+
+  # Return extracted components
+  list(means = means, covariances = covariances)
+}
+```
+
+**Decision: Model-Specific vs. Generic Validation** (2025-11-09)
+
+Each model type should have its **own validation function** because:
+
+1. **Truly Different Requirements**: Each model has fundamentally different components
+   - FA: `loadings`, `factor_cor_mat`
+   - GM: `means`, `covariances`, `mixing_proportions`
+   - IRT: `difficulty`, `discrimination`, `guessing`
+   - CDM: `q_matrix`, `item_parameters`
+
+2. **YAGNI Principle**: FA is currently the only implemented type. Wait until you have **2+ implementations** before creating generic abstractions.
+
+3. **Future Path**: After implementing 2-3 model types, evaluate if S3 dispatch adds value:
+   ```r
+   # Potential future generalization (only if pattern emerges)
+   validate_list_structure <- function(model_fit_list, model_type) {
+     UseMethod("validate_list_structure", structure(list(), class = model_type))
+   }
+
+   validate_list_structure.fa <- function(model_fit_list, model_type) { ... }
+   validate_list_structure.gm <- function(model_fit_list, model_type) { ... }
+   ```
+
+4. **Rule of Three**: Only abstract after you have 3 similar implementations to identify the true common pattern.
+
+**Current Approach**: Keep `validate_fa_list_structure()` model-specific. Create `validate_gm_list_structure()` when implementing GM. Refactor to S3 dispatch only if/when clear duplication emerges across 3+ models.
+
+### Step 5: Done!
 
 Core infrastructure (`interpret_generic`, JSON parsing, etc.) requires no changes.
 

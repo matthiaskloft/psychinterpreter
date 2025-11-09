@@ -2,57 +2,6 @@
 # HELPER FUNCTIONS FOR INTERPRET() DISPATCH SYSTEM
 # ==============================================================================
 
-#' Validate interpret() Arguments
-#'
-#' Internal validation helper for the interpret() dispatch system.
-#' Ensures consistent behavior across all interpret() methods.
-#'
-#' @param x First argument to interpret() (model, data, or chat_session)
-#' @param variable_info Variable descriptions dataframe
-#' @param model_type Character or NULL. Explicit model type specification
-#' @param chat_session chat_session object or NULL
-#'
-#' @return NULL (invisibly) if validation passes, errors otherwise
-#' @keywords internal
-#' @noRd
-validate_interpret_args <- function(x, variable_info, model_type, chat_session) {
-
-  # 1. Check chat_session validity
-  if (!is.null(chat_session)) {
-    if (!is.chat_session(chat_session)) {
-      cli::cli_abort(
-        c(
-          "{.var chat_session} must be a chat_session object",
-          "i" = "Create one with chat_session(model_type, provider, model)"
-        )
-      )
-    }
-
-    # If model_type also provided, check consistency
-    if (!is.null(model_type) && chat_session$model_type != model_type) {
-      cli::cli_warn(
-        c(
-          "!" = paste0(
-            "model_type '", model_type, "' conflicts with ",
-            "chat_session model_type '", chat_session$model_type, "'"
-          ),
-          "i" = paste0(
-            "Using chat_session model_type: '", chat_session$model_type, "'"
-          )
-        )
-      )
-    }
-  }
-
-  # 2. Don't validate variable_info structure here
-  # Let interpret.default() handle it contextually:
-  # - For raw data interpretation: validate structure
-  # - For unsupported objects: let it error with "No method available"
-
-  invisible(NULL)
-}
-
-
 #' Route Raw Data to Model-Specific Interpretation
 #'
 #' Internal routing helper that dispatches raw data to the appropriate

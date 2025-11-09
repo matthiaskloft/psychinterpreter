@@ -678,13 +678,41 @@ Current organization is generally clear:
 - Removed silent parameter validation (handled by interpret_generic with conversion)
 - Better error reporting flow (common errors caught early, FA-specific errors with context)
 
-**Remaining tasks:**
-2. **Emergency rule centralization:**
-   - Create `apply_emergency_rule()` and `add_emergency_suffix()` functions
-   - Update 4 locations that use emergency rule logic
-   - Comprehensive testing of edge cases
-3. **Validation helper cleanup:**
-   - Consolidate overlapping helpers in `utils_interpret.R`
+**Phase 3.2: Emergency Rule Centralization** ✅ COMPLETE (2025-11-09)
+
+**Tasks:**
+1. ✅ Created `add_emergency_suffix()` helper in utils_text_processing.R
+2. ✅ Updated fa_json.R to use helper (2 locations)
+3. ✅ All 172 tests passing
+
+**Results:**
+- Removed ~14 lines of duplicated suffix logic from fa_json.R
+- Added comprehensive 45-line utility function with full documentation
+- Emergency rule suffix logic now centralized with single source of truth
+- Better consistency in suffix handling across JSON parsing paths
+
+**Note:** Emergency rule application in fa_interpret.R (lines 498-527) was analyzed
+but not refactored - it's already clean, self-contained, and only appears once.
+No duplication to eliminate there.
+
+**Phase 3.3: Validation Helper Cleanup** ✅ COMPLETE (2025-11-09)
+
+**Tasks:**
+1. ✅ Analyzed all validation helpers in utils_interpret.R
+2. ✅ Identified `validate_interpret_args()` as dead code (defined but never called)
+3. ✅ Removed `validate_interpret_args()` function (~55 lines)
+4. ✅ All 172 tests passing
+
+**Results:**
+- Removed 55 lines of dead code from utils_interpret.R
+- Cleaner codebase with only actively used validation helpers
+- Remaining helpers are all in use and serve distinct purposes:
+  - `handle_raw_data_interpret()` - Routes raw data to model-specific functions (used 3x)
+  - `validate_chat_session_for_model_type()` - Validates chat_session in S3 methods (used 5x)
+  - `validate_fa_list_structure()` - FA-specific list validation (actively used)
+
+**Analysis:** The remaining validation helpers have no duplication. Each serves a specific
+purpose in the dispatch system and validation chain. No further consolidation is beneficial.
 
 ---
 
