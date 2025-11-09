@@ -197,7 +197,10 @@ test_that("emergency rule behavior with n_emergency = 0", {
   expect_equal(result$suggested_names$F2, "undefined")
   expect_equal(result$factor_summaries$F2$llm_interpretation, "NA")
 
-  # Check that the summary indicates it's marked as undefined
-  f2_summary <- result$factor_summaries$F2$summary
-  expect_true(grepl("undefined", f2_summary))
+  # Check that F2 has no variables (undefined factor)
+  expect_equal(nrow(result$factor_summaries$F2$variables), 0)
+  expect_false(result$factor_summaries$F2$used_emergency_rule)
+
+  # Check that the report indicates it's marked as undefined
+  expect_true(grepl("undefined", result$report, ignore.case = TRUE))
 })

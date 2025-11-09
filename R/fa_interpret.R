@@ -174,46 +174,25 @@ interpret_fa <- function(loadings,
   # ==========================================================================
   # SECTION 1: PARAMETER VALIDATION
   # ==========================================================================
+  # Note: Common parameter validation (silent conversion, basic chat_session check,
+  # llm_provider requirement) is handled by interpret_generic().
+  # Only FA-specific validation is performed here.
 
-  # Handle backward compatibility: Convert logical to integer
-  if (is.logical(silent)) {
-    silent <- ifelse(silent, 2, 0)  # FALSE -> 0, TRUE -> 2
-  }
-
-  # Validate chat_session if provided
-  if (!is.null(chat_session)) {
-    # First check if it's a valid chat_session object
-    if (!is.chat_session(chat_session)) {
-      cli::cli_abort(
-        c(
-          "{.var chat_session} must be a chat_session object",
-          "i" = "Create one with chat_session(model_type = 'fa', provider, model)"
-        )
+  # Validate chat_session model_type if provided (FA-specific requirement)
+  # Note: Basic type check happens in interpret_generic(), but we check model_type
+  # here for early error reporting specific to FA
+  if (!is.null(chat_session) && is.chat_session(chat_session) &&
+      chat_session$model_type != "fa") {
+    cli::cli_abort(
+      c(
+        "chat_session model_type mismatch",
+        "x" = paste0(
+          "chat_session has model_type '", chat_session$model_type, "' ",
+          "but interpret_fa requires model_type = 'fa'"
+        ),
+        "i" = "Create a new chat_session with model_type = 'fa'"
       )
-    }
-
-    # Then check model_type consistency
-    if (chat_session$model_type != "fa") {
-      cli::cli_abort(
-        c(
-          "chat_session model_type mismatch",
-          "x" = paste0(
-            "chat_session has model_type '", chat_session$model_type, "' ",
-            "but interpret_fa requires model_type = 'fa'"
-          ),
-          "i" = "Create a new chat_session with model_type = 'fa'"
-        )
-      )
-    }
-  }
-
-  # Inform user if chat_session overrides provider/model
-  if (!is.null(chat_session) && (!is.null(llm_provider) || !is.null(llm_model))) {
-    if (silent < 2) {
-      cli::cli_inform(
-        c("i" = "Using provided {.field chat_session} (overrides {.field llm_provider} and {.field llm_model} arguments)")
-      )
-    }
+    )
   }
 
   # Validate cutoff
@@ -300,16 +279,7 @@ interpret_fa <- function(loadings,
     )
   }
 
-  # Validate silent
-  if (!is.numeric(silent) || length(silent) != 1 || is.na(silent) || !silent %in% c(0, 1, 2)) {
-    cli::cli_abort(
-      c(
-        "{.var silent} must be 0, 1, or 2 (or logical TRUE/FALSE for backward compatibility)",
-        "x" = "You supplied: {.val {silent}}",
-        "i" = "0 = show report and messages, 1 = show messages only, 2 = completely silent"
-      )
-    )
-  }
+  # Note: silent parameter validation and conversion handled by interpret_generic()
 
   # Validate output_format
   if (!is.character(output_format) ||
@@ -438,27 +408,18 @@ interpret_fa <- function(loadings,
   # ==========================================================================
   # SECTION 2.5: LLM CONFIGURATION VALIDATION
   # ==========================================================================
-  # These validations come after data validation to provide better error messages
+  # Note: Basic llm_provider requirement is validated by interpret_generic().
+  # Additional type validation for LLM parameters is performed here.
 
-  # Validate llm_provider (only if no chat_session)
-  if (is.null(chat_session)) {
-    if (is.null(llm_provider)) {
-      cli::cli_abort(
-        c(
-          "{.var llm_provider} is required when {.var chat_session} is NULL",
-          "i" = "Specify a provider like 'openai', 'anthropic', 'ollama', etc.",
-          "i" = "Or provide an existing chat_session object"
-        )
+  # Validate llm_provider type (if provided)
+  if (!is.null(llm_provider) &&
+      (!is.character(llm_provider) || length(llm_provider) != 1)) {
+    cli::cli_abort(
+      c(
+        "{.var llm_provider} must be a single character string",
+        "x" = "You supplied: {.val {llm_provider}}"
       )
-    }
-    if (!is.character(llm_provider) || length(llm_provider) != 1) {
-      cli::cli_abort(
-        c(
-          "{.var llm_provider} must be a single character string",
-          "x" = "You supplied: {.val {llm_provider}}"
-        )
-      )
-    }
+    )
   }
 
   # Validate llm_model
@@ -565,91 +526,10 @@ interpret_fa <- function(loadings,
       }
     }
 
-    # Create factor header and body summary. The report builder is responsible
-    # for formatting headers consistently, so we store the header separately and
-    # keep the summary body without the header line.
-    header_text <- paste0(
-      "Factor ",
-      i,
-      " (",
-      factor_name,
-      ")"
-    )
-
-    # Body of the summary (exclude header line)
-    summary_text <- paste0(
-      "Number of significant loadings: ",
-      ifelse(has_significant, nrow(factor_data), 0),
-      "\n",
-      "Variance explained: ",
-      round(variance_explained * 100, 2),
-      "%\n"
-    )
-
-    if (!has_significant) {
-      if (n_emergency == 0) {
-        summary_text <- paste0(
-          summary_text,
-          "WARNING: No variables load above cutoff (",
-          cutoff,
-          "). ",
-          "Factor marked as undefined (n_emergency = 0).\n"
-        )
-      } else {
-        summary_text <- paste0(
-          summary_text,
-          "WARNING: No variables load above cutoff (",
-          cutoff,
-          "). ",
-          "Using top ",
-          n_emergency,
-          " variables below cutoff for interpretation.\n"
-        )
-      }
-    }
-
-    summary_text <- paste0(summary_text, "\nVariables:\n")
-
-    # Add top variables
-    if (nrow(factor_data) > 0) {
-      for (j in 1:nrow(factor_data)) {
-        var_desc <- ifelse(
-          !is.na(factor_data$description[j]),
-          factor_data$description[j],
-          factor_data$variable[j]
-        )
-        summary_text <- paste0(
-          summary_text,
-          "  ",
-          j,
-          ". ",
-          factor_data$variable[j],
-          ", ",
-          var_desc,
-          " (",
-          factor_data$direction[j],
-          ", ",
-          factor_data$strength[j],
-          ", ",
-          sub(
-            "^(-?)0\\.",
-            "\\1.",
-            sprintf("%.3f", factor_data$loading[j])
-          ),
-          ")\n"
-        )
-      }
-    } else {
-      summary_text <- paste0(summary_text, "  No variables in this factor\n")
-    }
-
-    # Store factor summary
+    # Store minimal factor summary
+    # Report builder will generate formatted text from this data
     factor_summaries[[factor_name]] <- list(
-      header = header_text,
-      summary = summary_text,
       variables = factor_data,
-      n_loadings = ifelse(has_significant, nrow(factor_data), 0),
-      has_significant = has_significant,
       used_emergency_rule = used_emergency_rule,
       variance_explained = variance_explained
     )
@@ -695,7 +575,7 @@ interpret_fa <- function(loadings,
   # Format loading matrix: remove leading zeros (e.g., -0.456 -> -.456, 0.456 -> .456)
   loading_matrix <- loadings_df
   for (col in factor_cols) {
-    loading_matrix[[col]] <- sub("^(-?)0\\.", "\\1.", sprintf("%.3f", loading_matrix[[col]]))
+    loading_matrix[[col]] <- format_loading(loading_matrix[[col]])
   }
   result$loading_matrix <- loading_matrix
   result$factor_cor_mat <- factor_cor_mat

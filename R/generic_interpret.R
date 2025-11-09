@@ -242,21 +242,17 @@ interpret_generic <- function(model_data,
   # `system`/`system_prompt` tokens in package-level counters to avoid
   # inconsistent or double-counted totals.
   # Extract token counts from the tokens dataframe
-  # Use defensive programming to ensure we always get a valid numeric value
+  # Use normalize_token_count() to ensure we always get valid numeric values
   if (!is.null(tokens_df) && nrow(tokens_df) > 0) {
-    input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
-    output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
+    input_tokens <- normalize_token_count(
+      sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
+    )
+    output_tokens <- normalize_token_count(
+      sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
+    )
   } else {
     # No token data available (some providers don't support token tracking)
     input_tokens <- 0
-    output_tokens <- 0
-  }
-
-  # Ensure we have valid numeric values (not NULL, NA, or numeric(0))
-  if (length(input_tokens) == 0 || is.na(input_tokens) || is.null(input_tokens)) {
-    input_tokens <- 0
-  }
-  if (length(output_tokens) == 0 || is.na(output_tokens) || is.null(output_tokens)) {
     output_tokens <- 0
   }
 

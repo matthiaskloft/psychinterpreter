@@ -30,9 +30,92 @@ build_fa_report <- function(interpretation_results,
   no_loadings <- interpretation_results$no_loadings
   elapsed_time <- interpretation_results$elapsed_time
   factor_cor_mat <- interpretation_results$factor_cor_mat
+  n_emergency <- interpretation_results$params$n_emergency %||% 2  # Default to 2 if not found
 
   # Get factor column names
   factor_cols <- names(factor_summaries)
+
+  # Helper function to generate summary text from minimal factor data
+  build_factor_summary_text <- function(factor_summary, cutoff, n_emergency) {
+    variables <- factor_summary$variables
+    variance_explained <- factor_summary$variance_explained
+    used_emergency_rule <- factor_summary$used_emergency_rule
+
+    n_loadings <- nrow(variables)
+    has_significant <- n_loadings > 0
+
+    # When emergency rule is used, report 0 significant loadings
+    # The variables shown are the top N below cutoff
+    n_significant_loadings <- ifelse(used_emergency_rule, 0, n_loadings)
+
+    # Build summary text
+    summary_text <- paste0(
+      "Number of significant loadings: ",
+      n_significant_loadings,
+      "\n",
+      "Variance explained: ",
+      round(variance_explained * 100, 2),
+      "%\n"
+    )
+
+    # Show warning when emergency rule is used or when no variables at all
+    if (used_emergency_rule || !has_significant) {
+      if (!has_significant) {
+        # No variables at all (n_emergency = 0 case)
+        summary_text <- paste0(
+          summary_text,
+          "WARNING: No variables load above cutoff (",
+          cutoff,
+          "). ",
+          "Factor marked as undefined (n_emergency = 0).\n"
+        )
+      } else {
+        # Emergency rule was used (has variables, but below cutoff)
+        summary_text <- paste0(
+          summary_text,
+          "WARNING: No variables load above cutoff (",
+          cutoff,
+          "). ",
+          "Emergency rule applied: using top ",
+          n_loadings,
+          " variable(s) below cutoff for interpretation.\n"
+        )
+      }
+    }
+
+    summary_text <- paste0(summary_text, "\nVariables:\n")
+
+    # Add variables
+    if (n_loadings > 0) {
+      for (j in 1:n_loadings) {
+        var_desc <- ifelse(
+          !is.na(variables$description[j]),
+          variables$description[j],
+          variables$variable[j]
+        )
+        summary_text <- paste0(
+          summary_text,
+          "  ",
+          j,
+          ". ",
+          variables$variable[j],
+          ", ",
+          var_desc,
+          " (",
+          variables$direction[j],
+          ", ",
+          variables$strength[j],
+          ", ",
+          format_loading(variables$loading[j]),
+          ")\n"
+        )
+      }
+    } else {
+      summary_text <- paste0(summary_text, "  No variables in this factor\n")
+    }
+
+    return(summary_text)
+  }
 
   # Generate interpretation report
   if (output_format == "markdown") {
@@ -131,8 +214,7 @@ build_fa_report <- function(interpretation_results,
             if (other_factor != factor_name &&
                 other_factor %in% names(cor_df)) {
               cor_val <- round(cor_df[[other_factor]][i], 2)
-              cor_formatted <- sprintf("%.2f", cor_val)
-              cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
+              cor_formatted <- format_loading(cor_val, digits = 2)
               correlations <- c(correlations,
                                 paste0(other_factor, " = ", cor_formatted))
             }
@@ -170,11 +252,13 @@ build_fa_report <- function(interpretation_results,
     for (i in 1:n_factors) {
       factor_name <- factor_cols[i]
 
-  # Use the stored header and the summary body. The header is kept separate
-  # so the report builder can consistently format headings (less post-fact
-  # string surgery).
-  factor_header <- factor_summaries[[factor_name]]$header %||% paste0("Factor ", i, " (", factor_name, ")")
-  remaining_summary <- factor_summaries[[factor_name]]$summary %||% ""
+      # Generate header and summary from minimal factor data
+      factor_header <- paste0("Factor ", i, " (", factor_name, ")")
+      remaining_summary <- build_factor_summary_text(
+        factor_summaries[[factor_name]],
+        cutoff,
+        n_emergency
+      )
 
       # Add factor header with suggested name as h3
       report <- paste0(report, h3, " ", factor_header)
@@ -211,8 +295,7 @@ build_fa_report <- function(interpretation_results,
                 other_factor %in% names(cor_df)) {
               factor_idx <- which(rownames(cor_df) == factor_name)
               cor_val <- round(cor_df[[other_factor]][factor_idx], 2)
-              cor_formatted <- sprintf("%.2f", cor_val)
-              cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
+              cor_formatted <- format_loading(cor_val, digits = 2)
               correlations <- c(correlations,
                                 paste0(other_factor, " = ", cor_formatted))
             }
@@ -370,8 +453,7 @@ build_fa_report <- function(interpretation_results,
             if (other_factor != factor_name &&
                 other_factor %in% names(cor_df)) {
               cor_val <- round(cor_df[[other_factor]][i], 2)
-              cor_formatted <- sprintf("%.2f", cor_val)
-              cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
+              cor_formatted <- format_loading(cor_val, digits = 2)
               correlations <- c(correlations,
                                 paste0(other_factor, " = ", cor_formatted))
             }
@@ -393,9 +475,13 @@ build_fa_report <- function(interpretation_results,
     for (i in 1:n_factors) {
       factor_name <- factor_cols[i]
 
-  # Use stored header and body (interpret_fa now separates header from body)
-  factor_header <- factor_summaries[[factor_name]]$header %||% paste0("Factor ", i, " (", factor_name, ")")
-  remaining_summary <- factor_summaries[[factor_name]]$summary %||% ""
+      # Generate header and summary from minimal factor data
+      factor_header <- paste0("Factor ", i, " (", factor_name, ")")
+      remaining_summary <- build_factor_summary_text(
+        factor_summaries[[factor_name]],
+        cutoff,
+        n_emergency
+      )
 
       # Add factor header with suggested name
       report <- paste0(report, cli::style_bold(factor_header))
@@ -424,8 +510,7 @@ build_fa_report <- function(interpretation_results,
                 other_factor %in% names(cor_df)) {
               factor_idx <- which(rownames(cor_df) == factor_name)
               cor_val <- round(cor_df[[other_factor]][factor_idx], 2)
-              cor_formatted <- sprintf("%.2f", cor_val)
-              cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)  # Remove leading zero for consistency with LLM input
+              cor_formatted <- format_loading(cor_val, digits = 2)
               correlations <- c(correlations,
                                 paste0(other_factor, " = ", cor_formatted))
             }

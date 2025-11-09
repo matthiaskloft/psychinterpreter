@@ -40,8 +40,7 @@ validate_parsed_result.fa <- function(parsed, model_type, model_data, ...) {
   for (factor_name in factor_cols) {
     # Check if factor is undefined (n_emergency = 0 and no significant loadings)
     # Note: If emergency rule was used, the factor is NOT undefined
-    is_undefined <- !is.null(factor_summaries[[factor_name]]$n_loadings) &&
-                    factor_summaries[[factor_name]]$n_loadings == 0 &&
+    is_undefined <- nrow(factor_summaries[[factor_name]]$variables) == 0 &&
                     !isTRUE(factor_summaries[[factor_name]]$used_emergency_rule)
 
     if (is_undefined) {
@@ -56,14 +55,11 @@ validate_parsed_result.fa <- function(parsed, model_type, model_data, ...) {
                             !is.na(factor_data$name) &&
                             nchar(trimws(factor_data$name)) > 0) {
         name_text <- trimws(factor_data$name)
-        # Add (n.s.) suffix if emergency rule was used and name is not "NA"
-        if (!is.null(factor_summaries[[factor_name]]$used_emergency_rule) &&
-            factor_summaries[[factor_name]]$used_emergency_rule &&
-            !grepl("^NA$|^na$|^N/A$|^n/a$", name_text, ignore.case = FALSE)) {
-          paste0(name_text, " (n.s.)")
-        } else {
-          name_text
-        }
+        # Add (n.s.) suffix if emergency rule was used
+        add_emergency_suffix(
+          name_text,
+          factor_summaries[[factor_name]]$used_emergency_rule
+        )
       } else {
         paste("Factor", which(factor_cols == factor_name))
       }
@@ -152,14 +148,11 @@ extract_by_pattern.fa <- function(response, model_type, model_data, ...) {
 
         suggested_names[[factor_name]] <- if (!is.null(parsed_factor$name)) {
           name_text <- trimws(parsed_factor$name)
-          # Add (n.s.) suffix if emergency rule was used and name is not "NA"
-          if (!is.null(factor_summaries[[factor_name]]$used_emergency_rule) &&
-              factor_summaries[[factor_name]]$used_emergency_rule &&
-              !grepl("^NA$|^na$|^N/A$|^n/a$", name_text, ignore.case = FALSE)) {
-            paste0(name_text, " (n.s.)")
-          } else {
-            name_text
-          }
+          # Add (n.s.) suffix if emergency rule was used
+          add_emergency_suffix(
+            name_text,
+            factor_summaries[[factor_name]]$used_emergency_rule
+          )
         } else {
           paste("Factor", i)
         }

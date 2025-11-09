@@ -51,7 +51,7 @@ find_cross_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
     # Check each factor for significant loadings
     for (col in factor_cols) {
       if (abs(loadings_df[[col]][i]) >= cutoff) {
-        high_loadings <- c(high_loadings, paste0(col, " (", sub("^(-?)0\\.", "\\1.", sprintf("%.3f", loadings_df[[col]][i])), ")"))
+        high_loadings <- c(high_loadings, paste0(col, " (", format_loading(loadings_df[[col]][i]), ")"))
       }
     }
     
@@ -147,7 +147,7 @@ find_no_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
     if (!has_significant_loading) {
       no_load_list[[i]] <- data.frame(
         variable = loadings_df$variable[i],
-        highest_loading = paste0(max_factor, " = ", sub("^(-?)0\\.", "\\1.", sprintf("%.3f", max_loading)))
+        highest_loading = paste0(max_factor, " = ", format_loading(max_loading))
       )
     }
   }

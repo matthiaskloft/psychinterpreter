@@ -173,7 +173,7 @@ build_main_prompt.fa <- function(model_type,
         next
       }
 
-      loading_val <- sub("^(-?)0\\.", "\\1.", sprintf("%.3f", loading_value))
+      loading_val <- format_loading(loading_value)
       loading_vector <- c(loading_vector, paste0(var_name, "=", loading_val))
     }
 
@@ -228,8 +228,7 @@ build_main_prompt.fa <- function(model_type,
           if (other_factor != factor_name &&
               other_factor %in% names(cor_df)) {
             cor_val <- round(cor_df[[other_factor]][i], 2)
-            cor_formatted <- sprintf("%.2f", cor_val)
-            cor_formatted <- sub("^(-?)0\\.", "\\1.", cor_formatted)
+            cor_formatted <- format_loading(cor_val, digits = 2)
             cor_vector <- c(cor_vector,
                             paste0(other_factor, "=", cor_formatted))
           }
@@ -255,9 +254,10 @@ build_main_prompt.fa <- function(model_type,
   undefined_factors <- c()
   for (i in 1:n_factors) {
     factor_name <- factor_cols[i]
+    # Factor is undefined if it has no variables and emergency rule wasn't used
     if (nrow(factor_summaries[[factor_name]]$variables) == 0 &&
         n_emergency == 0 &&
-        !factor_summaries[[factor_name]]$has_significant) {
+        !isTRUE(factor_summaries[[factor_name]]$used_emergency_rule)) {
       undefined_factors <- c(undefined_factors, factor_name)
     }
   }
