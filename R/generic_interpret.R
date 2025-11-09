@@ -169,10 +169,11 @@ interpret_generic <- function(model_data,
     )
 
     created_temp_session <- TRUE
+    chat_local <- chat_session$chat
   }else{
 
     # Use existing chat session and ignore chat history
-    chat <- chat_session$chat$clone()$set_turns(list())
+    chat_local <- chat_session$chat$clone()$set_turns(list())
   }
 
 
@@ -200,7 +201,7 @@ interpret_generic <- function(model_data,
   }
 
   response <- tryCatch({
-    chat_session$chat$chat(main_prompt, echo = echo)
+    chat_local$chat(main_prompt, echo = echo)
   }, error = function(e) {
     cli::cli_abort(
       c(
@@ -229,16 +230,38 @@ interpret_generic <- function(model_data,
   # STEP 7: UPDATE TOKEN TRACKING
   # ==========================================================================
   # Track tokens for this interpretation
-  tokens_df <- chat_session$chat$get_tokens()
+  tokens_df <- chat_local$get_tokens()
 
-  # Note: some providers / the ellmer wrapper do not reliably report `system` role
-  # token counts. We intentionally only sum user/assistant tokens here and do NOT
-  # include `system`/`system_prompt` tokens in package-level counters to avoid
+  # Note: Token tracking reliability varies by provider:
+  # - Some providers/ellmer wrapper do not reliably report `system` role token counts
+  # - Ollama often returns 0 tokens (no tracking support)
+  # - Anthropic caches system prompts; cumulative input tokens may undercount
+  # - OpenAI generally has accurate token reporting
+  #
+  # We intentionally only sum user/assistant tokens here and do NOT include
+  # `system`/`system_prompt` tokens in package-level counters to avoid
   # inconsistent or double-counted totals.
-  input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
-  output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
+  # Extract token counts from the tokens dataframe
+  # Use defensive programming to ensure we always get a valid numeric value
+  if (!is.null(tokens_df) && nrow(tokens_df) > 0) {
+    input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
+    output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
+  } else {
+    # No token data available (some providers don't support token tracking)
+    input_tokens <- 0
+    output_tokens <- 0
+  }
+
+  # Ensure we have valid numeric values (not NULL, NA, or numeric(0))
+  if (length(input_tokens) == 0 || is.na(input_tokens) || is.null(input_tokens)) {
+    input_tokens <- 0
+  }
+  if (length(output_tokens) == 0 || is.na(output_tokens) || is.null(output_tokens)) {
+    output_tokens <- 0
+  }
 
   # Update session cumulative totals
+  # Note: These may remain 0 for providers without token tracking support (e.g., Ollama)
   chat_session$total_input_tokens <- chat_session$total_input_tokens + input_tokens
   chat_session$total_output_tokens <- chat_session$total_output_tokens + output_tokens
   chat_session$n_interpretations <- chat_session$n_interpretations + 1L
@@ -268,8 +291,8 @@ interpret_generic <- function(model_data,
     component_summaries = parsed_result$component_summaries,
     suggested_names = parsed_result$suggested_names,
     llm_info = list(
-      provider = chat_session$chat$get_provider()@name,
-      model = chat_session$chat$get_model(),
+      provider = chat_local$get_provider()@name,
+      model = chat_local$get_model(),
       input_tokens = input_tokens,
       output_tokens = output_tokens,
       system_prompt = system_prompt,

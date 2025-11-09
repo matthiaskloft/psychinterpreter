@@ -227,10 +227,8 @@ test_that("print.chat_session shows token usage when available", {
   chat <- chat_session(model_type = "fa", provider = provider, model = model)
 
   # Simulate token usage without making actual LLM call
-  if ("total_input_tokens" %in% ls(envir = chat)) {
-    chat$total_input_tokens <- 100
-    chat$total_output_tokens <- 50
-  }
+  chat$total_input_tokens <- 100
+  chat$total_output_tokens <- 50
   chat$n_interpretations <- 1
 
   # Check that print shows token usage

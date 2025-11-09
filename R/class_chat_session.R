@@ -140,8 +140,10 @@ chat_session <- function(model_type = "fa",
   chat_obj$echo <- echo
   chat_obj$created_at <- Sys.time()
   chat_obj$n_interpretations <- 0L
-  chat_obj$total_input_tokens <- 0
-  chat_obj$total_output_tokens <- 0
+  # Initialize token tracking fields as single numeric values
+  # (Some providers don't support token tracking and will leave these at 0)
+  chat_obj$total_input_tokens <- 0.0
+  chat_obj$total_output_tokens <- 0.0
   chat_obj$system_prompt <- final_system_prompt
 
   class(chat_obj) <- c(paste0(model_type, "_chat_session"), "chat_session")

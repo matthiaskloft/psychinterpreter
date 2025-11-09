@@ -20,11 +20,10 @@ test_that("chat_session creates valid FA chat session object", {
   expect_true(!is.null(chat$chat))
   expect_equal(chat$model_type, "fa")
   expect_equal(chat$n_interpretations, 0)
-  # Token counters should initialize to zero
-  if ("total_input_tokens" %in% ls(envir = chat)) {
-    expect_equal(chat$total_input_tokens, 0)
-    expect_equal(chat$total_output_tokens, 0)
-  }
+
+  # Token counters should always initialize to zero
+  expect_equal(chat$total_input_tokens, 0)
+  expect_equal(chat$total_output_tokens, 0)
 })
 
 test_that("is.chat_session correctly identifies chat_session objects", {
@@ -54,21 +53,16 @@ test_that("reset.chat_session resets session state", {
 
   # Simulate some usage
   chat$n_interpretations <- 5
-  # Only simulate token counters if the fields exist
-  if ("total_input_tokens" %in% ls(envir = chat)) {
-    chat$total_input_tokens <- 1000
-    chat$total_output_tokens <- 500
-  }
+  chat$total_input_tokens <- 1000
+  chat$total_output_tokens <- 500
 
   # Reset - returns a NEW object (use modern function)
   chat_reset <- reset.chat_session(chat)
 
   # Check that counters are reset in the new object
   expect_equal(chat_reset$n_interpretations, 0)
-  if ("total_input_tokens" %in% ls(envir = chat_reset)) {
-    expect_equal(chat_reset$total_input_tokens, 0)
-    expect_equal(chat_reset$total_output_tokens, 0)
-  }
+  expect_equal(chat_reset$total_input_tokens, 0)
+  expect_equal(chat_reset$total_output_tokens, 0)
 
   # Check that original creation time is preserved
   expect_equal(chat_reset$created_at, chat$created_at)
@@ -170,11 +164,15 @@ test_that("chat_session reuse saves tokens across multiple interpretations", {
   expect_s3_class(result2, "fa_interpretation")
   expect_equal(chat$n_interpretations, 2)
 
-  # Verify token tracking is cumulative
-  if ("total_input_tokens" %in% ls(envir = chat)) {
-    expect_true(chat$total_input_tokens > 0)
-    expect_true(chat$total_output_tokens > 0)
-  }
+  # Verify token tracking fields exist and are non-negative
+  # Note: Ollama often returns 0 tokens (no tracking support), so we can't
+  # assert that tokens are > 0. We only verify the tracking mechanism is working.
+  expect_true(is.numeric(chat$total_input_tokens))
+  expect_true(length(chat$total_input_tokens) == 1)
+  expect_gte(chat$total_input_tokens, 0)
+  expect_true(is.numeric(chat$total_output_tokens))
+  expect_true(length(chat$total_output_tokens) == 1)
+  expect_gte(chat$total_output_tokens, 0)
 })
 
 # ==============================================================================

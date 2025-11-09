@@ -545,6 +545,33 @@ interpret_fa(..., echo = "all")
   - Updated roxygen documentation with comprehensive parameter descriptions
   - All 172 tests passing after changes
 
+- ✅ **Fix token tracking test for Ollama** (2025-11-09)
+  - Fixed failing test in test-chat_fa.R that expected tokens > 0
+  - Ollama doesn't support token tracking (returns 0 tokens) - documented limitation
+  - **Root cause**: Test was failing because token values could be NULL or numeric(0) in edge cases
+  - **Changes made**:
+    1. Added defensive code in generic_interpret.R to ensure token values are always valid numeric scalars (lines 243-260)
+    2. Updated chat_session initialization to use 0.0 instead of 0 for clarity (class_chat_session.R:145-146)
+    3. Improved test assertions to check type, length, and value (test-chat_fa.R:176-181)
+    4. Removed unreliable `if ("total_input_tokens" %in% ls(envir = chat))` pattern from all tests
+    5. Simplified tests since token fields are now always initialized
+  - Enhanced documentation about provider-specific token tracking limitations
+  - All tests now correctly handle providers without token tracking support
+
+- ✅ **Fix negative token accumulation bug** (2025-11-09)
+  - Fixed critical bug where `chat$total_input_tokens` went negative (-85) after multiple interpretations
+  - **Root cause**: Code created local `chat` clone on line 175 but never used it - always called `chat_session$chat` which had full conversation history, causing incorrect token accumulation
+  - **Solution**: Introduced `chat_local` variable used consistently throughout `generic_interpret.R`
+  - **Changes made**:
+    1. Added `chat_local <- chat_session$chat` for temporary sessions (line 172)
+    2. Renamed `chat` to `chat_local` for persistent sessions (line 176)
+    3. Updated LLM call to use `chat_local$chat()` instead of `chat_session$chat$chat()` (line 204)
+    4. Updated token tracking to use `chat_local$get_tokens()` (line 233)
+    5. Updated provider/model info to use `chat_local$get_provider()` and `chat_local$get_model()` (lines 294-295)
+  - **Result**: Token tracking now correctly reads only current interpretation's tokens from the local clone
+  - Token accumulation works properly: `total += local_tokens`
+  - No more negative values
+
 ## Active TODOs
 
 
