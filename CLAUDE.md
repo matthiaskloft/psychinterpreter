@@ -4,13 +4,17 @@
 
 **For technical/architectural details**: See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md)
 
-**Status**: Phase 1 Refactoring Complete (2025-11-09) - See [dev/REFACTORING_PLAN.md](dev/REFACTORING_PLAN.md)
+**Status**: Phase 2 Refactoring Complete (2025-11-10) - See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md) section 4.2 for details
 
-**IMPORTANT API CHANGES (Phase 1)**:
-- `model_fit` renamed to `fit_results`
-- `llm_provider` and `llm_model` renamed to `provider` and `model`
-- New config objects: `llm_args()`, `fa_args()`, `output_args()`
-- `interpret_fa()` is now internal-only (use `interpret()` instead)
+**IMPORTANT API CHANGES**:
+- **Phase 1** (2025-11-09):
+  - `model_fit` renamed to `fit_results`
+  - `llm_provider` and `llm_model` renamed to `provider` and `model`
+  - New config objects: `llm_args()`, `fa_args()`, `output_args()`
+- **Phase 2** (2025-11-10):
+  - `interpret_fa()` removed entirely (functionality now in S3 generic `build_model_data()`)
+  - New architecture: interpret() → interpret_core() → build_model_data.fa()
+  - All 169 tests passing with new S3 generic system
 
 ---
 
@@ -19,10 +23,8 @@
 **What It Does**: Automates interpretation of exploratory factor analysis (EFA) results using Large Language Models via the `ellmer` package.
 
 **Main Entry Points**:
-- `interpret()` - Universal generic (recommended for all uses)
+- `interpret()` - Universal generic (ONLY public API for interpretations)
 - `chat_session()` - Create persistent LLM session (saves ~40-60% tokens for multiple analyses)
-
-**Note**: `interpret_fa()` is now internal-only. Use `interpret()` for all FA interpretations.
 
 **Standards for Examples/Tests**:
 - Always use `provider = "ollama"` and `model = "gpt-oss:20b-cloud"`
@@ -318,10 +320,12 @@ devtools::document()  # ✅ ALWAYS run this
 
 ```r
 # ❌ INEFFICIENT
-interpret_fa(loadings, var_info, word_limit = 150)  # Default, wastes tokens in tests
+interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+          model_type = "fa", provider = "ollama", word_limit = 150)  # Default, wastes tokens
 
 # ✅ EFFICIENT
-interpret_fa(loadings, var_info, word_limit = 20)   # Minimum allowed
+interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+          model_type = "fa", provider = "ollama", word_limit = 20)   # Minimum allowed
 ```
 
 ---
@@ -515,7 +519,7 @@ Update the developer guide when making **architectural or implementation changes
 
 ---
 
-**Last Updated**: 2025-11-09
+**Last Updated**: 2025-11-10
 **Maintainer**: Update when making significant user-facing changes
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
 - use kable() and kable_styling() for .Qmd articles
