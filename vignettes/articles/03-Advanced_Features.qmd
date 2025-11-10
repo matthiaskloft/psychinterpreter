@@ -1,0 +1,208 @@
+---
+title: "psychinterpreter: Advanced Features"
+subtitle: "Chat Sessions, Token Tracking, Multiple Packages, and Export Options"
+author: 
+ - name: Matthias Kloft
+   orcid: 0000-0003-1845-6957
+date: "`r Sys.Date()`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    source: repo
+    code-tools: true
+    df-print: paged
+execute:
+  warning: true
+  message: true
+---
+
+## Overview
+
+This document demonstrates advanced features of the **psychinterpreter** package using the Big Five personality data from the `psych` package. The Big Five Inventory (BFI) is a widely-used personality assessment that measures five major dimensions of personality: Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism.
+
+We'll cover all major features of psychinterpreter including:
+
+- Basic factor analysis interpretation
+- Persistent chat sessions for efficient LLM usage
+- Export functionality across multiple formats
+- Report generation as in console (`output_format` = "cli") or markdown style (`output_format` = "markdown")
+- Wrappers for popular R packages such as `psych`, `lavaan`, and `mirt`
+
+## Setup and Data Preparation
+
+```{r setup}
+packages <- c(
+  "psychinterpreter",
+  "ellmer",
+  "ollamar",
+  "psych",
+  "lavaan",
+  "mirt",
+  "dplyr",
+  "here",
+  "kableExtra",
+  "pander"
+)
+# Load required packages using pacman
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(char = packages)
+
+# Load the BFI dataset and dictionary
+data("bfi")
+data("bfi.dictionary")
+```
+
+# Preparing the BFI Data
+
+Exclude demographic variables for factor analysis
+
+```{r}
+bfi <- bfi[,1:25]
+bfi.dictionary <- bfi.dictionary[1:25, ]
+```
+
+Show the first few rows of the BFI data:
+```{r data-exploration}
+head(bfi,10) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+Display the BFI dictionary showing item descriptions:
+```{r}
+bfi.dictionary |> select(Item) |> as.data.frame()|> DT::datatable(options = list(scrollX = TRUE))
+```
+
+
+# Factor Analysis
+
+## Determining Number of Factors
+
+```{r parallel-analysis}
+# Parallel analysis to determine optimal number of factors
+pa_result <- fa.parallel(
+  bfi,
+  fa = "fa",
+  n.iter = 100,
+  use = "pairwise.complete.obs",
+  main = "Parallel Analysis: BFI Data"
+)
+```
+
+## Exploratory Factor Analysis Using 6 Factors
+
+Perform FA with 6 factors identified by the parallel analysis
+```{r fa-analysis}
+fa_result <- fa(
+  bfi,
+  nfactors = pa_result$nfact,
+  rotate = "oblimin",
+  fm = "ml"
+)
+summary(fa_result)
+```
+
+Loadings:
+```{r}
+# Extract loading matrix for interpretation
+loadings_matrix <- unclass(fa_result$loadings) |> as.data.frame()
+round(loadings_matrix, 2) |> kable() |> kable_styling(full_width = FALSE)
+```
+
+Factor Correlation Matrix
+```{r}
+# Extract factor correlation matrix
+factor_cor_mat <- fa_result$Phi |> as.data.frame()
+round(factor_cor_mat, 2) |> kable(format = "html") |> kable_styling()
+```
+
+
+## Chat Setup
+Set up persistent chat session. If you use Ollama, make sure to start the server before running this.
+
+```{r test-chat-sessions}
+# test the connection to the Ollama server
+#ollamar::test_connection()
+
+# optionally pull the model from ollama
+#ollamar::pull("gpt-oss:20b-cloud")
+
+chat <- chat_session(model_type = "fa",
+  provider = "ollama",
+  model = "qwen3-vl:235b-instruct-cloud",
+  #model = "gpt-oss:20b-cloud",
+  # set temperature and seed for reproducibility
+  params = params(temperature = 0, seed = 42)
+)
+
+print(chat)
+```
+
+## Interpreting Factor Analysis Results
+
+Create variable information dataframe from BFI dictionary
+```{r test-basic-interpretation}
+variable_info <- data.frame(
+  variable = rownames(bfi.dictionary),
+  description = as.character(bfi.dictionary$Item),
+  stringsAsFactors = FALSE
+)
+
+head(variable_info, 10) |> kable() |> kable_styling(full_width = FALSE)
+```
+
+We now generate factor interpretations using the specified LLM:
+```{r interpret-with-chat}
+#| output: asis
+
+word_limit <- 50
+result <- interpret(
+  chat_session = chat,
+  model_fit = fa_result,
+  variable_info = variable_info,
+  cutoff = 0.23,
+  n_emergency = 2,
+  additional_info = NULL,
+  sort_loadings = TRUE,
+  word_limit =  word_limit,
+  max_line_length = 80,
+  silent = FALSE,
+  echo = "none",
+  output_format = "cli"
+)
+```
+
+Let's check the global token usage tracked by the chat:
+```{r usage1}
+print(chat)
+```
+
+We can also examine the prompt:
+```{r prompt}
+cat(
+  "System Prompt: \n\n",
+  result$llm_info$system_prompt, "\n",
+  "Main Prompt: \n\n",
+    result$llm_info$main_prompt)
+```
+
+
+
+Plot the loading matrix with factor names:
+```{r}
+plot(result,
+     cutoff = 0.3)
+```
+
+
+We can again check the total global token usage:
+```{r usage2}
+print(chat)
+```
+
+
+# Session Info
+```{r}
+pander::pander(sessionInfo())
+```
+

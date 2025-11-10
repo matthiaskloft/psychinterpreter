@@ -2,22 +2,26 @@
 # HELPER FUNCTIONS FOR INTERPRET() DISPATCH SYSTEM
 # ==============================================================================
 
-#' Route Raw Data to Model-Specific Interpretation
+#' Route Structured List Data to Model-Specific Interpretation
 #'
-#' Internal routing helper that dispatches raw data to the appropriate
-#' model-specific interpretation function.
+#' Internal routing helper that dispatches extracted loadings from structured
+#' lists to the appropriate model-specific interpretation function.
 #'
-#' @param x Raw data (loadings, parameters, etc.)
+#' @param x Extracted loadings matrix/data.frame from structured list
 #' @param variable_info Variable descriptions dataframe
 #' @param model_type Character or NULL. Determined from chat_session if NULL
 #' @param chat_session chat_session object or NULL
+#' @param llm_args LLM configuration list
+#' @param fa_args FA configuration list
+#' @param output_args Output configuration list
 #' @param ... Additional arguments passed to model-specific function
 #'
 #' @return Interpretation object
 #' @keywords internal
 #' @noRd
 handle_raw_data_interpret <- function(x, variable_info, model_type,
-                                      chat_session, ...) {
+                                      chat_session, llm_args = NULL,
+                                      fa_args = NULL, output_args = NULL, ...) {
   # Determine effective model_type
   effective_model_type <- if (!is.null(chat_session)) {
     chat_session$model_type
@@ -39,7 +43,26 @@ handle_raw_data_interpret <- function(x, variable_info, model_type,
 
   # Route to model-specific function
   switch(effective_model_type,
-    fa = interpret_fa(x, variable_info, chat_session = chat_session, ...),
+    fa = {
+      # Extract factor_cor_mat from dots if provided
+      dots <- list(...)
+      factor_cor_mat <- dots$factor_cor_mat
+
+      # Call interpret_core with structured list
+      interpret_core(
+        fit_results = list(
+          loadings = x,
+          Phi = factor_cor_mat
+        ),
+        variable_info = variable_info,
+        model_type = "fa",
+        chat_session = chat_session,
+        llm_args = llm_args,
+        fa_args = fa_args,
+        output_args = output_args,
+        ...
+      )
+    },
     gm = cli::cli_abort(
       c(
         "Gaussian Mixture (gm) interpretation not yet implemented",
@@ -108,10 +131,10 @@ validate_chat_session_for_model_type <- function(chat_session, expected_type) {
 #' Validate Factor Analysis List Structure
 #'
 #' Internal helper to validate and extract components from a structured list
-#' for factor analysis. Used when model_fit is provided as a list instead of
-#' a fitted model object or raw matrix.
+#' for factor analysis. Used when fit_results is provided as a list instead of
+#' a fitted model object.
 #'
-#' @param model_fit_list List with FA model components
+#' @param fit_results_list List with FA model components
 #'
 #' @return List with extracted components:
 #'   - loadings: The loadings matrix (data.frame or matrix)
@@ -119,14 +142,14 @@ validate_chat_session_for_model_type <- function(chat_session, expected_type) {
 #'
 #' @keywords internal
 #' @noRd
-validate_fa_list_structure <- function(model_fit_list) {
+validate_fa_list_structure <- function(fit_results_list) {
 
   # Check that loadings is present (required)
-  if (!"loadings" %in% names(model_fit_list)) {
+  if (!"loadings" %in% names(fit_results_list)) {
     cli::cli_abort(
       c(
-        "{.var model_fit} list must contain a 'loadings' component",
-        "x" = "Current components: {.field {names(model_fit_list)}}",
+        "{.var fit_results} list must contain a 'loadings' component",
+        "x" = "Current components: {.field {names(fit_results_list)}}",
         "i" = "Minimum required structure: list(loadings = matrix(...))",
         "i" = "Optional components: factor_cor_mat"
       )
@@ -134,7 +157,7 @@ validate_fa_list_structure <- function(model_fit_list) {
   }
 
   # Extract loadings
-  loadings <- model_fit_list$loadings
+  loadings <- fit_results_list$loadings
 
   # Validate loadings is a matrix or data.frame
   if (!is.matrix(loadings) && !is.data.frame(loadings)) {
@@ -149,36 +172,41 @@ validate_fa_list_structure <- function(model_fit_list) {
 
   # Extract factor correlation matrix (optional, check both names)
   factor_cor_mat <- NULL
-  if ("Phi" %in% names(model_fit_list)) {
-    factor_cor_mat <- model_fit_list$Phi
-  } else if ("factor_cor_mat" %in% names(model_fit_list)) {
-    factor_cor_mat <- model_fit_list$factor_cor_mat
+  if ("Phi" %in% names(fit_results_list)) {
+    factor_cor_mat <- fit_results_list$Phi
+  } else if ("factor_cor_mat" %in% names(fit_results_list)) {
+    factor_cor_mat <- fit_results_list$factor_cor_mat
   }
 
-  # Validate factor_cor_mat if provided
+  # Validate and convert factor_cor_mat if provided
   if (!is.null(factor_cor_mat)) {
-    if (!is.matrix(factor_cor_mat)) {
+    if (!is.matrix(factor_cor_mat) && !is.data.frame(factor_cor_mat)) {
       cli::cli_abort(
         c(
-          "Factor correlation matrix must be a matrix",
+          "Factor correlation matrix must be a matrix or data.frame",
           "x" = "You provided: {.cls {class(factor_cor_mat)}}",
-          "i" = "Use matrix() to create a proper correlation matrix"
+          "i" = "Use matrix() or data.frame() to create a proper correlation matrix"
         )
       )
+    }
+
+    # Convert data.frame to matrix if needed
+    if (is.data.frame(factor_cor_mat)) {
+      factor_cor_mat <- as.matrix(factor_cor_mat)
     }
   }
 
   # Warn about unrecognized components
   recognized_components <- c("loadings", "Phi", "factor_cor_mat")
-  unrecognized <- setdiff(names(model_fit_list), recognized_components)
+  unrecognized <- setdiff(names(fit_results_list), recognized_components)
 
   if (length(unrecognized) > 0) {
     cli::cli_warn(
       c(
-        "!" = "Unrecognized components in model_fit list will be ignored",
+        "!" = "Unrecognized components in fit_results list will be ignored",
         "i" = "Unrecognized: {.field {unrecognized}}",
         "i" = "Recognized components: {.field {recognized_components}}",
-        "i" = "Note: Use {.arg additional_info} parameter for contextual information, not model_fit list"
+        "i" = "Note: Use {.arg additional_info} parameter for contextual information, not fit_results list"
       )
     )
   }
@@ -188,4 +216,38 @@ validate_fa_list_structure <- function(model_fit_list) {
     loadings = loadings,
     factor_cor_mat = factor_cor_mat
   )
+}
+
+#' Normalize Token Count to Non-Negative Integer
+#'
+#' Ensures token counts are valid non-negative integers. Some LLM providers may
+#' return negative values (e.g., due to caching) or NA. This function normalizes
+#' such values to 0.
+#'
+#' @param x Numeric token count (may be negative or NA)
+#'
+#' @return Non-negative integer (0 if input is negative or NA)
+#' @keywords internal
+#' @noRd
+normalize_token_count <- function(x) {
+  if (is.na(x) || !is.numeric(x)) {
+    return(0L)
+  }
+  max(0L, as.integer(x))
+}
+
+#' Calculate Variance Explained by a Factor
+#'
+#' Calculates the proportion of total variance explained by a factor based on
+#' the sum of squared loadings. This is used in factor analysis to understand
+#' how much of the data's variability each factor captures.
+#'
+#' @param loadings Numeric vector of factor loadings
+#' @param n_variables Integer. Total number of variables (for proportion calculation)
+#'
+#' @return Numeric. Proportion of variance explained (0 to 1)
+#' @keywords internal
+#' @noRd
+calculate_variance_explained <- function(loadings, n_variables) {
+  sum(loadings^2) / n_variables
 }

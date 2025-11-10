@@ -27,7 +27,7 @@
 Character. Formatted report text
 }
 \description{
-S3 method that integrates with the core interpret_generic() workflow.
+S3 method that integrates with the core interpret_core() workflow.
 Wraps the existing build_fa_report() function.
 }
 \keyword{internal}

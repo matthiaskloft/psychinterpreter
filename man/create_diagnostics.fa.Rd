@@ -22,6 +22,6 @@ List with cross_loadings and no_loadings data frames
 }
 \description{
 S3 method that implements diagnostic analysis for FA. Integrates with
-the core interpret_generic() workflow.
+the core interpret_core() workflow.
 }
 \keyword{internal}

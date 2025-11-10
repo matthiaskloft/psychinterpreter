@@ -5,67 +5,48 @@
 #' Interpret Psychometric Analysis Results
 #'
 #' Unified interface for interpreting psychometric analysis results with LLMs.
-#' Supports fitted model objects, raw data with model_type specification,
-#' structured lists, and persistent chat sessions for efficient multi-analysis workflows.
+#' Supports fitted model objects, structured lists, and persistent chat sessions
+#' for efficient multi-analysis workflows.
 #'
-#' @param chat_session Optional. A chat_session object created with \code{\link{chat_session}}
-#'   for token-efficient multi-analysis workflows.
-#' @param model_fit One of:
+#' @param fit_results One of:
 #'   - **Fitted model object**:
 #'     - psych package: \code{fa()}, \code{principal()}
 #'     - lavaan package: \code{cfa()}, \code{sem()}, \code{efa()}
 #'     - mirt package: \code{mirt()}
-#'   - **Structured list** with model components (raw data):
+#'   - **Structured list** with model components:
 #'     - For FA: \code{list(loadings = matrix, factor_cor_mat = matrix)} or \code{list(loadings = matrix)}
+#'       (both loadings and factor_cor_mat can be matrices or data.frames)
 #'     - For GM: Not yet implemented
 #'     - For IRT: Not yet implemented
 #'     - For CDM: Not yet implemented
 #' @param variable_info Dataframe with 'variable' and 'description' columns describing the variables.
+#' @param chat_session Optional. A chat_session object created with \code{\link{chat_session}}
+#'   for token-efficient multi-analysis workflows (default = NULL).
 #' @param model_type Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
-#'   structured list without chat_session. Automatically inferred from chat_session if provided.
+#'   structured list without chat_session. Automatically inferred from chat_session if provided (default = NULL).
 #'
-#' @param llm_provider Character. LLM provider to use (e.g., "openai", "anthropic", "ollama", "gemini").
-#'   Any provider supported by ellmer::chat(). Required when chat_session is NULL. See ellmer documentation
-#'   for complete list (default = NULL).
-#' @param llm_model Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b").
-#'   If NULL, uses provider default (default = NULL).
-#' @param params Parameters for the LLM created using ellmer::params() (e.g., params(temperature = 0.7, seed = 42)).
-#'   Provides provider-agnostic interface for setting model parameters like temperature, seed, max_tokens, etc.
-#'   If NULL, uses provider defaults (default = NULL).
-#' @param system_prompt Character. Optional custom system prompt to override the package default psychometric
-#'   system prompt. Use this to provide institution- or project-specific framing for the LLM (e.g., preferred
-#'   terminology, audience level, or reporting conventions). If NULL, the internal default system prompt is used.
-#'   Note: This parameter is ignored if chat_session is provided, as the system prompt has already been set
-#'   during chat session initialization (default = NULL).
-#' @param interpretation_guidelines Character. Optional custom interpretation guidelines for the LLM that override
-#'   the package default guidelines. Use this to specify particular theoretical frameworks, interpretation styles,
-#'   or domain-specific conventions. If NULL, built-in interpretation guidelines are applied (default = NULL).
-#' @param additional_info Character. Optional additional context for the LLM, such as theoretical background,
-#'   research area information, or domain-specific knowledge to inform interpretation (default = NULL).
-#' @param word_limit Integer. Maximum number of words for LLM interpretations (default = 150).
+#' @param provider Character. LLM provider (e.g., "openai", "anthropic", "ollama", "gemini").
+#'   Required when chat_session is NULL. Top-level convenience parameter (default = NULL).
+#' @param model Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b").
+#'   If NULL, uses provider default. Top-level convenience parameter (default = NULL).
 #'
-#' @param output_format Character. Output format for the report: "cli" or "markdown" (default = "cli").
-#' @param heading_level Integer. Starting heading level for markdown output (default = 1). Used when output_format = "markdown".
-#' @param suppress_heading Logical. If TRUE, suppresses the main interpretation heading for `output_format` = "markdown,
-#'   allowing better integration into existing documents (default = FALSE).
-#' @param max_line_length Integer. Maximum line length for console output text wrapping (default = 80).
+#' @param llm_args List or llm_args object. LLM configuration settings. Can be created with
+#'   \code{\link{llm_args}} or passed as a plain list. Contains: system_prompt, params, word_limit,
+#'   interpretation_guidelines, additional_info, echo. If provider/model are provided at top-level,
+#'   they override values in llm_args (default = NULL).
+#' @param fa_args List or fa_args object. Factor analysis configuration settings. Can be created with
+#'   \code{\link{fa_args}} or passed as a plain list. Contains: cutoff, n_emergency, hide_low_loadings,
+#'   sort_loadings, factor_cor_mat (default = NULL).
+#' @param output_args List or output_args object. Output configuration settings. Can be created with
+#'   \code{\link{output_args}} or passed as a plain list. Contains: format, heading_level,
+#'   suppress_heading, max_line_length, silent (default = NULL).
 #'
-#' @param silent Integer or logical. Controls output verbosity:
-#'   - 0 or FALSE: Show report and all messages (default)
-#'   - 1: Show messages only, suppress report
-#'   - 2 or TRUE: Completely silent, suppress all output
-#'   For backward compatibility, logical values are accepted and converted to integers.
-#' @param echo Character. Controls what is echoed during LLM interaction. One of "none" (no output),
-#'   "output" (show only LLM responses), or "all" (show prompts and responses). Useful for debugging (default = "none").
+#' @param ... Additional arguments passed to model-specific methods.
 #'
-#' @param ... Additional model-specific parameters:
-#'  - **FA-specific** (see \code{\link{interpret_fa}}):
-#'    - `cutoff`: Minimum loading value to consider (default = 0.3)
-#'    - `n_emergency`: Number of highest loadings to use when no loadings exceed cutoff (default = 2)
-#'    - `hide_low_loadings`: Hide loadings below cutoff in LLM prompt (default = FALSE).
-#'    This prevents the LLM from considering them for interpretation, which might happen otherwise.
-#'    - `sort_loadings`: Sort variables by loading strength within factors (default = TRUE)
-#'    - `factor_cor_mat`: Factor correlation matrix for oblique rotations (default = NULL)
+#' @note While only \code{provider} and \code{model} are exposed as top-level parameters for convenience,
+#'   the dual interface pattern allows any argument to be passed either directly or through the respective
+#'   configuration object (\code{llm_args}, \code{fa_args}, \code{output_args}). This keeps the primary
+#'   signature clean while maintaining flexibility
 #'
 #'
 #' @details
@@ -80,22 +61,22 @@
 #'
 #' \preformatted{
 #' interpret(
-#'   model_fit = fa_model,
+#'   fit_results = fa_model,
 #'   variable_info = var_info,
-#'   llm_provider = "ollama",
-#'   llm_model = "gpt-oss:20b-cloud"
+#'   provider = "ollama",
+#'   model = "gpt-oss:20b-cloud"
 #' )
 #' }
 #'
-#' **Pattern 2: Structured List (Raw Data)**
+#' **Pattern 2: Structured List**
 #'
-#' For custom data structures or manual extraction. Always use a structured list.
+#' For custom data structures or manual extraction.
 #'
 #' For FA, provide loadings (required) and optionally factor_cor_mat:
 #'
 #' \preformatted{
 #' interpret(
-#'   model_fit = list(
+#'   fit_results = list(
 #'     loadings = loadings_matrix,
 #'     factor_cor_mat = factor_cor_mat
 #'   ),
@@ -110,8 +91,8 @@
 #'
 #' \preformatted{
 #' chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
-#' result1 <- interpret(chat_session = chat, model_fit = model1, variable_info = var_info1)
-#' result2 <- interpret(chat_session = chat, model_fit = model2, variable_info = var_info2)
+#' result1 <- interpret(chat_session = chat, fit_results = model1, variable_info = var_info1)
+#' result2 <- interpret(chat_session = chat, fit_results = model2, variable_info = var_info2)
 #' }
 #'
 #' ## Supported Model Types
@@ -122,10 +103,10 @@
 #' - **cdm** (Cognitive Diagnosis Models): Not yet implemented
 #'
 #' @return Model-specific interpretation object:
-#'   - FA: \code{fa_interpretation} (see \code{\link{interpret_fa}})
+#'   - FA: \code{fa_interpretation} (see \code{\link{interpret}})
 #'   - Future: \code{gm_interpretation}, \code{irt_interpretation}, etc.
 #'
-#' @seealso \code{\link{interpret_fa}}, \code{\link{chat_session}}
+#' @seealso \code{\link{interpret}}, \code{\link{chat_session}}
 #'
 #' @importFrom cli cli_abort cli_warn
 #' @importFrom tidyr pivot_wider
@@ -144,90 +125,82 @@
 #'
 #' # Pattern 1: Fitted model
 #' result1 <- interpret(
-#'   model_fit = fa_model,
+#'   fit_results = fa_model,
 #'   variable_info = var_info,
-#'   llm_provider = "ollama",
-#'   llm_model = "gpt-oss:20b-cloud"
+#'   provider = "ollama",
+#'   model = "gpt-oss:20b-cloud"
 #' )
 #'
-#' # Pattern 2: Structured list (raw data)
+#' # Pattern 2: Structured list
 #' # Extract loadings from fitted model
 #' loadings <- as.data.frame(unclass(fa_model$loadings))
 #'
 #' # Option A: Loadings only (orthogonal rotation)
 #' result2a <- interpret(
-#'   model_fit = list(loadings = loadings),
+#'   fit_results = list(loadings = loadings),
 #'   variable_info = var_info,
 #'   model_type = "fa",
-#'   llm_provider = "ollama",
-#'   llm_model = "gpt-oss:20b-cloud"
+#'   provider = "ollama",
+#'   model = "gpt-oss:20b-cloud"
 #' )
 #'
 #' # Option B: Loadings + factor correlations (oblique rotation)
 #' result2b <- interpret(
-#'   model_fit = list(
+#'   fit_results = list(
 #'     loadings = loadings,
-#'     factor_cor_mat = fa_model$Phi  # Extract Phi from fitted model
+#'     factor_cor_mat = fa_model$Phi
 #'   ),
 #'   variable_info = var_info,
 #'   model_type = "fa",
-#'   llm_provider = "ollama",
-#'   llm_model = "gpt-oss:20b-cloud"
+#'   provider = "ollama",
+#'   model = "gpt-oss:20b-cloud"
 #' )
 #'
 #' # Pattern 3: Chat session (token-efficient for multiple analyses)
 #' chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
-#' result3a <- interpret(chat_session = chat, model_fit = fa_model, variable_info = var_info)
-#' result3b <- interpret(chat_session = chat, model_fit = fa_model2, variable_info = var_info2)
+#' result3a <- interpret(chat_session = chat, fit_results = fa_model, variable_info = var_info)
+#' result3b <- interpret(chat_session = chat, fit_results = fa_model2, variable_info = var_info2)
 #' print(chat)  # Check token usage
 #' }
-interpret <- function(chat_session = NULL,
-                      model_fit = NULL,
+interpret <- function(fit_results = NULL,
                       variable_info = NULL,
+                      chat_session = NULL,
                       model_type = NULL,
-                      llm_provider = NULL,
-                      llm_model = NULL,
-                      params = NULL,
-                      system_prompt = NULL,
-                      interpretation_guidelines = NULL,
-                      additional_info = NULL,
-                      word_limit = 150,
-                      output_format = "cli",
-                      heading_level = 1,
-                      suppress_heading = FALSE,
-                      max_line_length = 80,
-                      silent = 0,
-                      echo = "none",
+                      provider = NULL,
+                      model = NULL,
+                      llm_args = NULL,
+                      fa_args = NULL,
+                      output_args = NULL,
                       ...) {
   # ============================================================================
-  # ARGUMENT VALIDATION AND PATTERN DETECTION
+  # ARGUMENT VALIDATION AND CONFIG BUILDING
   # ============================================================================
-
-  # Handle backward compatibility: Convert logical to integer
-  if (is.logical(silent)) {
-    silent <- ifelse(silent, 2, 0)  # FALSE -> 0, TRUE -> 2
-  }
 
   # Check if all key arguments are missing
   if (is.null(chat_session) &&
-      is.null(model_fit) && is.null(variable_info)) {
+      is.null(fit_results) && is.null(variable_info)) {
     cli::cli_abort(
       c(
         "No arguments provided to interpret()",
         "i" = "Usage patterns:",
-        " " = "1. interpret(model_fit = model, variable_info = var_info, llm_provider = ...)",
-        " " = "2. interpret(model_fit = list(loadings = ...), variable_info = var_info, model_type = 'fa', llm_provider = ...)",
-        " " = "3. interpret(chat_session = chat, model_fit = ..., variable_info = var_info)",
+        " " = "1. interpret(fit_results = model, variable_info = var_info, provider = ...)",
+        " " = "2. interpret(fit_results = model, variable_info = var_info, llm_args = list(...))",
+        " " = "3. interpret(chat_session = chat, fit_results = ..., variable_info = var_info)",
         "i" = "See ?interpret for details"
       )
     )
   }
 
-  # Check if model_fit is missing
-  if (is.null(model_fit)) {
+  # Build configuration objects from dual interface
+  llm_cfg <- build_llm_args(llm_args, provider, model, ...)
+  fa_cfg <- build_fa_args(fa_args, ...)
+  out_cfg <- build_output_args(output_args, ...)
+
+  # Check if fit_results is missing
+  if (is.null(fit_results)) {
     cli::cli_abort(
       c(
-        "{.var model_fit} is required",
+        "{.var fit_results} is required",
         "i" = "Provide one of:",
         " " = "- Fitted model: psych::fa/principal, lavaan::cfa/sem/efa, mirt::mirt",
         " " = "- Structured list: list(loadings = matrix, factor_cor_mat = matrix)"
@@ -276,12 +249,14 @@ interpret <- function(chat_session = NULL,
     }
   }
 
-  # Validate llm_provider when chat_session is NULL
-  if (is.null(chat_session) && is.null(llm_provider)) {
+  # Validate LLM configuration when chat_session is NULL
+  if (is.null(chat_session) && is.null(llm_cfg)) {
     cli::cli_abort(
       c(
-        "{.var llm_provider} is required when {.var chat_session} is NULL",
-        "i" = "Specify llm_provider (e.g., 'anthropic', 'openai', 'ollama', 'gemini')",
+        "LLM configuration required when {.var chat_session} is NULL",
+        "i" = "Provide one of:",
+        " " = "- Direct: provider = 'ollama', model = 'gpt-oss:20b'",
+        " " = "- Config: llm_args = list(provider = 'ollama', model = 'gpt-oss:20b')",
         "i" = "Or provide a chat_session created with chat_session()"
       )
     )
@@ -292,14 +267,19 @@ interpret <- function(chat_session = NULL,
   if (!is.null(chat_session)) {
     effective_model_type <- chat_session$model_type
 
-    # Warn if both chat_session and model_type are provided and conflict
+    # Early validation: Abort if model_type conflicts with chat_session
+    # This provides immediate feedback at the interpret() entry point
     if (!is.null(model_type) &&
         model_type != effective_model_type) {
-      cli::cli_warn(
+      cli::cli_abort(
         c(
-          "!" = "Both {.var chat_session} and {.var model_type} provided with different values",
-          "i" = "Using model_type from chat_session: {.val {effective_model_type}}",
-          "i" = "Ignoring model_type argument: {.val {model_type}}"
+          "chat_session model_type mismatch",
+          "x" = paste0(
+            "chat_session has model_type '", effective_model_type, "' ",
+            "but you requested interpretation for model_type '", model_type, "'"
+          ),
+          "i" = "Create a new chat_session with model_type = '{model_type}'",
+          "i" = "Or omit the model_type argument to use the chat_session's type"
         )
       )
     }
@@ -311,24 +291,20 @@ interpret <- function(chat_session = NULL,
   # DISPATCH TO APPROPRIATE HANDLER
   # ============================================================================
 
-  # Check if model_fit is a fitted model object (has a class that might have a method)
-  is_fitted_model <- !is.null(class(model_fit)) &&
+  # Check if fit_results is a fitted model object (has a class that might have a method)
+  is_fitted_model <- !is.null(class(fit_results)) &&
     (
-      inherits(model_fit, "fa") ||
-        inherits(model_fit, "principal") ||
-        inherits(model_fit, "psych") ||
-        inherits(model_fit, "lavaan") ||
-        inherits(model_fit, "efaList") ||
-        inherits(model_fit, "SingleGroupClass")
+      inherits(fit_results, "fa") ||
+        inherits(fit_results, "principal") ||
+        inherits(fit_results, "psych") ||
+        inherits(fit_results, "lavaan") ||
+        inherits(fit_results, "efaList") ||
+        inherits(fit_results, "SingleGroupClass")
     )
 
-  # Check if model_fit is a list (but not a data.frame, which is also a list)
-  is_structured_list <- is.list(model_fit) &&
-    !is.data.frame(model_fit) && !is_fitted_model
-
-  # Check if model_fit is raw data (matrix or data.frame)
-  is_raw_data <- (is.matrix(model_fit) ||
-                    is.data.frame(model_fit)) && !is_fitted_model
+  # Check if fit_results is a list (but not a data.frame, which is also a list)
+  is_structured_list <- is.list(fit_results) &&
+    !is.data.frame(fit_results) && !is_fitted_model
 
   # ============================================================================
   # ROUTE 1: Fitted Model Object
@@ -338,20 +314,12 @@ interpret <- function(chat_session = NULL,
     # Pass all explicit parameters that were made non-anonymous
     return(
       interpret_model(
-        model_fit,
+        fit_results,
         variable_info,
         chat_session = chat_session,
-        llm_provider = llm_provider,
-        llm_model = llm_model,
-        params = params,
-        additional_info = additional_info,
-        word_limit = word_limit,
-        output_format = output_format,
-        heading_level = heading_level,
-        suppress_heading = suppress_heading,
-        max_line_length = max_line_length,
-        silent = silent,
-        echo = echo,
+        llm_args = llm_cfg,
+        fa_args = fa_cfg,
+        output_args = out_cfg,
         ...
       )
     )
@@ -374,7 +342,7 @@ interpret <- function(chat_session = NULL,
     # Handle list structure based on model type
     if (effective_model_type == "fa") {
       # Validate and extract FA list components
-      extracted <- validate_fa_list_structure(model_fit)
+      extracted <- validate_fa_list_structure(fit_results)
 
       # Call handle_raw_data_interpret with extracted loadings
       return(
@@ -384,17 +352,9 @@ interpret <- function(chat_session = NULL,
           model_type = effective_model_type,
           chat_session = chat_session,
           factor_cor_mat = extracted$factor_cor_mat,
-          llm_provider = llm_provider,
-          llm_model = llm_model,
-          params = params,
-          additional_info = additional_info,
-          word_limit = word_limit,
-          output_format = output_format,
-          heading_level = heading_level,
-          suppress_heading = suppress_heading,
-          max_line_length = max_line_length,
-          silent = silent,
-          echo = echo,
+          llm_args = llm_cfg,
+          fa_args = fa_cfg,
+          output_args = out_cfg,
           ...
         )
       )
@@ -409,37 +369,11 @@ interpret <- function(chat_session = NULL,
   }
 
   # ============================================================================
-  # ROUTE 3: Raw Data (matrix or data.frame)
-  # ============================================================================
-  if (is_raw_data) {
-    # Need effective_model_type to know how to interpret the data
-    if (is.null(effective_model_type)) {
-      cli::cli_abort(
-        c(
-          "{.var model_type} or {.var chat_session} required when using raw data",
-          "i" = "Specify model_type explicitly or provide a chat_session"
-        )
-      )
-    }
-
-    # Route to model-specific handling
-    return(
-      handle_raw_data_interpret(
-        x = model_fit,
-        variable_info = variable_info,
-        model_type = effective_model_type,
-        chat_session = chat_session,
-        ...
-      )
-    )
-  }
-
-  # ============================================================================
-  # FALLBACK: Unknown model_fit type
+  # FALLBACK: Unknown fit_results type
   # ============================================================================
   cli::cli_abort(
     c(
-      "Cannot interpret object of class {.cls {class(model_fit)}}",
+      "Cannot interpret object of class {.cls {class(fit_results)}}",
       "i" = "Supported types:",
       " " = "- Fitted models: psych (fa, principal), lavaan (cfa, sem, efa), mirt (mirt)",
       " " = "- Structured list: list(loadings = matrix, factor_cor_mat = matrix)",
@@ -469,23 +403,13 @@ interpret_model <- function(model, variable_info, ...) {
   UseMethod("interpret_model")
 }
 
-
 # ==============================================================================
 # METHODS FOR PSYCH PACKAGE
 # ==============================================================================
-
-#' @keywords internal
-#' @noRd
-interpret_model.psych <- function(model, variable_info, ...) {
-  if (inherits(model, "fa")) {
-    interpret_model.fa(model, variable_info, ...)
-  } else if (inherits(model, "principal")) {
-    interpret_model.principal(model, variable_info, ...)
-  } else {
-    cli::cli_abort(c("Unsupported psych model type", "x" = "Class of object: {.cls {class(model)}}"))
-  }
-}
-
+# Note: R's S3 dispatch automatically handles psych objects through their class
+# vector (e.g., c("fa", "psych")). The interpret_model.fa() and
+# interpret_model.principal() methods below are called directly by R's dispatch
+# system - no wrapper method needed.
 
 #' Interpret Results from psych::fa()
 #'
@@ -494,7 +418,7 @@ interpret_model.psych <- function(model, variable_info, ...) {
 #'
 #' @param model A fitted model from \code{psych::fa()}
 #' @param variable_info Dataframe with variable names and descriptions
-#' @param ... Additional arguments passed to \code{\link{interpret_fa}}
+#' @param ... Additional arguments passed to \code{\link{interpret_core}}
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -516,8 +440,8 @@ interpret_model.psych <- function(model, variable_info, ...) {
 #'   description = c("Miles per gallon", "Cylinders", "Displacement", "Horsepower")
 #' )
 #'
-#' result <- interpret(model_fit = fa_model, variable_info = var_info,
-#'                     llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+#' result <- interpret(fit_results = fa_model, variable_info = var_info,
+#'                     provider = "ollama", model = "gpt-oss:20b-cloud")
 #' }
 interpret_model.fa <- function(model, variable_info, ...) {
   # Extract chat_session from ... if present
@@ -527,32 +451,11 @@ interpret_model.fa <- function(model, variable_info, ...) {
   # Validate chat_session if provided
   validate_chat_session_for_model_type(chat_session, "fa")
 
-  # Validate model structure
-  if (!inherits(model, "psych") && !inherits(model, "fa")) {
-    cli::cli_abort(
-      c("Model must be of class {.cls psych.fa}", "x" = "You supplied class: {.cls {class(model)}}")
-    )
-  }
-
-  if (is.null(model$loadings)) {
-    cli::cli_abort("Model does not contain loadings component")
-  }
-
-  # Extract loadings and convert to data frame
-  loadings <- as.data.frame(unclass(model$loadings))
-
-  # Extract factor correlations if oblique rotation was used
-  factor_cor_mat <- if (!is.null(model$Phi)) {
-    model$Phi
-  } else {
-    NULL
-  }
-
-  # Call interpret_fa with extracted components
-  result <- interpret_fa(
-    loadings = loadings,
+  # Call interpret_core with fit_results (build_model_data will extract loadings)
+  result <- interpret_core(
+    fit_results = model,
     variable_info = variable_info,
-    factor_cor_mat = factor_cor_mat,
+    model_type = "fa",
     ...
   )
 
@@ -569,7 +472,7 @@ interpret_model.fa <- function(model, variable_info, ...) {
 #'
 #' @param model A fitted model from \code{psych::principal()}
 #' @param variable_info Dataframe with variable names and descriptions
-#' @param ... Additional arguments passed to \code{\link{interpret_fa}}
+#' @param ... Additional arguments passed to \code{\link{interpret_core}}
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -590,8 +493,8 @@ interpret_model.fa <- function(model, variable_info, ...) {
 #'   description = c("Miles per gallon", "Cylinders", "Displacement", "Horsepower")
 #' )
 #'
-#' result <- interpret(model_fit = pca_model, variable_info = var_info,
-#'                     llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+#' result <- interpret(fit_results = pca_model, variable_info = var_info,
+#'                     provider = "ollama", model = "gpt-oss:20b-cloud")
 #' }
 interpret_model.principal <- function(model, variable_info, ...) {
   # Extract chat_session from ... if present
@@ -616,11 +519,11 @@ interpret_model.principal <- function(model, variable_info, ...) {
   loadings <- as.data.frame(unclass(model$loadings))
 
   # PCA produces orthogonal components, no correlations
-  # Call interpret_fa with extracted components
-  result <- interpret_fa(
-    loadings = loadings,
+  # Call interpret_core with extracted model
+  result <- interpret_core(
+    fit_results = model,
     variable_info = variable_info,
-    factor_cor_mat = NULL,
+    model_type = "fa",
     ...
   )
 
@@ -644,7 +547,7 @@ interpret_model.principal <- function(model, variable_info, ...) {
 #' @param model A fitted model from \code{lavaan::cfa()}, \code{lavaan::sem()},
 #'   or \code{lavaan::lavaan()}
 #' @param variable_info Dataframe with variable names and descriptions
-#' @param ... Additional arguments passed to \code{\link{interpret_fa}}
+#' @param ... Additional arguments passed to \code{\link{interpret_core}}
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -674,9 +577,9 @@ interpret_model.principal <- function(model, variable_info, ...) {
 #'   description = paste("Visual/Textual/Speed indicator", 1:9)
 #' )
 #'
-#' result <- interpret(model_fit = fit, variable_info = var_info,
-#'                     llm_provider = "ollama",
-#'                     llm_model = "gpt-oss:20b-cloud")
+#' result <- interpret(fit_results = fit, variable_info = var_info,
+#'                     provider = "ollama",
+#'                     model = "gpt-oss:20b-cloud")
 #' }
 interpret_model.lavaan <- function(model, variable_info, ...) {
   # Extract chat_session from ... if present
@@ -752,11 +655,11 @@ interpret_model.lavaan <- function(model, variable_info, ...) {
     }
   }
 
-  # Call interpret_fa
-  result <- interpret_fa(
-    loadings = loadings,
+  # Call interpret_core
+  result <- interpret_core(
+    fit_results = model,
     variable_info = variable_info,
-    factor_cor_mat = factor_cor_mat,
+    model_type = "fa",
     ...
   )
 
@@ -774,7 +677,7 @@ interpret_model.lavaan <- function(model, variable_info, ...) {
 #'
 #' @param model A fitted model from \code{lavaan::efa()} with output="efa"
 #' @param variable_info Dataframe with variable names and descriptions
-#' @param ... Additional arguments passed to \code{\link{interpret_fa}}
+#' @param ... Additional arguments passed to \code{\link{interpret_core}}
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -797,8 +700,8 @@ interpret_model.lavaan <- function(model, variable_info, ...) {
 #'   description = paste("Indicator", 1:9)
 #' )
 #'
-#' result <- interpret(model_fit = fit, variable_info = var_info,
-#'                     llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+#' result <- interpret(fit_results = fit, variable_info = var_info,
+#'                     provider = "ollama", model = "gpt-oss:20b-cloud")
 #' }
 interpret_model.efaList <- function(model, variable_info, ...) {
   # Extract chat_session from ... if present
@@ -834,11 +737,14 @@ interpret_model.efaList <- function(model, variable_info, ...) {
     factor_cor_mat <- model$rotation$phi
   }
 
-  # Call interpret_fa
-  result <- interpret_fa(
-    loadings = loadings,
+  # Call interpret_core with structured list
+  result <- interpret_core(
+    fit_results = list(
+      loadings = loadings,
+      Phi = factor_cor_mat
+    ),
     variable_info = variable_info,
-    factor_cor_mat = factor_cor_mat,
+    model_type = "fa",
     ...
   )
 
@@ -863,7 +769,7 @@ interpret_model.efaList <- function(model, variable_info, ...) {
 #' @param variable_info Dataframe with variable (item) names and descriptions
 #' @param rotate Character. Rotation method to apply when extracting loadings.
 #'   Options include "oblimin", "varimax", "promax", etc. Default is "oblimin"
-#' @param ... Additional arguments passed to \code{\link{interpret_fa}}
+#' @param ... Additional arguments passed to \code{\link{interpret_core}}
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -887,8 +793,8 @@ interpret_model.efaList <- function(model, variable_info, ...) {
 #'   description = paste("LSAT item", 1:5)
 #' )
 #'
-#' result <- interpret(model_fit = model, variable_info = var_info,
-#'                     llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+#' result <- interpret(fit_results = model, variable_info = var_info,
+#'                     provider = "ollama", model = "gpt-oss:20b-cloud")
 #' }
 interpret_model.SingleGroupClass <- function(model, variable_info, rotate = "oblimin", ...) {
   # Extract chat_session from ... if present
@@ -948,11 +854,11 @@ interpret_model.SingleGroupClass <- function(model, variable_info, rotate = "obl
     factor_cor_mat <- model@Phi
   }
 
-  # Call interpret_fa
-  result <- interpret_fa(
-    loadings = loadings,
+  # Call interpret_core
+  result <- interpret_core(
+    fit_results = model,
     variable_info = variable_info,
-    factor_cor_mat = factor_cor_mat,
+    model_type = "fa",
     ...
   )
 

@@ -16,9 +16,9 @@ test_that("interpret throws informative error for unsupported types", {
 
   expect_error(
     interpret(
-      model_fit = unsupported,
+      fit_results = unsupported,
       variable_info = data.frame(variable = "test", description = "test"),
-      llm_provider = "ollama",  # Provide to get past validation
+      provider = "ollama",  # Provide to get past validation
       model_type = "fa"  # Provide to get past validation
     ),
     "Cannot interpret"
@@ -87,10 +87,10 @@ test_that("interpret validates input model for psych::fa", {
 
   expect_error(
     interpret(
-      model_fit = bad_model,
+      fit_results = bad_model,
       variable_info = var_info,
       model_type = "fa",
-      llm_provider = "ollama"  # Provide to get past validation
+      provider = "ollama"  # Provide to get past validation
     ),
     "No variables.*found in.*variable_info"
   )
@@ -180,10 +180,10 @@ test_that("interpret.lavaan validates input model", {
 
   expect_error(
     interpret(
-      model_fit = bad_model,
+      fit_results = bad_model,
       variable_info = var_info,
       model_type = "fa",
-      llm_provider = "ollama"  # Provide to get past validation
+      provider = "ollama"  # Provide to get past validation
     ),
     "must contain.*loadings"
   )
@@ -227,10 +227,10 @@ test_that("interpret validates input model for mirt", {
 
   expect_error(
     interpret(
-      model_fit = bad_model,
+      fit_results = bad_model,
       variable_info = var_info,
       model_type = "fa",
-      llm_provider = "ollama"  # Provide to get past validation
+      provider = "ollama"  # Provide to get past validation
     ),
     "must contain.*loadings"
   )
@@ -255,10 +255,10 @@ test_that("interpret.fa end-to-end integration with psych::fa", {
 
   # Single integration test to verify end-to-end works
   result <- interpret(
-    model_fit = fa_model,
+    fit_results = fa_model,
     variable_info = var_info,
-    llm_provider = provider,
-    llm_model = model,
+    provider = provider,
+    model = model,
     word_limit = 20,  # Minimal for speed
     silent = TRUE
   )
@@ -286,10 +286,10 @@ test_that("interpret.principal end-to-end integration with psych::principal", {
   model <- "gpt-oss:20b-cloud"
 
   result <- interpret(
-    model_fit = pca_model,
+    fit_results = pca_model,
     variable_info = var_info,
-    llm_provider = provider,
-    llm_model = model,
+    provider = provider,
+    model = model,
     word_limit = 20,
     silent = TRUE
   )
@@ -319,10 +319,10 @@ test_that("interpret.lavaan end-to-end integration with CFA", {
   model <- "gpt-oss:20b-cloud"
 
   result <- interpret(
-    model_fit = fit,
+    fit_results = fit,
     variable_info = var_info,
-    llm_provider = provider,
-    llm_model = model,
+    provider = provider,
+    model = model,
     word_limit = 20,
     silent = TRUE
   )
@@ -352,10 +352,10 @@ test_that("interpret.SingleGroupClass end-to-end integration with mirt", {
   model <- "gpt-oss:20b-cloud"
 
   result <- interpret(
-    model_fit = mirt_model,
+    fit_results = mirt_model,
     variable_info = var_info,
-    llm_provider = provider,
-    llm_model = model,
+    provider = provider,
+    model = model,
     word_limit = 20,
     silent = TRUE
   )

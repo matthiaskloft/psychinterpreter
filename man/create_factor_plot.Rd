@@ -37,11 +37,12 @@ plot() method: plot(interpretation_results).
 The heatmap visualization:
 \itemize{
 \item Uses LLM-generated suggested factor names (if available)
-\item Uses a blue-white-red color scale (negative to positive loadings)
+\item Uses a color-blind friendly orange-white-blue scale (negative to positive loadings)
 \item Automatically handles suppressed small loadings (empty strings)
 \item Rotates factor names for better readability
 \item Scales variable names appropriately
 \item Highlights loadings above cutoff with a black outline
+\item Applies the custom theme_psychinterpreter() theme
 }
 }
 \examples{

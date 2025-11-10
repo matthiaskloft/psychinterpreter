@@ -1,6 +1,8 @@
 ---
 title: "Usage Patterns of the `interpret()` Function"
-author: "Matthias Kloft"
+author: 
+ - name: Matthias Kloft
+   orcid: 0000-0003-1845-6957
 date: "`r Sys.Date()`"
 format: 
   html:
@@ -102,9 +104,9 @@ interpret(
 ```
 
 
-### Pattern 2: Structured List (Raw Data)
+### Pattern 2: Structured List
 
-For custom data structures or manual extraction. Always use a structured list.
+For custom data structures or manual extraction.
 
 For FA, provide loadings (required) and optionally factor_cor_mat:
 
@@ -140,7 +142,7 @@ result1 <- interpret(
 )
 result2 <- interpret(
   chat_session = chat,
-  model_fit = fa_model,
+  model_fit = list(loadings = loadings_matrix, factor_cor_mat = factor_cor_mat),
   variable_info = var_info,
   word_limit = 50,
   silent = 1

@@ -55,47 +55,12 @@ test_that("Pattern 1: interpret() accepts fitted psych::principal model", {
 })
 
 # ==============================================================================
-# PATTERN 2: RAW DATA (MATRIX/DATA.FRAME) WITH model_type
-# ==============================================================================
-
-test_that("Pattern 2: interpret() accepts raw loadings matrix", {
-  # This test validates parameter handling for raw data without LLM call
-
-  loadings <- minimal_loadings()
-  var_info <- minimal_variable_info()
-
-  # Verify structures
-  expect_true(is.data.frame(loadings) || is.matrix(loadings))
-  expect_true(ncol(loadings) > 0)
-  expect_true(nrow(loadings) > 0)
-  expect_true(is.data.frame(var_info))
-
-  # Verify model_type is required for raw data (tested below in separate test)
-})
-
-test_that("Pattern 2: interpret() requires model_type for raw data", {
-  loadings <- minimal_loadings()
-  var_info <- minimal_variable_info()
-
-  # Missing model_type should error
-  expect_error(
-    interpret(
-      model_fit = loadings,
-      variable_info = var_info,
-      llm_provider = "ollama"  # Provide llm_provider to get past that validation
-      # No model_type, no chat_session
-    ),
-    "model_type.*required"
-  )
-})
-
-# ==============================================================================
-# PATTERN 3: STRUCTURED LIST
+# PATTERN 2: STRUCTURED LIST
 # ==============================================================================
 # These tests verify that structured lists are accepted and validated correctly.
 # Actual interpretation tested in core tests.
 
-test_that("Pattern 3: interpret() accepts structured lists in various formats", {
+test_that("Pattern 2: interpret() accepts structured lists in various formats", {
   # This test validates list structure handling without LLM call
 
   loadings <- minimal_loadings()
@@ -118,23 +83,23 @@ test_that("Pattern 3: interpret() accepts structured lists in various formats", 
   expect_true(is.list(list3))
 })
 
-test_that("Pattern 3: interpret() requires loadings in list", {
+test_that("Pattern 2: interpret() requires loadings in list", {
   var_info <- minimal_variable_info()
   phi <- minimal_factor_cor()
 
   # List without loadings should error
   expect_error(
     interpret(
-      model_fit = list(factor_cor_mat = phi),  # Missing loadings
+      fit_results = list(factor_cor_mat = phi),  # Missing loadings
       variable_info = var_info,
       model_type = "fa",
-      llm_provider = "ollama"  # Provide llm_provider to get past that validation
+      provider = "ollama"  # Provide provider to get past that validation
     ),
     "loadings.*required|must contain.*loadings"
   )
 })
 
-test_that("Pattern 3: interpret() handles unrecognized list components", {
+test_that("Pattern 2: interpret() handles unrecognized list components", {
   # This test validates warning behavior without LLM call
 
   loadings <- minimal_loadings()
@@ -153,7 +118,7 @@ test_that("Pattern 3: interpret() handles unrecognized list components", {
   # For now, just verify structure
 })
 
-test_that("Pattern 3: Backward compatibility - 'Phi' still works", {
+test_that("Pattern 2: Backward compatibility - 'Phi' still works", {
   # Ensure old code using 'Phi' as key name still works
   loadings <- minimal_loadings()
   var_info <- minimal_variable_info()
@@ -167,14 +132,34 @@ test_that("Pattern 3: Backward compatibility - 'Phi' still works", {
   # Full integration test would require LLM call, so just verify structure
 })
 
+test_that("Pattern 2: Data frames work for Phi/factor_cor_mat", {
+  # Verify that data.frames are accepted and converted to matrices
+  loadings <- minimal_loadings()
+  var_info <- minimal_variable_info()
+  phi_matrix <- minimal_factor_cor()
+
+  # Convert to data.frame (common when extracting from psych::fa objects)
+  phi_df <- as.data.frame(phi_matrix)
+
+  # Should accept data.frame without error
+  list_with_df <- list(loadings = loadings, Phi = phi_df)
+
+  # Validate that the structure is accepted
+  validated <- psychinterpreter:::validate_fa_list_structure(list_with_df)
+
+  # After validation, factor_cor_mat should be a matrix
+  expect_true(is.matrix(validated$factor_cor_mat))
+  expect_equal(dim(validated$factor_cor_mat), dim(phi_matrix))
+})
+
 # ==============================================================================
-# PATTERN 4: CHAT SESSION
+# PATTERN 3: CHAT SESSION
 # ==============================================================================
 # These tests verify that chat_session objects are accepted as parameters.
 # Full chat session functionality (token reuse, multiple interpretations, etc.)
 # is comprehensively tested in test-chat_fa.R.
 
-test_that("Pattern 4: interpret() accepts chat_session with various model_fit types", {
+test_that("Pattern 3: interpret() accepts chat_session with various fit_results types", {
   # This test validates that chat_session is accepted without LLM call
   # Full chat session functionality tested in test-chat_fa.R
 
@@ -189,14 +174,14 @@ test_that("Pattern 4: interpret() accepts chat_session with various model_fit ty
   # Test 1: chat_session must be a chat_session object
   expect_error(
     interpret(
-      model_fit = loadings,
+      fit_results = loadings,
       variable_info = var_info,
       chat_session = list(not = "a_session")
     ),
     "chat_session.*must be a chat_session object"
   )
 
-  # Test 2: Verify various model_fit types would work with chat_session
+  # Test 2: Verify various fit_results types would work with chat_session
   # (structure validation only, no actual LLM calls)
 
   # Raw loadings structure is valid
@@ -224,12 +209,12 @@ test_that("Misuse: interpret() errors when no arguments provided", {
   )
 })
 
-test_that("Misuse: interpret() errors when model_fit missing", {
+test_that("Misuse: interpret() errors when fit_results missing", {
   var_info <- minimal_variable_info()
 
   expect_error(
     interpret(variable_info = var_info),
-    "model_fit.*required"
+    "fit_results.*required"
   )
 })
 
@@ -237,7 +222,7 @@ test_that("Misuse: interpret() errors when variable_info missing", {
   loadings <- minimal_loadings()
 
   expect_error(
-    interpret(model_fit = loadings, model_type = "fa"),
+    interpret(fit_results = loadings, model_type = "fa"),
     "variable_info.*required"
   )
 })
@@ -247,7 +232,7 @@ test_that("Misuse: interpret() errors when variable_info not a data.frame", {
 
   expect_error(
     interpret(
-      model_fit = loadings,
+      fit_results = loadings,
       variable_info = list(a = 1, b = 2),
       model_type = "fa"
     ),
@@ -260,7 +245,7 @@ test_that("Misuse: interpret() errors when variable_info missing 'variable' colu
 
   expect_error(
     interpret(
-      model_fit = loadings,
+      fit_results = loadings,
       variable_info = data.frame(wrong_column = c("A", "B", "C")),
       model_type = "fa"
     ),
@@ -274,7 +259,7 @@ test_that("Misuse: interpret() errors with invalid chat_session", {
 
   expect_error(
     interpret(
-      model_fit = loadings,
+      fit_results = loadings,
       variable_info = var_info,
       chat_session = list(not = "a_session")
     ),
@@ -296,7 +281,7 @@ test_that("Misuse: interpret() handles chat_session with conflicting model_type"
   # Test validates that invalid chat_session is rejected
   expect_error(
     interpret(
-      model_fit = loadings,
+      fit_results = loadings,
       variable_info = var_info,
       chat_session = list(not = "valid"),
       model_type = "fa"
@@ -308,15 +293,15 @@ test_that("Misuse: interpret() handles chat_session with conflicting model_type"
   # This is tested with actual sessions in test-chat_fa.R
 })
 
-test_that("Misuse: interpret() errors for unsupported model_fit type", {
+test_that("Misuse: interpret() errors for unsupported fit_results type", {
   var_info <- minimal_variable_info()
 
   expect_error(
     interpret(
-      model_fit = "not_a_valid_type",
+      fit_results = "not_a_valid_type",
       variable_info = var_info,
       model_type = "fa",
-      llm_provider = "ollama"  # Provide llm_provider to get past that validation
+      provider = "ollama"  # Provide provider to get past that validation
     ),
     "Cannot interpret"
   )
@@ -326,14 +311,14 @@ test_that("Misuse: interpret() errors for unsupported model_fit type", {
 # ADDITIONAL_INFO PARAMETER
 # ==============================================================================
 
-test_that("additional_info parameter is accepted (not in model_fit list)", {
+test_that("additional_info parameter is accepted (not in fit_results list)", {
   # This test validates that additional_info is a valid parameter
   # Full integration and storage in result$params tested in test-interpret_fa.R
 
   loadings <- minimal_loadings()
   var_info <- minimal_variable_info()
 
-  # Verify additional_info is a separate parameter, not part of model_fit
+  # Verify additional_info is a separate parameter, not part of fit_results
   # Structure validation: these parameters would be accepted
   expect_true(is.character("This is additional context"))
   expect_true(is.data.frame(loadings) || is.matrix(loadings))

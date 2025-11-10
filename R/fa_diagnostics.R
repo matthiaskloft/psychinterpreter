@@ -168,7 +168,7 @@ find_no_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
 #' Create Diagnostics for Factor Analysis
 #'
 #' S3 method that implements diagnostic analysis for FA. Integrates with
-#' the core interpret_generic() workflow.
+#' the core interpret_core() workflow.
 #'
 #' @param model_type Object with class "fa"
 #' @param model_data List. Contains loadings_df, factor_cols

@@ -28,27 +28,16 @@ reference:
       - chat_session
       - is.chat_session
       - reset.chat_session
-      - chat_fa
-      - is.chat_fa
-      - reset.chat_fa
 
-  - title: "S3 Methods for Package Integration"
+  - title: "Visualization & Theming"
     desc: >
-      S3 methods for interpreting results from popular psychometric packages.
-      Automatically extract loadings and factor correlations from fitted model objects.
-    contents:
-      - interpret.fa
-      - interpret.principal
-      - interpret.lavaan
-      - interpret.efaList
-      - interpret.SingleGroupClass
-
-  - title: "Visualization"
-    desc: >
-      Functions for creating visual representations of factor analysis results.
+      Functions for creating visual representations and applying consistent styling.
     contents:
       - plot.fa_interpretation
+      - plot.interpretation
       - create_factor_plot
+      - theme_psychinterpreter
+      - psychinterpreter_colors
 
   - title: "Export Functions"
     desc: >
@@ -69,5 +58,5 @@ reference:
       S3 methods for displaying interpretation results and chat session information.
     contents:
       - print.fa_interpretation
+      - print.interpretation
       - print.chat_session
-      - print.chat_fa

@@ -23,7 +23,7 @@ Imports:
     tidyr,
     cli,
     jsonlite,
-    lifecycle
+    rlang
 Suggests:
     testthat (>= 3.0.0),
     psych,

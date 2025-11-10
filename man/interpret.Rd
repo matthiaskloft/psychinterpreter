@@ -5,31 +5,20 @@
 \title{Interpret Psychometric Analysis Results}
 \usage{
 interpret(
-  chat_session = NULL,
-  model_fit = NULL,
+  fit_results = NULL,
   variable_info = NULL,
+  chat_session = NULL,
   model_type = NULL,
-  llm_provider = NULL,
-  llm_model = NULL,
-  params = NULL,
-  system_prompt = NULL,
-  interpretation_guidelines = NULL,
-  additional_info = NULL,
-  word_limit = 150,
-  output_format = "cli",
-  heading_level = 1,
-  suppress_heading = FALSE,
-  max_line_length = 80,
-  silent = 0,
-  echo = "none",
+  provider = NULL,
+  model = NULL,
+  llm_args = NULL,
+  fa_args = NULL,
+  output_args = NULL,
   ...
 )
 }
 \arguments{
-\item{chat_session}{Optional. A chat_session object created with \code{\link{chat_session}}
-for token-efficient multi-analysis workflows.}
-
-\item{model_fit}{One of:
+\item{fit_results}{One of:
 \itemize{
 \item \strong{Fitted model object}:
 \itemize{
@@ -37,9 +26,10 @@ for token-efficient multi-analysis workflows.}
 \item lavaan package: \code{cfa()}, \code{sem()}, \code{efa()}
 \item mirt package: \code{mirt()}
 }
-\item \strong{Structured list} with model components (raw data):
+\item \strong{Structured list} with model components:
 \itemize{
 \item For FA: \code{list(loadings = matrix, factor_cor_mat = matrix)} or \code{list(loadings = matrix)}
+(both loadings and factor_cor_mat can be matrices or data.frames)
 \item For GM: Not yet implemented
 \item For IRT: Not yet implemented
 \item For CDM: Not yet implemented
@@ -48,79 +38,44 @@ for token-efficient multi-analysis workflows.}
 
 \item{variable_info}{Dataframe with 'variable' and 'description' columns describing the variables.}
 
+\item{chat_session}{Optional. A chat_session object created with \code{\link{chat_session}}
+for token-efficient multi-analysis workflows (default = NULL).}
+
 \item{model_type}{Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
-structured list without chat_session. Automatically inferred from chat_session if provided.}
+structured list without chat_session. Automatically inferred from chat_session if provided (default = NULL).}
 
-\item{llm_provider}{Character. LLM provider to use (e.g., "openai", "anthropic", "ollama", "gemini").
-Any provider supported by ellmer::chat(). Required when chat_session is NULL. See ellmer documentation
-for complete list (default = NULL).}
+\item{provider}{Character. LLM provider (e.g., "openai", "anthropic", "ollama", "gemini").
+Required when chat_session is NULL. Top-level convenience parameter (default = NULL).}
 
-\item{llm_model}{Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b").
-If NULL, uses provider default (default = NULL).}
+\item{model}{Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b").
+If NULL, uses provider default. Top-level convenience parameter (default = NULL).}
 
-\item{params}{Parameters for the LLM created using ellmer::params() (e.g., params(temperature = 0.7, seed = 42)).
-Provides provider-agnostic interface for setting model parameters like temperature, seed, max_tokens, etc.
-If NULL, uses provider defaults (default = NULL).}
+\item{llm_args}{List or llm_args object. LLM configuration settings. Can be created with
+\code{\link{llm_args}} or passed as a plain list. Contains: system_prompt, params, word_limit,
+interpretation_guidelines, additional_info, echo. If provider/model are provided at top-level,
+they override values in llm_args (default = NULL).}
 
-\item{system_prompt}{Character. Optional custom system prompt to override the package default psychometric
-system prompt. Use this to provide institution- or project-specific framing for the LLM (e.g., preferred
-terminology, audience level, or reporting conventions). If NULL, the internal default system prompt is used.
-Note: This parameter is ignored if chat_session is provided, as the system prompt has already been set
-during chat session initialization (default = NULL).}
+\item{fa_args}{List or fa_args object. Factor analysis configuration settings. Can be created with
+\code{\link{fa_args}} or passed as a plain list. Contains: cutoff, n_emergency, hide_low_loadings,
+sort_loadings, factor_cor_mat (default = NULL).}
 
-\item{interpretation_guidelines}{Character. Optional custom interpretation guidelines for the LLM that override
-the package default guidelines. Use this to specify particular theoretical frameworks, interpretation styles,
-or domain-specific conventions. If NULL, built-in interpretation guidelines are applied (default = NULL).}
+\item{output_args}{List or output_args object. Output configuration settings. Can be created with
+\code{\link{output_args}} or passed as a plain list. Contains: format, heading_level,
+suppress_heading, max_line_length, silent (default = NULL).}
 
-\item{additional_info}{Character. Optional additional context for the LLM, such as theoretical background,
-research area information, or domain-specific knowledge to inform interpretation (default = NULL).}
-
-\item{word_limit}{Integer. Maximum number of words for LLM interpretations (default = 150).}
-
-\item{output_format}{Character. Output format for the report: "cli" or "markdown" (default = "cli").}
-
-\item{heading_level}{Integer. Starting heading level for markdown output (default = 1). Used when output_format = "markdown".}
-
-\item{suppress_heading}{Logical. If TRUE, suppresses the main interpretation heading for \code{output_format} = "markdown,
-allowing better integration into existing documents (default = FALSE).}
-
-\item{max_line_length}{Integer. Maximum line length for console output text wrapping (default = 80).}
-
-\item{silent}{Integer or logical. Controls output verbosity:
-\itemize{
-\item 0 or FALSE: Show report and all messages (default)
-\item 1: Show messages only, suppress report
-\item 2 or TRUE: Completely silent, suppress all output
-For backward compatibility, logical values are accepted and converted to integers.
-}}
-
-\item{echo}{Character. Controls what is echoed during LLM interaction. One of "none" (no output),
-"output" (show only LLM responses), or "all" (show prompts and responses). Useful for debugging (default = "none").}
-
-\item{...}{Additional model-specific parameters:
-\itemize{
-\item \strong{FA-specific} (see \code{\link{interpret_fa}}):
-\itemize{
-\item \code{cutoff}: Minimum loading value to consider (default = 0.3)
-\item \code{n_emergency}: Number of highest loadings to use when no loadings exceed cutoff (default = 2)
-\item \code{hide_low_loadings}: Hide loadings below cutoff in LLM prompt (default = FALSE).
-This prevents the LLM from considering them for interpretation, which might happen otherwise.
-\item \code{sort_loadings}: Sort variables by loading strength within factors (default = TRUE)
-\item \code{factor_cor_mat}: Factor correlation matrix for oblique rotations (default = NULL)
-}
-}}
+\item{...}{Additional arguments passed to model-specific methods.}
 }
 \value{
 Model-specific interpretation object:
 \itemize{
-\item FA: \code{fa_interpretation} (see \code{\link{interpret_fa}})
+\item FA: \code{fa_interpretation} (see \code{\link{interpret}})
 \item Future: \code{gm_interpretation}, \code{irt_interpretation}, etc.
 }
 }
 \description{
 Unified interface for interpreting psychometric analysis results with LLMs.
-Supports fitted model objects, raw data with model_type specification,
-structured lists, and persistent chat sessions for efficient multi-analysis workflows.
+Supports fitted model objects, structured lists, and persistent chat sessions
+for efficient multi-analysis workflows.
 }
 \details{
 All arguments are named to prevent positional confusion. The function detects which pattern
@@ -133,22 +88,22 @@ Automatically extracts model components from fitted objects.
 
 \preformatted{
 interpret(
-  model_fit = fa_model,
+  fit_results = fa_model,
   variable_info = var_info,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
 )
 }
 
-\strong{Pattern 2: Structured List (Raw Data)}
+\strong{Pattern 2: Structured List}
 
-For custom data structures or manual extraction. Always use a structured list.
+For custom data structures or manual extraction.
 
 For FA, provide loadings (required) and optionally factor_cor_mat:
 
 \preformatted{
 interpret(
-  model_fit = list(
+  fit_results = list(
     loadings = loadings_matrix,
     factor_cor_mat = factor_cor_mat
   ),
@@ -163,8 +118,8 @@ Reuse chat session across analyses to save tokens.
 
 \preformatted{
 chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
-result1 <- interpret(chat_session = chat, model_fit = model1, variable_info = var_info1)
-result2 <- interpret(chat_session = chat, model_fit = model2, variable_info = var_info2)
+result1 <- interpret(chat_session = chat, fit_results = model1, variable_info = var_info1)
+result2 <- interpret(chat_session = chat, fit_results = model2, variable_info = var_info2)
 }
 }
 
@@ -176,6 +131,12 @@ result2 <- interpret(chat_session = chat, model_fit = model2, variable_info = va
 \item \strong{cdm} (Cognitive Diagnosis Models): Not yet implemented
 }
 }
+}
+\note{
+While only \code{provider} and \code{model} are exposed as top-level parameters for convenience,
+the dual interface pattern allows any argument to be passed either directly or through the respective
+configuration object (\code{llm_args}, \code{fa_args}, \code{output_args}). This keeps the primary
+signature clean while maintaining flexibility
 }
 \examples{
 \dontrun{
@@ -189,44 +150,44 @@ var_info <- data.frame(
 
 # Pattern 1: Fitted model
 result1 <- interpret(
-  model_fit = fa_model,
+  fit_results = fa_model,
   variable_info = var_info,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
 )
 
-# Pattern 2: Structured list (raw data)
+# Pattern 2: Structured list
 # Extract loadings from fitted model
 loadings <- as.data.frame(unclass(fa_model$loadings))
 
 # Option A: Loadings only (orthogonal rotation)
 result2a <- interpret(
-  model_fit = list(loadings = loadings),
+  fit_results = list(loadings = loadings),
   variable_info = var_info,
   model_type = "fa",
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
 )
 
 # Option B: Loadings + factor correlations (oblique rotation)
 result2b <- interpret(
-  model_fit = list(
+  fit_results = list(
     loadings = loadings,
-    factor_cor_mat = fa_model$Phi  # Extract Phi from fitted model
+    factor_cor_mat = fa_model$Phi
   ),
   variable_info = var_info,
   model_type = "fa",
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
 )
 
 # Pattern 3: Chat session (token-efficient for multiple analyses)
 chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
-result3a <- interpret(chat_session = chat, model_fit = fa_model, variable_info = var_info)
-result3b <- interpret(chat_session = chat, model_fit = fa_model2, variable_info = var_info2)
+result3a <- interpret(chat_session = chat, fit_results = fa_model, variable_info = var_info)
+result3b <- interpret(chat_session = chat, fit_results = fa_model2, variable_info = var_info2)
 print(chat)  # Check token usage
 }
 }
 \seealso{
-\code{\link{interpret_fa}}, \code{\link{chat_session}}
+\code{\link{interpret}}, \code{\link{chat_session}}
 }

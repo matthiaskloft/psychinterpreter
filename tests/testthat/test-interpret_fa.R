@@ -8,35 +8,44 @@ test_that("interpret_fa validates input parameters", {
 
   # Test invalid cutoff
   expect_error(
-    interpret_fa(loadings, var_info, cutoff = -0.1),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", cutoff = -0.1),
     "must be between 0 and 1"
   )
 
   expect_error(
-    interpret_fa(loadings, var_info, cutoff = 1.5),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", cutoff = 1.5),
     "must be between 0 and 1"
   )
 
   # Test invalid n_emergency (negative values not allowed)
   expect_error(
-    interpret_fa(loadings, var_info, n_emergency = -1),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", n_emergency = -1),
     "must be a non-negative integer"
   )
 
-  # Test invalid output_format
+  # Test invalid output_format (now validated in interpret_core, needs provider)
   expect_error(
-    interpret_fa(loadings, var_info, output_format = "invalid"),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud",
+              output_format = "invalid"),
     "must be either"
   )
 
-  # Test invalid heading_level
+  # Test invalid heading_level (now validated in interpret_core, needs provider)
   expect_error(
-    interpret_fa(loadings, var_info, heading_level = 0),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud",
+              heading_level = 0),
     "between 1 and 6"
   )
 
   expect_error(
-    interpret_fa(loadings, var_info, heading_level = 7),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud",
+              heading_level = 7),
     "between 1 and 6"
   )
 })
@@ -51,7 +60,8 @@ test_that("interpret_fa validates loadings structure", {
   )
 
   expect_error(
-    interpret_fa(bad_loadings, var_info),
+    interpret(fit_results = list(loadings = bad_loadings), variable_info = var_info,
+              model_type = "fa", provider = "ollama"),
     'No variables from.*found in'
   )
 
@@ -59,7 +69,8 @@ test_that("interpret_fa validates loadings structure", {
   only_vars <- data.frame(variable = c("var1", "var2"))
 
   expect_error(
-    interpret_fa(only_vars, var_info),
+    interpret(fit_results = list(loadings = only_vars), variable_info = var_info,
+              model_type = "fa", provider = "ollama"),
     "must contain at least one factor"
   )
 })
@@ -73,8 +84,9 @@ test_that("interpret_fa validates variable_info structure", {
   )
 
   expect_error(
-    interpret_fa(loadings, bad_var_info),
-    'must contain a variable column'
+    interpret(fit_results = list(loadings = loadings), variable_info = bad_var_info,
+              model_type = "fa", provider = "ollama"),
+    "must contain a .variable. column"
   )
 })
 
@@ -84,12 +96,14 @@ test_that("interpret_fa validates chat_session parameter", {
 
   # Test with invalid chat_session
   expect_error(
-    interpret_fa(loadings, var_info, chat_session = "not a chat_fa"),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", chat_session = "not a chat_fa"),
     "chat_session.*must be a chat_session object"
   )
 
   expect_error(
-    interpret_fa(loadings, var_info, chat_session = list()),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", chat_session = list()),
     "chat_session.*must be a chat_session object"
   )
 })
@@ -100,13 +114,15 @@ test_that("hide_low_loadings parameter validates correctly", {
 
   # Test invalid hide_low_loadings
   expect_error(
-    interpret_fa(loadings, var_info, hide_low_loadings = "yes"),
-    "must be a single logical value"
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", hide_low_loadings = "yes"),
+    "must be TRUE or FALSE"
   )
 
   expect_error(
-    interpret_fa(loadings, var_info, hide_low_loadings = NA),
-    "must be a single logical value"
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", hide_low_loadings = NA),
+    "must be TRUE or FALSE"
   )
 })
 
@@ -129,9 +145,11 @@ test_that("interpret_fa comprehensive integration test", {
   # - Token tracking works
   # - Factor names and summaries present
   # - Report generation
-  result <- interpret_fa(loadings, var_info,
-                        llm_provider = provider,
-                        llm_model = model,
+  result <- interpret(fit_results = list(loadings = loadings),
+                        variable_info = var_info,
+                        model_type = "fa",
+                        provider = provider,
+                        model = model,
                         word_limit = 30,  # Reduced for token efficiency
                         silent = TRUE)
 
@@ -185,11 +203,13 @@ test_that("emergency rule behavior with n_emergency = 0", {
   model <- "gpt-oss:20b-cloud"
 
   # Test with n_emergency = 0 - should mark as undefined
-  result <- interpret_fa(weak_loadings, var_info,
+  result <- interpret(fit_results = list(loadings = weak_loadings),
+                        variable_info = var_info,
+                        model_type = "fa",
                         cutoff = 0.3,
                         n_emergency = 0,
-                        llm_provider = provider,
-                        llm_model = model,
+                        provider = provider,
+                        model = model,
                         word_limit = 30,
                         silent = TRUE)
 

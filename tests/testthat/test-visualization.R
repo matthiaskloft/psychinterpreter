@@ -89,9 +89,9 @@ test_that("plot.fa_interpretation uses stored cutoff by default", {
   # Create plot without specifying cutoff
   p <- plot(results)
 
-  # Check that plot has a caption with cutoff information
+  # Check that plot has a caption with loading threshold information
   caption <- p$labels$caption
-  expect_true(grepl("cutoff", caption, ignore.case = TRUE))
+  expect_true(grepl("Black outline indicates", caption, ignore.case = TRUE))
   # Should contain a numeric cutoff value (e.g., "0.3" or "0.35")
   expect_true(grepl("0\\.[0-9]+", caption))
 })

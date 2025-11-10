@@ -104,22 +104,10 @@ test_that("chat_session handles invalid provider gracefully", {
 # Legacy API Tests (chat_fa - deprecated but still supported)
 # ==============================================================================
 
-test_that("chat_fa backward compatibility (deprecated)", {
-  skip_if_no_llm()
-
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
-
-  # Suppress deprecation warnings for this test
-  suppressWarnings({
-    chat <- chat_fa(provider, model)
-
-    # Old class name should still work via backward compatibility
-    expect_true(is.chat_session(chat))
-    expect_true(is.chat_fa(chat))  # Should still return TRUE for FA sessions
-    expect_equal(chat$model_type, "fa")
-  })
-})
+# Deprecated backward compatibility test removed in Sprint 1
+# chat_fa(), is.chat_fa(), reset.chat_fa() functions were removed
+# since package is in pre-release (0.0.0.9000) and backward compatibility
+# can be ignored during development
 
 # ==============================================================================
 # INTEGRATION TEST (SINGLE COMPREHENSIVE TEST FOR SESSION REUSE)
@@ -139,9 +127,10 @@ test_that("chat_session reuse saves tokens across multiple interpretations", {
   var_info <- minimal_variable_info()
 
   # First interpretation
+  # Note: Wrap loadings in list structure for interpret() to recognize
   result1 <- interpret(
     chat_session = chat,
-    model_fit = loadings,
+    fit_results = list(loadings = loadings),
     variable_info = var_info,
     word_limit = 20,
     silent = TRUE
@@ -154,7 +143,7 @@ test_that("chat_session reuse saves tokens across multiple interpretations", {
   # Second interpretation (should reuse system prompt - saves tokens)
   result2 <- interpret(
     chat_session = chat,
-    model_fit = loadings,
+    fit_results = list(loadings = loadings),
     variable_info = var_info,
     word_limit = 20,
     silent = TRUE
@@ -179,7 +168,7 @@ test_that("chat_session reuse saves tokens across multiple interpretations", {
 # DATA FORMAT COMPATIBILITY TESTS (NO ADDITIONAL LLM CALLS NEEDED)
 # ==============================================================================
 
-test_that("interpret() with chat_session accepts different model_fit formats", {
+test_that("interpret() with chat_session accepts different fit_results formats", {
   # This test verifies parameter handling without making LLM calls
   # Full integration was already tested above
 
@@ -195,7 +184,7 @@ test_that("interpret() with chat_session accepts different model_fit formats", {
   # Test that all formats are accepted (tested above with actual calls)
   # Here we just verify no errors in parameter validation
 
-  # Format 1: Raw data (already tested in integration test above)
+  # Format 1: Fitted model (already tested in integration test above)
   # Format 2: Structured list - just verify structure is accepted
   phi <- minimal_factor_cor()
   structured_list <- list(loadings = loadings, factor_cor_mat = phi)

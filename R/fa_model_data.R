@@ -1,0 +1,435 @@
+#' Build Model Data for Factor Analysis (Internal Helper)
+#'
+#' Internal helper that extracts and validates FA-specific data from loadings
+#' matrices, data frames, or lists. Called by all build_model_data S3 methods.
+#'
+#' @param fit_results Matrix, data.frame, or list containing factor loadings
+#' @param variable_info Data frame with variable names and descriptions
+#' @param model_type Character. Should be "fa" (used for validation)
+#' @param fa_args FA configuration object from fa_args() or NULL
+#' @param ... Additional arguments (cutoff, n_emergency, hide_low_loadings, etc.)
+#'
+#' @return List containing:
+#'   \item{loadings_df}{Data frame with loadings and variable column}
+#'   \item{factor_summaries}{List of summaries for each factor}
+#'   \item{factor_cols}{Character vector of factor column names}
+#'   \item{n_factors}{Integer number of factors}
+#'   \item{n_variables}{Integer number of variables}
+#'
+#' @keywords internal
+#' @noRd
+#'
+#' @importFrom dplyr left_join
+#' @importFrom cli cli_abort
+build_fa_model_data_internal <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+
+  # Extract FA parameters from fa_args or ...
+  dots <- list(...)
+
+  # Helper to get value with fallback
+  get_param <- function(from_config, from_dots, default) {
+    if (!is.null(from_config)) return(from_config)
+    if (!is.null(from_dots)) return(from_dots)
+    default
+  }
+
+  cutoff <- if (!is.null(fa_args)) fa_args$cutoff else dots$cutoff
+  if (is.null(cutoff)) cutoff <- 0.3
+
+  n_emergency <- if (!is.null(fa_args)) fa_args$n_emergency else dots$n_emergency
+  if (is.null(n_emergency)) n_emergency <- 2
+
+  hide_low_loadings <- if (!is.null(fa_args)) fa_args$hide_low_loadings else dots$hide_low_loadings
+  if (is.null(hide_low_loadings)) hide_low_loadings <- FALSE
+
+  sort_loadings <- if (!is.null(fa_args)) fa_args$sort_loadings else dots$sort_loadings
+  if (is.null(sort_loadings)) sort_loadings <- TRUE
+
+  factor_cor_mat <- if (!is.null(fa_args)) fa_args$factor_cor_mat else dots$factor_cor_mat
+
+  # ==========================================================================
+  # STEP 1: VALIDATE FA PARAMETERS
+  # ==========================================================================
+
+  # Validate cutoff
+  if (!is.numeric(cutoff) || length(cutoff) != 1 || cutoff < 0 || cutoff > 1) {
+    cli::cli_abort("{.arg cutoff} must be a single numeric value between 0 and 1 (got {.val {cutoff}})")
+  }
+
+  # Validate n_emergency
+  if (!is.numeric(n_emergency) || length(n_emergency) != 1 || n_emergency < 0 || n_emergency != as.integer(n_emergency)) {
+    cli::cli_abort("{.arg n_emergency} must be a non-negative integer (got {.val {n_emergency}})")
+  }
+
+  # Validate hide_low_loadings
+  if (!is.logical(hide_low_loadings) || length(hide_low_loadings) != 1 || is.na(hide_low_loadings)) {
+    cli::cli_abort("{.arg hide_low_loadings} must be TRUE or FALSE")
+  }
+
+  # Validate sort_loadings
+  if (!is.logical(sort_loadings) || length(sort_loadings) != 1 || is.na(sort_loadings)) {
+    cli::cli_abort("{.arg sort_loadings} must be TRUE or FALSE")
+  }
+
+  # ==========================================================================
+  # STEP 2: EXTRACT LOADINGS FROM INPUT
+  # ==========================================================================
+
+  loadings <- NULL
+
+  # Handle different input types
+  if (is.list(fit_results) && !is.data.frame(fit_results)) {
+    # List input - extract loadings component
+    if (!"loadings" %in% names(fit_results)) {
+      cli::cli_abort(
+        c(
+          "List input must contain a 'loadings' component",
+          "x" = "Found components: {.field {names(fit_results)}}",
+          "i" = "Use: list(loadings = your_loadings_matrix)"
+        )
+      )
+    }
+    loadings <- fit_results$loadings
+    # Extract factor_cor_mat if provided in list
+    if ("Phi" %in% names(fit_results) && is.null(factor_cor_mat)) {
+      factor_cor_mat <- fit_results$Phi
+    }
+  } else {
+    # Direct matrix/data.frame input
+    loadings <- fit_results
+  }
+
+  # ==========================================================================
+  # STEP 3: CONVERT TO DATA FRAME AND VALIDATE
+  # ==========================================================================
+
+  # Convert loadings to dataframe
+  if (is.matrix(loadings) || inherits(loadings, "loadings")) {
+    loadings_df <- as.data.frame(unclass(loadings))
+    loadings_df$variable <- rownames(loadings_df)
+  } else if (is.data.frame(loadings)) {
+    loadings_df <- loadings
+    if (!"variable" %in% names(loadings_df)) {
+      loadings_df$variable <- rownames(loadings_df)
+    }
+  } else {
+    cli::cli_abort(
+      c(
+        "loadings must be a matrix, data.frame, or list with loadings component",
+        "x" = "Got {.cls {class(loadings)}}"
+      )
+    )
+  }
+
+  # Get factor names
+  factor_cols <- setdiff(names(loadings_df), "variable")
+  n_factors <- length(factor_cols)
+  n_variables <- nrow(loadings_df)
+
+  # Validate that there is at least one factor
+  if (n_factors < 1) {
+    cli::cli_abort(
+      c(
+        "loadings must contain at least one factor column",
+        "x" = "Found only: {.field {names(loadings_df)}}",
+        "i" = "Loadings should have variables as rows and factors as columns"
+      )
+    )
+  }
+
+  # Validate that loadings is not empty
+  if (n_variables < 1) {
+    cli::cli_abort("loadings must contain at least one variable (found 0 rows)")
+  }
+
+  # ==========================================================================
+  # STEP 4: VALIDATE VARIABLE_INFO
+  # ==========================================================================
+
+  if (!is.data.frame(variable_info)) {
+    cli::cli_abort("{.arg variable_info} must be a data frame")
+  }
+  if (!"variable" %in% names(variable_info)) {
+    cli::cli_abort("{.arg variable_info} must contain a 'variable' column")
+  }
+  if (!"description" %in% names(variable_info)) {
+    cli::cli_abort("{.arg variable_info} must contain a 'description' column")
+  }
+
+  # Check for variable matching
+  missing_in_info <- setdiff(loadings_df$variable, variable_info$variable)
+  missing_in_loadings <- setdiff(variable_info$variable, loadings_df$variable)
+
+  if (length(missing_in_info) == nrow(loadings_df)) {
+    cli::cli_abort(
+      c(
+        "No variables from loadings found in variable_info",
+        "x" = "Check that the 'variable' column matches",
+        "i" = "First few variables in loadings: {.val {head(loadings_df$variable, 3)}}"
+      )
+    )
+  }
+
+  if (length(missing_in_info) > 0) {
+    cli::cli_abort(
+      c(
+        "Variables in loadings not found in variable_info:",
+        "x" = "{.val {missing_in_info}}"
+      )
+    )
+  }
+
+  if (length(missing_in_loadings) > 0) {
+    cli::cli_abort(
+      c(
+        "Variables in variable_info not found in loadings:",
+        "x" = "{.val {missing_in_loadings}}"
+      )
+    )
+  }
+
+  # Merge with variable info
+  loadings_with_info <- loadings_df |>
+    dplyr::left_join(variable_info, by = "variable")
+
+  # ==========================================================================
+  # STEP 5: BUILD FACTOR SUMMARIES
+  # ==========================================================================
+
+  factor_summaries <- list()
+
+  for (factor_name in factor_cols) {
+    # Get absolute loadings for this factor
+    abs_loadings <- abs(loadings_with_info[[factor_name]])
+
+    # Find variables above cutoff
+    significant_vars <- abs_loadings >= cutoff
+    n_significant <- sum(significant_vars)
+
+    # Apply emergency rule if needed
+    used_emergency_rule <- FALSE
+    if (n_significant == 0 && n_emergency > 0) {
+      # No variables above cutoff - use top N
+      top_n_idx <- order(abs_loadings, decreasing = TRUE)[1:min(n_emergency, length(abs_loadings))]
+      significant_vars <- rep(FALSE, length(abs_loadings))
+      significant_vars[top_n_idx] <- TRUE
+      used_emergency_rule <- TRUE
+      n_significant <- sum(significant_vars)
+    }
+
+    # Extract factor data
+    if (n_significant > 0) {
+      factor_data <- loadings_with_info[significant_vars, c("variable", "description", factor_name), drop = FALSE]
+      names(factor_data)[3] <- "loading"
+
+      # Sort by loading if requested
+      if (sort_loadings) {
+        factor_data <- factor_data[order(abs(factor_data$loading), decreasing = TRUE), , drop = FALSE]
+      }
+
+      # Calculate variance explained
+      all_loadings <- loadings_with_info[[factor_name]]
+      variance_explained <- sum(all_loadings^2) / length(all_loadings)
+    } else {
+      # No significant loadings (n_emergency = 0 case)
+      factor_data <- data.frame(
+        variable = character(0),
+        description = character(0),
+        loading = numeric(0)
+      )
+      variance_explained <- 0
+    }
+
+    # Store factor summary
+    factor_summaries[[factor_name]] <- list(
+      variables = factor_data,
+      used_emergency_rule = used_emergency_rule,
+      variance_explained = variance_explained
+    )
+  }
+
+  # ==========================================================================
+  # STEP 6: RETURN MODEL DATA
+  # ==========================================================================
+
+  list(
+    loadings_df = loadings_df,
+    factor_summaries = factor_summaries,
+    factor_cols = factor_cols,
+    n_factors = n_factors,
+    n_variables = n_variables,
+    factor_cor_mat = factor_cor_mat,
+    cutoff = cutoff,
+    n_emergency = n_emergency,
+    hide_low_loadings = hide_low_loadings
+  )
+}
+
+
+#' @rdname build_model_data
+#' @export
+#' @keywords internal
+build_model_data.list <- function(fit_results, variable_info, model_type = NULL, fa_args = NULL, ...) {
+  # For list input, determine model type and route
+  if (is.null(model_type)) {
+    cli::cli_abort(
+      c(
+        "model_type must be specified when fit_results is a list",
+        "i" = "Use: interpret(..., model_type = 'fa')"
+      )
+    )
+  }
+
+  # Route to appropriate method based on model_type
+  if (model_type == "fa") {
+    build_fa_model_data_internal(fit_results, variable_info, model_type, fa_args, ...)
+  } else {
+    # Call default which will error with helpful message
+    build_model_data.default(fit_results, variable_info, model_type, fa_args, ...)
+  }
+}
+
+
+#' @rdname build_model_data
+#' @export
+#' @keywords internal
+build_model_data.matrix <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+  # Matrix input - treat as FA loadings
+  build_fa_model_data_internal(fit_results, variable_info, model_type, fa_args, ...)
+}
+
+
+#' @rdname build_model_data
+#' @export
+#' @keywords internal
+build_model_data.data.frame <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+  # Data frame input - treat as FA loadings
+  build_fa_model_data_internal(fit_results, variable_info, model_type, fa_args, ...)
+}
+
+
+# ==============================================================================
+# METHODS FOR FITTED MODEL OBJECTS
+# ==============================================================================
+
+#' @rdname build_model_data
+#' @export
+#' @keywords internal
+build_model_data.psych <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+  # Validate model structure
+  if (!inherits(fit_results, "psych")) {
+    cli::cli_abort(
+      c("Model must inherit from {.cls psych}", "x" = "Got class: {.cls {class(fit_results)}}")
+    )
+  }
+
+  if (is.null(fit_results$loadings)) {
+    cli::cli_abort("Model does not contain loadings component")
+  }
+
+  # Extract loadings
+  loadings <- as.data.frame(unclass(fit_results$loadings))
+
+  # Extract factor correlations if oblique rotation
+  factor_cor_mat <- if (!is.null(fit_results$Phi)) fit_results$Phi else NULL
+
+  # Create list and route to .fa method
+  loadings_list <- list(
+    loadings = loadings,
+    Phi = factor_cor_mat
+  )
+
+  build_fa_model_data_internal(loadings_list, variable_info, model_type, fa_args, ...)
+}
+
+
+#' @rdname build_model_data
+#' @export
+#' @keywords internal
+build_model_data.fa <- build_model_data.psych
+
+
+#' @rdname build_model_data
+#' @export
+#' @keywords internal
+build_model_data.principal <- build_model_data.psych
+
+
+#' @rdname build_model_data
+#' @export
+#' @keywords internal
+build_model_data.lavaan <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+  # Validate model structure
+  if (!inherits(fit_results, "lavaan")) {
+    cli::cli_abort(
+      c("Model must inherit from {.cls lavaan}", "x" = "Got class: {.cls {class(fit_results)}}")
+    )
+  }
+
+  # Check if lavaan package is available
+  if (!requireNamespace("lavaan", quietly = TRUE)) {
+    cli::cli_abort(
+      c(
+        "Package {.pkg lavaan} is required to interpret lavaan models",
+        "i" = "Install with: install.packages('lavaan')"
+      )
+    )
+  }
+
+  # Extract standardized loadings
+  loadings_matrix <- lavaan::inspect(fit_results, what = "std")$lambda
+
+  # Extract factor correlations
+  factor_cor_mat <- lavaan::inspect(fit_results, what = "cor.lv")
+  if (is.null(dim(factor_cor_mat)) || all(factor_cor_mat == diag(nrow(factor_cor_mat)))) {
+    factor_cor_mat <- NULL  # Orthogonal factors
+  }
+
+  # Create list and route to internal helper
+  loadings_list <- list(
+    loadings = loadings_matrix,
+    Phi = factor_cor_mat
+  )
+
+  build_fa_model_data_internal(loadings_list, variable_info, model_type, fa_args, ...)
+}
+
+
+#' @rdname build_model_data
+#' @export
+#' @keywords internal
+build_model_data.SingleGroupClass <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+  # Validate model structure
+  if (!inherits(fit_results, "SingleGroupClass")) {
+    cli::cli_abort(
+      c("Model must inherit from {.cls SingleGroupClass}", "x" = "Got class: {.cls {class(fit_results)}}")
+    )
+  }
+
+  # Check if mirt package is available
+  if (!requireNamespace("mirt", quietly = TRUE)) {
+    cli::cli_abort(
+      c(
+        "Package {.pkg mirt} is required to interpret mirt models",
+        "i" = "Install with: install.packages('mirt')"
+      )
+    )
+  }
+
+  # Extract standardized loadings
+  loadings_matrix <- mirt::summary(fit_results, suppress = 1000)$rotF
+
+  # Extract factor correlations if oblique
+  factor_cor_mat <- mirt::summary(fit_results, suppress = 1000)$fcor
+  if (is.null(factor_cor_mat) || all(factor_cor_mat == diag(nrow(factor_cor_mat)))) {
+    factor_cor_mat <- NULL  # Orthogonal factors
+  }
+
+  # Create list and route to internal helper
+  loadings_list <- list(
+    loadings = loadings_matrix,
+    Phi = factor_cor_mat
+  )
+
+  build_fa_model_data_internal(loadings_list, variable_info, model_type, fa_args, ...)
+}

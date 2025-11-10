@@ -57,7 +57,7 @@ print.interpretation <- function(x, ...) {
 
     cat(model_name, "Interpretation\n")
     cat("Components:", length(x$suggested_names), "\n")
-    cat("LLM:", x$llm_info$provider, "/", x$llm_info$model, "\n")
+    cat("LLM:", x$llm_info$provider %||% "unknown", "/", x$llm_info$model %||% "unknown", "\n")
   }
 
   invisible(x)

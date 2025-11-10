@@ -4,6 +4,14 @@
 
 **For technical/architectural details**: See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md)
 
+**Status**: Phase 1 Refactoring Complete (2025-11-09) - See [dev/REFACTORING_PLAN.md](dev/REFACTORING_PLAN.md)
+
+**IMPORTANT API CHANGES (Phase 1)**:
+- `model_fit` renamed to `fit_results`
+- `llm_provider` and `llm_model` renamed to `provider` and `model`
+- New config objects: `llm_args()`, `fa_args()`, `output_args()`
+- `interpret_fa()` is now internal-only (use `interpret()` instead)
+
 ---
 
 ## Quick Reference
@@ -12,8 +20,9 @@
 
 **Main Entry Points**:
 - `interpret()` - Universal generic (recommended for all uses)
-- `interpret_fa()` - Direct FA interpretation function
 - `chat_session()` - Create persistent LLM session (saves ~40-60% tokens for multiple analyses)
+
+**Note**: `interpret_fa()` is now internal-only. Use `interpret()` for all FA interpretations.
 
 **Standards for Examples/Tests**:
 - Always use `provider = "ollama"` and `model = "gpt-oss:20b-cloud"`
@@ -55,18 +64,17 @@ library(psychinterpreter)
 fa_result <- psych::fa(data, nfactors = 3)
 
 # 2. Prepare variable descriptions
-var_info <- c(
-  "var1" = "Description of variable 1",
-  "var2" = "Description of variable 2",
-  # ...
+var_info <- data.frame(
+  variable = c("var1", "var2", ...),
+  description = c("Description of variable 1", "Description of variable 2", ...)
 )
 
 # 3. Get interpretation
 interpretation <- interpret(
-  model_fit = fa_result,
+  fit_results = fa_result,
   variable_info = var_info,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
 )
 
 # 4. View and export results
@@ -86,9 +94,9 @@ chat <- chat_session(
 )
 
 # Reuse for multiple interpretations
-result1 <- interpret(chat_session = chat, model_fit = fa1, variable_info = vars1)
-result2 <- interpret(chat_session = chat, model_fit = fa2, variable_info = vars2)
-result3 <- interpret(chat_session = chat, model_fit = fa3, variable_info = vars3)
+result1 <- interpret(chat_session = chat, fit_results = fa1, variable_info = vars1)
+result2 <- interpret(chat_session = chat, fit_results = fa2, variable_info = vars2)
+result3 <- interpret(chat_session = chat, fit_results = fa3, variable_info = vars3)
 
 # Check cumulative token usage
 print(chat)
@@ -121,6 +129,7 @@ interpret(
 
 ```r
 # For custom data structures
+# Both loadings and Phi can be matrices or data.frames
 interpret(
   model_fit = list(
     loadings = loadings_matrix,
@@ -159,8 +168,8 @@ interpret(chat_session = chat, model_fit = loadings_list, variable_info = var_in
 # View full prompts and responses
 interpret(..., echo = "all")
 
-# Check JSON parsing with raw response
-interpret_fa(..., echo = "all")
+# Check JSON parsing with raw response (same function)
+interpret(..., echo = "all")
 ```
 
 ## Customizing Output
@@ -174,6 +183,36 @@ interpret(..., silent = 2)  # Completely silent
 # Output formats
 interpret(..., output_format = "text")      # Default: plain text
 interpret(..., output_format = "markdown")  # Markdown format
+```
+
+## Creating Visualizations
+
+```r
+# Create color-blind friendly heatmap
+interpretation <- interpret(...)
+plot(interpretation)  # Uses blue-orange diverging scale
+
+# Customize cutoff for highlighting
+plot(interpretation, cutoff = 0.4)
+
+# Save to file
+library(ggplot2)
+p <- plot(interpretation)
+ggsave("loadings_heatmap.png", p, width = 10, height = 8, dpi = 300)
+
+# Further customize with ggplot2
+p + labs(title = "My Custom Title") +
+    theme(plot.title = element_text(size = 16))
+
+# Use package theme for other plots
+library(ggplot2)
+ggplot(data, aes(x, y)) +
+  geom_point() +
+  theme_psychinterpreter()  # Apply package theme
+
+# Access color palettes directly
+colors <- psychinterpreter_colors("diverging")    # Blue-white-orange
+cat_cols <- psychinterpreter_colors("categorical") # Okabe-Ito palette
 ```
 
 ## Working with Weak Factors
@@ -330,7 +369,7 @@ devtools::document()
 
 **To debug**: Use `echo = "all"` to see raw LLM response
 ```r
-interpret_fa(..., echo = "all")
+interpret(..., echo = "all")
 ```
 
 ## Word Limit Messages
@@ -357,29 +396,19 @@ interpret_fa(..., echo = "all")
 
 ## High Priority
 
-1. **Update interpret_fa() documentation**
-   - Sync roxygen docs with interpret() generic
-   - Ensure all parameters consistently documented
+None at this time - Phase 2 refactoring complete!
 
 ## Medium Priority
 
-2. **Code review** - Review generic_interpret.R, fa_interpret.R, base_chat_session.R for improvements
-
-3. **Screen for redundant code** - Check for logic duplication in core functions
-
-4. **Implement summary() method**
+2. **Implement summary() method**
    - For chat_session: Show stats and token usage
    - For fa_interpretation: Show factor names only
 
-5. **Optimize tests further** - Review fixture usage and caching strategies
+3. **Optimize tests further** - Review fixture usage and caching strategies
 
 ## Low Priority
 
-6. **Implement gaussian_mixture class** - Requires 7 S3 methods (see dev/DEVELOPER_GUIDE.md)
-
-7. **Implement IRT interpretation class** - Item diagnostics support
-
-8. **Implement CDM interpretation class** - Q-matrix interpretation support
+4. **Implement gaussian_mixture class** - Requires 7 S3 methods (see dev/DEVELOPER_GUIDE.md)
 
 ---
 
@@ -390,12 +419,16 @@ interpret_fa(..., echo = "all")
 | Function | Purpose |
 |----------|---------|
 | `interpret()` | Universal interpretation function (recommended) |
-| `interpret_fa()` | Direct FA interpretation |
 | `chat_session()` | Create persistent LLM session |
 | `export_interpretation()` | Export to txt/md files |
-| `plot.fa_interpretation()` | Visualize factor loadings |
+| `plot.fa_interpretation()` | Visualize factor loadings with color-blind friendly palette |
+| `theme_psychinterpreter()` | Custom ggplot2 theme for publication-ready plots |
+| `psychinterpreter_colors()` | Get color-blind friendly palettes |
 | `find_cross_loadings()` | Identify cross-loading variables |
 | `find_no_loadings()` | Identify orphaned variables |
+| `llm_args()` | Create LLM configuration object |
+| `fa_args()` | Create FA configuration object |
+| `output_args()` | Create output configuration object |
 
 ## Key Parameters
 
@@ -485,3 +518,4 @@ Update the developer guide when making **architectural or implementation changes
 **Last Updated**: 2025-11-09
 **Maintainer**: Update when making significant user-facing changes
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
+- use kable() and kable_styling() for .Qmd articles

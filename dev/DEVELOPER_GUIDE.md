@@ -62,13 +62,13 @@
 | `interpret_helpers.R` | 156 | Validation and routing for interpret() dispatch |
 | `report_fa.R` | 838 | Report building with S3 method |
 
-### Utilities (3 files, ~446 lines)
+### Utilities (3 files, ~653 lines)
 
 | File | Lines | Purpose |
 |------|-------|---------|
 | `export_functions.R` | 132 | Export to txt/md formats |
 | `utils_text_processing.R` | 107 | Text wrapping, word counting |
-| `visualization.R` | 207 | S3 plot method, heatmap generation |
+| `visualization.R` | 414 | S3 plot method, color-blind friendly palettes, custom theme |
 
 ### Archive (8 files, not loaded)
 
@@ -162,35 +162,29 @@ Detect model_fit type:
 │           ↓
 │       Each method calls interpret_fa(loadings, ..., chat_session=...)
 │
-├─ STRUCTURED LIST? (is.list && !is.data.frame && !is_fitted_model)
-│       ↓
-│   Requires model_type or chat_session
-│       ↓
-│   validate_fa_list_structure():
-│       ├─ Extract loadings (required)
-│       ├─ Extract Phi or factor_cor_mat (optional)
-│       └─ Warn about unrecognized components
-│           ↓
-│       handle_raw_data_interpret(extracted$loadings, ...)
-│
-└─ RAW DATA? (matrix or data.frame)
+└─ STRUCTURED LIST? (is.list && !is.data.frame && !is_fitted_model)
         ↓
     Requires model_type or chat_session
         ↓
-    handle_raw_data_interpret():
-        ↓
-    Route based on effective_model_type:
-        ├─ fa: interpret_fa()
-        ├─ gm: [not implemented - error]
-        ├─ irt: [not implemented - error]
-        └─ cdm: [not implemented - error]
+    validate_fa_list_structure():
+        ├─ Extract loadings (required)
+        ├─ Extract Phi or factor_cor_mat (optional)
+        └─ Warn about unrecognized components
+            ↓
+        handle_raw_data_interpret(extracted$loadings, ...)
+            ↓
+        Route based on effective_model_type:
+            ├─ fa: interpret_fa()
+            ├─ gm: [not implemented - error]
+            ├─ irt: [not implemented - error]
+            └─ cdm: [not implemented - error]
 ```
 
 **Key Points**:
 - `interpret()` is a plain function with all named arguments
 - Internal `interpret_model()` S3 generic handles fitted model objects
 - Supports structured lists for model components
-- Single validation/routing logic in `interpret_helpers.R`
+- Single validation/routing logic in `utils_interpret.R`
 
 ## 1.6 Key Architecture Decisions
 
@@ -593,6 +587,133 @@ Eliminated **~1,559 lines of redundant code** across 3 duplicate R source files.
 
 ## 4.2 Recent Feature Additions & Fixes
 
+### 2025-11-09: Refactoring Phase 1 - API Simplification & Dual Interface
+
+**Completed**: Phase 1 of comprehensive refactoring plan (see dev/REFACTORING_PLAN.md)
+
+**Status**: ✅ Complete | Phase 2 Pending
+
+**Major Changes**:
+
+1. **Config Constructor Functions** (R/config.R - 445 lines)
+   - `fa_args()` - Factor analysis parameters (renamed from fa_config)
+   - `llm_args()` - LLM interaction parameters (renamed from llm_config)
+   - `output_args()` - Output formatting parameters (renamed from output_config)
+   - Helper functions: `default_fa_args()`, `default_output_args()`
+   - Builder functions: `build_llm_args()`, `build_fa_args()`, `build_output_args()`
+   - S3 print methods for all config types
+   - Full parameter validation in each constructor
+   - Supports both S3 objects and plain lists (hybrid approach)
+
+2. **Function Renaming for Clarity**
+   - `interpret_generic()` → `interpret_core()` (reflects actual orchestration role)
+   - File renamed: `R/generic_interpret.R` → `R/core_interpret.R`
+   - Updated all references in fa_interpret.R, fa_report.R, fa_diagnostics.R
+   - Documentation regenerated: interpret_core.Rd
+
+3. **Global Parameter Rename**
+   - `model_fit` → `fit_results` across all R files and tests
+   - Prevents confusion between statistical model object and LLM model name
+   - Updated in all documentation examples and vignettes
+
+4. **New interpret() Dual Interface** (R/interpret_method_dispatch.R)
+   ```r
+   interpret(
+     fit_results,          # Renamed from model_fit
+     variable_info,
+     chat_session = NULL,
+     model_type = NULL,
+     provider = NULL,      # Top-level convenience (was llm_provider)
+     model = NULL,         # Top-level convenience (was llm_model)
+     llm_args = NULL,      # Config object for LLM settings
+     fa_args = NULL,       # Config object for FA settings
+     output_args = NULL,   # Config object for output settings
+     ...
+   )
+   ```
+   - Supports both direct args (provider/model) and config objects
+   - Builder functions merge direct args with config objects
+   - Simplified from 20+ parameters to ~9 top-level parameters
+
+5. **interpret_fa() Internalization**
+   - Marked as `@keywords internal` and `@noRd` (not exported to users)
+   - Added config extraction logic to convert llm_args/fa_args/output_args to individual params
+   - Maintains backward compatibility internally
+   - **Phase 2 Note**: Will be removed entirely and logic consolidated into S3 methods
+
+6. **Documentation Updates**
+   - Regenerated all .Rd files with roxygen2
+   - Updated NAMESPACE (removed interpret_fa export, added config exports)
+   - Updated all examples to use new API
+   - Added Phase 1 completion documentation to REFACTORING_PLAN.md
+
+**API Examples**:
+
+Simple usage (90% of cases):
+```r
+interpret(
+  fit_results = fa_model,
+  variable_info = var_info,
+  provider = "ollama",
+  model = "gpt-oss:20b"
+)
+```
+
+Advanced with config objects:
+```r
+interpret(
+  fit_results = fa_model,
+  variable_info = var_info,
+  llm_args = llm_args(provider = "ollama", model = "gpt-oss:20b", word_limit = 200),
+  fa_args = fa_args(cutoff = 0.4),
+  output_args = output_args(silent = TRUE)
+)
+```
+
+**Files Modified**:
+- New: `R/config.R` (445 lines)
+- Renamed: `R/generic_interpret.R` → `R/core_interpret.R`
+- Modified: `R/interpret_method_dispatch.R`, `R/fa_interpret.R`, `R/fa_report.R`, `R/fa_diagnostics.R`
+- Updated: All test files (fit_results rename), NAMESPACE, man/*.Rd files
+
+**Validation**:
+- ✅ All tests passing
+- ✅ Package loads without errors
+- ✅ Dual interface works (direct args or config objects)
+- ✅ interpret_fa() not exported (internal-only)
+- ✅ Documentation builds without errors
+
+**Benefits**:
+- Cleaner user-facing API (fewer top-level parameters)
+- Better separation of concerns (model-specific vs generic params)
+- Dual interface flexibility (simple or advanced usage)
+- Foundation for Phase 2 (reverse data flow, S3 generics)
+- Hybrid config approach (accept both S3 objects and plain lists)
+
+**Known Limitations**:
+- Downstream functions (interpret_core, etc.) still use individual parameters internally
+- interpret_fa() still exists as internal function (will be removed in Phase 2)
+- Some parameter handling duplication (Phase 2 will consolidate)
+
+**Next**: Phase 2 will remove interpret_fa(), reverse data flow, create S3 generics, and use flat file structure with naming conventions
+
+### 2025-11-09: system_prompt Parameter Implementation
+- **Completed TODO**: Synced `system_prompt` parameter across all interpretation functions
+- **Added to `interpret_fa()`**: Parameter signature, roxygen documentation, and pass-through to `interpret_generic()`
+- **Added to `interpret_generic()`**: Parameter signature, conditional logic to use custom prompt when provided, otherwise builds default
+- **Updated `interpret()`**: Now passes `system_prompt` through both call chains (fitted models and structured lists)
+- **Implementation**: Uses `final_system_prompt` variable in `interpret_generic()` to distinguish between user-provided and default prompts
+- **Documentation**: All three functions now consistently document the parameter with proper defaults (NULL) and usage notes
+- **Behavior**: When `system_prompt` is NULL, default model-specific prompt is built; when provided, custom prompt overrides default
+- **Note**: Parameter is ignored when `chat_session` is provided, as system prompt is set during session initialization
+
+### 2025-11-09: Color-Blind Friendly Visualizations
+- **Added `psychinterpreter_colors()`**: Returns color-blind friendly palettes (diverging blue-orange, sequential, categorical Okabe-Ito)
+- **Added `theme_psychinterpreter()`**: Custom ggplot2 theme for publication-ready plots
+- **Updated `plot.fa_interpretation()`**: Now uses blue-orange diverging scale (replaces blue-red), applies custom theme
+- **Accessibility**: All visualizations now work for deuteranopia, protanopia, tritanopia
+- **Reference**: Based on Okabe & Ito (2008) Color Universal Design
+
 ### 2025-11-09: Token Tracking Fixes
 - **Fix negative token accumulation bug**
   - Root cause: Code created local `chat` clone but never used it
@@ -722,6 +843,369 @@ variables, used_emergency_rule, variance_explained
 ### Related Decision: Model-Specific Validation
 
 Decided to keep `validate_fa_list_structure()` model-specific rather than creating generic abstraction (documented in section 1.7, Step 4). Following YAGNI principle and Rule of Three: wait for 2-3 implementations before abstracting.
+
+### Architectural Decision: Dual-Layer chat_session Validation (2025-01-09)
+
+**Decision**: Validate `chat_session` model_type compatibility at **two layers**:
+1. **Early validation** in `interpret()` (interpret_method_dispatch.R:295-310)
+2. **Safety net validation** in `interpret_generic()` (generic_interpret.R:85-97)
+
+**Rationale**:
+
+**Why Two Layers?**
+1. **Multiple Entry Points**: Users can call:
+   - `interpret()` → Primary user-facing function
+   - `interpret_fa()` → Direct model-specific call
+   - `interpret_generic()` → Direct core engine call (exported for advanced use)
+
+2. **Early Failure Benefits** (at `interpret()` layer):
+   - Immediate feedback at the main entry point
+   - Clear context: "you called interpret() with model_type 'fa' but chat_session has 'gm'"
+   - Fails before any routing or processing logic
+
+3. **Safety Net** (at `interpret_generic()` layer):
+   - Protects direct calls to `interpret_fa()`, `interpret_gm()`, etc.
+   - Ensures validation even if intermediate layers are bypassed
+   - Guards against future refactoring errors
+
+**Implementation**:
+
+```r
+# Layer 1: interpret() - Early validation for main entry point
+if (!is.null(chat_session) && !is.null(model_type) &&
+    model_type != chat_session$model_type) {
+  cli_abort("chat_session model_type mismatch...")
+}
+
+# Layer 2: interpret_generic() - Safety net for all paths
+if (!is.null(chat_session) && !is.null(model_type) &&
+    model_type != chat_session$model_type) {
+  cli_abort("chat_session model_type mismatch...")
+}
+```
+
+**Execution Paths Protected**:
+- Path 1: `interpret()` → (validated) → `interpret_model.fa()` → `interpret_fa()` → (validated) → `interpret_generic()`
+- Path 2: `interpret()` → (validated) → `handle_raw_data_interpret()` → `interpret_fa()` → (validated) → `interpret_generic()`
+- Path 3: `interpret_fa()` → (validated) → `interpret_generic()`
+- Path 4: `interpret_generic()` (validated directly)
+
+**Trade-off**: Slight code duplication (~12 lines × 2) vs. comprehensive protection across all call paths.
+
+**Benefit**: When implementing GM/IRT/CDM, they automatically inherit protection without any validation code needed in model-specific functions.
+
+**Alternative Considered**: Single validation in `interpret_generic()` only.
+- **Rejected because**: Would delay error detection until after routing logic, providing less clear error context for the most common usage path (`interpret()`).
+
+## 4.4 FA Implementation Code Review & Refactoring (2025-01-09)
+
+Comprehensive three-sprint refactoring of FA implementation addressing critical issues, validation architecture, parameter consolidation, and report builder modularization.
+
+### Overview
+
+**Scope**: FA model_type usage patterns, validation chains, duplicate calculations, and report generation
+**Status**: ✅ All 13/13 items complete (100%)
+**Total Impact**: ~295 lines removed, ~475 lines modularized, 7 helper functions added
+
+### Sprint 1: Critical Issues & Foundation (10/13 items)
+
+#### 1.1 Runtime Safety Enhancement
+
+**Issue**: Token tracking vulnerable to provider inconsistencies (Ollama returns 0, Anthropic caches may undercount)
+
+**Solution**: Created `normalize_token_count()` helper in `utils_interpret.R:204-209`
+```r
+normalize_token_count <- function(x) {
+  if (is.na(x) || !is.numeric(x)) return(0L)
+  max(0L, as.integer(x))
+}
+```
+
+**Impact**: Prevents runtime errors from NA/negative token counts across all providers
+
+#### 1.2 Eliminated Duplicate Variance Calculations
+
+**Issue**: `calculate_variance_explained()` computed twice:
+- `fa_interpret.R:452` - during interpretation
+- `fa_prompt_builder.R:196` - during prompt building
+
+**Solution**:
+- Created helper in `utils_interpret.R:223-225`
+- Pre-calculate once in `fa_interpret.R`, store in `model_data`
+- Reuse from `factor_summaries` in `fa_prompt_builder.R:197`
+
+**Impact**: DRY principle, performance improvement, single source of truth
+
+#### 1.3 Dual-Layer Validation Architecture
+
+**Issue**: chat_session validation inconsistent:
+- `fa_interpret.R` had redundant validation
+- `interpret_generic()` only showed info message (no abort)
+- Missing validation for direct `interpret_fa()` calls
+
+**Solution**: Implemented two-layer validation:
+1. **Early Layer** - `interpret()` at `interpret_method_dispatch.R:295-310`
+   - Immediate failure at main entry point
+   - Clear context for common usage path
+2. **Safety Net** - `interpret_generic()` at `generic_interpret.R:85-97`
+   - Protects all execution paths including direct model calls
+   - Guards future model types (GM, IRT, CDM)
+
+**Protected Paths**:
+- `interpret()` → `interpret_model.fa()` → `interpret_fa()` → `interpret_generic()`
+- `interpret()` → `handle_raw_data_interpret()` → `interpret_fa()` → `interpret_generic()`
+- `interpret_fa()` → `interpret_generic()`
+- `interpret_generic()` (direct call)
+
+**Documentation**: See section 4.3 "Architectural Decision: Dual-Layer chat_session Validation"
+
+#### 1.4 S3 Dispatch Simplification
+
+**Issue**: Unnecessary wrapper layer in S3 dispatch
+- `interpret_model.psych()` wrapper forwarded to `interpret_model.fa()`/`interpret_model.principal()`
+- R's built-in S3 dispatch already handles class inheritance
+
+**Solution**: Removed wrapper (lines 479-487 in `interpret_method_dispatch.R`)
+
+**Impact**: Cleaner 2-layer dispatch instead of 3, leverages R's S3 system
+
+#### 1.5 Removed Deprecated Backward Compatibility
+
+**Files**: `class_chat_session.R:230-290` (-60 lines)
+- `chat_fa()` - Deprecated constructor
+- `is.chat_fa()` - Deprecated class check
+- `reset.chat_fa()` - Deprecated reset method
+
+**Rationale**: Package version 0.0.0.9000 (pre-release), backward compatibility not required during development
+
+#### 1.6 Documentation & Code Clarity
+
+- Removed unused `system_prompt` parameter from `interpret_fa()` signature
+- Added clear comments explaining chat cloning rationale (`generic_interpret.R:174-177`)
+- Updated NAMESPACE and .Rd files automatically
+
+**Sprint 1 Metrics**: ~225 lines removed, 2 helper functions added, 4 deprecated functions removed
+
+---
+
+### Sprint 2: Parameter Validation Consolidation (2/3 items)
+
+#### 2.1 Centralized Common Parameter Validation
+
+**Issue**: Duplicate validation logic in model-specific functions
+- `interpret_fa()` had ~150 lines of validation
+- Future models (GM, IRT, CDM) would duplicate same validations
+
+**Solution**: Moved 5 common validations to `interpret_generic()` (lines 145-217):
+
+1. **word_limit** - Range 20-500, single numeric
+2. **max_line_length** - Range 40-300, single numeric
+3. **output_format** - Must be "cli" or "markdown"
+4. **heading_level** - Integer 1-6 for markdown
+5. **suppress_heading** - Logical value
+
+**Benefits**:
+- -70 lines from `interpret_fa()`
+- Automatic inheritance for GM/IRT/CDM implementations
+- Single source of truth for common parameters
+
+**Model-Specific Validations Retained in `interpret_fa()`**:
+- `cutoff` - FA-specific loading threshold
+- `n_emergency` - FA-specific emergency rule
+- `hide_low_loadings` - FA-specific filtering
+- `sort_loadings` - FA-specific ordering
+
+#### 2.2 Null-Coalescing Standardization
+
+**Issue**: Inconsistent null handling across files
+- Some used direct `$` access (fails on NULL)
+- Others used `%||%` operator with defaults
+
+**Solution**: Applied `%||%` consistently in `class_interpretation.R:60`
+```r
+cat("LLM:", x$llm_info$provider %||% "unknown", "/",
+    x$llm_info$model %||% "unknown", "\n")
+```
+
+**Impact**: Robust null handling, prevents edge case display errors
+
+#### 2.3 Test Fixes
+
+**Fixed 3 test failures** after validation order changes:
+
+1. **test-chat_fa.R:115** - Removed obsolete `chat_fa()` test (deprecated function)
+2. **test-chat_fa.R:142** - Wrapped loadings in list structure for `interpret()`
+3. **test-interpret_fa.R:27** - Added `llm_provider` parameter (validated before `output_format`)
+
+**Sprint 2 Metrics**: ~70 lines removed, 5 validations centralized, 3 tests fixed
+
+---
+
+### Sprint 3: Report Builder Modularization (1/1 item)
+
+#### 3.1 Extracted Helper Functions from build_fa_report()
+
+**Issue**: Monolithic 726-line function difficult to maintain and test
+- Mixed concerns: formatting, logic, and output generation
+- Hard to modify individual sections
+- Not reusable for future model types
+
+**Solution**: Extracted 5 focused helper functions in `fa_report.R`:
+
+##### 3.1.1 `format_factor_summary()` (80 lines)
+```r
+format_factor_summary <- function(factor_summary, cutoff, n_emergency)
+```
+- Formats single factor summary with loadings, variance, variables
+- Handles emergency rule warnings
+- Returns plain text (format-agnostic)
+- **Location**: `fa_report.R:15-94`
+
+##### 3.1.2 `build_report_header()` (95 lines)
+```r
+build_report_header <- function(interpretation_results, n_factors,
+                                 cutoff, output_format, heading_level,
+                                 suppress_heading)
+```
+- Generates report header with title, metadata, LLM info
+- Includes token counts when available
+- Handles both markdown and CLI formats
+- **Location**: `fa_report.R:96-205`
+
+##### 3.1.3 `build_factor_names_section()` (60 lines)
+```r
+build_factor_names_section <- function(suggested_names, factor_summaries,
+                                        output_format, heading_level)
+```
+- Creates factor names list with variance percentages
+- Calculates total variance explained
+- Dual-format output (markdown/CLI)
+- **Location**: `fa_report.R:207-280`
+
+##### 3.1.4 `build_correlations_section()` (110 lines)
+```r
+build_correlations_section <- function(factor_cor_mat, output_format,
+                                        heading_level)
+```
+- Builds factor correlation matrix display
+- Returns empty string if no correlations (conditional)
+- Splits long correlation lists for readability
+- **Location**: `fa_report.R:282-389`
+
+##### 3.1.5 `build_diagnostics_section()` (130 lines)
+```r
+build_diagnostics_section <- function(cross_loadings, no_loadings,
+                                       cutoff, output_format, heading_level)
+```
+- Combines cross-loadings and no-loadings warnings
+- Conditional rendering based on diagnostics presence
+- Consistent formatting across both diagnostic types
+- **Location**: `fa_report.R:391-520`
+
+#### 3.2 Refactored build_fa_report() as Orchestrator
+
+**Before**: 726 lines of inline formatting logic
+
+**After**: ~250 lines orchestrating helper functions
+```r
+build_fa_report <- function(...) {
+  # 1. Header section
+  report <- build_report_header(...)
+
+  # 2. Factor names section
+  report <- paste0(report, build_factor_names_section(...))
+
+  # 3. Correlations section (conditional)
+  report <- paste0(report, build_correlations_section(...))
+
+  # 4. Detailed interpretations (inline - complex correlation logic)
+  report <- paste0(report, ...)
+
+  # 5. Diagnostics section
+  report <- paste0(report, build_diagnostics_section(...))
+
+  return(report)
+}
+```
+
+**Note**: Detailed factor interpretations section kept inline due to complex per-factor correlation insertion logic
+
+#### 3.3 Benefits Achieved
+
+1. **Modularity**: Each section independently testable and modifiable
+2. **Reusability**: Helper functions ready for GM/IRT/CDM report builders
+3. **Maintainability**: Focused functions (~60-130 lines each) vs. monolithic 726 lines
+4. **Readability**: Clear separation of concerns with orchestrator pattern
+5. **DRY Principle**: No duplicate report building logic
+6. **Testability**: Can test header, names, correlations, diagnostics independently
+
+#### 3.4 Testing
+
+**All 13/13 FA interpretation tests pass**:
+- Parameter validation tests (no LLM)
+- Comprehensive integration test (with LLM, skipped if unavailable)
+- Edge case tests (emergency rule, n_emergency=0)
+
+**Sprint 3 Metrics**: ~475 lines modularized into 5 helper functions, 0 regressions
+
+---
+
+### Combined Sprint Metrics
+
+| Metric | Sprint 1 | Sprint 2 | Sprint 3 | Total |
+|--------|----------|----------|----------|-------|
+| **Items Completed** | 10 | 2 | 1 | 13 |
+| **Items Deferred** | 3 | 1 | 0 | 0 |
+| **Lines Removed** | ~225 | ~70 | 0 | ~295 |
+| **Lines Modularized** | 0 | 0 | ~475 | ~475 |
+| **Helper Functions Added** | 2 | 0 | 5 | 7 |
+| **Functions Removed** | 4 | 0 | 0 | 4 |
+| **Validations Centralized** | 0 | 5 | 0 | 5 |
+| **Tests Fixed** | 0 | 3 | 0 | 3 |
+| **Files Modified** | 6 | 4 | 1 | 8 unique |
+
+### Architecture Strengths Preserved
+
+These excellent patterns remained unchanged throughout refactoring:
+
+1. **S3 Generic System** - `interpret_generic()` → model-specific methods
+   - Now enhanced with dual-layer validation
+2. **Multi-tier JSON Parsing** - Clean → parse → pattern → default
+   - Robust fallback logic handles edge cases
+3. **Prompt Builder Separation** - System vs user prompts
+   - S3 dispatch for model-specific prompts
+4. **Model Data Structure** - Structured list through pipeline
+   - Now with pre-computed values (no duplicate calculations)
+5. **Clear Error Messages** - Using `cli` package
+   - Actionable, context-rich messages
+6. **Explicit Parameter Naming** - No positional dependencies
+   - Makes API clear and maintainable
+
+### Best Practices for Future Model Types (GM, IRT, CDM)
+
+**DO:**
+- ✅ Implement only model-specific validation in `interpret_<model>()`
+- ✅ Pre-compute values once, store in `model_data`
+- ✅ Use S3 methods for prompts, parsing, diagnostics, reports
+- ✅ Keep functions under 200 lines where possible
+- ✅ Leverage dual-layer validation (inherit from `interpret()` and `interpret_generic()`)
+- ✅ Reuse report builder helper functions pattern
+
+**DON'T:**
+- ❌ Duplicate validation from `interpret_generic()` or `interpret()`
+- ❌ Recalculate values in prompt builders (calculate once, reuse)
+- ❌ Create unnecessary wrapper methods for S3 dispatch
+- ❌ Mix formatting logic between CLI and markdown in single functions
+- ❌ Add chat_session validation (automatically inherited)
+
+### Key Architectural Wins
+
+1. **Dual-layer validation** protects all 4 execution paths automatically
+2. **Helper functions** eliminate duplication (variance, token normalization, report sections)
+3. **Simplified S3 dispatch** (2 layers instead of 3)
+4. **Common validation** centralized (benefits all future model types)
+5. **Modular report building** enables independent testing and reuse
+6. **No deprecated bloat** for future implementations
 
 ---
 

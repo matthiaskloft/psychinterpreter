@@ -1,3 +1,524 @@
+#' Format Factor Summary Text
+#'
+#' Generates summary text for a single factor including number of significant loadings,
+#' variance explained, variables list, and warnings for weak factors.
+#'
+#' @param factor_summary List. Factor summary from interpretation results containing:
+#'   variables (data.frame), variance_explained (numeric), used_emergency_rule (logical)
+#' @param cutoff Numeric. Loading cutoff value
+#' @param n_emergency Integer. Number of top loadings used when emergency rule applies
+#'
+#' @return Character string with formatted factor summary
+#'
+#' @keywords internal
+#' @noRd
+format_factor_summary <- function(factor_summary, cutoff, n_emergency) {
+  variables <- factor_summary$variables
+  variance_explained <- factor_summary$variance_explained
+  used_emergency_rule <- factor_summary$used_emergency_rule
+
+  n_loadings <- nrow(variables)
+  has_significant <- n_loadings > 0
+
+  # When emergency rule is used, report 0 significant loadings
+  # The variables shown are the top N below cutoff
+  n_significant_loadings <- ifelse(used_emergency_rule, 0, n_loadings)
+
+  # Build summary text
+  summary_text <- paste0(
+    "Number of significant loadings: ",
+    n_significant_loadings,
+    "\n",
+    "Variance explained: ",
+    round(variance_explained * 100, 2),
+    "%\n"
+  )
+
+  # Show warning when emergency rule is used or when no variables at all
+  if (used_emergency_rule || !has_significant) {
+    if (!has_significant) {
+      # No variables at all (n_emergency = 0 case)
+      summary_text <- paste0(
+        summary_text,
+        "WARNING: No variables load above cutoff (",
+        cutoff,
+        "). ",
+        "Factor marked as undefined (n_emergency = 0).\n"
+      )
+    } else {
+      # Emergency rule was used (has variables, but below cutoff)
+      summary_text <- paste0(
+        summary_text,
+        "WARNING: No variables load above cutoff (",
+        cutoff,
+        "). ",
+        "Emergency rule applied: using top ",
+        n_loadings,
+        " variable(s) below cutoff for interpretation.\n"
+      )
+    }
+  }
+
+  summary_text <- paste0(summary_text, "\nVariables:\n")
+
+  # Add variables
+  if (n_loadings > 0) {
+    for (j in 1:n_loadings) {
+      var_desc <- ifelse(
+        !is.na(variables$description[j]),
+        variables$description[j],
+        variables$variable[j]
+      )
+      summary_text <- paste0(
+        summary_text,
+        "  ",
+        j,
+        ". ",
+        variables$variable[j],
+        ", ",
+        var_desc,
+        " (",
+        variables$direction[j],
+        ", ",
+        variables$strength[j],
+        ", ",
+        format_loading(variables$loading[j]),
+        ")\n"
+      )
+    }
+  } else {
+    summary_text <- paste0(summary_text, "  No variables in this factor\n")
+  }
+
+  return(summary_text)
+}
+
+#' Build Report Header
+#'
+#' Generates the report header section with metadata (title, n_factors, cutoff, LLM info, tokens).
+#'
+#' @param interpretation_results List. Full interpretation results
+#' @param n_factors Integer. Number of factors
+#' @param cutoff Numeric. Loading cutoff
+#' @param output_format Character. "cli" or "markdown"
+#' @param heading_level Integer. Markdown heading level (for markdown format)
+#' @param suppress_heading Logical. If TRUE, omit main title
+#'
+#' @return Character string with formatted header section
+#'
+#' @keywords internal
+#' @noRd
+build_report_header <- function(interpretation_results,
+                                 n_factors,
+                                 cutoff,
+                                 output_format,
+                                 heading_level = 1,
+                                 suppress_heading = FALSE) {
+  chat <- interpretation_results$chat
+  llm_info <- interpretation_results$llm_info
+
+  if (output_format == "markdown") {
+    h1 <- paste(rep("#", heading_level), collapse = "")
+
+    # Add main heading unless suppressed
+    if (!suppress_heading) {
+      report <- paste0(h1, " Factor Analysis Interpretation\n\n")
+    } else {
+      report <- ""
+    }
+    report <- paste0(report, "**Number of factors:** ", n_factors, "  \n")
+    report <- paste0(report, "**Loading cutoff:** ", cutoff, "  \n")
+
+    # Handle LLM info safely
+    if (!is.null(chat)) {
+      report <- paste0(report,
+                       "**LLM used:** ",
+                       chat$provider,
+                       " - ",
+                       chat$model %||% "default",
+                       "  \n")
+
+      if (!is.null(interpretation_results$input_tokens) &&
+          !is.null(interpretation_results$output_tokens)) {
+        report <- paste0(
+          report,
+          "**Tokens:**  \n  Input: ",
+          interpretation_results$input_tokens,
+          "  \n  Output: ",
+          interpretation_results$output_tokens,
+          "  \n"
+        )
+      }
+    } else if (!is.null(llm_info)) {
+      report <- paste0(
+        report,
+        "**LLM used:** ",
+        llm_info$provider,
+        " - ",
+        llm_info$model %||% "default",
+        "  \n"
+      )
+    }
+  } else {
+    # CLI format with semantic styling
+    # Add main heading unless suppressed
+    if (!suppress_heading) {
+      report <- paste0(cli::col_cyan(cli::style_bold("FACTOR ANALYSIS INTERPRETATION")), "\n")
+      report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
+    } else {
+      report <- ""
+    }
+    report <- paste0(report, cli::style_bold("Number of factors:"), " ", n_factors, "\n")
+    report <- paste0(report, cli::style_bold("Loading cutoff:"), " ", cutoff, "\n")
+
+    # Handle LLM info safely
+    if (!is.null(chat)) {
+      report <- paste0(report,
+                       cli::style_bold("LLM used:"), " ",
+                       chat$provider,
+                       " - ",
+                       chat$model %||% "default",
+                       "\n")
+
+      if (!is.null(interpretation_results$input_tokens) &&
+          !is.null(interpretation_results$output_tokens)) {
+        report <- paste0(
+          report,
+          cli::style_bold("Tokens:"), "\n  Input: ",
+          interpretation_results$input_tokens,
+          "\n  Output: ",
+          interpretation_results$output_tokens,
+          "\n"
+        )
+      }
+    } else if (!is.null(llm_info)) {
+      report <- paste0(report,
+                       cli::style_bold("LLM used:"), " ",
+                       llm_info$provider,
+                       " - ",
+                       llm_info$model %||% "default",
+                       "\n")
+    }
+  }
+
+  return(report)
+}
+
+#' Build Factor Names Section
+#'
+#' Generates the suggested factor names section with variance explained percentages.
+#'
+#' @param suggested_names List. Factor names suggested by LLM
+#' @param factor_summaries List. Factor summary data
+#' @param output_format Character. "cli" or "markdown"
+#' @param heading_level Integer. Markdown heading level (for markdown format)
+#'
+#' @return Character string with formatted factor names section
+#'
+#' @keywords internal
+#' @noRd
+build_factor_names_section <- function(suggested_names,
+                                        factor_summaries,
+                                        output_format,
+                                        heading_level = 1) {
+  if (output_format == "markdown") {
+    h2 <- paste(rep("#", heading_level + 1), collapse = "")
+
+    report <- paste0("\n", h2, " Suggested Factor Names\n\n")
+    for (i in 1:length(suggested_names)) {
+      name <- names(suggested_names)[i]
+      var_explained <- factor_summaries[[name]]$variance_explained
+      report <- paste0(
+        report,
+        "- **Factor ",
+        i,
+        " (",
+        round(var_explained * 100, 1),
+        "%):** *",
+        suggested_names[[name]],
+        "*\n"
+      )
+    }
+
+    # Add total variance explained
+    total_variance <- sum(sapply(factor_summaries, function(x) x$variance_explained))
+    report <- paste0(
+      report,
+      "\n**Total variance explained by all factors: ",
+      round(total_variance * 100, 1),
+      "%**\n"
+    )
+  } else {
+    # CLI format
+    report <- paste0("\n", cli::col_cyan(cli::style_bold("SUGGESTED FACTOR NAMES")), "\n")
+    report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
+    for (i in 1:length(suggested_names)) {
+      name <- names(suggested_names)[i]
+      var_explained <- factor_summaries[[name]]$variance_explained
+      report <- paste0(
+        report,
+        cli::symbol$bullet, " ",
+        cli::style_bold(paste0("Factor ", i)),
+        " (",
+        round(var_explained * 100, 1),
+        "%): ",
+        cli::col_green(suggested_names[[name]]),
+        "\n"
+      )
+    }
+
+    # Add total variance explained
+    total_variance <- sum(sapply(factor_summaries, function(x) x$variance_explained))
+    report <- paste0(report,
+                     "\n",
+                     cli::style_bold("Total variance explained:"), " ",
+                     round(total_variance * 100, 1),
+                     "%\n")
+  }
+
+  return(report)
+}
+
+#' Build Correlations Section
+#'
+#' Generates the factor correlations section showing correlations between factors.
+#' Returns empty string if no correlation matrix provided.
+#'
+#' @param factor_cor_mat Matrix or data.frame. Factor correlation matrix (can be NULL)
+#' @param output_format Character. "cli" or "markdown"
+#' @param heading_level Integer. Markdown heading level (for markdown format)
+#'
+#' @return Character string with formatted correlations section (empty if no correlations)
+#'
+#' @keywords internal
+#' @noRd
+build_correlations_section <- function(factor_cor_mat,
+                                        output_format,
+                                        heading_level = 1) {
+  # Return empty string if no correlation matrix
+  if (is.null(factor_cor_mat)) {
+    return("")
+  }
+
+  # Convert matrix to dataframe if needed and get factor names
+  if (is.matrix(factor_cor_mat)) {
+    cor_df <- as.data.frame(factor_cor_mat)
+    cor_factors <- rownames(factor_cor_mat)
+  } else {
+    cor_df <- factor_cor_mat
+    cor_factors <- rownames(cor_df)
+  }
+
+  if (output_format == "markdown") {
+    h2 <- paste(rep("#", heading_level + 1), collapse = "")
+    report <- paste0("\n", h2, " Factor Correlations\n\n")
+
+    # Create correlation table
+    for (i in 1:length(cor_factors)) {
+      factor_name <- cor_factors[i]
+      if (factor_name %in% names(cor_df)) {
+        correlations <- c()
+        for (j in 1:length(cor_factors)) {
+          other_factor <- cor_factors[j]
+          if (other_factor != factor_name &&
+              other_factor %in% names(cor_df)) {
+            cor_val <- round(cor_df[[other_factor]][i], 2)
+            cor_formatted <- format_loading(cor_val, digits = 2)
+            correlations <- c(correlations,
+                              paste0(other_factor, " = ", cor_formatted))
+          }
+        }
+        if (length(correlations) > 0) {
+          # Split long correlation lists for better readability
+          if (length(correlations) > 3) {
+            line1 <- paste(correlations[1:3], collapse = ", ")
+            line2 <- paste(correlations[4:length(correlations)], collapse = ", ")
+            report <- paste0(report,
+                             "- **",
+                             factor_name,
+                             ":** ",
+                             line1,
+                             ",  \n  ",
+                             line2,
+                             "\n")
+          } else {
+            report <- paste0(
+              report,
+              "- **",
+              factor_name,
+              ":** ",
+              paste(correlations, collapse = ", "),
+              "\n"
+            )
+          }
+        }
+      }
+    }
+  } else {
+    # CLI format
+    report <- paste0("\n", cli::col_cyan(cli::style_bold("FACTOR CORRELATIONS")), "\n")
+    report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
+
+    # Create correlation table
+    for (i in 1:length(cor_factors)) {
+      factor_name <- cor_factors[i]
+      if (factor_name %in% names(cor_df)) {
+        correlations <- c()
+        for (j in 1:length(cor_factors)) {
+          other_factor <- cor_factors[j]
+          if (other_factor != factor_name &&
+              other_factor %in% names(cor_df)) {
+            cor_val <- round(cor_df[[other_factor]][i], 2)
+            cor_formatted <- format_loading(cor_val, digits = 2)
+            correlations <- c(correlations,
+                              paste0(other_factor, " = ", cor_formatted))
+          }
+        }
+        if (length(correlations) > 0) {
+          report <- paste0(report,
+                           factor_name,
+                           ": ",
+                           paste(correlations, collapse = ", "),
+                           "\n")
+        }
+      }
+    }
+  }
+
+  return(report)
+}
+
+#' Build Diagnostics Section
+#'
+#' Generates the diagnostics section showing cross-loading variables and variables
+#' not covered by any factor. Returns empty string if no diagnostics to report.
+#'
+#' @param cross_loadings Data.frame. Cross-loading variables (can be NULL)
+#' @param no_loadings Data.frame. Variables with no significant loadings (can be NULL)
+#' @param cutoff Numeric. Loading cutoff value
+#' @param output_format Character. "cli" or "markdown"
+#' @param heading_level Integer. Markdown heading level (for markdown format)
+#'
+#' @return Character string with formatted diagnostics section
+#'
+#' @keywords internal
+#' @noRd
+build_diagnostics_section <- function(cross_loadings,
+                                       no_loadings,
+                                       cutoff,
+                                       output_format,
+                                       heading_level = 1) {
+  report <- ""
+  h2 <- if (output_format == "markdown") paste(rep("#", heading_level + 1), collapse = "") else ""
+
+  # Add cross-loadings section
+  if (!is.null(cross_loadings) && nrow(cross_loadings) > 0) {
+    if (output_format == "markdown") {
+      report <- paste0(report, "\n", h2, " Cross-Loading Variables\n\n")
+      report <- paste0(report,
+                       "Variables loading on multiple factors (>= ",
+                       cutoff,
+                       "):\n\n")
+    } else {
+      report <- paste0(report, "\n", cli::col_yellow(cli::style_bold("CROSS-LOADING VARIABLES")), "\n")
+      report <- paste0(report, cli::rule(line = 1, line_col = "yellow"), "\n\n")
+      report <- paste0(report,
+                       "Variables loading on multiple factors (>= ",
+                       cutoff,
+                       "):\n")
+    }
+
+    for (j in 1:nrow(cross_loadings)) {
+      # Use description if available, otherwise fallback to variable name
+      var_display <- if (!is.na(cross_loadings$description[j])) {
+        if (output_format == "markdown") {
+          paste0("**",
+                 cross_loadings$variable[j],
+                 ":** ",
+                 cross_loadings$description[j])
+        } else {
+          paste0(cross_loadings$variable[j],
+                 ", ",
+                 cross_loadings$description[j])
+        }
+      } else {
+        if (output_format == "markdown") {
+          paste0("**", cross_loadings$variable[j], "**")
+        } else {
+          cross_loadings$variable[j]
+        }
+      }
+
+      report <- paste0(report,
+                       "- ",
+                       var_display,
+                       ": ",
+                       cross_loadings$factors[j],
+                       "\n")
+    }
+  }
+
+  # Add section for variables with no loadings above cutoff
+  if (!is.null(no_loadings) && nrow(no_loadings) > 0) {
+    if (output_format == "markdown") {
+      report <- paste0(report, "\n", h2, " Variables Not Covered by Any Factor\n\n")
+      report <- paste0(
+        report,
+        "Variables with no absolute loadings >= ",
+        cutoff,
+        " (highest absolute loading shown):\n\n"
+      )
+    } else {
+      report <- paste0(report, "\n", cli::col_red(cli::style_bold("VARIABLES NOT COVERED BY ANY FACTOR")), "\n")
+      report <- paste0(report, cli::rule(line = 1, line_col = "red"), "\n\n")
+      report <- paste0(
+        report,
+        "Variables with no absolute loadings >= ",
+        cutoff,
+        " (highest absolute loading shown):\n"
+      )
+    }
+
+    for (j in 1:nrow(no_loadings)) {
+      # Use description if available, otherwise fallback to variable name
+      var_display <- if (!is.na(no_loadings$description[j])) {
+        if (output_format == "markdown") {
+          paste0("**",
+                 no_loadings$variable[j],
+                 ":** ",
+                 no_loadings$description[j])
+        } else {
+          paste0(no_loadings$variable[j],
+                 ": ",
+                 no_loadings$description[j])
+        }
+      } else {
+        if (output_format == "markdown") {
+          paste0("**", no_loadings$variable[j], "**")
+        } else {
+          no_loadings$variable[j]
+        }
+      }
+
+      report <- paste0(report,
+                       "- ",
+                       var_display,
+                       " (highest: ",
+                       no_loadings$highest_loading[j],
+                       ")\n")
+    }
+  }
+
+  # Add final newline based on format
+  if (output_format == "markdown" && nchar(report) > 0) {
+    report <- paste0(report, "\n")
+  } else if (output_format == "cli" && nchar(report) > 0) {
+    report <- paste0(report, "\n\n")
+  }
+
+  return(report)
+}
+
 #' Build Factor Analysis Interpretation Report
 #'
 #' Internal helper function that builds a formatted interpretation report from factor analysis results.
@@ -35,217 +556,42 @@ build_fa_report <- function(interpretation_results,
   # Get factor column names
   factor_cols <- names(factor_summaries)
 
-  # Helper function to generate summary text from minimal factor data
-  build_factor_summary_text <- function(factor_summary, cutoff, n_emergency) {
-    variables <- factor_summary$variables
-    variance_explained <- factor_summary$variance_explained
-    used_emergency_rule <- factor_summary$used_emergency_rule
+  # Build report using helper functions
+  # 1. Header section (title, metadata, LLM info)
+  report <- build_report_header(
+    interpretation_results = interpretation_results,
+    n_factors = n_factors,
+    cutoff = cutoff,
+    output_format = output_format,
+    heading_level = heading_level,
+    suppress_heading = suppress_heading
+  )
 
-    n_loadings <- nrow(variables)
-    has_significant <- n_loadings > 0
-
-    # When emergency rule is used, report 0 significant loadings
-    # The variables shown are the top N below cutoff
-    n_significant_loadings <- ifelse(used_emergency_rule, 0, n_loadings)
-
-    # Build summary text
-    summary_text <- paste0(
-      "Number of significant loadings: ",
-      n_significant_loadings,
-      "\n",
-      "Variance explained: ",
-      round(variance_explained * 100, 2),
-      "%\n"
+  # 2. Factor names section
+  report <- paste0(
+    report,
+    build_factor_names_section(
+      suggested_names = suggested_names,
+      factor_summaries = factor_summaries,
+      output_format = output_format,
+      heading_level = heading_level
     )
+  )
 
-    # Show warning when emergency rule is used or when no variables at all
-    if (used_emergency_rule || !has_significant) {
-      if (!has_significant) {
-        # No variables at all (n_emergency = 0 case)
-        summary_text <- paste0(
-          summary_text,
-          "WARNING: No variables load above cutoff (",
-          cutoff,
-          "). ",
-          "Factor marked as undefined (n_emergency = 0).\n"
-        )
-      } else {
-        # Emergency rule was used (has variables, but below cutoff)
-        summary_text <- paste0(
-          summary_text,
-          "WARNING: No variables load above cutoff (",
-          cutoff,
-          "). ",
-          "Emergency rule applied: using top ",
-          n_loadings,
-          " variable(s) below cutoff for interpretation.\n"
-        )
-      }
-    }
+  # 3. Factor correlations section (if applicable)
+  report <- paste0(
+    report,
+    build_correlations_section(
+      factor_cor_mat = factor_cor_mat,
+      output_format = output_format,
+      heading_level = heading_level
+    )
+  )
 
-    summary_text <- paste0(summary_text, "\nVariables:\n")
-
-    # Add variables
-    if (n_loadings > 0) {
-      for (j in 1:n_loadings) {
-        var_desc <- ifelse(
-          !is.na(variables$description[j]),
-          variables$description[j],
-          variables$variable[j]
-        )
-        summary_text <- paste0(
-          summary_text,
-          "  ",
-          j,
-          ". ",
-          variables$variable[j],
-          ", ",
-          var_desc,
-          " (",
-          variables$direction[j],
-          ", ",
-          variables$strength[j],
-          ", ",
-          format_loading(variables$loading[j]),
-          ")\n"
-        )
-      }
-    } else {
-      summary_text <- paste0(summary_text, "  No variables in this factor\n")
-    }
-
-    return(summary_text)
-  }
-
-  # Generate interpretation report
+  # 4. Detailed factor interpretations section (inline for now due to complexity)
   if (output_format == "markdown") {
-    # Create markdown report with configurable heading levels
-    h1 <- paste(rep("#", heading_level), collapse = "")
     h2 <- paste(rep("#", heading_level + 1), collapse = "")
     h3 <- paste(rep("#", heading_level + 2), collapse = "")
-
-    # Add main heading unless suppressed
-    if (!suppress_heading) {
-      report <- paste0(h1, " Factor Analysis Interpretation\n\n")
-    } else {
-      report <- ""
-    }
-    report <- paste0(report, "**Number of factors:** ", n_factors, "  \n")
-    report <- paste0(report, "**Loading cutoff:** ", cutoff, "  \n")
-
-    # Handle LLM info safely
-    if (!is.null(chat)) {
-      report <- paste0(report,
-                       "**LLM used:** ",
-                       chat$provider,
-                       " - ",
-                       chat$model %||% "default",
-                       "  \n")
-
-
-      if (!is.null(interpretation_results$input_tokens) &&
-          !is.null(interpretation_results$output_tokens)) {
-        report <- paste0(
-          report,
-          "**Tokens:**  \n  Input: ",
-          interpretation_results$input_tokens,
-          "  \n  Output: ",
-          interpretation_results$output_tokens,
-          "  \n"
-        )
-      }
-    } else if (!is.null(llm_info)) {
-      report <- paste0(
-        report,
-        "**LLM used:** ",
-        llm_info$provider,
-        " - ",
-        llm_info$model %||% "default",
-        "  \n"
-      )
-    }
-
-    report <- paste0(report, "\n", h2, " Suggested Factor Names\n\n")
-    for (i in 1:length(suggested_names)) {
-      name <- names(suggested_names)[i]
-      var_explained <- factor_summaries[[name]]$variance_explained
-      report <- paste0(
-        report,
-        "- **Factor ",
-        i,
-        " (",
-        round(var_explained * 100, 1),
-        "%):** *",
-        suggested_names[[name]],
-        "*\n"
-      )
-    }
-
-    # Add total variance explained
-    total_variance <- sum(sapply(factor_summaries, function(x)
-      x$variance_explained))
-    report <- paste0(
-      report,
-      "\n**Total variance explained by all factors: ",
-      round(total_variance * 100, 1),
-      "%**\n"
-    )
-
-    # Add factor correlations section if provided
-    if (!is.null(factor_cor_mat)) {
-      report <- paste0(report, "\n", h2, " Factor Correlations\n\n")
-
-      # Convert matrix to dataframe if needed and get factor names
-      if (is.matrix(factor_cor_mat)) {
-        cor_df <- as.data.frame(factor_cor_mat)
-        cor_factors <- rownames(factor_cor_mat)
-      } else {
-        cor_df <- factor_cor_mat
-        cor_factors <- rownames(cor_df)
-      }
-
-      # Create correlation table
-      for (i in 1:length(cor_factors)) {
-        factor_name <- cor_factors[i]
-        if (factor_name %in% names(cor_df)) {
-          correlations <- c()
-          for (j in 1:length(cor_factors)) {
-            other_factor <- cor_factors[j]
-            if (other_factor != factor_name &&
-                other_factor %in% names(cor_df)) {
-              cor_val <- round(cor_df[[other_factor]][i], 2)
-              cor_formatted <- format_loading(cor_val, digits = 2)
-              correlations <- c(correlations,
-                                paste0(other_factor, " = ", cor_formatted))
-            }
-          }
-          if (length(correlations) > 0) {
-            # Split long correlation lists for better readability
-            if (length(correlations) > 3) {
-              line1 <- paste(correlations[1:3], collapse = ", ")
-              line2 <- paste(correlations[4:length(correlations)], collapse = ", ")
-              report <- paste0(report,
-                               "- **",
-                               factor_name,
-                               ":** ",
-                               line1,
-                               ",  \n  ",
-                               line2,
-                               "\n")
-            } else {
-              report <- paste0(
-                report,
-                "- **",
-                factor_name,
-                ":** ",
-                paste(correlations, collapse = ", "),
-                "\n"
-              )
-            }
-          }
-        }
-      }
-    }
 
     report <- paste0(report, "\n", h2, " Detailed Factor Interpretations\n\n")
 
@@ -254,7 +600,7 @@ build_fa_report <- function(interpretation_results,
 
       # Generate header and summary from minimal factor data
       factor_header <- paste0("Factor ", i, " (", factor_name, ")")
-      remaining_summary <- build_factor_summary_text(
+      remaining_summary <- format_factor_summary(
         factor_summaries[[factor_name]],
         cutoff,
         n_emergency
@@ -362,113 +708,7 @@ build_fa_report <- function(interpretation_results,
       }
     }
   } else {
-    # CLI format with semantic styling
-    # Add main heading unless suppressed
-    if (!suppress_heading) {
-      report <- paste0(cli::col_cyan(cli::style_bold("FACTOR ANALYSIS INTERPRETATION")), "\n")
-      report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
-    } else {
-      report <- ""
-    }
-    report <- paste0(report, cli::style_bold("Number of factors:"), " ", n_factors, "\n")
-    report <- paste0(report, cli::style_bold("Loading cutoff:"), " ", cutoff, "\n")
-
-    # Handle LLM info safely
-    if (!is.null(chat)) {
-      report <- paste0(report,
-                       cli::style_bold("LLM used:"), " ",
-                       chat$provider,
-                       " - ",
-                       chat$model %||% "default",
-                       "\n")
-
-      if (!is.null(interpretation_results$input_tokens) &&
-          !is.null(interpretation_results$output_tokens)) {
-        report <- paste0(
-          report,
-          cli::style_bold("Tokens:"), "\n  Input: ",
-          interpretation_results$input_tokens,
-          "\n  Output: ",
-          interpretation_results$output_tokens,
-          "\n"
-        )
-      }
-
-    } else if (!is.null(llm_info)) {
-      report <- paste0(report,
-                       cli::style_bold("LLM used:"), " ",
-                       llm_info$provider,
-                       " - ",
-                       llm_info$model %||% "default",
-                       "\n")
-    }
-
-    report <- paste0(report, "\n", cli::col_cyan(cli::style_bold("SUGGESTED FACTOR NAMES")), "\n")
-    report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
-    for (i in 1:length(suggested_names)) {
-      name <- names(suggested_names)[i]
-      var_explained <- factor_summaries[[name]]$variance_explained
-      report <- paste0(
-        report,
-        cli::symbol$bullet, " ",
-        cli::style_bold(paste0("Factor ", i)),
-        " (",
-        round(var_explained * 100, 1),
-        "%): ",
-        cli::col_green(suggested_names[[name]]),
-        "\n"
-      )
-    }
-
-    # Add total variance explained
-    total_variance <- sum(sapply(factor_summaries, function(x)
-      x$variance_explained))
-    report <- paste0(report,
-                     "\n",
-                     cli::style_bold("Total variance explained:"), " ",
-                     round(total_variance * 100, 1),
-                     "%\n")
-
-    # Add factor correlations section if provided
-    if (!is.null(factor_cor_mat)) {
-      report <- paste0(report, "\n", cli::col_cyan(cli::style_bold("FACTOR CORRELATIONS")), "\n")
-      report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
-
-      # Convert matrix to dataframe if needed and get factor names
-      if (is.matrix(factor_cor_mat)) {
-        cor_df <- as.data.frame(factor_cor_mat)
-        cor_factors <- rownames(factor_cor_mat)
-      } else {
-        cor_df <- factor_cor_mat
-        cor_factors <- rownames(cor_df)
-      }
-
-      # Create correlation table
-      for (i in 1:length(cor_factors)) {
-        factor_name <- cor_factors[i]
-        if (factor_name %in% names(cor_df)) {
-          correlations <- c()
-          for (j in 1:length(cor_factors)) {
-            other_factor <- cor_factors[j]
-            if (other_factor != factor_name &&
-                other_factor %in% names(cor_df)) {
-              cor_val <- round(cor_df[[other_factor]][i], 2)
-              cor_formatted <- format_loading(cor_val, digits = 2)
-              correlations <- c(correlations,
-                                paste0(other_factor, " = ", cor_formatted))
-            }
-          }
-          if (length(correlations) > 0) {
-            report <- paste0(report,
-                             factor_name,
-                             ": ",
-                             paste(correlations, collapse = ", "),
-                             "\n")
-          }
-        }
-      }
-    }
-
+    # CLI format - detailed interpretations section
     report <- paste0(report, "\n", cli::col_cyan(cli::style_bold("DETAILED FACTOR INTERPRETATIONS")), "\n")
     report <- paste0(report, cli::rule(line = 1, line_col = "cyan"), "\n\n")
 
@@ -477,7 +717,7 @@ build_fa_report <- function(interpretation_results,
 
       # Generate header and summary from minimal factor data
       factor_header <- paste0("Factor ", i, " (", factor_name, ")")
-      remaining_summary <- build_factor_summary_text(
+      remaining_summary <- format_factor_summary(
         factor_summaries[[factor_name]],
         cutoff,
         n_emergency
@@ -559,109 +799,17 @@ build_fa_report <- function(interpretation_results,
     }
   }
 
-  # Add cross-loadings section to report
-  if (!is.null(cross_loadings) && nrow(cross_loadings) > 0) {
-    if (output_format == "markdown") {
-      report <- paste0(report, "\n", h2, " Cross-Loading Variables\n\n")
-      report <- paste0(report,
-                       "Variables loading on multiple factors (>= ",
-                       cutoff,
-                       "):\n\n")
-    } else {
-      report <- paste0(report, "\n", cli::col_yellow(cli::style_bold("CROSS-LOADING VARIABLES")), "\n")
-      report <- paste0(report, cli::rule(line = 1, line_col = "yellow"), "\n\n")
-      report <- paste0(report,
-                       "Variables loading on multiple factors (>= ",
-                       cutoff,
-                       "):\n")
-    }
-
-    for (j in 1:nrow(cross_loadings)) {
-      # Use description if available, otherwise fallback to variable name
-      var_display <- if (!is.na(cross_loadings$description[j])) {
-        if (output_format == "markdown") {
-          paste0("**",
-                 cross_loadings$variable[j],
-                 ":** ",
-                 cross_loadings$description[j])
-        } else {
-          paste0(cross_loadings$variable[j],
-                 ", ",
-                 cross_loadings$description[j])
-        }
-      } else {
-        if (output_format == "markdown") {
-          paste0("**", cross_loadings$variable[j], "**")
-        } else {
-          cross_loadings$variable[j]
-        }
-      }
-
-      report <- paste0(report,
-                       "- ",
-                       var_display,
-                       ": ",
-                       cross_loadings$factors[j],
-                       "\n")
-    }
-  }
-
-  # Add section for variables with no loadings above cutoff
-  if (!is.null(no_loadings) && nrow(no_loadings) > 0) {
-    if (output_format == "markdown") {
-      report <- paste0(report, "\n", h2, " Variables Not Covered by Any Factor\n\n")
-      report <- paste0(
-        report,
-        "Variables with no absolute loadings >= ",
-        cutoff,
-        " (highest absolute loading shown):\n\n"
-      )
-    } else {
-      report <- paste0(report, "\n", cli::col_red(cli::style_bold("VARIABLES NOT COVERED BY ANY FACTOR")), "\n")
-      report <- paste0(report, cli::rule(line = 1, line_col = "red"), "\n\n")
-      report <- paste0(
-        report,
-        "Variables with no absolute loadings >= ",
-        cutoff,
-        " (highest absolute loading shown):\n"
-      )
-    }
-
-    for (j in 1:nrow(no_loadings)) {
-      # Use description if available, otherwise fallback to variable name
-      var_display <- if (!is.na(no_loadings$description[j])) {
-        if (output_format == "markdown") {
-          paste0("**",
-                 no_loadings$variable[j],
-                 ":** ",
-                 no_loadings$description[j])
-        } else {
-          paste0(no_loadings$variable[j],
-                 ": ",
-                 no_loadings$description[j])
-        }
-      } else {
-        if (output_format == "markdown") {
-          paste0("**", no_loadings$variable[j], "**")
-        } else {
-          no_loadings$variable[j]
-        }
-      }
-
-      report <- paste0(report,
-                       "- ",
-                       var_display,
-                       " (highest: ",
-                       no_loadings$highest_loading[j],
-                       ")\n")
-    }
-  }
-
-  if (output_format == "markdown") {
-    report <- paste0(report, "\n")
-  } else {
-    report <- paste0(report, "\n\n")
-  }
+  # 5. Diagnostics section (cross-loadings and no-loadings)
+  report <- paste0(
+    report,
+    build_diagnostics_section(
+      cross_loadings = cross_loadings,
+      no_loadings = no_loadings,
+      cutoff = cutoff,
+      output_format = output_format,
+      heading_level = heading_level
+    )
+  )
 
   # Insert elapsed time after tokens or LLM info in the report
   if (!is.null(elapsed_time)) {
@@ -889,7 +1037,7 @@ print.fa_interpretation <- function(x,
 
 #' Build Report for FA Interpretation (S3 Method)
 #'
-#' S3 method that integrates with the core interpret_generic() workflow.
+#' S3 method that integrates with the core interpret_core() workflow.
 #' Wraps the existing build_fa_report() function.
 #'
 #' @param interpretation fa_interpretation object

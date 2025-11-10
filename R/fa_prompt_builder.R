@@ -193,7 +193,8 @@ build_main_prompt.fa <- function(model_type,
   variance_entries <- c()
   for (i in 1:n_factors) {
     factor_name <- factor_cols[i]
-    variance_explained <- sum(loadings_df[[factor_name]]^2) / n_variables
+    # Reuse pre-calculated variance from factor_summaries (no duplicate calculation)
+    variance_explained <- factor_summaries[[factor_name]]$variance_explained
     variance_pct <- round(variance_explained * 100, 1)
     variance_entries <- c(variance_entries, paste0(factor_name, "=", variance_pct, "%"))
   }
