@@ -50,7 +50,21 @@
       "Bash(fi)",
       "Bash(done)",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Bash(gh issue list:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(ollama --version:*)",
+      "Bash(curl:*)",
+      "Bash(ollama list:*)",
+      "Bash(ollama pull:*)",
+      "Bash(ollama run:*)",
+      "Bash(ollama ps:*)",
+      "Bash(ollama --version:*)",
+      "Bash(xargs:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(awk:*)"
     ],
     "deny": [
       "Read(./.env*)",

@@ -170,6 +170,9 @@ interpret <- function(fit_results = NULL,
                       model = NULL,
                       llm_args = NULL,
                       fa_args = NULL,
+                      # gm_args = NULL,    # TODO: Uncomment when implementing GM support
+                      # irt_args = NULL,   # TODO: Uncomment when implementing IRT support
+                      # cdm_args = NULL,   # TODO: Uncomment when implementing CDM support
                       output_args = NULL,
                       ...) {
   # ============================================================================
@@ -194,6 +197,9 @@ interpret <- function(fit_results = NULL,
   # Build configuration objects from dual interface
   llm_cfg <- build_llm_args(llm_args, provider, model, ...)
   fa_cfg <- build_fa_args(fa_args, ...)
+  # gm_cfg <- build_gm_args(gm_args, ...)     # TODO: Uncomment for GM support
+  # irt_cfg <- build_irt_args(irt_args, ...)  # TODO: Uncomment for IRT support
+  # cdm_cfg <- build_cdm_args(cdm_args, ...)  # TODO: Uncomment for CDM support
   out_cfg <- build_output_args(output_args, ...)
 
   # Check if fit_results is missing
@@ -319,6 +325,9 @@ interpret <- function(fit_results = NULL,
         chat_session = chat_session,
         llm_args = llm_cfg,
         fa_args = fa_cfg,
+        # gm_args = gm_cfg,    # TODO: Uncomment when implementing GM
+        # irt_args = irt_cfg,  # TODO: Uncomment when implementing IRT
+        # cdm_args = cdm_cfg,  # TODO: Uncomment when implementing CDM
         output_args = out_cfg,
         ...
       )
@@ -354,6 +363,9 @@ interpret <- function(fit_results = NULL,
           factor_cor_mat = extracted$factor_cor_mat,
           llm_args = llm_cfg,
           fa_args = fa_cfg,
+          # gm_args = gm_cfg,    # TODO: Uncomment for GM
+          # irt_args = irt_cfg,  # TODO: Uncomment for IRT
+          # cdm_args = cdm_cfg,  # TODO: Uncomment for CDM
           output_args = out_cfg,
           ...
         )
@@ -741,7 +753,7 @@ interpret_model.efaList <- function(model, variable_info, ...) {
   result <- interpret_core(
     fit_results = list(
       loadings = loadings,
-      Phi = factor_cor_mat
+      factor_cor_mat = factor_cor_mat
     ),
     variable_info = variable_info,
     model_type = "fa",

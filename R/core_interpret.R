@@ -67,9 +67,9 @@ interpret_core <- function(model_data = NULL,
   start_time <- Sys.time()
 
   # Capture ... and remove FA-specific parameters to avoid duplicates
-  # These will be passed explicitly from model_data
+  # These will be passed explicitly from model_data or as explicit parameters
   dots <- list(...)
-  fa_param_names <- c("cutoff", "n_emergency", "hide_low_loadings", "factor_cor_mat", "sort_loadings")
+  fa_param_names <- c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings", "factor_cor_mat")
   dots_clean <- dots[!names(dots) %in% fa_param_names]
 
   # ==========================================================================
@@ -195,15 +195,7 @@ interpret_core <- function(model_data = NULL,
   }
 
   # Validate model_type
-  valid_types <- c("fa", "gm", "irt", "cdm")
-  if (!model_type %in% valid_types) {
-    cli::cli_abort(
-      c(
-        "Invalid model_type: {.val {model_type}}",
-        "i" = "Valid types: {.val {valid_types}}"
-      )
-    )
-  }
+  validate_model_type(model_type)
 
   # Validate variable_info
   if (!is.data.frame(variable_info)) {

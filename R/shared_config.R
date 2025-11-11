@@ -16,9 +16,13 @@
 #' @param hide_low_loadings Logical. If TRUE, only variables with loadings at or above
 #'   cutoff are included in LLM prompt (default = FALSE)
 #' @param sort_loadings Logical. Sort variables by loading strength within factors (default = TRUE)
-#' @param factor_cor_mat Matrix or NULL. Factor correlation matrix for oblique rotations (default = NULL)
 #'
 #' @return A list with class "fa_args" containing validated FA settings
+#'
+#' @details
+#' Note: Factor correlation matrices should be passed via \code{fit_results}
+#' parameter in list structure: \code{list(loadings = ..., factor_cor_mat = ...)},
+#' not via \code{fa_args}.
 #'
 #' @export
 #'
@@ -35,8 +39,7 @@
 fa_args <- function(cutoff = 0.3,
                       n_emergency = 2,
                       hide_low_loadings = FALSE,
-                      sort_loadings = TRUE,
-                      factor_cor_mat = NULL) {
+                      sort_loadings = TRUE) {
 
   # Validate cutoff
   if (!is.numeric(cutoff) || length(cutoff) != 1) {
@@ -64,20 +67,12 @@ fa_args <- function(cutoff = 0.3,
     cli::cli_abort("{.arg sort_loadings} must be TRUE or FALSE")
   }
 
-  # Validate factor_cor_mat if provided
-  if (!is.null(factor_cor_mat)) {
-    if (!is.matrix(factor_cor_mat) && !is.data.frame(factor_cor_mat)) {
-      cli::cli_abort("{.arg factor_cor_mat} must be a matrix, data.frame, or NULL")
-    }
-  }
-
   structure(
     list(
       cutoff = cutoff,
       n_emergency = as.integer(n_emergency),
       hide_low_loadings = hide_low_loadings,
-      sort_loadings = sort_loadings,
-      factor_cor_mat = factor_cor_mat
+      sort_loadings = sort_loadings
     ),
     class = c("fa_args", "model_config", "list")
   )
@@ -304,6 +299,84 @@ default_output_args <- function() {
 
 
 # ==============================================================================
+# FUTURE MODEL TYPE CONFIGURATIONS (NOT YET IMPLEMENTED)
+# ==============================================================================
+#
+# When implementing GM, IRT, or CDM support:
+# 1. Uncomment the relevant section below
+# 2. Define model-specific parameters and defaults
+# 3. Implement validation logic
+# 4. Update interpret() and handle_raw_data_interpret() to pass these args
+# 5. Run devtools::document() to update NAMESPACE
+#
+# See dev/templates/TEMPLATE_config_additions.R for full implementation pattern
+# ==============================================================================
+
+# #' Create Gaussian Mixture Configuration
+# #'
+# #' @param n_components Integer. Number of mixture components (default = 2)
+# #' @param covariance_type Character. Type of covariance: "full", "tied", "diag", "spherical"
+# #' @param ... Additional parameters
+# #'
+# #' @return gm_args configuration object
+# #' @export
+# gm_args <- function(n_components = 2,
+#                     covariance_type = "full",
+#                     ...) {
+#   # TODO: Add validation logic
+#   structure(
+#     list(
+#       n_components = as.integer(n_components),
+#       covariance_type = covariance_type
+#     ),
+#     class = c("gm_args", "model_config", "list")
+#   )
+# }
+
+# #' Create IRT Configuration
+# #'
+# #' @param model Character. IRT model: "1PL", "2PL", "3PL", "graded"
+# #' @param ability_method Character. Ability estimation: "EAP", "MAP", "MLE"
+# #' @param ... Additional parameters
+# #'
+# #' @return irt_args configuration object
+# #' @export
+# irt_args <- function(model = "2PL",
+#                      ability_method = "EAP",
+#                      ...) {
+#   # TODO: Add validation logic
+#   structure(
+#     list(
+#       model = model,
+#       ability_method = ability_method
+#     ),
+#     class = c("irt_args", "model_config", "list")
+#   )
+# }
+
+# #' Create CDM Configuration
+# #'
+# #' @param cdm_type Character. CDM type: "DINA", "DINO", "GDINA"
+# #' @param q_matrix Matrix. Q-matrix for attribute-item relationships
+# #' @param ... Additional parameters
+# #'
+# #' @return cdm_args configuration object
+# #' @export
+# cdm_args <- function(cdm_type = "DINA",
+#                      q_matrix = NULL,
+#                      ...) {
+#   # TODO: Add validation logic
+#   structure(
+#     list(
+#       cdm_type = cdm_type,
+#       q_matrix = q_matrix
+#     ),
+#     class = c("cdm_args", "model_config", "list")
+#   )
+# }
+
+
+# ==============================================================================
 # S3 METHODS FOR CONFIG OBJECTS
 # ==============================================================================
 
@@ -317,7 +390,6 @@ print.fa_args <- function(x, ...) {
   cli::cli_li("Emergency rule: Use top {.val {x$n_emergency}} loadings")
   cli::cli_li("Hide low loadings: {.val {x$hide_low_loadings}}")
   cli::cli_li("Sort loadings: {.val {x$sort_loadings}}")
-  cli::cli_li("Factor correlations: {.val {if(is.null(x$factor_cor_mat)) 'none' else 'provided'}}")
   cli::cli_end()
   invisible(x)
 }
@@ -421,7 +493,7 @@ build_fa_args <- function(fa_args = NULL, ...) {
   # Check if any valid FA parameters in ...
   dots <- list(...)
   valid_fa_params <- c("cutoff", "n_emergency", "hide_low_loadings",
-                       "sort_loadings", "factor_cor_mat")
+                       "sort_loadings")
   fa_dots <- dots[names(dots) %in% valid_fa_params]
 
   # If we have FA parameters, build fa_args
@@ -466,3 +538,78 @@ build_output_args <- function(output_args = NULL, ...) {
 
   NULL
 }
+
+
+# ==============================================================================
+# FUTURE MODEL TYPE BUILDERS (NOT YET IMPLEMENTED)
+# ==============================================================================
+#
+# Uncomment when implementing GM, IRT, or CDM support
+# These follow the same pattern as build_fa_args() above
+# ==============================================================================
+
+# #' Build GM Arguments (Internal)
+# #' @keywords internal
+# #' @noRd
+# build_gm_args <- function(gm_args = NULL, ...) {
+#   if (!is.null(gm_args)) {
+#     if (is.list(gm_args) && !inherits(gm_args, "gm_args")) {
+#       gm_args <- do.call("gm_args", gm_args)
+#     }
+#     return(gm_args)
+#   }
+#
+#   dots <- list(...)
+#   valid_gm_params <- c("n_components", "covariance_type")
+#   gm_dots <- dots[names(dots) %in% valid_gm_params]
+#
+#   if (length(gm_dots) > 0) {
+#     return(do.call("gm_args", gm_dots))
+#   }
+#
+#   NULL
+# }
+
+# #' Build IRT Arguments (Internal)
+# #' @keywords internal
+# #' @noRd
+# build_irt_args <- function(irt_args = NULL, ...) {
+#   if (!is.null(irt_args)) {
+#     if (is.list(irt_args) && !inherits(irt_args, "irt_args")) {
+#       irt_args <- do.call("irt_args", irt_args)
+#     }
+#     return(irt_args)
+#   }
+#
+#   dots <- list(...)
+#   valid_irt_params <- c("model", "ability_method")
+#   irt_dots <- dots[names(dots) %in% valid_irt_params]
+#
+#   if (length(irt_dots) > 0) {
+#     return(do.call("irt_args", irt_dots))
+#   }
+#
+#   NULL
+# }
+
+# #' Build CDM Arguments (Internal)
+# #' @keywords internal
+# #' @noRd
+# build_cdm_args <- function(cdm_args = NULL, ...) {
+#   if (!is.null(cdm_args)) {
+#     if (is.list(cdm_args) && !inherits(cdm_args, "cdm_args")) {
+#       cdm_args <- do.call("cdm_args", cdm_args)
+#     }
+#     return(cdm_args)
+#   }
+#
+#   dots <- list(...)
+#   valid_cdm_params <- c("cdm_type", "q_matrix")
+#   cdm_dots <- dots[names(dots) %in% valid_cdm_params]
+#
+#   if (length(cdm_dots) > 0) {
+#     return(do.call("cdm_args", cdm_dots))
+#   }
+#
+#   NULL
+# }

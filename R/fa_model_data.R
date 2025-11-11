@@ -45,7 +45,8 @@ build_fa_model_data_internal <- function(fit_results, variable_info, model_type 
   sort_loadings <- if (!is.null(fa_args)) fa_args$sort_loadings else dots$sort_loadings
   if (is.null(sort_loadings)) sort_loadings <- TRUE
 
-  factor_cor_mat <- if (!is.null(fa_args)) fa_args$factor_cor_mat else dots$factor_cor_mat
+  # Initialize factor_cor_mat (will be extracted from fit_results if available)
+  factor_cor_mat <- NULL
 
   # ==========================================================================
   # STEP 1: VALIDATE FA PARAMETERS
@@ -91,8 +92,8 @@ build_fa_model_data_internal <- function(fit_results, variable_info, model_type 
     }
     loadings <- fit_results$loadings
     # Extract factor_cor_mat if provided in list
-    if ("Phi" %in% names(fit_results) && is.null(factor_cor_mat)) {
-      factor_cor_mat <- fit_results$Phi
+    if ("factor_cor_mat" %in% names(fit_results) && is.null(factor_cor_mat)) {
+      factor_cor_mat <- fit_results$factor_cor_mat
     }
   } else {
     # Direct matrix/data.frame input
@@ -336,7 +337,7 @@ build_model_data.psych <- function(fit_results, variable_info, model_type = "fa"
   # Create list and route to .fa method
   loadings_list <- list(
     loadings = loadings,
-    Phi = factor_cor_mat
+    factor_cor_mat = factor_cor_mat
   )
 
   build_fa_model_data_internal(loadings_list, variable_info, model_type, fa_args, ...)
@@ -388,7 +389,7 @@ build_model_data.lavaan <- function(fit_results, variable_info, model_type = "fa
   # Create list and route to internal helper
   loadings_list <- list(
     loadings = loadings_matrix,
-    Phi = factor_cor_mat
+    factor_cor_mat = factor_cor_mat
   )
 
   build_fa_model_data_internal(loadings_list, variable_info, model_type, fa_args, ...)
@@ -428,7 +429,7 @@ build_model_data.SingleGroupClass <- function(fit_results, variable_info, model_
   # Create list and route to internal helper
   loadings_list <- list(
     loadings = loadings_matrix,
-    Phi = factor_cor_mat
+    factor_cor_mat = factor_cor_mat
   )
 
   build_fa_model_data_internal(loadings_list, variable_info, model_type, fa_args, ...)

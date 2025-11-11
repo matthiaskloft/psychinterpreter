@@ -21,7 +21,11 @@
 #' @noRd
 handle_raw_data_interpret <- function(x, variable_info, model_type,
                                       chat_session, llm_args = NULL,
-                                      fa_args = NULL, output_args = NULL, ...) {
+                                      fa_args = NULL,
+                                      # gm_args = NULL,   # TODO: Uncomment for GM support
+                                      # irt_args = NULL,  # TODO: Uncomment for IRT support
+                                      # cdm_args = NULL,  # TODO: Uncomment for CDM support
+                                      output_args = NULL, ...) {
   # Determine effective model_type
   effective_model_type <- if (!is.null(chat_session)) {
     chat_session$model_type
@@ -30,16 +34,7 @@ handle_raw_data_interpret <- function(x, variable_info, model_type,
   }
 
   # Validate model_type
-  valid_types <- c("fa", "gm", "irt", "cdm")
-  if (!effective_model_type %in% valid_types) {
-    cli::cli_abort(
-      c(
-        "Invalid or unsupported model_type: {.val {effective_model_type}}",
-        "i" = "Valid types: {.val {valid_types}}",
-        "i" = "Only 'fa' is currently implemented"
-      )
-    )
-  }
+  validate_model_type(effective_model_type)
 
   # Route to model-specific function
   switch(effective_model_type,
@@ -52,7 +47,7 @@ handle_raw_data_interpret <- function(x, variable_info, model_type,
       interpret_core(
         fit_results = list(
           loadings = x,
-          Phi = factor_cor_mat
+          factor_cor_mat = factor_cor_mat
         ),
         variable_info = variable_info,
         model_type = "fa",
@@ -132,7 +127,8 @@ validate_chat_session_for_model_type <- function(chat_session, expected_type) {
 #'
 #' Internal helper to validate and extract components from a structured list
 #' for factor analysis. Used when fit_results is provided as a list instead of
-#' a fitted model object.
+#' a fitted model object. Accepts both "factor_cor_mat" and "Phi" as names
+#' for the factor correlation matrix (psych::fa uses "Phi").
 #'
 #' @param fit_results_list List with FA model components
 #'
@@ -170,12 +166,13 @@ validate_fa_list_structure <- function(fit_results_list) {
     )
   }
 
-  # Extract factor correlation matrix (optional, check both names)
+  # Extract factor correlation matrix (optional)
+  # Accept both "factor_cor_mat" and "Phi" (psych::fa uses "Phi")
   factor_cor_mat <- NULL
-  if ("Phi" %in% names(fit_results_list)) {
-    factor_cor_mat <- fit_results_list$Phi
-  } else if ("factor_cor_mat" %in% names(fit_results_list)) {
+  if ("factor_cor_mat" %in% names(fit_results_list)) {
     factor_cor_mat <- fit_results_list$factor_cor_mat
+  } else if ("Phi" %in% names(fit_results_list)) {
+    factor_cor_mat <- fit_results_list$Phi
   }
 
   # Validate and convert factor_cor_mat if provided
@@ -197,7 +194,8 @@ validate_fa_list_structure <- function(fit_results_list) {
   }
 
   # Warn about unrecognized components
-  recognized_components <- c("loadings", "Phi", "factor_cor_mat")
+  # Accept both "factor_cor_mat" and "Phi" (psych::fa uses "Phi")
+  recognized_components <- c("loadings", "factor_cor_mat", "Phi")
   unrecognized <- setdiff(names(fit_results_list), recognized_components)
 
   if (length(unrecognized) > 0) {
@@ -216,24 +214,6 @@ validate_fa_list_structure <- function(fit_results_list) {
     loadings = loadings,
     factor_cor_mat = factor_cor_mat
   )
-}
-
-#' Normalize Token Count to Non-Negative Integer
-#'
-#' Ensures token counts are valid non-negative integers. Some LLM providers may
-#' return negative values (e.g., due to caching) or NA. This function normalizes
-#' such values to 0.
-#'
-#' @param x Numeric token count (may be negative or NA)
-#'
-#' @return Non-negative integer (0 if input is negative or NA)
-#' @keywords internal
-#' @noRd
-normalize_token_count <- function(x) {
-  if (is.na(x) || !is.numeric(x)) {
-    return(0L)
-  }
-  max(0L, as.integer(x))
 }
 
 #' Calculate Variance Explained by a Factor

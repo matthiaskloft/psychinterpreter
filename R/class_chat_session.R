@@ -67,15 +67,7 @@ chat_session <- function(model_type = "fa",
                         echo = "none",
                         word_limit = 100) {
   # Validate model_type
-  valid_types <- c("fa", "gm", "irt", "cdm")
-  if (!model_type %in% valid_types) {
-    cli::cli_abort(
-      c(
-        "Invalid model_type: {.val {model_type}}",
-        "i" = "Valid types: {.val {valid_types}}"
-      )
-    )
-  }
+  validate_model_type(model_type)
 
   # Validate inputs
   if (!is.character(provider) || length(provider) != 1) {

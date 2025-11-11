@@ -34,6 +34,8 @@
 - **CLAUDE.md** (this file): Usage guide and quick reference for Claude Code sessions
 - **dev/DEVELOPER_GUIDE.md**: Technical architecture and implementation details for maintainers
 - **dev/TESTING_GUIDELINES.md**: Testing standards and patterns
+- **dev/templates/**: Ready-to-copy code templates for implementing new model types (GM, IRT, CDM)
+- **dev/MODEL_IMPLEMENTATION_GUIDE.md**: Conceptual guide for new model type implementation
 
 ---
 
@@ -398,21 +400,14 @@ interpret(..., echo = "all")
 
 # Active TODOs
 
-## High Priority
+- can we further refine R script naming scheme?
+- should we split up visualization for better abstraction?
 
-None at this time - Phase 2 refactoring complete!
+- **Optimize tests further** - Review fixture usage and caching strategies
 
-## Medium Priority
 
-2. **Implement summary() method**
-   - For chat_session: Show stats and token usage
-   - For fa_interpretation: Show factor names only
 
-3. **Optimize tests further** - Review fixture usage and caching strategies
-
-## Low Priority
-
-4. **Implement gaussian_mixture class** - Requires 7 S3 methods (see dev/DEVELOPER_GUIDE.md)
+- **Implement gaussian_mixture class** - Requires 7 S3 methods (see dev/DEVELOPER_GUIDE.md)
 
 ---
 
@@ -451,9 +446,11 @@ None at this time - Phase 2 refactoring complete!
 
 | Category | Key Files |
 |----------|-----------|
-| **Core** | generic_interpret.R, base_chat_session.R |
-| **FA Implementation** | fa_interpret.R, fa_prompt_builder.R, interpret_methods.R |
-| **Utilities** | export_functions.R, visualization.R, utils_text_processing.R |
+| **Core** | core_interpret_dispatch.R, core_interpret.R, core_constants.R |
+| **S3 Generics** | s3_model_data.R, s3_prompt_builder.R, s3_json_parser.R, s3_export.R |
+| **Classes** | class_chat_session.R, class_interpretation.R |
+| **Shared Utilities** | shared_config.R, shared_utils.R, shared_text.R, shared_visualization.R |
+| **FA Implementation** | fa_model_data.R, fa_prompt_builder.R, fa_json.R, fa_diagnostics.R, fa_report.R, fa_visualization.R |
 | **Tests** | tests/testthat/ (7 test files, 70+ tests) |
 
 ## Development Commands
