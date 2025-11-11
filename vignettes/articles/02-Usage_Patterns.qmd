@@ -36,7 +36,7 @@ packages <- c(
   "mirt",
   "dplyr",
   "here",
-  "kableExtra",
+  "DT",
   "pander"
 )
 # Load required packages using pacman

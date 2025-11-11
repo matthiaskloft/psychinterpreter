@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Matthias Kloft">
-<meta name="dcterms.date" content="2025-11-09">
+<meta name="dcterms.date" content="2025-11-11">
 
 <title>Usage Patterns of the interpret() Function</title>
 <style>
@@ -98,7 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#usage-patterns" id="toc-usage-patterns" class="nav-link" data-scroll-target="#usage-patterns">Usage Patterns</a>
   <ul class="collapse">
   <li><a href="#pattern-1-fitted-model-object" id="toc-pattern-1-fitted-model-object" class="nav-link" data-scroll-target="#pattern-1-fitted-model-object">Pattern 1: Fitted Model Object</a></li>
-  <li><a href="#pattern-2-structured-list-raw-data" id="toc-pattern-2-structured-list-raw-data" class="nav-link" data-scroll-target="#pattern-2-structured-list-raw-data">Pattern 2: Structured List (Raw Data)</a></li>
+  <li><a href="#pattern-2-structured-list" id="toc-pattern-2-structured-list" class="nav-link" data-scroll-target="#pattern-2-structured-list">Pattern 2: Structured List</a></li>
   <li><a href="#pattern-3-chat-session-token-efficient" id="toc-pattern-3-chat-session-token-efficient" class="nav-link" data-scroll-target="#pattern-3-chat-session-token-efficient">Pattern 3: Chat Session (Token-Efficient)</a></li>
   </ul></li>
   <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session Info</a></li>
@@ -119,14 +119,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>Matthias Kloft </p>
+             <p>Matthias Kloft <a href="https://orcid.org/0000-0003-1845-6957" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
           </div>
   </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 9, 2025</p>
+      <p class="date">November 11, 2025</p>
     </div>
   </div>
   
@@ -294,21 +294,21 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 826
-  Output: 1101
-Elapsed time: 6.57
+  Output: 1359
+Elapsed time: 9.51
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Power Fuel Efficiency
-• Factor 2 (1.7%): Residual Engine Variation (n.s.)
+• Factor 1 (84%): Engine Power and Size
+• Factor 2 (1.7%): Power‑Displacement Link (n.s.)
 
 Total variance explained: 85.7%
 
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Power Fuel Efficiency
+Factor 1 (MR1) - Engine Power and Size
 Number of significant loadings: 4
 Variance explained: 84.03%
 
@@ -319,29 +319,30 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-MR1 captures a vehicle engine power versus fuel efficiency construct: high
-positive loadings on cylinders, displacement, horsepower and a strong negative
-loading on miles per gallon illustrate that larger, more powerful engines reduce
-fuel economy. Consequently, this factor differentiates high‑power models from
-fuel‑efficient ones.
+This factor predominantly reflects the engine's size and power characteristics.
+It loads negatively on fuel economy (mpg) while loading positively on cylinders,
+displacement, and horsepower. The strong loadings confirm convergent validity,
+indicating that higher volume, more cylinders, and horsepower correspond to
+lower fuel efficiency.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Engine Variation (n.s.)
+Factor 2 (MR2) - Power‑Displacement Link (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
-WARNING: No variables load above cutoff (0.3). Using top 2 variables below
-cutoff for interpretation.
+WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
+2 variable(s) below cutoff for interpretation.
 
 Variables:
   1. hp, Horsepower (Positive, Below Cutoff, .195)
   2. disp, Displacement (Negative, Below Cutoff, -.172)
 
 LLM Interpretation:
-MR2 shows minimal shared variance, with negligible loadings on horsepower and
-displacement while virtually no relation to other automotive variables. Its
-near‑zero factor correlations imply it likely represents residual noise or
-measurement error rather than a substantive construct within the dataset.
+This factor captures a weak, divergent relationship between horsepower and
+displacement, loading modestly positive on horsepower (0.195) and negative on
+displacement (−0.172). With only 1.7 % variance explained, it offers minimal
+explanatory power, shows poor convergent validity, and overall poor relevance to
+the model.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -354,21 +355,21 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 826
-  Output: 1101
-Elapsed time: 6.57
+  Output: 1359
+Elapsed time: 9.51
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Power Fuel Efficiency
-• Factor 2 (1.7%): Residual Engine Variation (n.s.)
+• Factor 1 (84%): Engine Power and Size
+• Factor 2 (1.7%): Power‑Displacement Link (n.s.)
 
 Total variance explained: 85.7%
 
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Power Fuel Efficiency
+Factor 1 (MR1) - Engine Power and Size
 Number of significant loadings: 4
 Variance explained: 84.03%
 
@@ -379,37 +380,38 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-MR1 captures a vehicle engine power versus fuel efficiency construct: high
-positive loadings on cylinders, displacement, horsepower and a strong negative
-loading on miles per gallon illustrate that larger, more powerful engines reduce
-fuel economy. Consequently, this factor differentiates high‑power models from
-fuel‑efficient ones.
+This factor predominantly reflects the engine's size and power characteristics.
+It loads negatively on fuel economy (mpg) while loading positively on cylinders,
+displacement, and horsepower. The strong loadings confirm convergent validity,
+indicating that higher volume, more cylinders, and horsepower correspond to
+lower fuel efficiency.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Engine Variation (n.s.)
+Factor 2 (MR2) - Power‑Displacement Link (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
-WARNING: No variables load above cutoff (0.3). Using top 2 variables below
-cutoff for interpretation.
+WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
+2 variable(s) below cutoff for interpretation.
 
 Variables:
   1. hp, Horsepower (Positive, Below Cutoff, .195)
   2. disp, Displacement (Negative, Below Cutoff, -.172)
 
 LLM Interpretation:
-MR2 shows minimal shared variance, with negligible loadings on horsepower and
-displacement while virtually no relation to other automotive variables. Its
-near‑zero factor correlations imply it likely represents residual noise or
-measurement error rather than a substantive construct within the dataset.
+This factor captures a weak, divergent relationship between horsepower and
+displacement, loading modestly positive on horsepower (0.195) and negative on
+displacement (−0.172). With only 1.7 % variance explained, it offers minimal
+explanatory power, shows poor convergent validity, and overall poor relevance to
+the model.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
 </div>
 </section>
-<section id="pattern-2-structured-list-raw-data" class="level3">
-<h3 class="anchored" data-anchor-id="pattern-2-structured-list-raw-data">Pattern 2: Structured List (Raw Data)</h3>
-<p>For custom data structures or manual extraction. Always use a structured list.</p>
+<section id="pattern-2-structured-list" class="level3">
+<h3 class="anchored" data-anchor-id="pattern-2-structured-list">Pattern 2: Structured List</h3>
+<p>For custom data structures or manual extraction.</p>
 <p>For FA, provide loadings (required) and optionally factor_cor_mat:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -460,21 +462,21 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 826
-  Output: 1689
-Elapsed time: 7.01
+  Output: 992
+Elapsed time: 8.01
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Performance
-• Factor 2 (1.7%): Power-Displacement Association (n.s.)
+• Factor 1 (84%): Engine Capacity
+• Factor 2 (1.7%): Residual Engine Effect (n.s.)
 
 Total variance explained: 85.7%
 
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Performance
+Factor 1 (MR1) - Engine Capacity
 Number of significant loadings: 4
 Variance explained: 84.03%
 
@@ -485,30 +487,30 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-Engine Performance factor: cylinders, displacement, horsepower load positively;
-miles‑per‑gallon load negatively. This factor captures overall engine size and
-power, where larger displacement and more cylinders drive higher horsepower,
-which inversely reduces fuel economy. It substantially explains most data
-variance (84 %).
+This factor captures overall engine size and power incentives. Variables like
+cylinders, displacement, horsepower load strongly, and are negatively correlated
+with fuel efficiency, underscoring that larger, more powerful engines reduce
+mpg. The scanner indicates a single coherent dimension explaining most of the
+variance.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Power-Displacement Association (n.s.)
+Factor 2 (MR2) - Residual Engine Effect (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
-WARNING: No variables load above cutoff (0.3). Using top 2 variables below
-cutoff for interpretation.
+WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
+2 variable(s) below cutoff for interpretation.
 
 Variables:
   1. hp, Horsepower (Positive, Below Cutoff, .195)
   2. disp, Displacement (Negative, Below Cutoff, -.172)
 
 LLM Interpretation:
-Remaining factor, driven by horsepower and displacement loadings, shows weak,
-ambiguous construct with minimal variance. Its low loadings suggest a secondary,
-perhaps noise component, offering limited insight into vehicle attributes beyond
-power characteristics. It barely explains 1.7 % of variance, reflecting overall
-constancy.
+Although explaining a modest 1.7% of variance, this factor reflects residual
+engine‑related characteristics. Its weak loadings hint at a non‑core variation
+in power or displacement, minimally distinct from the main engine capacity
+factor, and thus provides limited substantive insight beyond the primary
+dimension.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -521,21 +523,21 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 826
-  Output: 1689
-Elapsed time: 7.01
+  Output: 992
+Elapsed time: 8.01
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Performance
-• Factor 2 (1.7%): Power-Displacement Association (n.s.)
+• Factor 1 (84%): Engine Capacity
+• Factor 2 (1.7%): Residual Engine Effect (n.s.)
 
 Total variance explained: 85.7%
 
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Performance
+Factor 1 (MR1) - Engine Capacity
 Number of significant loadings: 4
 Variance explained: 84.03%
 
@@ -546,30 +548,30 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-Engine Performance factor: cylinders, displacement, horsepower load positively;
-miles‑per‑gallon load negatively. This factor captures overall engine size and
-power, where larger displacement and more cylinders drive higher horsepower,
-which inversely reduces fuel economy. It substantially explains most data
-variance (84 %).
+This factor captures overall engine size and power incentives. Variables like
+cylinders, displacement, horsepower load strongly, and are negatively correlated
+with fuel efficiency, underscoring that larger, more powerful engines reduce
+mpg. The scanner indicates a single coherent dimension explaining most of the
+variance.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Power-Displacement Association (n.s.)
+Factor 2 (MR2) - Residual Engine Effect (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
-WARNING: No variables load above cutoff (0.3). Using top 2 variables below
-cutoff for interpretation.
+WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
+2 variable(s) below cutoff for interpretation.
 
 Variables:
   1. hp, Horsepower (Positive, Below Cutoff, .195)
   2. disp, Displacement (Negative, Below Cutoff, -.172)
 
 LLM Interpretation:
-Remaining factor, driven by horsepower and displacement loadings, shows weak,
-ambiguous construct with minimal variance. Its low loadings suggest a secondary,
-perhaps noise component, offering limited insight into vehicle attributes beyond
-power characteristics. It barely explains 1.7 % of variance, reflecting overall
-constancy.
+Although explaining a modest 1.7% of variance, this factor reflects residual
+engine‑related characteristics. Its weak loadings hint at a non‑core variation
+in power or displacement, minimally distinct from the main engine capacity
+factor, and thus provides limited substantive insight beyond the primary
+dimension.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -617,7 +619,7 @@ constancy.
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>result2 <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> fa_model,</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> <span class="fu">list</span>(<span class="at">loadings =</span> loadings_matrix, <span class="at">factor_cor_mat =</span> factor_cor_mat),</span>
 <span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
 <span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span>,</span>
 <span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="dv">1</span></span>
@@ -655,9 +657,9 @@ constancy.
 <pre><code>Factor Analysis Chat Session
 Provider: ollama 
 Model: gpt-oss:20b-cloud 
-Created: 2025-11-09 13:26:55.034029 
+Created: 2025-11-11 03:44:40.679481 
 Interpretations run: 2 
-Total tokens - Input: 965 , Output: 3580 </code></pre>
+Total tokens - Input: 1652 , Output: 2803 </code></pre>
 </div>
 </div>
 </section>
@@ -1137,163 +1139,165 @@ Total tokens - Input: 965 , Output: 3580 </code></pre>
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb54" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Usage Patterns of the `interpret()` Function"</span></span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Matthias Kloft"</span></span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "`r Sys.Date()`"</span></span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> </span></span>
-<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
-<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
-<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-depth: 3</span></span>
-<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: show</span></span>
-<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a><span class="co">    source: repo</span></span>
-<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
-<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a><span class="co">    df-print: paged</span></span>
-<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
-<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: true</span></span>
-<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a><span class="co">  message: true</span></span>
-<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overview</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> </span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="co"> - name: Matthias Kloft</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a><span class="co">   orcid: 0000-0003-1845-6957</span></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "`r Sys.Date()`"</span></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> </span></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-depth: 3</span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: show</span></span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a><span class="co">    source: repo</span></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a><span class="co">    df-print: paged</span></span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: true</span></span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a><span class="co">  message: true</span></span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>This document demonstrates the different usage patterns for <span class="in">`interpret()`</span>.</span>
-<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>The <span class="in">`interpret()`</span> function is the main function of the **psychinterpreter** package and can be used in multiple ways. It will automatically detect the type of input provided and run the appropriate method for interpretation.</span>
-<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a><span class="fu">## Setup</span></span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overview</span></span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>This document demonstrates the different usage patterns for <span class="in">`interpret()`</span>.</span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>The <span class="in">`interpret()`</span> function is the main function of the **psychinterpreter** package and can be used in multiple ways. It will automatically detect the type of input provided and run the appropriate method for interpretation.</span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a><span class="fu">### Packages</span></span>
-<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a><span class="in">```{r setup}</span></span>
-<span id="cb54-28"><a href="#cb54-28" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb54-29"><a href="#cb54-29" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psychinterpreter"</span>,</span>
-<span id="cb54-30"><a href="#cb54-30" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ellmer"</span>,</span>
-<span id="cb54-31"><a href="#cb54-31" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ollamar"</span>,</span>
-<span id="cb54-32"><a href="#cb54-32" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psych"</span>,</span>
-<span id="cb54-33"><a href="#cb54-33" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lavaan"</span>,</span>
-<span id="cb54-34"><a href="#cb54-34" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mirt"</span>,</span>
-<span id="cb54-35"><a href="#cb54-35" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
-<span id="cb54-36"><a href="#cb54-36" aria-hidden="true" tabindex="-1"></a>  <span class="st">"here"</span>,</span>
-<span id="cb54-37"><a href="#cb54-37" aria-hidden="true" tabindex="-1"></a>  <span class="st">"kableExtra"</span>,</span>
-<span id="cb54-38"><a href="#cb54-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pander"</span></span>
-<span id="cb54-39"><a href="#cb54-39" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb54-40"><a href="#cb54-40" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
-<span id="cb54-41"><a href="#cb54-41" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span>
-<span id="cb54-42"><a href="#cb54-42" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="at">char =</span> packages)</span>
-<span id="cb54-43"><a href="#cb54-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-44"><a href="#cb54-44" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a><span class="fu">## Setup</span></span>
+<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-28"><a href="#cb54-28" aria-hidden="true" tabindex="-1"></a><span class="fu">### Packages</span></span>
+<span id="cb54-29"><a href="#cb54-29" aria-hidden="true" tabindex="-1"></a><span class="in">```{r setup}</span></span>
+<span id="cb54-30"><a href="#cb54-30" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb54-31"><a href="#cb54-31" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psychinterpreter"</span>,</span>
+<span id="cb54-32"><a href="#cb54-32" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ellmer"</span>,</span>
+<span id="cb54-33"><a href="#cb54-33" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ollamar"</span>,</span>
+<span id="cb54-34"><a href="#cb54-34" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psych"</span>,</span>
+<span id="cb54-35"><a href="#cb54-35" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lavaan"</span>,</span>
+<span id="cb54-36"><a href="#cb54-36" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mirt"</span>,</span>
+<span id="cb54-37"><a href="#cb54-37" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
+<span id="cb54-38"><a href="#cb54-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">"here"</span>,</span>
+<span id="cb54-39"><a href="#cb54-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">"kableExtra"</span>,</span>
+<span id="cb54-40"><a href="#cb54-40" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pander"</span></span>
+<span id="cb54-41"><a href="#cb54-41" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb54-42"><a href="#cb54-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
+<span id="cb54-43"><a href="#cb54-43" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span>
+<span id="cb54-44"><a href="#cb54-44" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="at">char =</span> packages)</span>
 <span id="cb54-45"><a href="#cb54-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-46"><a href="#cb54-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-47"><a href="#cb54-47" aria-hidden="true" tabindex="-1"></a><span class="fu">### LLM Setup</span></span>
+<span id="cb54-46"><a href="#cb54-46" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb54-47"><a href="#cb54-47" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb54-48"><a href="#cb54-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-49"><a href="#cb54-49" aria-hidden="true" tabindex="-1"></a>We use Ollama, so we need to make sure to start the server before running this.</span>
-<span id="cb54-50"><a href="#cb54-50" aria-hidden="true" tabindex="-1"></a><span class="in">```{bash start-ollama-server}</span></span>
-<span id="cb54-51"><a href="#cb54-51" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
-<span id="cb54-52"><a href="#cb54-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-53"><a href="#cb54-53" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if port 11434 (default Ollama port) is in use</span></span>
-<span id="cb54-54"><a href="#cb54-54" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="fu">grep</span> 11434 <span class="op">&gt;</span> /dev/null<span class="kw">;</span> <span class="cf">then</span></span>
-<span id="cb54-55"><a href="#cb54-55" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">"Ollama is already running."</span></span>
-<span id="cb54-56"><a href="#cb54-56" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
-<span id="cb54-57"><a href="#cb54-57" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">"Starting Ollama..."</span></span>
-<span id="cb54-58"><a href="#cb54-58" aria-hidden="true" tabindex="-1"></a>    <span class="ex">ollama</span> serve</span>
-<span id="cb54-59"><a href="#cb54-59" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
-<span id="cb54-60"><a href="#cb54-60" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb54-61"><a href="#cb54-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-62"><a href="#cb54-62" aria-hidden="true" tabindex="-1"></a>Test the connection:</span>
-<span id="cb54-63"><a href="#cb54-63" aria-hidden="true" tabindex="-1"></a><span class="in">```{r test-connection}</span></span>
-<span id="cb54-64"><a href="#cb54-64" aria-hidden="true" tabindex="-1"></a><span class="fu">system2</span>(<span class="st">"ollama serve"</span>, <span class="at">wait =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb54-65"><a href="#cb54-65" aria-hidden="true" tabindex="-1"></a><span class="co"># test the connection to the Ollama server</span></span>
-<span id="cb54-66"><a href="#cb54-66" aria-hidden="true" tabindex="-1"></a>ollamar<span class="sc">::</span><span class="fu">test_connection</span>()</span>
-<span id="cb54-67"><a href="#cb54-67" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb54-68"><a href="#cb54-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-69"><a href="#cb54-69" aria-hidden="true" tabindex="-1"></a>We will use the model "gpt-oss:20b-cloud", which needs to be installed. </span>
-<span id="cb54-70"><a href="#cb54-70" aria-hidden="true" tabindex="-1"></a>Since this is a cloud-powered model, you need an account with Ollama and be logged in to run this model.</span>
-<span id="cb54-71"><a href="#cb54-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-72"><a href="#cb54-72" aria-hidden="true" tabindex="-1"></a><span class="in">```{r install-model}</span></span>
-<span id="cb54-73"><a href="#cb54-73" aria-hidden="true" tabindex="-1"></a><span class="co"># pull the model from ollama if it is not already installed</span></span>
-<span id="cb54-74"><a href="#cb54-74" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="st">"gpt-oss:20b-cloud"</span> <span class="sc">%in%</span> ollamar<span class="sc">::</span><span class="fu">list_models</span>()<span class="sc">$</span>name) {</span>
-<span id="cb54-75"><a href="#cb54-75" aria-hidden="true" tabindex="-1"></a>  ollamar<span class="sc">::</span><span class="fu">pull</span>(<span class="st">"gpt-oss:20b-cloud"</span>)</span>
-<span id="cb54-76"><a href="#cb54-76" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb54-77"><a href="#cb54-77" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb54-78"><a href="#cb54-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-79"><a href="#cb54-79" aria-hidden="true" tabindex="-1"></a><span class="fu">## Run Factor Analysis</span></span>
-<span id="cb54-80"><a href="#cb54-80" aria-hidden="true" tabindex="-1"></a><span class="in">```{r run-fa}</span></span>
-<span id="cb54-81"><a href="#cb54-81" aria-hidden="true" tabindex="-1"></a>fa_model <span class="ot">&lt;-</span> <span class="fu">fa</span>(mtcars[,<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>], <span class="at">nfactors =</span> <span class="dv">2</span>, <span class="at">rotate =</span> <span class="st">"oblimin"</span>)</span>
-<span id="cb54-82"><a href="#cb54-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-83"><a href="#cb54-83" aria-hidden="true" tabindex="-1"></a>var_info <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb54-84"><a href="#cb54-84" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">c</span>(<span class="st">"mpg"</span>, <span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>),</span>
-<span id="cb54-85"><a href="#cb54-85" aria-hidden="true" tabindex="-1"></a>  <span class="at">description =</span> <span class="fu">c</span>(<span class="st">"Miles per gallon"</span>, <span class="st">"Cylinders"</span>, <span class="st">"Displacement"</span>, <span class="st">"Horsepower"</span>)</span>
-<span id="cb54-86"><a href="#cb54-86" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb54-87"><a href="#cb54-87" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb54-88"><a href="#cb54-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-89"><a href="#cb54-89" aria-hidden="true" tabindex="-1"></a><span class="fu">## Usage Patterns</span></span>
+<span id="cb54-49"><a href="#cb54-49" aria-hidden="true" tabindex="-1"></a><span class="fu">### LLM Setup</span></span>
+<span id="cb54-50"><a href="#cb54-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-51"><a href="#cb54-51" aria-hidden="true" tabindex="-1"></a>We use Ollama, so we need to make sure to start the server before running this.</span>
+<span id="cb54-52"><a href="#cb54-52" aria-hidden="true" tabindex="-1"></a><span class="in">```{bash start-ollama-server}</span></span>
+<span id="cb54-53"><a href="#cb54-53" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb54-54"><a href="#cb54-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-55"><a href="#cb54-55" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if port 11434 (default Ollama port) is in use</span></span>
+<span id="cb54-56"><a href="#cb54-56" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="fu">grep</span> 11434 <span class="op">&gt;</span> /dev/null<span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb54-57"><a href="#cb54-57" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">"Ollama is already running."</span></span>
+<span id="cb54-58"><a href="#cb54-58" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb54-59"><a href="#cb54-59" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">"Starting Ollama..."</span></span>
+<span id="cb54-60"><a href="#cb54-60" aria-hidden="true" tabindex="-1"></a>    <span class="ex">ollama</span> serve</span>
+<span id="cb54-61"><a href="#cb54-61" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
+<span id="cb54-62"><a href="#cb54-62" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb54-63"><a href="#cb54-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-64"><a href="#cb54-64" aria-hidden="true" tabindex="-1"></a>Test the connection:</span>
+<span id="cb54-65"><a href="#cb54-65" aria-hidden="true" tabindex="-1"></a><span class="in">```{r test-connection}</span></span>
+<span id="cb54-66"><a href="#cb54-66" aria-hidden="true" tabindex="-1"></a><span class="fu">system2</span>(<span class="st">"ollama serve"</span>, <span class="at">wait =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb54-67"><a href="#cb54-67" aria-hidden="true" tabindex="-1"></a><span class="co"># test the connection to the Ollama server</span></span>
+<span id="cb54-68"><a href="#cb54-68" aria-hidden="true" tabindex="-1"></a>ollamar<span class="sc">::</span><span class="fu">test_connection</span>()</span>
+<span id="cb54-69"><a href="#cb54-69" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb54-70"><a href="#cb54-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-71"><a href="#cb54-71" aria-hidden="true" tabindex="-1"></a>We will use the model "gpt-oss:20b-cloud", which needs to be installed. </span>
+<span id="cb54-72"><a href="#cb54-72" aria-hidden="true" tabindex="-1"></a>Since this is a cloud-powered model, you need an account with Ollama and be logged in to run this model.</span>
+<span id="cb54-73"><a href="#cb54-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-74"><a href="#cb54-74" aria-hidden="true" tabindex="-1"></a><span class="in">```{r install-model}</span></span>
+<span id="cb54-75"><a href="#cb54-75" aria-hidden="true" tabindex="-1"></a><span class="co"># pull the model from ollama if it is not already installed</span></span>
+<span id="cb54-76"><a href="#cb54-76" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="st">"gpt-oss:20b-cloud"</span> <span class="sc">%in%</span> ollamar<span class="sc">::</span><span class="fu">list_models</span>()<span class="sc">$</span>name) {</span>
+<span id="cb54-77"><a href="#cb54-77" aria-hidden="true" tabindex="-1"></a>  ollamar<span class="sc">::</span><span class="fu">pull</span>(<span class="st">"gpt-oss:20b-cloud"</span>)</span>
+<span id="cb54-78"><a href="#cb54-78" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb54-79"><a href="#cb54-79" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb54-80"><a href="#cb54-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-81"><a href="#cb54-81" aria-hidden="true" tabindex="-1"></a><span class="fu">## Run Factor Analysis</span></span>
+<span id="cb54-82"><a href="#cb54-82" aria-hidden="true" tabindex="-1"></a><span class="in">```{r run-fa}</span></span>
+<span id="cb54-83"><a href="#cb54-83" aria-hidden="true" tabindex="-1"></a>fa_model <span class="ot">&lt;-</span> <span class="fu">fa</span>(mtcars[,<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>], <span class="at">nfactors =</span> <span class="dv">2</span>, <span class="at">rotate =</span> <span class="st">"oblimin"</span>)</span>
+<span id="cb54-84"><a href="#cb54-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-85"><a href="#cb54-85" aria-hidden="true" tabindex="-1"></a>var_info <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb54-86"><a href="#cb54-86" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">c</span>(<span class="st">"mpg"</span>, <span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>),</span>
+<span id="cb54-87"><a href="#cb54-87" aria-hidden="true" tabindex="-1"></a>  <span class="at">description =</span> <span class="fu">c</span>(<span class="st">"Miles per gallon"</span>, <span class="st">"Cylinders"</span>, <span class="st">"Displacement"</span>, <span class="st">"Horsepower"</span>)</span>
+<span id="cb54-88"><a href="#cb54-88" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb54-89"><a href="#cb54-89" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb54-90"><a href="#cb54-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-91"><a href="#cb54-91" aria-hidden="true" tabindex="-1"></a><span class="fu">### Pattern 1: Fitted Model Object</span></span>
+<span id="cb54-91"><a href="#cb54-91" aria-hidden="true" tabindex="-1"></a><span class="fu">## Usage Patterns</span></span>
 <span id="cb54-92"><a href="#cb54-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-93"><a href="#cb54-93" aria-hidden="true" tabindex="-1"></a>Automatically extracts model components from fitted objects.</span>
-<span id="cb54-94"><a href="#cb54-94" aria-hidden="true" tabindex="-1"></a><span class="in">```{r pattern-1}</span></span>
-<span id="cb54-95"><a href="#cb54-95" aria-hidden="true" tabindex="-1"></a><span class="fu">interpret</span>(</span>
-<span id="cb54-96"><a href="#cb54-96" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> fa_model,</span>
-<span id="cb54-97"><a href="#cb54-97" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
-<span id="cb54-98"><a href="#cb54-98" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_provider =</span> <span class="st">"ollama"</span>,</span>
-<span id="cb54-99"><a href="#cb54-99" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_model =</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
-<span id="cb54-100"><a href="#cb54-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span></span>
-<span id="cb54-101"><a href="#cb54-101" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb54-102"><a href="#cb54-102" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb54-103"><a href="#cb54-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-104"><a href="#cb54-104" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-105"><a href="#cb54-105" aria-hidden="true" tabindex="-1"></a><span class="fu">### Pattern 2: Structured List (Raw Data)</span></span>
+<span id="cb54-93"><a href="#cb54-93" aria-hidden="true" tabindex="-1"></a><span class="fu">### Pattern 1: Fitted Model Object</span></span>
+<span id="cb54-94"><a href="#cb54-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-95"><a href="#cb54-95" aria-hidden="true" tabindex="-1"></a>Automatically extracts model components from fitted objects.</span>
+<span id="cb54-96"><a href="#cb54-96" aria-hidden="true" tabindex="-1"></a><span class="in">```{r pattern-1}</span></span>
+<span id="cb54-97"><a href="#cb54-97" aria-hidden="true" tabindex="-1"></a><span class="fu">interpret</span>(</span>
+<span id="cb54-98"><a href="#cb54-98" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> fa_model,</span>
+<span id="cb54-99"><a href="#cb54-99" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
+<span id="cb54-100"><a href="#cb54-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_provider =</span> <span class="st">"ollama"</span>,</span>
+<span id="cb54-101"><a href="#cb54-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_model =</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span id="cb54-102"><a href="#cb54-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span></span>
+<span id="cb54-103"><a href="#cb54-103" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb54-104"><a href="#cb54-104" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb54-105"><a href="#cb54-105" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb54-106"><a href="#cb54-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-107"><a href="#cb54-107" aria-hidden="true" tabindex="-1"></a>For custom data structures or manual extraction. Always use a structured list.</span>
+<span id="cb54-107"><a href="#cb54-107" aria-hidden="true" tabindex="-1"></a><span class="fu">### Pattern 2: Structured List</span></span>
 <span id="cb54-108"><a href="#cb54-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-109"><a href="#cb54-109" aria-hidden="true" tabindex="-1"></a>For FA, provide loadings (required) and optionally factor_cor_mat:</span>
+<span id="cb54-109"><a href="#cb54-109" aria-hidden="true" tabindex="-1"></a>For custom data structures or manual extraction.</span>
 <span id="cb54-110"><a href="#cb54-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-111"><a href="#cb54-111" aria-hidden="true" tabindex="-1"></a><span class="in">```{r pattern-2}</span></span>
-<span id="cb54-112"><a href="#cb54-112" aria-hidden="true" tabindex="-1"></a>loadings_matrix <span class="ot">&lt;-</span> fa_model<span class="sc">$</span>loadings</span>
-<span id="cb54-113"><a href="#cb54-113" aria-hidden="true" tabindex="-1"></a>factor_cor_mat <span class="ot">&lt;-</span> fa_model<span class="sc">$</span>Phi</span>
-<span id="cb54-114"><a href="#cb54-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-115"><a href="#cb54-115" aria-hidden="true" tabindex="-1"></a><span class="fu">interpret</span>(</span>
-<span id="cb54-116"><a href="#cb54-116" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> <span class="fu">list</span>(<span class="at">loadings =</span> loadings_matrix, <span class="at">factor_cor_mat =</span> factor_cor_mat),</span>
-<span id="cb54-117"><a href="#cb54-117" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
-<span id="cb54-118"><a href="#cb54-118" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_type =</span> <span class="st">"fa"</span>,</span>
-<span id="cb54-119"><a href="#cb54-119" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_provider =</span> <span class="st">"ollama"</span>,</span>
-<span id="cb54-120"><a href="#cb54-120" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_model =</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
-<span id="cb54-121"><a href="#cb54-121" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span></span>
-<span id="cb54-122"><a href="#cb54-122" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb54-123"><a href="#cb54-123" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb54-124"><a href="#cb54-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-125"><a href="#cb54-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-126"><a href="#cb54-126" aria-hidden="true" tabindex="-1"></a><span class="fu">### Pattern 3: Chat Session (Token-Efficient)</span></span>
+<span id="cb54-111"><a href="#cb54-111" aria-hidden="true" tabindex="-1"></a>For FA, provide loadings (required) and optionally factor_cor_mat:</span>
+<span id="cb54-112"><a href="#cb54-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-113"><a href="#cb54-113" aria-hidden="true" tabindex="-1"></a><span class="in">```{r pattern-2}</span></span>
+<span id="cb54-114"><a href="#cb54-114" aria-hidden="true" tabindex="-1"></a>loadings_matrix <span class="ot">&lt;-</span> fa_model<span class="sc">$</span>loadings</span>
+<span id="cb54-115"><a href="#cb54-115" aria-hidden="true" tabindex="-1"></a>factor_cor_mat <span class="ot">&lt;-</span> fa_model<span class="sc">$</span>Phi</span>
+<span id="cb54-116"><a href="#cb54-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-117"><a href="#cb54-117" aria-hidden="true" tabindex="-1"></a><span class="fu">interpret</span>(</span>
+<span id="cb54-118"><a href="#cb54-118" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> <span class="fu">list</span>(<span class="at">loadings =</span> loadings_matrix, <span class="at">factor_cor_mat =</span> factor_cor_mat),</span>
+<span id="cb54-119"><a href="#cb54-119" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
+<span id="cb54-120"><a href="#cb54-120" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_type =</span> <span class="st">"fa"</span>,</span>
+<span id="cb54-121"><a href="#cb54-121" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_provider =</span> <span class="st">"ollama"</span>,</span>
+<span id="cb54-122"><a href="#cb54-122" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_model =</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span id="cb54-123"><a href="#cb54-123" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span></span>
+<span id="cb54-124"><a href="#cb54-124" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb54-125"><a href="#cb54-125" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb54-126"><a href="#cb54-126" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb54-127"><a href="#cb54-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-128"><a href="#cb54-128" aria-hidden="true" tabindex="-1"></a>Reuse chat session across analyses to save tokens.</span>
+<span id="cb54-128"><a href="#cb54-128" aria-hidden="true" tabindex="-1"></a><span class="fu">### Pattern 3: Chat Session (Token-Efficient)</span></span>
 <span id="cb54-129"><a href="#cb54-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-130"><a href="#cb54-130" aria-hidden="true" tabindex="-1"></a><span class="in">```{r pattern-3}</span></span>
-<span id="cb54-131"><a href="#cb54-131" aria-hidden="true" tabindex="-1"></a>chat <span class="ot">&lt;-</span> <span class="fu">chat_session</span>(<span class="at">model_type =</span> <span class="st">"fa"</span>,</span>
-<span id="cb54-132"><a href="#cb54-132" aria-hidden="true" tabindex="-1"></a>                     <span class="at">provider =</span> <span class="st">"ollama"</span>,</span>
-<span id="cb54-133"><a href="#cb54-133" aria-hidden="true" tabindex="-1"></a>                     <span class="at">model =</span> <span class="st">"gpt-oss:20b-cloud"</span>)</span>
-<span id="cb54-134"><a href="#cb54-134" aria-hidden="true" tabindex="-1"></a>result1 <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
-<span id="cb54-135"><a href="#cb54-135" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
-<span id="cb54-136"><a href="#cb54-136" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> fa_model,</span>
-<span id="cb54-137"><a href="#cb54-137" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
-<span id="cb54-138"><a href="#cb54-138" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span>,</span>
-<span id="cb54-139"><a href="#cb54-139" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="dv">1</span></span>
-<span id="cb54-140"><a href="#cb54-140" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb54-141"><a href="#cb54-141" aria-hidden="true" tabindex="-1"></a>result2 <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
-<span id="cb54-142"><a href="#cb54-142" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
-<span id="cb54-143"><a href="#cb54-143" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> fa_model,</span>
-<span id="cb54-144"><a href="#cb54-144" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
-<span id="cb54-145"><a href="#cb54-145" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span>,</span>
-<span id="cb54-146"><a href="#cb54-146" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="dv">1</span></span>
-<span id="cb54-147"><a href="#cb54-147" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb54-148"><a href="#cb54-148" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb54-149"><a href="#cb54-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-150"><a href="#cb54-150" aria-hidden="true" tabindex="-1"></a>We can check the total global token usage:</span>
-<span id="cb54-151"><a href="#cb54-151" aria-hidden="true" tabindex="-1"></a><span class="in">```{r total-usage}</span></span>
-<span id="cb54-152"><a href="#cb54-152" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
-<span id="cb54-153"><a href="#cb54-153" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb54-154"><a href="#cb54-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-155"><a href="#cb54-155" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-156"><a href="#cb54-156" aria-hidden="true" tabindex="-1"></a><span class="fu"># Session Info</span></span>
-<span id="cb54-157"><a href="#cb54-157" aria-hidden="true" tabindex="-1"></a><span class="in">```{r seeion-info}</span></span>
-<span id="cb54-158"><a href="#cb54-158" aria-hidden="true" tabindex="-1"></a>pander<span class="sc">::</span><span class="fu">pander</span>(<span class="fu">sessionInfo</span>())</span>
-<span id="cb54-159"><a href="#cb54-159" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb54-130"><a href="#cb54-130" aria-hidden="true" tabindex="-1"></a>Reuse chat session across analyses to save tokens.</span>
+<span id="cb54-131"><a href="#cb54-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-132"><a href="#cb54-132" aria-hidden="true" tabindex="-1"></a><span class="in">```{r pattern-3}</span></span>
+<span id="cb54-133"><a href="#cb54-133" aria-hidden="true" tabindex="-1"></a>chat <span class="ot">&lt;-</span> <span class="fu">chat_session</span>(<span class="at">model_type =</span> <span class="st">"fa"</span>,</span>
+<span id="cb54-134"><a href="#cb54-134" aria-hidden="true" tabindex="-1"></a>                     <span class="at">provider =</span> <span class="st">"ollama"</span>,</span>
+<span id="cb54-135"><a href="#cb54-135" aria-hidden="true" tabindex="-1"></a>                     <span class="at">model =</span> <span class="st">"gpt-oss:20b-cloud"</span>)</span>
+<span id="cb54-136"><a href="#cb54-136" aria-hidden="true" tabindex="-1"></a>result1 <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
+<span id="cb54-137"><a href="#cb54-137" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
+<span id="cb54-138"><a href="#cb54-138" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> fa_model,</span>
+<span id="cb54-139"><a href="#cb54-139" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
+<span id="cb54-140"><a href="#cb54-140" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span>,</span>
+<span id="cb54-141"><a href="#cb54-141" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="dv">1</span></span>
+<span id="cb54-142"><a href="#cb54-142" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb54-143"><a href="#cb54-143" aria-hidden="true" tabindex="-1"></a>result2 <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
+<span id="cb54-144"><a href="#cb54-144" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
+<span id="cb54-145"><a href="#cb54-145" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> <span class="fu">list</span>(<span class="at">loadings =</span> loadings_matrix, <span class="at">factor_cor_mat =</span> factor_cor_mat),</span>
+<span id="cb54-146"><a href="#cb54-146" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
+<span id="cb54-147"><a href="#cb54-147" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span>,</span>
+<span id="cb54-148"><a href="#cb54-148" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="dv">1</span></span>
+<span id="cb54-149"><a href="#cb54-149" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb54-150"><a href="#cb54-150" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb54-151"><a href="#cb54-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-152"><a href="#cb54-152" aria-hidden="true" tabindex="-1"></a>We can check the total global token usage:</span>
+<span id="cb54-153"><a href="#cb54-153" aria-hidden="true" tabindex="-1"></a><span class="in">```{r total-usage}</span></span>
+<span id="cb54-154"><a href="#cb54-154" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
+<span id="cb54-155"><a href="#cb54-155" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb54-156"><a href="#cb54-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-157"><a href="#cb54-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-158"><a href="#cb54-158" aria-hidden="true" tabindex="-1"></a><span class="fu"># Session Info</span></span>
+<span id="cb54-159"><a href="#cb54-159" aria-hidden="true" tabindex="-1"></a><span class="in">```{r seeion-info}</span></span>
+<span id="cb54-160"><a href="#cb54-160" aria-hidden="true" tabindex="-1"></a>pander<span class="sc">::</span><span class="fu">pander</span>(<span class="fu">sessionInfo</span>())</span>
+<span id="cb54-161"><a href="#cb54-161" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

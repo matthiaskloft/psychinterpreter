@@ -73,8 +73,8 @@ var_info <- data.frame(
 # Interpret directly from model object
 results <- interpret(fa_result,
                      variable_info = var_info,
-                     llm_provider = "ollama",
-                     llm_model = "gpt-oss:20b-cloud")
+                     provider = "ollama",
+                     model = "gpt-oss:20b-cloud")
 ```
 
 ### Manual Approach
@@ -85,11 +85,13 @@ For more control or custom loadings matrices:
 # Extract loadings manually
 loadings <- fa_result$loadings
 
-results <- interpret_fa(
-  loadings = loadings,
+# Use structured list with model_type
+results <- interpret(
+  fit_results = list(loadings = loadings),
   variable_info = var_info,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
+  model_type = "fa",
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
 )
 ```
 
@@ -100,14 +102,14 @@ Use persistent chat sessions to save tokens when analyzing multiple datasets:
 
 ```{r chat-session, eval = FALSE}
 # Create reusable chat session
-chat <- chat_fa("ollama", "gpt-oss:20b-cloud")
+chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
 
-# Run multiple interpretations
-result1 <- interpret_fa(loadings, var_info, chat_session = chat, silent = TRUE)
-result2 <- interpret_fa(loadings, var_info, chat_session = chat)
-result3 <- interpret_fa(loadings, var_info, chat_session = chat)
+# Run multiple interpretations (saves ~40-60% tokens)
+result1 <- interpret(chat_session = chat, fit_results = fa_result1, variable_info = var_info1, silent = 2)
+result2 <- interpret(chat_session = chat, fit_results = fa_result2, variable_info = var_info2)
+result3 <- interpret(chat_session = chat, fit_results = fa_result3, variable_info = var_info3)
 
-# Check token usage
+# Check cumulative token usage
 print(chat)
 ```
 

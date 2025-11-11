@@ -42,7 +42,7 @@ packages <- c(
   "mirt",
   "dplyr",
   "here",
-  "kableExtra",
+  "DT",
   "pander"
 )
 # Load required packages using pacman
@@ -106,14 +106,14 @@ Loadings:
 ```{r}
 # Extract loading matrix for interpretation
 loadings_matrix <- unclass(fa_result$loadings) |> as.data.frame()
-round(loadings_matrix, 2) |> kable() |> kable_styling(full_width = FALSE)
+round(loadings_matrix, 2) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 Factor Correlation Matrix
 ```{r}
 # Extract factor correlation matrix
 factor_cor_mat <- fa_result$Phi |> as.data.frame()
-round(factor_cor_mat, 2) |> kable(format = "html") |> kable_styling()
+round(factor_cor_mat, 2) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 
@@ -148,7 +148,7 @@ variable_info <- data.frame(
   stringsAsFactors = FALSE
 )
 
-head(variable_info, 10) |> kable() |> kable_styling(full_width = FALSE)
+head(variable_info, 10) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 We now generate factor interpretations using the specified LLM:

@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Matthias Kloft">
+<meta name="dcterms.date" content="2025-11-11">
+
+<title>psychinterpreter: Advanced Features</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="03-Advanced_Features_files/libs/clipboard/clipboard.min.js"></script>
+<script src="03-Advanced_Features_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="03-Advanced_Features_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="03-Advanced_Features_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="03-Advanced_Features_files/libs/quarto-html/popper.min.js"></script>
+<script src="03-Advanced_Features_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="03-Advanced_Features_files/libs/quarto-html/anchor.min.js"></script>
+<link href="03-Advanced_Features_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="03-Advanced_Features_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="03-Advanced_Features_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="03-Advanced_Features_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="03-Advanced_Features_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="03-Advanced_Features_files/libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+
+<script src="03-Advanced_Features_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+
+<link href="03-Advanced_Features_files/libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
+
+<script src="03-Advanced_Features_files/libs/datatables-binding-0.34.0/datatables.js"></script>
+
+<script src="03-Advanced_Features_files/libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+
+<link href="03-Advanced_Features_files/libs/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+
+<link href="03-Advanced_Features_files/libs/dt-core-1.13.6/css/jquery.dataTables.extra.css" rel="stylesheet">
+
+<script src="03-Advanced_Features_files/libs/dt-core-1.13.6/js/jquery.dataTables.min.js"></script>
+
+<link href="03-Advanced_Features_files/libs/crosstalk-1.2.2/css/crosstalk.min.css" rel="stylesheet">
+
+<script src="03-Advanced_Features_files/libs/crosstalk-1.2.2/js/crosstalk.min.js"></script>
+
+<link href="03-Advanced_Features_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+
+<script src="03-Advanced_Features_files/libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#setup-and-data-preparation" id="toc-setup-and-data-preparation" class="nav-link" data-scroll-target="#setup-and-data-preparation">Setup and Data Preparation</a></li>
+  <li><a href="#preparing-the-bfi-data" id="toc-preparing-the-bfi-data" class="nav-link" data-scroll-target="#preparing-the-bfi-data">Preparing the BFI Data</a></li>
+  <li><a href="#factor-analysis" id="toc-factor-analysis" class="nav-link" data-scroll-target="#factor-analysis">Factor Analysis</a>
+  <ul class="collapse">
+  <li><a href="#determining-number-of-factors" id="toc-determining-number-of-factors" class="nav-link" data-scroll-target="#determining-number-of-factors">Determining Number of Factors</a></li>
+  <li><a href="#exploratory-factor-analysis-using-6-factors" id="toc-exploratory-factor-analysis-using-6-factors" class="nav-link" data-scroll-target="#exploratory-factor-analysis-using-6-factors">Exploratory Factor Analysis Using 6 Factors</a></li>
+  <li><a href="#chat-setup" id="toc-chat-setup" class="nav-link" data-scroll-target="#chat-setup">Chat Setup</a></li>
+  <li><a href="#interpreting-factor-analysis-results" id="toc-interpreting-factor-analysis-results" class="nav-link" data-scroll-target="#interpreting-factor-analysis-results">Interpreting Factor Analysis Results</a></li>
+  </ul></li>
+  <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session Info</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">psychinterpreter: Advanced Features</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<p class="subtitle lead">Chat Sessions, Token Tracking, Multiple Packages, and Export Options</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Matthias Kloft <a href="https://orcid.org/0000-0003-1845-6957" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 11, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>This document demonstrates advanced features of the <strong>psychinterpreter</strong> package using the Big Five personality data from the <code>psych</code> package. The Big Five Inventory (BFI) is a widely-used personality assessment that measures five major dimensions of personality: Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism.</p>
+<p>We’ll cover all major features of psychinterpreter including:</p>
+<ul>
+<li>Basic factor analysis interpretation</li>
+<li>Persistent chat sessions for efficient LLM usage</li>
+<li>Export functionality across multiple formats</li>
+<li>Report generation as in console (<code>output_format</code> = “cli”) or markdown style (<code>output_format</code> = “markdown”)</li>
+<li>Wrappers for popular R packages such as <code>psych</code>, <code>lavaan</code>, and <code>mirt</code></li>
+</ul>
+</section>
+<section id="setup-and-data-preparation" class="level2">
+<h2 class="anchored" data-anchor-id="setup-and-data-preparation">Setup and Data Preparation</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psychinterpreter"</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ellmer"</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ollamar"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psych"</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lavaan"</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mirt"</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"here"</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"DT"</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pander"</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Lade nötiges Paket: pacman</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="at">char =</span> packages)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the BFI dataset and dictionary</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"bfi"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"bfi.dictionary"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="preparing-the-bfi-data" class="level1">
+<h1>Preparing the BFI Data</h1>
+<p>Exclude demographic variables for factor analysis</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>bfi <span class="ot">&lt;-</span> bfi[,<span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="ot">&lt;-</span> bfi.dictionary[<span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>, ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>Show the first few rows of the BFI data:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(bfi,<span class="dv">10</span>) <span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-852c6b2f4d780cd37cfb" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-852c6b2f4d780cd37cfb">{"x":{"filter":"none","vertical":false,"data":[["61617","61618","61620","61621","61622","61623","61624","61629","61630","61633"],[2,2,5,4,2,6,2,4,4,2],[4,4,4,4,3,6,5,3,3,5],[3,5,5,6,3,5,5,1,6,6],[4,2,4,5,4,6,3,5,3,6],[4,5,4,5,5,5,5,1,3,5],[2,5,4,4,4,6,5,3,6,6],[3,4,5,4,4,6,4,2,6,5],[3,4,4,3,5,6,4,4,3,6],[4,3,2,5,3,1,2,2,4,2],[4,4,5,5,2,3,3,4,5,1],[3,1,2,5,2,2,4,3,5,2],[3,1,4,3,2,1,3,6,3,2],[3,6,4,4,5,6,4,4,null,4],[4,4,4,4,4,5,5,2,4,5],[4,3,5,4,5,6,5,1,3,5],[3,3,4,2,2,3,1,6,5,5],[4,3,5,5,3,5,2,3,5,5],[2,3,4,2,4,2,2,2,2,5],[2,5,2,4,4,2,1,6,3,2],[3,5,3,1,3,3,1,4,3,4],[3,4,4,3,3,4,5,3,6,5],[6,2,2,3,3,3,2,2,6,1],[3,4,5,4,4,5,5,4,6,5],[4,3,5,3,3,6,6,5,6,5],[3,3,2,5,3,1,1,3,1,2]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>A1<\/th>\n      <th>A2<\/th>\n      <th>A3<\/th>\n      <th>A4<\/th>\n      <th>A5<\/th>\n      <th>C1<\/th>\n      <th>C2<\/th>\n      <th>C3<\/th>\n      <th>C4<\/th>\n      <th>C5<\/th>\n      <th>E1<\/th>\n      <th>E2<\/th>\n      <th>E3<\/th>\n      <th>E4<\/th>\n      <th>E5<\/th>\n      <th>N1<\/th>\n      <th>N2<\/th>\n      <th>N3<\/th>\n      <th>N4<\/th>\n      <th>N5<\/th>\n      <th>O1<\/th>\n      <th>O2<\/th>\n      <th>O3<\/th>\n      <th>O4<\/th>\n      <th>O5<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"A1","targets":1},{"name":"A2","targets":2},{"name":"A3","targets":3},{"name":"A4","targets":4},{"name":"A5","targets":5},{"name":"C1","targets":6},{"name":"C2","targets":7},{"name":"C3","targets":8},{"name":"C4","targets":9},{"name":"C5","targets":10},{"name":"E1","targets":11},{"name":"E2","targets":12},{"name":"E3","targets":13},{"name":"E4","targets":14},{"name":"E5","targets":15},{"name":"N1","targets":16},{"name":"N2","targets":17},{"name":"N3","targets":18},{"name":"N4","targets":19},{"name":"N5","targets":20},{"name":"O1","targets":21},{"name":"O2","targets":22},{"name":"O3","targets":23},{"name":"O4","targets":24},{"name":"O5","targets":25}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Display the BFI dictionary showing item descriptions:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="sc">|&gt;</span> <span class="fu">select</span>(Item) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()<span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-ce1148ed458252fab2bb" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-ce1148ed458252fab2bb">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5","E1","E2","E3","E4","E5","N1","N2","N3","N4","N5","O1","O2","O3","O4","O5"],["Am indifferent to the feelings of others.","Inquire about others' well-being.","Know how to comfort others.","Love children.","Make people feel at ease.","Am exacting in my work.","Continue until everything is perfect.","Do things according to a plan.","Do things in a half-way manner.","Waste my time.","Don't talk a lot.","Find it difficult to approach others.","Know how to captivate people.","Make friends easily.","Take charge.","Get angry easily.","Get irritated easily.","Have frequent mood swings.","Often feel blue.","Panic easily.","Am full of ideas.","Avoid difficult reading material.","Carry the conversation to a higher level.","Spend time reflecting on things.","Will not probe deeply into a subject."]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Item<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"Item","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="factor-analysis" class="level1">
+<h1>Factor Analysis</h1>
+<section id="determining-number-of-factors" class="level2">
+<h2 class="anchored" data-anchor-id="determining-number-of-factors">Determining Number of Factors</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parallel analysis to determine optimal number of factors</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pa_result <span class="ot">&lt;-</span> <span class="fu">fa.parallel</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  bfi,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">fa =</span> <span class="st">"fa"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.iter =</span> <span class="dv">100</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">use =</span> <span class="st">"pairwise.complete.obs"</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Parallel Analysis: BFI Data"</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-Advanced_Features_files/figure-html/parallel-analysis-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Parallel analysis suggests that the number of factors =  6  and the number of components =  NA </code></pre>
+</div>
+</div>
+</section>
+<section id="exploratory-factor-analysis-using-6-factors" class="level2">
+<h2 class="anchored" data-anchor-id="exploratory-factor-analysis-using-6-factors">Exploratory Factor Analysis Using 6 Factors</h2>
+<p>Perform FA with 6 factors identified by the parallel analysis</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fa_result <span class="ot">&lt;-</span> <span class="fu">fa</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  bfi,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">nfactors =</span> pa_result<span class="sc">$</span>nfact,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">rotate =</span> <span class="st">"oblimin"</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">fm =</span> <span class="st">"ml"</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fa_result)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Factor analysis with Call: fa(r = bfi, nfactors = pa_result$nfact, rotate = "oblimin", fm = "ml")
+
+Test of the hypothesis that 6 factors are sufficient.
+The degrees of freedom for the model is 165  and the objective function was  0.36 
+The number of observations was  2800  with Chi Square =  1013.79  with prob &lt;  4.6e-122 
+
+The root mean square of the residuals (RMSA) is  0.02 
+The df corrected root mean square of the residuals is  0.03 
+
+Tucker Lewis Index of factoring reliability =  0.922
+RMSEA index =  0.043  and the 90 % confidence intervals are  0.04 0.045
+BIC =  -295.88
+ With factor correlations of 
+      ML2   ML1   ML3   ML5   ML4   ML6
+ML2  1.00  0.25 -0.18 -0.10  0.02  0.18
+ML1  0.25  1.00 -0.22 -0.31 -0.19 -0.06
+ML3 -0.18 -0.22  1.00  0.19  0.19 -0.03
+ML5 -0.10 -0.31  0.19  1.00  0.25  0.14
+ML4  0.02 -0.19  0.19  0.25  1.00  0.02
+ML6  0.18 -0.06 -0.03  0.14  0.02  1.00</code></pre>
+</div>
+</div>
+<p>Loadings:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract loading matrix for interpretation</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>loadings_matrix <span class="ot">&lt;-</span> <span class="fu">unclass</span>(fa_result<span class="sc">$</span>loadings) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(loadings_matrix, <span class="dv">2</span>) <span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-9869452a253cb60de909" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-9869452a253cb60de909">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5","E1","E2","E3","E4","E5","N1","N2","N3","N4","N5","O1","O2","O3","O4","O5"],[0.1,0.04,-0.01,-0.07000000000000001,-0.15,0.01,0.06,0.01,0.05,0.14,-0.13,0.05,0,-0.05,0.17,0.85,0.85,0.64,0.39,0.4,-0.05,0.11,-0.02,0.08,0.03],[-0.11,-0.03,-0.12,-0.06,-0.21,0.05,0.13,0.06,0.08,0.19,0.59,0.6899999999999999,-0.35,-0.55,-0.4,-0.09,-0.04,0.15,0.44,0.26,-0.05,-0.01,-0.1,0.35,-0.06],[0.08,0.07000000000000001,0.03,0.2,0.01,0.55,0.68,0.55,-0.63,-0.54,0.11,-0.01,0.01,0.03,0.26,0,0.01,-0.04,-0.13,-0,0.07000000000000001,-0.07000000000000001,0.02,-0.02,-0.02],[-0.5600000000000001,0.6899999999999999,0.62,0.39,0.45,-0.06,0.01,0.09,-0.07000000000000001,-0.01,-0.12,-0.07000000000000001,0.15,0.19,0.07000000000000001,-0.06,-0.02,0.07000000000000001,0.07000000000000001,0.16,-0.04,0.08,0.03,0.15,-0.05],[0.06,-0,0.06,-0.11,0.12,0.18,0.11,-0.05,0.06,0.11,-0.09,-0.07000000000000001,0.39,0.03,0.22,-0.05,-0.01,0.06,0.11,-0.09,0.5600000000000001,-0.37,0.66,0.38,-0.45],[0.28,-0.06,0.1,0.15,0.21,0.07000000000000001,0.17,0.05,0.3,0.07000000000000001,0.08,0.03,0.21,0.29,-0.02,-0,-0.08,0.11,0.09,0.2,0.03,0.35,-0.01,-0.02,0.4]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>ML2<\/th>\n      <th>ML1<\/th>\n      <th>ML3<\/th>\n      <th>ML5<\/th>\n      <th>ML4<\/th>\n      <th>ML6<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"ML2","targets":1},{"name":"ML1","targets":2},{"name":"ML3","targets":3},{"name":"ML5","targets":4},{"name":"ML4","targets":5},{"name":"ML6","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Factor Correlation Matrix</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract factor correlation matrix</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>factor_cor_mat <span class="ot">&lt;-</span> fa_result<span class="sc">$</span>Phi <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(factor_cor_mat, <span class="dv">2</span>) <span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-a88d19ca0fbd36477949" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-a88d19ca0fbd36477949">{"x":{"filter":"none","vertical":false,"data":[["ML2","ML1","ML3","ML5","ML4","ML6"],[1,0.25,-0.18,-0.1,0.02,0.18],[0.25,1,-0.22,-0.31,-0.19,-0.06],[-0.18,-0.22,1,0.19,0.19,-0.03],[-0.1,-0.31,0.19,1,0.25,0.14],[0.02,-0.19,0.19,0.25,1,0.02],[0.18,-0.06,-0.03,0.14,0.02,1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>ML2<\/th>\n      <th>ML1<\/th>\n      <th>ML3<\/th>\n      <th>ML5<\/th>\n      <th>ML4<\/th>\n      <th>ML6<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"ML2","targets":1},{"name":"ML1","targets":2},{"name":"ML3","targets":3},{"name":"ML5","targets":4},{"name":"ML4","targets":5},{"name":"ML6","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="chat-setup" class="level2">
+<h2 class="anchored" data-anchor-id="chat-setup">Chat Setup</h2>
+<p>Set up persistent chat session. If you use Ollama, make sure to start the server before running this.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test the connection to the Ollama server</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#ollamar::test_connection()</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># optionally pull the model from ollama</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">#ollamar::pull("gpt-oss:20b-cloud")</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>chat <span class="ot">&lt;-</span> <span class="fu">chat_session</span>(<span class="at">model_type =</span> <span class="st">"fa"</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">provider =</span> <span class="st">"ollama"</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">"qwen3-vl:235b-instruct-cloud"</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#model = "gpt-oss:20b-cloud",</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># set temperature and seed for reproducibility</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">params =</span> <span class="fu">params</span>(<span class="at">temperature =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Factor Analysis Chat Session
+Provider: ollama 
+Model: qwen3-vl:235b-instruct-cloud 
+Created: 2025-11-11 03:46:21.194105 
+Interpretations run: 0 
+Total tokens - Input: 0 , Output: 0 </code></pre>
+</div>
+</div>
+</section>
+<section id="interpreting-factor-analysis-results" class="level2">
+<h2 class="anchored" data-anchor-id="interpreting-factor-analysis-results">Interpreting Factor Analysis Results</h2>
+<p>Create variable information dataframe from BFI dictionary</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>variable_info <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">rownames</span>(bfi.dictionary),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">description =</span> <span class="fu">as.character</span>(bfi.dictionary<span class="sc">$</span>Item),</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(variable_info, <span class="dv">10</span>) <span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-23a5f87510ec72d23688" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-23a5f87510ec72d23688">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10"],["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Am indifferent to the feelings of others.","Inquire about others' well-being.","Know how to comfort others.","Love children.","Make people feel at ease.","Am exacting in my work.","Continue until everything is perfect.","Do things according to a plan.","Do things in a half-way manner.","Waste my time."]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>variable<\/th>\n      <th>description<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"variable","targets":1},{"name":"description","targets":2}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>We now generate factor interpretations using the specified LLM:</p>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>word_limit <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> fa_result,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> variable_info,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">cutoff =</span> <span class="fl">0.23</span>,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_emergency =</span> <span class="dv">2</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">additional_info =</span> <span class="cn">NULL</span>,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">sort_loadings =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span>  word_limit,</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">max_line_length =</span> <span class="dv">80</span>,</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">echo =</span> <span class="st">"none"</span>,</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_format =</span> <span class="st">"cli"</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<pre><code>ℹ Starting fa interpretation...</code></pre>
+<pre><code>ℹ Building prompt...</code></pre>
+<pre><code>ℹ Querying LLM...</code></pre>
+<pre><code>ℹ Parsing LLM response...</code></pre>
+<pre><code>ℹ Creating diagnostics...</code></pre>
+<pre><code>ℹ Building report...</code></pre>
+<pre><code>✔ Interpretation complete!</code></pre>
+<p>FACTOR ANALYSIS INTERPRETATION ────────────────────────────────────────────────────────────────────────────────</p>
+<p>Number of factors: 6 Loading cutoff: 0.23 LLM used: ollama - qwen3-vl:235b-instruct-cloud Tokens: Input: 2243 Output: 443 Elapsed time: 6.44</p>
+<p>SUGGESTED FACTOR NAMES ────────────────────────────────────────────────────────────────────────────────</p>
+<p>• Factor 1 (9.2%): Emotional Instability • Factor 2 (7.9%): Introverted Reserve • Factor 3 (7.7%): Conscientious Discipline • Factor 4 (6.8%): Compassionate Engagement • Factor 5 (6.3%): Intellectual Curiosity • Factor 6 (3.1%): Casual Sociability</p>
+<p>Total variance explained: 41%</p>
+<p>DETAILED FACTOR INTERPRETATIONS ────────────────────────────────────────────────────────────────────────────────</p>
+<p>Factor 1 (ML2) - Emotional Instability Number of significant loadings: 5 Variance explained: 9.22%</p>
+<p>Variables: 1. N2, Get irritated easily. (Positive, Very Strong, .851) 2. N1, Get angry easily. (Positive, Very Strong, .851) 3. N3, Have frequent mood swings. (Positive, Strong, .639) 4. N5, Panic easily. (Positive, Moderate, .402) 5. N4, Often feel blue. (Positive, Weak, .389)</p>
+<p>LLM Interpretation: This factor captures neurotic tendencies, with high loadings on anger, irritability, and mood swings. It reflects emotional dysregulation and vulnerability to stress. Low loadings on other domains confirm discriminant validity, isolating this as a core negative affect construct.</p>
+<p>════════════════════════════════════════════════════════════════════════════════</p>
+<p>Factor 2 (ML1) - Introverted Reserve Number of significant loadings: 8 Variance explained: 7.9%</p>
+<p>Variables: 1. E2, Find it difficult to approach others. (Positive, Strong, .686) 2. E1, Don’t talk a lot. (Positive, Strong, .587) 3. E4, Make friends easily. (Negative, Strong, -.550) 4. N4, Often feel blue. (Positive, Moderate, .436) 5. E5, Take charge. (Negative, Moderate, -.405) 6. O4, Spend time reflecting on things. (Positive, Weak, .355) 7. E3, Know how to captivate people. (Negative, Weak, -.349) 8. N5, Panic easily. (Positive, Weak, .256)</p>
+<p>LLM Interpretation: Characterized by social withdrawal and low assertiveness, this factor includes reticence and difficulty approaching others. Moderate negative loadings on sociability and leadership reinforce introversion. Weak ties to other factors support its distinctiveness as a social engagement dimension.</p>
+<p>════════════════════════════════════════════════════════════════════════════════</p>
+<p>Factor 3 (ML3) - Conscientious Discipline Number of significant loadings: 6 Variance explained: 7.71%</p>
+<p>Variables: 1. C2, Continue until everything is perfect. (Positive, Strong, .680) 2. C4, Do things in a half-way manner. (Negative, Strong, -.634) 3. C3, Do things according to a plan. (Positive, Strong, .551) 4. C1, Am exacting in my work. (Positive, Strong, .547) 5. C5, Waste my time. (Negative, Strong, -.541) 6. E5, Take charge. (Positive, Weak, .264)</p>
+<p>LLM Interpretation: Reflects structured, goal-oriented behavior with high loadings on perfectionism and planning. Negative loadings on procrastination and half-hearted effort reinforce self-discipline. Low correlations with other factors confirm its unique role in behavioral regulation and task persistence.</p>
+<p>════════════════════════════════════════════════════════════════════════════════</p>
+<p>Factor 4 (ML5) - Compassionate Engagement Number of significant loadings: 5 Variance explained: 6.79%</p>
+<p>Variables: 1. A2, Inquire about others’ well-being. (Positive, Strong, .688) 2. A3, Know how to comfort others. (Positive, Strong, .617) 3. A1, Am indifferent to the feelings of others. (Negative, Strong, -.560) 4. A5, Make people feel at ease. (Positive, Moderate, .451) 5. A4, Love children. (Positive, Weak, .391)</p>
+<p>LLM Interpretation: Captures empathic concern and interpersonal warmth, with strong loadings on inquiring about others and comforting. Negative loading on indifference highlights prosocial orientation. Moderate correlations with other factors suggest it complements, rather than overlaps, with emotional or social traits.</p>
+<p>════════════════════════════════════════════════════════════════════════════════</p>
+<p>Factor 5 (ML4) - Intellectual Curiosity Number of significant loadings: 6 Variance explained: 6.27%</p>
+<p>Variables: 1. O3, Carry the conversation to a higher level. (Positive, Strong, .656) 2. O1, Am full of ideas. (Positive, Strong, .564) 3. O5, Will not probe deeply into a subject. (Negative, Moderate, -.451) 4. E3, Know how to captivate people. (Positive, Weak, .392) 5. O4, Spend time reflecting on things. (Positive, Weak, .376) 6. O2, Avoid difficult reading material. (Negative, Weak, -.367)</p>
+<p>LLM Interpretation: Represents cognitive engagement and abstract thinking, with high loadings on idea generation and deep reflection. Negative loadings on avoiding complex material reinforce openness to experience. Weak correlations with other factors support its distinct role in intellectual exploration and conceptual depth.</p>
+<p>════════════════════════════════════════════════════════════════════════════════</p>
+<p>Factor 6 (ML6) - Casual Sociability Number of significant loadings: 5 Variance explained: 3.12%</p>
+<p>Variables: 1. O5, Will not probe deeply into a subject. (Positive, Moderate, .403) 2. O2, Avoid difficult reading material. (Positive, Weak, .353) 3. C4, Do things in a half-way manner. (Positive, Weak, .300) 4. E4, Make friends easily. (Positive, Weak, .287) 5. A1, Am indifferent to the feelings of others. (Positive, Weak, .281)</p>
+<p>LLM Interpretation: Reflects spontaneous, low-effort social interaction, with moderate loadings on making friends and casual conversation. Weak ties to assertiveness or emotional depth suggest surface-level sociability. Its low variance and minimal correlations indicate a peripheral, context-dependent social style.</p>
+<p>════════════════════════════════════════════════════════════════════════════════</p>
+<p>Let’s check the global token usage tracked by the chat:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Factor Analysis Chat Session
+Provider: ollama 
+Model: qwen3-vl:235b-instruct-cloud 
+Created: 2025-11-11 03:46:21.194105 
+Interpretations run: 1 
+Total tokens - Input: 2243 , Output: 443 </code></pre>
+</div>
+</div>
+<p>We can also examine the prompt:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"System Prompt: </span><span class="sc">\n\n</span><span class="st">"</span>,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  result<span class="sc">$</span>llm_info<span class="sc">$</span>system_prompt, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Main Prompt: </span><span class="sc">\n\n</span><span class="st">"</span>,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    result<span class="sc">$</span>llm_info<span class="sc">$</span>main_prompt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>System Prompt: 
+
+ # ROLE
+You are an expert psychometrician specializing in exploratory factor analysis.
+
+# TASK
+Provide comprehensive factor analysis interpretation by: (1) identifying and naming meaningful constructs, (2) explaining factor composition and boundaries, and (3) analyzing relationships between factors.
+
+# KEY DEFINITIONS
+- **Loading**: Correlation coefficient (-1 to +1) between variable and factor
+- **Significant loading**: Loading with absolute value &gt;= cutoff threshold
+- **Convergent validity**: Variables measuring similar constructs should load together; for two factors covering similar constructs, the correlation will be highly positive or negative
+- **Discriminant validity**: Factors should represent meaningfully distinct constructs; for two factors covering similar constructs, the correlation will be near zero
+- **Factor correlation**: Correlation between factors indicating relationship strength
+- **Factor interpretation**: Identifying underlying construct explaining variable relationships
+- **Variance explained**: Percentage of total data variance captured by each factor
+- **Emergency rule**: Use highest absolute loadings when none meet cutoff
+
+ 
+ Main Prompt: 
+
+ # INTERPRETATION GUIDELINES
+
+## Factor Naming
+- **Construct identification**: Identify the underlying construct each factor represents
+- **Name creation**: Create 2-4 word names capturing the essence of each factor
+- **Theoretical grounding**: Base names on domain knowledge and additional context
+
+## Factor Interpretation
+- **Convergent validity**: Explain why significantly loading variables belong together conceptually
+- **Loading patterns**: Examine both strong positive/negative loadings and notable weak loadings
+- **Construct meaning**: Describe what the factor measures and represents
+- **Factor Relationships**: Use correlation matrix and cross loadings to understand how factors relate to each other
+- **Discriminant validity**: Ensure factors represent meaningfully distinct constructs; explain how similar factors complement each other
+
+## Output Requirements
+- **Word target (Interpretation)**: Aim for 40-50 words per interpretation (80%-100% of limit)
+- **Writing style**: Be concise, precise, and domain-appropriate
+
+# VARIABLE DESCRIPTIONS
+- A1: Am indifferent to the feelings of others.
+- A2: Inquire about others' well-being.
+- A3: Know how to comfort others.
+- A4: Love children.
+- A5: Make people feel at ease.
+- C1: Am exacting in my work.
+- C2: Continue until everything is perfect.
+- C3: Do things according to a plan.
+- C4: Do things in a half-way manner.
+- C5: Waste my time.
+- E1: Don't talk a lot.
+- E2: Find it difficult to approach others.
+- E3: Know how to captivate people.
+- E4: Make friends easily.
+- E5: Take charge.
+- N1: Get angry easily.
+- N2: Get irritated easily.
+- N3: Have frequent mood swings.
+- N4: Often feel blue.
+- N5: Panic easily.
+- O1: Am full of ideas.
+- O2: Avoid difficult reading material.
+- O3: Carry the conversation to a higher level.
+- O4: Spend time reflecting on things.
+- O5: Will not probe deeply into a subject.
+
+# FACTOR LOADINGS
+**Cutoff threshold**: 0.23 (absolute value &gt;=0.23 considered significant)
+**Emergency rule**: Use top 2 variables if no significant loadings
+
+ML2: A1=.095 A2=.042 A3=-.013 A4=-.067 A5=-.155 C1=.006 C2=.056 C3=.013 C4=.051 C5=.138 E1=-.125 E2=.045 E3=.001 E4=-.049 E5=.171 N1=.851 N2=.851 N3=.639 N4=.389 N5=.402 O1=-.049 O2=.106 O3=-.024 O4=.076 O5=.032
+ML1: A1=-.113 A2=-.027 A3=-.120 A4=-.064 A5=-.207 C1=.054 C2=.134 C3=.058 C4=.078 C5=.190 E1=.587 E2=.686 E3=-.349 E4=-.550 E5=-.405 N1=-.086 N2=-.042 N3=.152 N4=.436 N5=.256 O1=-.047 O2=-.012 O3=-.099 O4=.355 O5=-.057
+ML3: A1=.082 A2=.069 A3=.032 A4=.200 A5=.014 C1=.547 C2=.680 C3=.551 C4=-.634 C5=-.541 E1=.112 E2=-.014 E3=.007 E4=.031 E5=.264 N1=.001 N2=.013 N3=-.036 N4=-.130 N5=-.001 O1=.075 O2=-.071 O3=.021 O4=-.023 O5=-.018
+ML5: A1=-.560 A2=.688 A3=.617 A4=.391 A5=.451 C1=-.061 C2=.012 C3=.090 C4=-.066 C5=-.011 E1=-.116 E2=-.070 E3=.152 E4=.193 E5=.065 N1=-.062 N2=-.022 N3=.067 N4=.068 N5=.162 O1=-.045 O2=.082 O3=.027 O4=.147 O5=-.053
+ML4: A1=.056 A2=-.001 A3=.063 A4=-.110 A5=.118 C1=.184 C2=.112 C3=-.053 C4=.063 C5=.113 E1=-.093 E2=-.065 E3=.392 E4=.031 E5=.224 N1=-.045 N2=-.012 N3=.060 N4=.107 N5=-.086 O1=.564 O2=-.367 O3=.656 O4=.376 O5=-.451
+ML6: A1=.281 A2=-.057 A3=.103 A4=.151 A5=.208 C1=.073 C2=.174 C3=.046 C4=.300 C5=.071 E1=.077 E2=.029 E3=.206 E4=.287 E5=-.017 N1=-.003 N2=-.081 N3=.112 N4=.093 N5=.202 O1=.027 O2=.353 O3=-.005 O4=-.019 O5=.403
+
+**Variance Explained**: ML2=9.2% ML1=7.9% ML3=7.7% ML5=6.8% ML4=6.3% ML6=3.1%
+
+# FACTOR CORRELATIONS
+Factor correlations help understand relationships between factors:
+ML2 with: ML1=.25 ML3=-.18 ML5=-.10 ML4=.02 ML6=.18
+ML1 with: ML2=.25 ML3=-.22 ML5=-.31 ML4=-.19 ML6=-.06
+ML3 with: ML2=-.18 ML1=-.22 ML5=.19 ML4=.19 ML6=-.03
+ML5 with: ML2=-.10 ML1=-.31 ML3=.19 ML4=.25 ML6=.14
+ML4 with: ML2=.02 ML1=-.19 ML3=.19 ML5=.25 ML6=.02
+ML6 with: ML2=.18 ML1=-.06 ML3=-.03 ML5=.14 ML4=.02
+
+# OUTPUT FORMAT
+Respond with ONLY valid JSON using factor names as object keys:
+
+```json
+{
+  "ML2": {
+    "name": "Generate name",
+    "interpretation": "Generate interpretation"
+  },
+  "ML1": {
+    "name": "Generate name",
+    "interpretation": "Generate interpretation"
+  },
+  "ML3": {
+    "name": "Generate name",
+    "interpretation": "Generate interpretation"
+  },
+  "ML5": {
+    "name": "Generate name",
+    "interpretation": "Generate interpretation"
+  },
+  "ML4": {
+    "name": "Generate name",
+    "interpretation": "Generate interpretation"
+  },
+  "ML6": {
+    "name": "Generate name",
+    "interpretation": "Generate interpretation"
+  }
+}
+```
+
+# CRITICAL REQUIREMENTS
+- Include ALL 6 factors as object keys using their exact names: ML2, ML1, ML3, ML5, ML4, ML6
+- Valid JSON syntax (proper quotes, commas, brackets)
+- No additional text before or after JSON
+- Factor names: 2-4 words maximum
+- Factor interpretations: target 40-50 words each (80%-100% of 50 word limit)
+- Emergency rule: Use top 2 variables if no significant loadings</code></pre>
+</div>
+</div>
+<p>Plot the loading matrix with factor names:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(result,</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">cutoff =</span> <span class="fl">0.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-Advanced_Features_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can again check the total global token usage:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Factor Analysis Chat Session
+Provider: ollama 
+Model: qwen3-vl:235b-instruct-cloud 
+Created: 2025-11-11 03:46:21.194105 
+Interpretations run: 1 
+Total tokens - Input: 2243 , Output: 443 </code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="session-info" class="level1">
+<h1>Session Info</h1>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>pander<span class="sc">::</span><span class="fu">pander</span>(<span class="fu">sessionInfo</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<p><strong>R version 4.5.2 (2025-10-31 ucrt)</strong></p>
+<p><strong>Platform:</strong> x86_64-w64-mingw32/x64</p>
+<p><strong>locale:</strong> <em>LC_COLLATE=German_Germany.utf8</em>, <em>LC_CTYPE=German_Germany.utf8</em>, <em>LC_MONETARY=German_Germany.utf8</em>, <em>LC_NUMERIC=C</em> and <em>LC_TIME=German_Germany.utf8</em></p>
+<p><strong>attached base packages:</strong> <em>stats4</em>, <em>stats</em>, <em>graphics</em>, <em>grDevices</em>, <em>utils</em>, <em>datasets</em>, <em>methods</em> and <em>base</em></p>
+<p><strong>other attached packages:</strong> <em>pander(v.0.6.6)</em>, <em>DT(v.0.34.0)</em>, <em>here(v.1.0.2)</em>, <em>dplyr(v.1.1.4)</em>, <em>mirt(v.1.45.1)</em>, <em>lattice(v.0.22-7)</em>, <em>lavaan(v.0.6-20)</em>, <em>psych(v.2.5.6)</em>, <em>ollamar(v.1.2.2)</em>, <em>ellmer(v.0.3.2)</em>, <em>psychinterpreter(v.0.0.0.9000)</em> and <em>pacman(v.0.5.1)</em></p>
+<p><strong>loaded via a namespace (and not attached):</strong> <em>tidyselect(v.1.2.1)</em>, <em>farver(v.2.1.2)</em>, <em>R.utils(v.2.13.0)</em>, <em>S7(v.0.2.0)</em>, <em>fastmap(v.1.2.0)</em>, <em>digest(v.0.6.37)</em>, <em>lifecycle(v.1.0.4)</em>, <em>Deriv(v.4.2.0)</em>, <em>dcurver(v.0.9.3)</em>, <em>cluster(v.2.1.8.1)</em>, <em>magrittr(v.2.0.3)</em>, <em>compiler(v.4.5.2)</em>, <em>sass(v.0.4.10)</em>, <em>rlang(v.1.1.6)</em>, <em>tools(v.4.5.2)</em>, <em>yaml(v.2.3.10)</em>, <em>knitr(v.1.50)</em>, <em>labeling(v.0.4.3)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>curl(v.7.0.0)</em>, <em>mnormt(v.2.1.1)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>withr(v.3.0.2)</em>, <em>purrr(v.1.0.4)</em>, <em>R.oo(v.1.27.1)</em>, <em>grid(v.4.5.2)</em>, <em>future(v.1.67.0)</em>, <em>progressr(v.0.17.0)</em>, <em>GPArotation(v.2025.3-1)</em>, <em>ggplot2(v.4.0.0)</em>, <em>globals(v.0.18.0)</em>, <em>scales(v.1.4.0)</em>, <em>MASS(v.7.3-65)</em>, <em>cli(v.3.6.5)</em>, <em>rmarkdown(v.2.30)</em>, <em>vegan(v.2.7-2)</em>, <em>crayon(v.1.5.3)</em>, <em>generics(v.0.1.4)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>future.apply(v.1.20.0)</em>, <em>SimDesign(v.2.21)</em>, <em>sessioninfo(v.1.2.3)</em>, <em>cachem(v.1.1.0)</em>, <em>pbapply(v.1.7-4)</em>, <em>audio(v.0.1-11)</em>, <em>splines(v.4.5.2)</em>, <em>parallel(v.4.5.2)</em>, <em>beepr(v.2.0)</em>, <em>coro(v.1.1.0)</em>, <em>vctrs(v.0.6.5)</em>, <em>Matrix(v.1.7-4)</em>, <em>jsonlite(v.2.0.0)</em>, <em>listenv(v.0.9.1)</em>, <em>crosstalk(v.1.2.2)</em>, <em>testthat(v.3.2.3)</em>, <em>jquerylib(v.0.1.4)</em>, <em>clipr(v.0.8.0)</em>, <em>tidyr(v.1.3.1)</em>, <em>glue(v.1.8.0)</em>, <em>parallelly(v.1.45.1)</em>, <em>codetools(v.0.2-20)</em>, <em>gtable(v.0.3.6)</em>, <em>quadprog(v.1.5-8)</em>, <em>tibble(v.3.3.0)</em>, <em>pillar(v.1.11.1)</em>, <em>rappdirs(v.0.3.3)</em>, <em>htmltools(v.0.5.8.1)</em>, <em>brio(v.1.1.5)</em>, <em>R6(v.2.6.1)</em>, <em>httr2(v.1.2.1)</em>, <em>rprojroot(v.2.1.1)</em>, <em>evaluate(v.1.0.5)</em>, <em>pbivnorm(v.0.6.0)</em>, <em>R.methodsS3(v.1.8.2)</em>, <em>bslib(v.0.9.0)</em>, <em>Rcpp(v.1.1.0)</em>, <em>gridExtra(v.2.3)</em>, <em>nlme(v.3.1-168)</em>, <em>permute(v.0.9-8)</em>, <em>mgcv(v.1.9-3)</em>, <em>xfun(v.0.53)</em> and <em>pkgconfig(v.2.0.3)</em></p>
+</div>
+</div>
+<!-- -->
+
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "psychinterpreter: Advanced Features"</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Chat Sessions, Token Tracking, Multiple Packages, and Export Options"</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> </span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co"> - name: Matthias Kloft</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">   orcid: 0000-0003-1845-6957</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "`r Sys.Date()`"</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-depth: 3</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: show</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="co">    source: repo</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="co">    df-print: paged</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: true</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a><span class="co">  message: true</span></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overview</span></span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a>This document demonstrates advanced features of the **psychinterpreter** package using the Big Five personality data from the <span class="in">`psych`</span> package. The Big Five Inventory (BFI) is a widely-used personality assessment that measures five major dimensions of personality: Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism.</span>
+<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>We'll cover all major features of psychinterpreter including:</span>
+<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Basic factor analysis interpretation</span>
+<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Persistent chat sessions for efficient LLM usage</span>
+<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Export functionality across multiple formats</span>
+<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Report generation as in console (<span class="in">`output_format`</span> = "cli") or markdown style (<span class="in">`output_format`</span> = "markdown")</span>
+<span id="cb32-31"><a href="#cb32-31" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Wrappers for popular R packages such as <span class="in">`psych`</span>, <span class="in">`lavaan`</span>, and <span class="in">`mirt`</span></span>
+<span id="cb32-32"><a href="#cb32-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-33"><a href="#cb32-33" aria-hidden="true" tabindex="-1"></a><span class="fu">## Setup and Data Preparation</span></span>
+<span id="cb32-34"><a href="#cb32-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-35"><a href="#cb32-35" aria-hidden="true" tabindex="-1"></a><span class="in">```{r setup}</span></span>
+<span id="cb32-36"><a href="#cb32-36" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb32-37"><a href="#cb32-37" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psychinterpreter"</span>,</span>
+<span id="cb32-38"><a href="#cb32-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ellmer"</span>,</span>
+<span id="cb32-39"><a href="#cb32-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ollamar"</span>,</span>
+<span id="cb32-40"><a href="#cb32-40" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psych"</span>,</span>
+<span id="cb32-41"><a href="#cb32-41" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lavaan"</span>,</span>
+<span id="cb32-42"><a href="#cb32-42" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mirt"</span>,</span>
+<span id="cb32-43"><a href="#cb32-43" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
+<span id="cb32-44"><a href="#cb32-44" aria-hidden="true" tabindex="-1"></a>  <span class="st">"here"</span>,</span>
+<span id="cb32-45"><a href="#cb32-45" aria-hidden="true" tabindex="-1"></a>  <span class="st">"DT"</span>,</span>
+<span id="cb32-46"><a href="#cb32-46" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pander"</span></span>
+<span id="cb32-47"><a href="#cb32-47" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-48"><a href="#cb32-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
+<span id="cb32-49"><a href="#cb32-49" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span>
+<span id="cb32-50"><a href="#cb32-50" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="at">char =</span> packages)</span>
+<span id="cb32-51"><a href="#cb32-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-52"><a href="#cb32-52" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the BFI dataset and dictionary</span></span>
+<span id="cb32-53"><a href="#cb32-53" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"bfi"</span>)</span>
+<span id="cb32-54"><a href="#cb32-54" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"bfi.dictionary"</span>)</span>
+<span id="cb32-55"><a href="#cb32-55" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-56"><a href="#cb32-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-57"><a href="#cb32-57" aria-hidden="true" tabindex="-1"></a><span class="fu"># Preparing the BFI Data</span></span>
+<span id="cb32-58"><a href="#cb32-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-59"><a href="#cb32-59" aria-hidden="true" tabindex="-1"></a>Exclude demographic variables for factor analysis</span>
+<span id="cb32-60"><a href="#cb32-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-63"><a href="#cb32-63" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-64"><a href="#cb32-64" aria-hidden="true" tabindex="-1"></a>bfi <span class="ot">&lt;-</span> bfi[,<span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>]</span>
+<span id="cb32-65"><a href="#cb32-65" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="ot">&lt;-</span> bfi.dictionary[<span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>, ]</span>
+<span id="cb32-66"><a href="#cb32-66" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-67"><a href="#cb32-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-68"><a href="#cb32-68" aria-hidden="true" tabindex="-1"></a>Show the first few rows of the BFI data:</span>
+<span id="cb32-69"><a href="#cb32-69" aria-hidden="true" tabindex="-1"></a><span class="in">```{r data-exploration}</span></span>
+<span id="cb32-70"><a href="#cb32-70" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(bfi,<span class="dv">10</span>) <span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb32-71"><a href="#cb32-71" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-72"><a href="#cb32-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-73"><a href="#cb32-73" aria-hidden="true" tabindex="-1"></a>Display the BFI dictionary showing item descriptions:</span>
+<span id="cb32-76"><a href="#cb32-76" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-77"><a href="#cb32-77" aria-hidden="true" tabindex="-1"></a>bfi.dictionary <span class="sc">|&gt;</span> <span class="fu">select</span>(Item) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()<span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb32-78"><a href="#cb32-78" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-79"><a href="#cb32-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-80"><a href="#cb32-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-81"><a href="#cb32-81" aria-hidden="true" tabindex="-1"></a><span class="fu"># Factor Analysis</span></span>
+<span id="cb32-82"><a href="#cb32-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-83"><a href="#cb32-83" aria-hidden="true" tabindex="-1"></a><span class="fu">## Determining Number of Factors</span></span>
+<span id="cb32-84"><a href="#cb32-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-85"><a href="#cb32-85" aria-hidden="true" tabindex="-1"></a><span class="in">```{r parallel-analysis}</span></span>
+<span id="cb32-86"><a href="#cb32-86" aria-hidden="true" tabindex="-1"></a><span class="co"># Parallel analysis to determine optimal number of factors</span></span>
+<span id="cb32-87"><a href="#cb32-87" aria-hidden="true" tabindex="-1"></a>pa_result <span class="ot">&lt;-</span> <span class="fu">fa.parallel</span>(</span>
+<span id="cb32-88"><a href="#cb32-88" aria-hidden="true" tabindex="-1"></a>  bfi,</span>
+<span id="cb32-89"><a href="#cb32-89" aria-hidden="true" tabindex="-1"></a>  <span class="at">fa =</span> <span class="st">"fa"</span>,</span>
+<span id="cb32-90"><a href="#cb32-90" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.iter =</span> <span class="dv">100</span>,</span>
+<span id="cb32-91"><a href="#cb32-91" aria-hidden="true" tabindex="-1"></a>  <span class="at">use =</span> <span class="st">"pairwise.complete.obs"</span>,</span>
+<span id="cb32-92"><a href="#cb32-92" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Parallel Analysis: BFI Data"</span></span>
+<span id="cb32-93"><a href="#cb32-93" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-94"><a href="#cb32-94" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-95"><a href="#cb32-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-96"><a href="#cb32-96" aria-hidden="true" tabindex="-1"></a><span class="fu">## Exploratory Factor Analysis Using 6 Factors</span></span>
+<span id="cb32-97"><a href="#cb32-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-98"><a href="#cb32-98" aria-hidden="true" tabindex="-1"></a>Perform FA with 6 factors identified by the parallel analysis</span>
+<span id="cb32-99"><a href="#cb32-99" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fa-analysis}</span></span>
+<span id="cb32-100"><a href="#cb32-100" aria-hidden="true" tabindex="-1"></a>fa_result <span class="ot">&lt;-</span> <span class="fu">fa</span>(</span>
+<span id="cb32-101"><a href="#cb32-101" aria-hidden="true" tabindex="-1"></a>  bfi,</span>
+<span id="cb32-102"><a href="#cb32-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">nfactors =</span> pa_result<span class="sc">$</span>nfact,</span>
+<span id="cb32-103"><a href="#cb32-103" aria-hidden="true" tabindex="-1"></a>  <span class="at">rotate =</span> <span class="st">"oblimin"</span>,</span>
+<span id="cb32-104"><a href="#cb32-104" aria-hidden="true" tabindex="-1"></a>  <span class="at">fm =</span> <span class="st">"ml"</span></span>
+<span id="cb32-105"><a href="#cb32-105" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-106"><a href="#cb32-106" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fa_result)</span>
+<span id="cb32-107"><a href="#cb32-107" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-108"><a href="#cb32-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-109"><a href="#cb32-109" aria-hidden="true" tabindex="-1"></a>Loadings:</span>
+<span id="cb32-112"><a href="#cb32-112" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-113"><a href="#cb32-113" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract loading matrix for interpretation</span></span>
+<span id="cb32-114"><a href="#cb32-114" aria-hidden="true" tabindex="-1"></a>loadings_matrix <span class="ot">&lt;-</span> <span class="fu">unclass</span>(fa_result<span class="sc">$</span>loadings) <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb32-115"><a href="#cb32-115" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(loadings_matrix, <span class="dv">2</span>) <span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb32-116"><a href="#cb32-116" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-117"><a href="#cb32-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-118"><a href="#cb32-118" aria-hidden="true" tabindex="-1"></a>Factor Correlation Matrix</span>
+<span id="cb32-121"><a href="#cb32-121" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-122"><a href="#cb32-122" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract factor correlation matrix</span></span>
+<span id="cb32-123"><a href="#cb32-123" aria-hidden="true" tabindex="-1"></a>factor_cor_mat <span class="ot">&lt;-</span> fa_result<span class="sc">$</span>Phi <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb32-124"><a href="#cb32-124" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(factor_cor_mat, <span class="dv">2</span>) <span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb32-125"><a href="#cb32-125" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-126"><a href="#cb32-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-127"><a href="#cb32-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-128"><a href="#cb32-128" aria-hidden="true" tabindex="-1"></a><span class="fu">## Chat Setup</span></span>
+<span id="cb32-129"><a href="#cb32-129" aria-hidden="true" tabindex="-1"></a>Set up persistent chat session. If you use Ollama, make sure to start the server before running this.</span>
+<span id="cb32-130"><a href="#cb32-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-131"><a href="#cb32-131" aria-hidden="true" tabindex="-1"></a><span class="in">```{r test-chat-sessions}</span></span>
+<span id="cb32-132"><a href="#cb32-132" aria-hidden="true" tabindex="-1"></a><span class="co"># test the connection to the Ollama server</span></span>
+<span id="cb32-133"><a href="#cb32-133" aria-hidden="true" tabindex="-1"></a><span class="co">#ollamar::test_connection()</span></span>
+<span id="cb32-134"><a href="#cb32-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-135"><a href="#cb32-135" aria-hidden="true" tabindex="-1"></a><span class="co"># optionally pull the model from ollama</span></span>
+<span id="cb32-136"><a href="#cb32-136" aria-hidden="true" tabindex="-1"></a><span class="co">#ollamar::pull("gpt-oss:20b-cloud")</span></span>
+<span id="cb32-137"><a href="#cb32-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-138"><a href="#cb32-138" aria-hidden="true" tabindex="-1"></a>chat <span class="ot">&lt;-</span> <span class="fu">chat_session</span>(<span class="at">model_type =</span> <span class="st">"fa"</span>,</span>
+<span id="cb32-139"><a href="#cb32-139" aria-hidden="true" tabindex="-1"></a>  <span class="at">provider =</span> <span class="st">"ollama"</span>,</span>
+<span id="cb32-140"><a href="#cb32-140" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">"qwen3-vl:235b-instruct-cloud"</span>,</span>
+<span id="cb32-141"><a href="#cb32-141" aria-hidden="true" tabindex="-1"></a>  <span class="co">#model = "gpt-oss:20b-cloud",</span></span>
+<span id="cb32-142"><a href="#cb32-142" aria-hidden="true" tabindex="-1"></a>  <span class="co"># set temperature and seed for reproducibility</span></span>
+<span id="cb32-143"><a href="#cb32-143" aria-hidden="true" tabindex="-1"></a>  <span class="at">params =</span> <span class="fu">params</span>(<span class="at">temperature =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb32-144"><a href="#cb32-144" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-145"><a href="#cb32-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-146"><a href="#cb32-146" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
+<span id="cb32-147"><a href="#cb32-147" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-148"><a href="#cb32-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-149"><a href="#cb32-149" aria-hidden="true" tabindex="-1"></a><span class="fu">## Interpreting Factor Analysis Results</span></span>
+<span id="cb32-150"><a href="#cb32-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-151"><a href="#cb32-151" aria-hidden="true" tabindex="-1"></a>Create variable information dataframe from BFI dictionary</span>
+<span id="cb32-152"><a href="#cb32-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{r test-basic-interpretation}</span></span>
+<span id="cb32-153"><a href="#cb32-153" aria-hidden="true" tabindex="-1"></a>variable_info <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb32-154"><a href="#cb32-154" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">rownames</span>(bfi.dictionary),</span>
+<span id="cb32-155"><a href="#cb32-155" aria-hidden="true" tabindex="-1"></a>  <span class="at">description =</span> <span class="fu">as.character</span>(bfi.dictionary<span class="sc">$</span>Item),</span>
+<span id="cb32-156"><a href="#cb32-156" aria-hidden="true" tabindex="-1"></a>  <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span></span>
+<span id="cb32-157"><a href="#cb32-157" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-158"><a href="#cb32-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-159"><a href="#cb32-159" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(variable_info, <span class="dv">10</span>) <span class="sc">|&gt;</span> DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb32-160"><a href="#cb32-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-161"><a href="#cb32-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-162"><a href="#cb32-162" aria-hidden="true" tabindex="-1"></a>We now generate factor interpretations using the specified LLM:</span>
+<span id="cb32-163"><a href="#cb32-163" aria-hidden="true" tabindex="-1"></a><span class="in">```{r interpret-with-chat}</span></span>
+<span id="cb32-164"><a href="#cb32-164" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
+<span id="cb32-165"><a href="#cb32-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-166"><a href="#cb32-166" aria-hidden="true" tabindex="-1"></a>word_limit <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb32-167"><a href="#cb32-167" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
+<span id="cb32-168"><a href="#cb32-168" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
+<span id="cb32-169"><a href="#cb32-169" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_fit =</span> fa_result,</span>
+<span id="cb32-170"><a href="#cb32-170" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> variable_info,</span>
+<span id="cb32-171"><a href="#cb32-171" aria-hidden="true" tabindex="-1"></a>  <span class="at">cutoff =</span> <span class="fl">0.23</span>,</span>
+<span id="cb32-172"><a href="#cb32-172" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_emergency =</span> <span class="dv">2</span>,</span>
+<span id="cb32-173"><a href="#cb32-173" aria-hidden="true" tabindex="-1"></a>  <span class="at">additional_info =</span> <span class="cn">NULL</span>,</span>
+<span id="cb32-174"><a href="#cb32-174" aria-hidden="true" tabindex="-1"></a>  <span class="at">sort_loadings =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb32-175"><a href="#cb32-175" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span>  word_limit,</span>
+<span id="cb32-176"><a href="#cb32-176" aria-hidden="true" tabindex="-1"></a>  <span class="at">max_line_length =</span> <span class="dv">80</span>,</span>
+<span id="cb32-177"><a href="#cb32-177" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb32-178"><a href="#cb32-178" aria-hidden="true" tabindex="-1"></a>  <span class="at">echo =</span> <span class="st">"none"</span>,</span>
+<span id="cb32-179"><a href="#cb32-179" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_format =</span> <span class="st">"cli"</span></span>
+<span id="cb32-180"><a href="#cb32-180" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-181"><a href="#cb32-181" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-182"><a href="#cb32-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-183"><a href="#cb32-183" aria-hidden="true" tabindex="-1"></a>Let's check the global token usage tracked by the chat:</span>
+<span id="cb32-184"><a href="#cb32-184" aria-hidden="true" tabindex="-1"></a><span class="in">```{r usage1}</span></span>
+<span id="cb32-185"><a href="#cb32-185" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
+<span id="cb32-186"><a href="#cb32-186" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-187"><a href="#cb32-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-188"><a href="#cb32-188" aria-hidden="true" tabindex="-1"></a>We can also examine the prompt:</span>
+<span id="cb32-189"><a href="#cb32-189" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prompt}</span></span>
+<span id="cb32-190"><a href="#cb32-190" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(</span>
+<span id="cb32-191"><a href="#cb32-191" aria-hidden="true" tabindex="-1"></a>  <span class="st">"System Prompt: </span><span class="sc">\n\n</span><span class="st">"</span>,</span>
+<span id="cb32-192"><a href="#cb32-192" aria-hidden="true" tabindex="-1"></a>  result<span class="sc">$</span>llm_info<span class="sc">$</span>system_prompt, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb32-193"><a href="#cb32-193" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Main Prompt: </span><span class="sc">\n\n</span><span class="st">"</span>,</span>
+<span id="cb32-194"><a href="#cb32-194" aria-hidden="true" tabindex="-1"></a>    result<span class="sc">$</span>llm_info<span class="sc">$</span>main_prompt)</span>
+<span id="cb32-195"><a href="#cb32-195" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-196"><a href="#cb32-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-197"><a href="#cb32-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-198"><a href="#cb32-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-199"><a href="#cb32-199" aria-hidden="true" tabindex="-1"></a>Plot the loading matrix with factor names:</span>
+<span id="cb32-202"><a href="#cb32-202" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-203"><a href="#cb32-203" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(result,</span>
+<span id="cb32-204"><a href="#cb32-204" aria-hidden="true" tabindex="-1"></a>     <span class="at">cutoff =</span> <span class="fl">0.3</span>)</span>
+<span id="cb32-205"><a href="#cb32-205" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-206"><a href="#cb32-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-207"><a href="#cb32-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-208"><a href="#cb32-208" aria-hidden="true" tabindex="-1"></a>We can again check the total global token usage:</span>
+<span id="cb32-209"><a href="#cb32-209" aria-hidden="true" tabindex="-1"></a><span class="in">```{r usage2}</span></span>
+<span id="cb32-210"><a href="#cb32-210" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span>
+<span id="cb32-211"><a href="#cb32-211" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-212"><a href="#cb32-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-213"><a href="#cb32-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-214"><a href="#cb32-214" aria-hidden="true" tabindex="-1"></a><span class="fu"># Session Info</span></span>
+<span id="cb32-217"><a href="#cb32-217" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-218"><a href="#cb32-218" aria-hidden="true" tabindex="-1"></a>pander<span class="sc">::</span><span class="fu">pander</span>(<span class="fu">sessionInfo</span>())</span>
+<span id="cb32-219"><a href="#cb32-219" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

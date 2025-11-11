@@ -5,16 +5,16 @@
 **LLM used:** ollama - gpt-oss:20b-cloud  
 **Tokens:**  
   Input: 1780  
-  Output: 1473  
-**Elapsed time:** 8.29  
+  Output: 1750  
+**Elapsed time:** 13.4  
 
 ## Suggested Factor Names
 
-- **Factor 1 (9.6%):** *Neuroticism Intensity*
-- **Factor 2 (7.7%):** *Prosocial Empathy*
-- **Factor 3 (7.4%):** *Introverted Social Withdrawal*
-- **Factor 4 (7.7%):** *Conscientious Planning*
-- **Factor 5 (6.3%):** *Intellectual Drive*
+- **Factor 1 (9.6%):** *Negative Affect*
+- **Factor 2 (7.7%):** *Factor 2*
+- **Factor 3 (7.4%):** *Factor 3*
+- **Factor 4 (7.7%):** *Factor 4*
+- **Factor 5 (6.3%):** *Factor 5*
 
 **Total variance explained by all factors: 38.7%**
 
@@ -33,7 +33,7 @@
 
 ## Detailed Factor Interpretations
 
-### Factor 1 (ML2): Neuroticism Intensity
+### Factor 1 (ML2): Negative Affect
 
 **Number of significant loadings:** 5  
 **Variance explained:** 9.65%  
@@ -50,9 +50,9 @@ ML4 = -.01
   5. N4, Often feel blue. (Positive, Moderate, .413)
 
 **LLM Interpretation:**  
-The Neuroticism Intensity factor is dominated by strong loadings on items that capture emotional volatility – anger (N1), irritation (N2), mood swings (N3), sadness (N4), and panic (N5). These variables collectively illustrate a construct of heightened emotional instability and susceptibility to negative affect. Convergent validity is evident in the high and consistent loadings across all five Neuroticism items, while discriminant validity is supported by minimal cross-loadings on other factors. The factor correlates modestly (r≈.23) with Introverted Social Withdrawal and Negatively with Prosocial Empathy (r≈−.31), suggesting that greater emotional instability is associated with lower sociability and prosocial behavior. Overall, this factor captures the core tendency to experience rapid and intense negative emotions.
+ML2 is dominated by high positive loadings on N1 (.852), N2 (.817), N3 (.665), N4 (.413) and N5 (.439). These items capture rapid, intense mood disturbances – anger, irritability, mood swings, depressive feelings and panic – all hallmark features of the neuroticism dimension. The factor’s variance pattern reveals a coherent low‑level emotional regulation construct. Correlations with the other factors are modest (ranging from .23 to –.21), supporting discriminant validity. Convergent validity is strong because all high loadings belong to the same affective domain; they are consistently associated with each other and not with personality traits such as extraversion or conscientiousness. Thus, ML2 reliably measures a tendency toward negative emotional arousal and instability.
 
-### Factor 2 (ML5): Prosocial Empathy
+### Factor 2 (ML5): Factor 2
 
 **Number of significant loadings:** 7  
 **Variance explained:** 7.69%  
@@ -71,9 +71,9 @@ ML4 = .23
   7. E3, Know how to captivate people. (Positive, Weak, .303)
 
 **LLM Interpretation:**  
-Prosocial Empathy is reflected in strong loadings on core interpersonal benevolence items: A2 (inquire about others’ well‑being), A3 (comforting others), A4 (love children), and A5 (make people feel at ease). Secondary loadings on social engagement (E3, E4) and a modest load on avoiding difficult reading (O2) reinforce the construct’s focus on empathetic concern for others. The factor shows low cross‑loadings, indicating clear discriminant validity. Its negative correlation with Neur­oticism Intensity (r≈−.31) and low correlation with Introverted Social Withdrawal (r≈.23) show that individuals high in Prosocial Empathy tend to be emotionally stable and more socially engaged. This factor therefore embodies the tendency to care for and connect with others.
+Unable to extract from response
 
-### Factor 3 (ML1): Introverted Social Withdrawal
+### Factor 3 (ML1): Factor 3
 
 **Number of significant loadings:** 7  
 **Variance explained:** 7.36%  
@@ -92,9 +92,9 @@ ML4 = -.17
   7. E3, Know how to captivate people. (Negative, Weak, -.341)
 
 **LLM Interpretation:**  
-Introverted Social Withdrawal emerges from high loadings on E1 (low talk), E2 (social avoidance), and negative loadings on sociability indices E3–E5. These indicate limited social initiative, preference for solitude, and reduced effort to attract or maintain friendships. The factor’s small variance (≈7.4%) reflects a subtle but distinct pattern of reduced externalizing energy. Cross‑loadings on Neuroticism Intensity are minimal, confirming discriminant validity, while the negative correlation with Prosocial Empathy (r≈−.31) highlights that introverted individuals are less inclined toward active concern for others. This construct captures the tendency toward low external sociability and reticence in social contexts.
+Unable to extract from response
 
-### Factor 4 (ML3): Conscientious Planning
+### Factor 4 (ML3): Factor 4
 
 **Number of significant loadings:** 5  
 **Variance explained:** 7.71%  
@@ -111,9 +111,9 @@ ML4 = .20
   5. C1, Am exacting in my work. (Positive, Strong, .532)
 
 **LLM Interpretation:**  
-Conscientious Planning is defined by high positive loadings on C1–C3 (exacting, pursuing perfection, planning) and high negative loadings on C4–C5 (half‑way approach, wasting time). Such a pattern describes a coherent construct of deliberate, organized, and meticulous behavior contrasted with sloppiness or procrastination. The factor shows negligible cross‑loadings on other factors, supporting discriminant validity. Its weak negative correlation with Introverted Social Withdrawal (r≈−.22) suggests that conscientiousness briefly aligns with active engagement, while its positive association with Intellectual Drive (r≈.20) indicates a shared underlying planning orientation. This factor thus captures the core dimension of self‑regulated, orderly conduct.
+Unable to extract from response
 
-### Factor 5 (ML4): Intellectual Drive
+### Factor 5 (ML4): Factor 5
 
 **Number of significant loadings:** 6  
 **Variance explained:** 6.25%  
@@ -131,5 +131,5 @@ ML3 = .20
   6. E3, Know how to captivate people. (Positive, Weak, .315)
 
 **LLM Interpretation:**  
-Intellectual Drive receives strong loadings on creative and reflective arousal—O1 (full of ideas), O3 (conversation depth), and O4 (reflection)—and on dynamic social leadership (E3, E5). The negative loading on O5 (avoid probing) and O2 (avoid difficult reading) indicates a proclivity for deep and challenging intellectual engagement rather than surface or passive pursuits. Convergent validity is supported by the consistent loadings on cognitive growth items; discriminant validity is confirmed by weak cross‑loadings with other factors. Correlations reveal modest positive links with Conscientious Planning (r≈.20) and Prosocial Empathy (r≈.23), suggesting that those with intellectual drive also tend to be organized and socially considerate, yet they remain largely independent of emotional instability or introverted withdrawal.
+Unable to extract from response
 

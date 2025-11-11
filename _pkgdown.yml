@@ -17,7 +17,6 @@ reference:
       Core functions for interpreting psychometric analysis results using LLMs.
     contents:
       - interpret
-      - interpret_fa
 
   - title: "Chat Session Management"
     desc: >
@@ -28,6 +27,17 @@ reference:
       - chat_session
       - is.chat_session
       - reset.chat_session
+
+  - title: "Configuration Functions"
+    desc: >
+      Functions for creating configuration objects that control LLM parameters,
+      model-specific settings, and output formatting.
+    contents:
+      - llm_args
+      - fa_args
+      - output_args
+      - default_fa_args
+      - default_output_args
 
   - title: "Visualization & Theming"
     desc: >
@@ -55,8 +65,11 @@ reference:
 
   - title: "Print Methods"
     desc: >
-      S3 methods for displaying interpretation results and chat session information.
+      S3 methods for displaying interpretation results, chat sessions, and configuration objects.
     contents:
       - print.fa_interpretation
       - print.interpretation
       - print.chat_session
+      - print.llm_args
+      - print.fa_args
+      - print.output_args
