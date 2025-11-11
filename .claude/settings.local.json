@@ -64,7 +64,8 @@
       "Bash(xargs:*)",
       "Bash(mv:*)",
       "Bash(rm:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(pkgdown::build_articles)"
     ],
     "deny": [
       "Read(./.env*)",

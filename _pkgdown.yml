@@ -10,7 +10,12 @@ template:
 exclude: |
   CLAUDE.md
   NEWS.md
-  04-Gaussian_Mixture_dev.html
+
+articles:
+  - title: "Articles"
+    contents:
+      - articles/01-Getting_Started
+      - articles/02-Usage_Patterns
 
 reference:
   - title: "Main Interpretation Functions"
