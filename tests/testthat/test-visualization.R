@@ -1,6 +1,9 @@
 # Tests for visualization functions
 # NOTE: Using sample_interpretation() fixture to avoid LLM calls
 
+# Ensure package is loaded for S3 method dispatch
+library(psychinterpreter)
+
 test_that("plot.fa_interpretation requires ggplot2", {
   results <- sample_interpretation()
 
@@ -22,16 +25,16 @@ test_that("plot.fa_interpretation validates input object", {
 
   expect_error(
     plot(bad_object),
-    "must contain.*loading_matrix"
+    "must contain model_data with loadings_df"
   )
 
-  # Test with fa_interpretation object missing loading_matrix
+  # Test with fa_interpretation object missing model_data
   bad_object <- list(suggested_names = list())
   class(bad_object) <- c("fa_interpretation", "list")
 
   expect_error(
     plot(bad_object),
-    "must contain a 'loading_matrix'"
+    "must contain model_data with loadings_df"
   )
 })
 

@@ -114,6 +114,7 @@ test_that("chat_session handles invalid provider gracefully", {
 # ==============================================================================
 
 test_that("chat_session reuse saves tokens across multiple interpretations", {
+  skip_on_ci()
   skip_if_no_llm()
 
   provider <- "ollama"

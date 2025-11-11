@@ -22,10 +22,10 @@
 #' @param hide_low_loadings Logical. If TRUE, only variables with loadings at or above
 #'   the cutoff are included in the data sent to the LLM. If FALSE, all loadings are
 #'   included regardless of magnitude (default = FALSE)
-#' @param llm_provider Character. Which LLM provider to use.
+#' @param provider Character. Which LLM provider to use.
 #'   Any provider supported by ellmer::chat() (e.g., "openai", "anthropic", "ollama", etc.)
 #'   See ellmer documentation for the complete list of supported providers.
-#' @param llm_model Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b")
+#' @param model Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b")
 #' @param additional_info Character. Optional additional context for the LLM, such as theoretical background,
 #'   research area information, or domain-specific knowledge to inform factor interpretation (default = NULL)
 #' @param factor_cor_mat Matrix or data.frame. Optional factor correlation matrix for oblique rotations.
@@ -134,8 +134,8 @@
 #' interpretation <- interpret_fa(
 #'   loadings = fa_results$loadings,
 #'   variable_info = var_info,
-#'   llm_provider = "openai",
-#'   llm_model = "gpt-4o-mini"
+#'   provider = "openai",
+#'   model = "gpt-4o-mini"
 #' )
 #'
 #' # Using persistent chat session for multiple analyses (efficient)
@@ -161,8 +161,8 @@
 #' interpretation_advanced <- interpret_fa(
 #'   loadings = fa_results$loadings,
 #'   variable_info = var_info,
-#'   llm_provider = "ollama",
-#'   llm_model = "llama3.1:8b",
+#'   provider = "ollama",
+#'   model = "llama3.1:8b",
 #'   additional_info = "This analysis examines automotive performance characteristics.",
 #'   factor_cor_mat = fa_results$cor,  # Factor correlation matrix for oblique rotations
 #'   cutoff = 0.4,
@@ -179,8 +179,8 @@
 #'   loadings = fa_oblique$loadings,
 #'   variable_info = var_info,
 #'   factor_cor_mat = fa_oblique$Phi,  # Use factor correlation matrix from oblique rotation
-#'   llm_provider = "openai",
-#'   llm_model = "gpt-4o-mini",
+#'   provider = "openai",
+#'   model = "gpt-4o-mini",
 #'   additional_info = "Oblique rotation allowing correlated factors in automotive data"
 #' )
 #'
@@ -188,8 +188,8 @@
 #' interpretation_embedded <- interpret_fa(
 #'   loadings = fa_results$loadings,
 #'   variable_info = var_info,
-#'   llm_provider = "openai",
-#'   llm_model = "gpt-4o-mini",
+#'   provider = "openai",
+#'   model = "gpt-4o-mini",
 #'   params = params(temperature = 0.7, seed = 42),
 #'   output_format = "markdown",
 #'   heading_level = 3,  # Adjust to fit your document structure
@@ -200,8 +200,8 @@
 #' interpretation_debug <- interpret_fa(
 #'   loadings = fa_results$loadings,
 #'   variable_info = var_info,
-#'   llm_provider = "openai",
-#'   llm_model = "gpt-4o-mini",
+#'   provider = "openai",
+#'   model = "gpt-4o-mini",
 #'   echo = TRUE  # Display prompts and responses
 #' )
 #'
@@ -214,8 +214,8 @@ interpret_fa <- function(loadings,
                          variable_info,
                          factor_cor_mat = NULL,
                          chat_session = NULL,
-                         llm_provider = NULL,
-                         llm_model = NULL,
+                         provider = NULL,
+                         model = NULL,
                          params = NULL,
                          cutoff = 0.3,
                          n_emergency = 2,
@@ -240,19 +240,19 @@ interpret_fa <- function(loadings,
   # Start timing
   start_time <- Sys.time()
 
-  # NOTE: Defer validation of {.var llm_provider} until we actually need to
+  # NOTE: Defer validation of {.var provider} until we actually need to
   # initialize a new chat session. This allows input-related validation errors
   # (e.g., invalid {.var cutoff}) to be reported first in tests that do not
   # provide an active chat session.
 
 
-  # Validate llm_model parameter (allow NULL)
-  if (!is.null(llm_model) &&
-      (!is.character(llm_model) || length(llm_model) != 1)) {
+  # Validate model parameter (allow NULL)
+  if (!is.null(model) &&
+      (!is.character(model) || length(model) != 1)) {
     cli::cli_abort(
       c(
-        "{.var llm_model} must be a single character string or NULL",
-        "x" = "You supplied: {.val {llm_model}}"
+        "{.var model} must be a single character string or NULL",
+        "x" = "You supplied: {.val {model}}"
       )
     )
   }
@@ -754,9 +754,9 @@ interpret_fa <- function(loadings,
     chat_session$n_interpretations <- chat_session$n_interpretations + 1L
 
     # Inform user if they provided provider/model arguments that will be ignored
-    if (!is.null(llm_provider) || !is.null(llm_model)) {
+    if (!is.null(provider) || !is.null(model)) {
       cli::cli_inform(
-        c("i" = "Using provided {.field chat_session} (overrides {.field llm_provider} and {.field llm_model} arguments)")
+        c("i" = "Using provided {.field chat_session} (overrides {.field provider} and {.field model} arguments)")
       )
     }
 
@@ -766,42 +766,42 @@ interpret_fa <- function(loadings,
 
   } else {
     # Create new chat session using provider-specific functions
-    # Validate llm_provider now that we are about to create a chat
-    if (!is.character(llm_provider) || length(llm_provider) != 1) {
+    # Validate provider now that we are about to create a chat
+    if (!is.character(provider) || length(provider) != 1) {
       cli::cli_abort(
-        c("{.var llm_provider} must be a single character string", "x" = "You supplied: {.val {llm_provider}}")
+        c("{.var provider} must be a single character string", "x" = "You supplied: {.val {provider}}")
       )
     }
 
     chat <- tryCatch({
       switch(
-        llm_provider,
+        provider,
         "openai" = ellmer::chat_openai(
-          model = llm_model,
+          model = model,
           system_prompt = system_prompt,
           params = params
         ),
         "anthropic" = ellmer::chat_anthropic(
-          model = llm_model,
+          model = model,
           system_prompt = system_prompt,
           params = params
         ),
         "azure" = ellmer::chat_azure(
-          model = llm_model,
+          model = model,
           system_prompt = system_prompt,
           params = params
         ),
         "gemini" = ellmer::chat_gemini(
-          model = llm_model,
+          model = model,
           system_prompt = system_prompt,
           params = params
         ),
         # Fallback to generic chat for other providers
         {
-          chat_name <- if (!is.null(llm_model)) {
-            paste0(llm_provider, "/", llm_model)
+          chat_name <- if (!is.null(model)) {
+            paste0(provider, "/", model)
           } else {
-            llm_provider
+            provider
           }
           ellmer::chat(name = chat_name,
                        system_prompt = system_prompt,
@@ -812,7 +812,7 @@ interpret_fa <- function(loadings,
       cli::cli_abort(
         c(
           "Failed to initialize LLM chat",
-          "x" = "Provider: {.val {llm_provider}}, Model: {.val {llm_model %||% 'default'}}",
+          "x" = "Provider: {.val {provider}}, Model: {.val {model %||% 'default'}}",
           "i" = "Error: {e$message}",
           "i" = "Check your API credentials and model availability"
         )
@@ -1281,7 +1281,7 @@ interpret_fa <- function(loadings,
   }
 
   results$suggested_names <- suggested_names
-  results$llm_info <- list(provider = llm_provider, model = chat$get_model())
+  results$llm_info <- list(provider = provider, model = chat$get_model())
   results$chat <- chat
   # token tracking
   tokens_df <- chat$get_tokens()
@@ -1346,7 +1346,7 @@ interpret_fa <- function(loadings,
   # Store results before building report (needed for helper function)
   results$factor_summaries <- factor_summaries
   results$suggested_names <- suggested_names
-  results$llm_info <- list(provider = llm_provider, model = chat$get_model())
+  results$llm_info <- list(provider = provider, model = chat$get_model())
   results$chat <- chat
   results$used_chat_session <- !is.null(chat_session)
   # store the system_prompt from chat_session if applicable (defensive)

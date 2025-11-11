@@ -12,14 +12,14 @@
 #' @param model_type Character or NULL. Determined from chat_session if NULL
 #' @param chat_session chat_session object or NULL
 #' @param llm_args LLM configuration list
-#' @param fa_args FA configuration list
+#' @param interpretation_args Model-specific interpretation configuration list
 #' @param output_args Output configuration list
 #' @param ... Additional arguments passed to model-specific function
 #'
 #' @return Interpretation object
 #' @keywords internal
 #' @noRd
-handle_raw_data_interpret <- function(x, variable_info, model_type,
+handle_raw_data_interpret <- function(x, model_type,
                                       chat_session, llm_args = NULL,
                                       interpretation_args = NULL,
                                       output_args = NULL, ...) {
@@ -41,18 +41,18 @@ handle_raw_data_interpret <- function(x, variable_info, model_type,
       factor_cor_mat <- dots$factor_cor_mat
 
       # Call interpret_core with structured list
+      # Note: variable_info passed through ... to interpret_core
       interpret_core(
         fit_results = list(
           loadings = x,
           factor_cor_mat = factor_cor_mat
         ),
-        variable_info = variable_info,
         model_type = "fa",
         chat_session = chat_session,
         llm_args = llm_args,
         interpretation_args = interpretation_args,
         output_args = output_args,
-        ...
+        ...  # Includes variable_info
       )
     },
     gm = cli::cli_abort(

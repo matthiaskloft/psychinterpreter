@@ -1,6 +1,6 @@
 ---
-title: "Gaussian Mixture"
-subtitle: "Development"
+title: "psychinterpreter: Advanced Features"
+subtitle: "Chat Sessions, Token Tracking, Multiple Packages, and Export Options"
 author: 
  - name: Matthias Kloft
    orcid: 0000-0003-1845-6957
@@ -20,7 +20,15 @@ execute:
 
 ## Overview
 
+This document demonstrates advanced features of the **psychinterpreter** package using the Big Five personality data from the `psych` package. The Big Five Inventory (BFI) is a widely-used personality assessment that measures five major dimensions of personality: Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism.
 
+We'll cover all major features of psychinterpreter including:
+
+- Basic factor analysis interpretation
+- Persistent chat sessions for efficient LLM usage
+- Export functionality across multiple formats
+- Report generation as in console (`output_format` = "cli") or markdown style (`output_format` = "markdown")
+- Wrappers for popular R packages such as `psych`, `lavaan`, and `mirt`
 
 ## Setup and Data Preparation
 
@@ -32,10 +40,9 @@ packages <- c(
   "psych",
   "lavaan",
   "mirt",
-  "mclust",
   "dplyr",
   "here",
-  "kableExtra",
+  "DT",
   "pander"
 )
 # Load required packages using pacman
@@ -110,6 +117,27 @@ round(factor_cor_mat, 2) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 
+## Chat Setup
+Set up persistent chat session. If you use Ollama, make sure to start the server before running this.
+
+```{r test-chat-sessions}
+# test the connection to the Ollama server
+#ollamar::test_connection()
+
+# optionally pull the model from ollama
+#ollamar::pull("gpt-oss:20b-cloud")
+
+chat <- chat_session(model_type = "fa",
+  provider = "ollama",
+  model = "qwen3-vl:235b-instruct-cloud",
+  #model = "gpt-oss:20b-cloud",
+  # set temperature and seed for reproducibility
+  params = params(temperature = 0, seed = 42)
+)
+
+print(chat)
+```
+
 ## Interpreting Factor Analysis Results
 
 Create variable information dataframe from BFI dictionary
@@ -120,7 +148,7 @@ variable_info <- data.frame(
   stringsAsFactors = FALSE
 )
 
-head(variable_info) |> DT::datatable(options = list(scrollX = TRUE))
+head(variable_info, 10) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 We now generate factor interpretations using the specified LLM:
@@ -128,14 +156,9 @@ We now generate factor interpretations using the specified LLM:
 #| output: asis
 
 word_limit <- 50
-
 result <- interpret(
+  chat_session = chat,
   fit_results = fa_result,
-  provider = "ollama",
-  model = "qwen3-vl:235b-instruct-cloud",
-  #model = "gpt-oss:20b-cloud",
-  # set temperature and seed for reproducibility
-  params = params(temperature = 0, seed = 42),
   variable_info = variable_info,
   cutoff = 0.23,
   n_emergency = 2,
@@ -145,66 +168,30 @@ result <- interpret(
   max_line_length = 80,
   silent = FALSE,
   echo = "none",
-  output_format = "markdown",
-  heading_level = 3
+  output_format = "cli"
 )
 ```
-Let's do a cluster analysis on the factor scores using a Gaussian Mixture Model (GMM).
 
-## Cluster Analysis (Gaussian Mixture Model)
-
-Extract factor scores
+Let's check the global token usage tracked by the chat:
 ```{r usage1}
-fa_scores <- fa_result$scores |> 
-  # remove rows with NAs
-  na.omit()
+print(chat)
+```
 
-# add names from interpretation
-colnames(fa_scores) <- result$suggested_names
-
-head(fa_scores) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
-
+We can also examine the prompt:
+```{r prompt}
+cat(
+  "System Prompt: \n\n",
+  result$llm_info$system_prompt, "\n",
+  "Main Prompt: \n\n",
+    result$llm_info$main_prompt)
 ```
 
 
-Find Best Gaussian Mixture Model
+
+Plot the loading matrix with factor names:
 ```{r}
-gmm_model <- mclustBIC(fa_scores, G = 1:10)
-
-summary(gmm_model)
-```
-
-Fit the Best Model
-```{r}
-gmm_best <- Mclust(fa_scores, x = gmm_model)
-
-summary(gmm_best)
-```
-
-Get the mean vector, covariance matrix, and mixing proportions from the model fit.
-
-Means:
-```{r}
-gmm_means <- gmm_best$parameters$mean
-head(gmm_means) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
-```
-
-Covariance Matrix:
-```{r}
-gmm_covariances <- gmm_best$parameters$variance$sigma
-head(gmm_covariances[,,1]) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
-```
-
-Mixing proportions
-```{r}
-gmm_proportions <- gmm_best$parameters$pro
-gmm_proportions |> as.data.frame() |> round(3) |> DT::datatable(options = list(scrollX = TRUE))
-```
-
-z matrix as the membership grades for every person
-```{r}
-gmm_z <- gmm_best$z
-head(gmm_z) |> round(3) |> DT::datatable(options = list(scrollX = TRUE))
+plot(result,
+     cutoff = 0.3)
 ```
 
 
@@ -218,4 +205,5 @@ print(chat)
 ```{r}
 pander::pander(sessionInfo())
 ```
+
 

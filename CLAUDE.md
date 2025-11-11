@@ -4,12 +4,12 @@
 
 **For technical/architectural details**: See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md)
 
-**Status**: Phase 2 Refactoring Complete (2025-11-10) - See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md) section 4.2 for details
+**Status**: Phase 3 Complete (2025-11-11) - Model-type-aware configuration system fully implemented
 
 **IMPORTANT API CHANGES**:
 - **Phase 1** (2025-11-09):
-  - `model_fit` renamed to `fit_results`
-  - `llm_provider` and `llm_model` renamed to `provider` and `model`
+  - `fit_results` renamed to `fit_results`
+  - `provider` and `model` renamed to `provider` and `model`
   - New config objects: `llm_args()`, `fa_args()`, `output_args()`
 - **Phase 2** (2025-11-10):
   - `interpret_fa()` removed entirely (functionality now in S3 generic `build_model_data()`)
@@ -122,10 +122,10 @@ The `interpret()` function accepts different input types. **All arguments are na
 ```r
 # Automatically extracts loadings from model objects
 interpret(
-  model_fit = psych::fa(...),        # Or lavaan::efa(), mirt::mirt(), etc.
+  fit_results = psych::fa(...),        # Or lavaan::efa(), mirt::mirt(), etc.
   variable_info = var_info,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
 )
 ```
 
@@ -140,14 +140,14 @@ interpret(
 # For custom data structures
 # Both loadings and Phi can be matrices or data.frames
 interpret(
-  model_fit = list(
+  fit_results = list(
     loadings = loadings_matrix,
     Phi = correlation_matrix          # Optional (for oblique rotations)
   ),
   variable_info = var_info,
   model_type = "fa",                  # REQUIRED for lists
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud"
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
 )
 ```
 
@@ -157,15 +157,59 @@ interpret(
 # Create session once
 chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
 
-# Use with any model_fit type
-interpret(chat_session = chat, model_fit = fa_result, variable_info = var_info)
-interpret(chat_session = chat, model_fit = loadings_list, variable_info = var_info)  # Structured list works too
+# Use with any fit_results type
+interpret(chat_session = chat, fit_results = fa_result, variable_info = var_info)
+interpret(chat_session = chat, fit_results = loadings_list, variable_info = var_info)  # Structured list works too
+```
+
+## Pattern 4: Using Configuration Objects
+
+```r
+# Create configuration objects for reusable settings
+interp_config <- interpretation_args(
+  model_type = "fa",
+  cutoff = 0.3,
+  n_emergency = 3,
+  hide_low_loadings = FALSE
+)
+
+llm_config <- llm_args(
+  word_limit = 100,
+  additional_info = "Study context: personality assessment"
+)
+
+output_config <- output_args(
+  output_format = "markdown",
+  silent = FALSE
+)
+
+# Use configuration objects
+interpret(
+  fit_results = fa_result,
+  variable_info = var_info,
+  interpretation_args = interp_config,
+  llm_args = llm_config,
+  output_args = output_config,
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
+)
+
+# Or mix config objects with direct parameters
+interpret(
+  fit_results = fa_result,
+  variable_info = var_info,
+  interpretation_args = interp_config,  # Use config for interpretation settings
+  provider = "ollama",                   # Direct parameters for LLM
+  model = "gpt-oss:20b-cloud",
+  word_limit = 150                       # Direct parameter overrides llm_args
+)
 ```
 
 **When to use each**:
 - **Single analysis**: Pattern 1 (fitted model) - simplest
 - **Multiple analyses**: Pattern 3 (chat session) - most efficient
 - **Custom data**: Pattern 2 (structured list)
+- **Reusable settings**: Pattern 4 (configuration objects) - most flexible
 
 ---
 
@@ -255,7 +299,7 @@ Sys.setenv(ANTHROPIC_API_KEY = "your-key")   # Anthropic
 interpret(chat, loadings, var_info)
 
 # ✅ CORRECT - named arguments
-interpret(chat_session = chat, model_fit = loadings, variable_info = var_info)
+interpret(chat_session = chat, fit_results = loadings, variable_info = var_info)
 ```
 
 ## 2. Missing model_type for Structured Lists
@@ -263,13 +307,13 @@ interpret(chat_session = chat, model_fit = loadings, variable_info = var_info)
 ```r
 # ❌ WRONG
 interpret(
-  model_fit = list(loadings = loadings_matrix),
+  fit_results = list(loadings = loadings_matrix),
   variable_info = var_info
 )
 
 # ✅ CORRECT
 interpret(
-  model_fit = list(loadings = loadings_matrix),
+  fit_results = list(loadings = loadings_matrix),
   variable_info = var_info,
   model_type = "fa"
 )
@@ -279,13 +323,13 @@ interpret(
 
 ```r
 # ❌ INEFFICIENT - creates new session each time (~2x token cost)
-result1 <- interpret(model_fit = fa1, variable_info = vars1, llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
-result2 <- interpret(model_fit = fa2, variable_info = vars2, llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+result1 <- interpret(fit_results = fa1, variable_info = vars1, provider = "ollama", model = "gpt-oss:20b-cloud")
+result2 <- interpret(fit_results = fa2, variable_info = vars2, provider = "ollama", model = "gpt-oss:20b-cloud")
 
 # ✅ EFFICIENT - reuse session (saves ~40-60% tokens)
 chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
-result1 <- interpret(chat_session = chat, model_fit = fa1, variable_info = vars1)
-result2 <- interpret(chat_session = chat, model_fit = fa2, variable_info = vars2)
+result1 <- interpret(chat_session = chat, fit_results = fa1, variable_info = vars1)
+result2 <- interpret(chat_session = chat, fit_results = fa2, variable_info = vars2)
 ```
 
 ## 4. Wrong Pipe Operator in Package Code
@@ -301,15 +345,15 @@ data |> dplyr::filter(x > 0)
 ## 5. additional_info Parameter Location
 
 ```r
-# ❌ WRONG - additional_info inside model_fit list
+# ❌ WRONG - additional_info inside fit_results list
 interpret(
-  model_fit = list(loadings = loadings, additional_info = "Context"),
+  fit_results = list(loadings = loadings, additional_info = "Context"),
   variable_info = var_info, model_type = "fa"
 )
 
 # ✅ CORRECT - additional_info as separate parameter
 interpret(
-  model_fit = list(loadings = loadings),
+  fit_results = list(loadings = loadings),
   variable_info = var_info,
   additional_info = "Context",  # Separate parameter
   model_type = "fa"
@@ -346,7 +390,7 @@ interpret(fit_results = list(loadings = loadings), variable_info = var_info,
 **Solution**:
 ```r
 interpret(
-  model_fit = list(loadings = loadings_matrix),
+  fit_results = list(loadings = loadings_matrix),
   variable_info = var_info,
   model_type = "fa"
 )
@@ -399,20 +443,15 @@ interpret(..., echo = "all")
 - **Anthropic**: Caches system prompts (may undercount)
 - **OpenAI**: Generally accurate
 
-**Solution**: Current version uses `max(0, delta)` protection to prevent negatives
+**Solution**: Current version uses `normalize_token_count()` helper to prevent negatives and handle NULL/NA values
 
 ---
 
 # Active TODOs
 
 - can we further refine R script naming scheme?
-- should we split up visualization for better abstraction?
-
 - **Optimize tests further** - Review fixture usage and caching strategies
-
-
-
-- **Implement gaussian_mixture class** - Requires 7 S3 methods (see dev/DEVELOPER_GUIDE.md)
+- **Implement gaussian_mixture class** - Requires 8 S3 methods + 2 optional methods (see dev/DEVELOPER_GUIDE.md)
 
 ---
 
@@ -495,8 +534,8 @@ Update this file when making **user-facing changes**:
 
 **When completing TODOs**:
 1. Remove from "Active TODOs" section in CLAUDE.md
-2. Add to DEVELOPER_GUIDE.md section 4.2 (Package History) with date and details
-3. Update "Last Updated" date in both files
+2. Update "Last Updated" date in both files
+3. Document significant architectural changes in DEVELOPER_GUIDE.md if needed
 
 ## When to Update dev/DEVELOPER_GUIDE.md
 
@@ -507,7 +546,6 @@ Update the developer guide when making **architectural or implementation changes
 - File structure reorganization
 - Design decision changes
 - Code style updates
-- Package history entries (completed TODOs, major refactors, bug fixes)
 
 **Include technical details** - flow diagrams, code locations (file:line), implementation rationale
 
@@ -516,12 +554,13 @@ Update the developer guide when making **architectural or implementation changes
 1. **Clear separation**: CLAUDE.md = usage guide, DEV GUIDE = technical reference
 2. **Cross-reference**: Link between documents rather than duplicating content
 3. **Update dates**: Change "Last Updated" when making significant edits
-4. **Version TODOs**: When completing TODOs from CLAUDE.md, move them to DEV GUIDE section 4 (Package History) with dates
-5. **Keep current**: Delete obsolete sections, update examples to match current API
+4. **Keep current**: Delete obsolete sections, update examples to match current API
+5. **Documentation over history**: Focus on current state rather than historical changes
 
 ---
 
-**Last Updated**: 2025-11-10
+**Last Updated**: 2025-11-11
 **Maintainer**: Update when making significant user-facing changes
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
 - use kable() and kable_styling() for .Qmd articles
+- when adding or editing functions, remember to update the references in the pkgdown.yml

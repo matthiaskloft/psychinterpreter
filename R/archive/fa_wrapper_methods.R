@@ -14,7 +14,7 @@
 #'   - variable: variable names matching the model variables
 #'   - description: labels or descriptions of the variables
 #' @param ... Additional arguments passed to \code{\link{interpret_fa}}, such as
-#'   llm_provider, llm_model, cutoff, word_limit, etc.
+#'   provider, model, cutoff, word_limit, etc.
 #'
 #' @details
 #' This generic function provides a unified interface for interpreting factor
@@ -58,8 +58,8 @@
 #'
 #' # Interpret using S3 method
 #' result <- interpret(fa_model, variable_info = var_info,
-#'                     llm_provider = "openai",
-#'                     llm_model = "gpt-4o-mini")
+#'                     provider = "openai",
+#'                     model = "gpt-4o-mini")
 #'
 #' # Example with lavaan package
 #' library(lavaan)
@@ -74,8 +74,8 @@
 #' )
 #'
 #' result <- interpret(fit, variable_info = var_info_lavaan,
-#'                     llm_provider = "anthropic",
-#'                     llm_model = "claude-haiku-4-5-20251001")
+#'                     provider = "anthropic",
+#'                     model = "claude-haiku-4-5-20251001")
 #' }
 interpret <- function(model, variable_info, ...) {
   UseMethod("interpret")
@@ -140,7 +140,7 @@ interpret.psych <- function(model, variable_info, ...) {
 #' )
 #'
 #' result <- interpret(fa_model, variable_info = var_info,
-#'                     llm_provider = "openai", llm_model = "gpt-4o-mini")
+#'                     provider = "openai", model = "gpt-4o-mini")
 #' }
 interpret.fa <- function(model, variable_info, ...) {
   # Validate model structure
@@ -207,7 +207,7 @@ interpret.fa <- function(model, variable_info, ...) {
 #' )
 #'
 #' result <- interpret(pca_model, variable_info = var_info,
-#'                     llm_provider = "openai", llm_model = "gpt-4o-mini")
+#'                     provider = "openai", model = "gpt-4o-mini")
 #' }
 interpret.principal <- function(model, variable_info, ...) {
   # Validate model structure
@@ -284,8 +284,8 @@ interpret.principal <- function(model, variable_info, ...) {
 #' )
 #'
 #' result <- interpret(fit, variable_info = var_info,
-#'                     llm_provider = "anthropic",
-#'                     llm_model = "claude-haiku-4-5-20251001")
+#'                     provider = "anthropic",
+#'                     model = "claude-haiku-4-5-20251001")
 #' }
 interpret.lavaan <- function(model, variable_info, ...) {
   # Check if lavaan is available
@@ -402,7 +402,7 @@ interpret.lavaan <- function(model, variable_info, ...) {
 #' )
 #'
 #' result <- interpret(fit, variable_info = var_info,
-#'                     llm_provider = "openai", llm_model = "gpt-4o-mini")
+#'                     provider = "openai", model = "gpt-4o-mini")
 #' }
 interpret.efaList <- function(model, variable_info, ...) {
   # Check if lavaan is available
@@ -486,7 +486,7 @@ interpret.efaList <- function(model, variable_info, ...) {
 #' )
 #'
 #' result <- interpret(model, variable_info = var_info,
-#'                     llm_provider = "openai", llm_model = "gpt-4o-mini")
+#'                     provider = "openai", model = "gpt-4o-mini")
 #' }
 interpret.SingleGroupClass <- function(model, variable_info, rotate = "oblimin", ...) {
   # Check if mirt is available

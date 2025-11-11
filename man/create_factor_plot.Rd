@@ -11,7 +11,7 @@ create_factor_plot(
 )
 }
 \arguments{
-\item{interpretation_results}{Results from interpret_fa() - an fa_interpretation object}
+\item{interpretation_results}{Results from interpret() - an fa_interpretation object}
 
 \item{plot_type}{Character. Type of plot to create. Currently supports:
 \itemize{
@@ -48,7 +48,12 @@ The heatmap visualization:
 \examples{
 \dontrun{
 # Get interpretation results
-results <- interpret_fa(loadings, variable_info, silent = TRUE)
+results <- interpret(
+  fit_results = fa_result,
+  variable_info = var_info,
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
+)
 
 # Using this function (backward compatible)
 p <- create_factor_plot(results)

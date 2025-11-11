@@ -7,7 +7,6 @@
 \method{build_main_prompt}{fa}(
   model_type,
   model_data,
-  variable_info,
   word_limit,
   additional_info = NULL,
   ...
@@ -29,13 +28,12 @@
 \item factor_cor_mat: Factor correlation matrix (optional)
 }}
 
-\item{variable_info}{Data frame with 'variable' and 'description' columns}
-
 \item{word_limit}{Integer. Word limit for interpretations}
 
 \item{additional_info}{Character or NULL. Additional context}
 
-\item{...}{Additional arguments (unused)}
+\item{...}{Additional arguments passed from generic, including variable_info
+(data frame with 'variable' and 'description' columns, required for FA)}
 }
 \value{
 Character. User prompt text

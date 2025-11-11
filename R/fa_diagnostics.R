@@ -172,7 +172,6 @@ find_no_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
 #'
 #' @param model_type Object with class "fa"
 #' @param model_data List. Contains loadings_df, factor_cols
-#' @param variable_info Data frame. Variable descriptions (unused here)
 #' @param cutoff Numeric. Loading cutoff threshold
 #' @param ... Additional arguments (unused)
 #'
@@ -181,7 +180,6 @@ find_no_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
 #' @keywords internal
 create_diagnostics.fa <- function(model_type,
                                    model_data,
-                                   variable_info,
                                    cutoff = 0.3,
                                    ...) {
   list(

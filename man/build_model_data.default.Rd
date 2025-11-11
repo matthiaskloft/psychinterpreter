@@ -6,7 +6,6 @@
 \usage{
 \method{build_model_data}{default}(
   fit_results,
-  variable_info,
   model_type = NULL,
   interpretation_args = NULL,
   ...

@@ -4,14 +4,12 @@
 \alias{create_diagnostics.fa}
 \title{Create Diagnostics for Factor Analysis}
 \usage{
-\method{create_diagnostics}{fa}(model_type, model_data, variable_info, cutoff = 0.3, ...)
+\method{create_diagnostics}{fa}(model_type, model_data, cutoff = 0.3, ...)
 }
 \arguments{
 \item{model_type}{Object with class "fa"}
 
 \item{model_data}{List. Contains loadings_df, factor_cols}
-
-\item{variable_info}{Data frame. Variable descriptions (unused here)}
 
 \item{cutoff}{Numeric. Loading cutoff threshold}
 

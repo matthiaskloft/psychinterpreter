@@ -11,12 +11,6 @@ exclude: |
   CLAUDE.md
   NEWS.md
 
-articles:
-  - title: "Articles"
-    contents:
-      - articles/01-Getting_Started
-      - articles/02-Usage_Patterns
-
 reference:
   - title: "Main Interpretation Functions"
     desc: >
@@ -40,9 +34,8 @@ reference:
       model-specific settings, and output formatting.
     contents:
       - llm_args
-      - fa_args
+      - interpretation_args
       - output_args
-      - default_fa_args
       - default_output_args
 
   - title: "Visualization & Theming"
@@ -60,6 +53,7 @@ reference:
       Export interpretation results to various formats.
     contents:
       - export_interpretation
+      - export_interpretation.fa_interpretation
 
   - title: "Utility Functions"
     desc: >
@@ -77,5 +71,5 @@ reference:
       - print.interpretation
       - print.chat_session
       - print.llm_args
-      - print.fa_args
+      - print.interpretation_args
       - print.output_args

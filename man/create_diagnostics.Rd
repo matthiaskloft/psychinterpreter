@@ -4,14 +4,12 @@
 \alias{create_diagnostics}
 \title{Create Diagnostics (S3 Generic)}
 \usage{
-create_diagnostics(model_type, model_data, variable_info, ...)
+create_diagnostics(model_type, model_data, ...)
 }
 \arguments{
 \item{model_type}{Object with model type class}
 
 \item{model_data}{List. Model-specific data}
-
-\item{variable_info}{Data frame. Variable descriptions}
 
 \item{...}{Additional arguments for model-specific diagnostics}
 }

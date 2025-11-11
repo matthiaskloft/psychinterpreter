@@ -164,17 +164,17 @@ interpret(loadings, variable_info, chat_session = chat)
 ### Dispatch Flow
 
 ```
-interpret(chat_session=NULL, model_fit=NULL, variable_info=NULL, model_type=NULL, ...)
+interpret(chat_session=NULL, fit_results=NULL, variable_info=NULL, model_type=NULL, ...)
     ↓
 [Plain function with named arguments - no S3 dispatch on position]
     ↓
 Validate arguments (all named, no positional confusion):
-    ├─ Check model_fit provided
+    ├─ Check fit_results provided
     ├─ Check variable_info provided
     ├─ Validate chat_session if provided
     └─ Determine effective_model_type (from chat_session or model_type parameter)
     ↓
-Detect model_fit type:
+Detect fit_results type:
     ↓
 ├─ FITTED MODEL? (fa, principal, lavaan, efaList, SingleGroupClass)
 │       ↓

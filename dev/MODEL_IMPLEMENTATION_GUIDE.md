@@ -63,7 +63,7 @@ build_report.{model}_interpretation() [STEP 11: Format report]
 
 ### What You Need to Implement
 
-**8 S3 Methods** across **5-6 new files**:
+**8 Core S3 Methods (Required)** across **5 new files**:
 
 | Method | Purpose | File |
 |--------|---------|------|
@@ -76,7 +76,14 @@ build_report.{model}_interpretation() [STEP 11: Format report]
 | `create_diagnostics.{model}()` | Model-specific diagnostics | `{model}_diagnostics.R` |
 | `build_report.{model}_interpretation()` | Format user-facing report | `{model}_report.R` |
 
-**Plus**: Configuration object constructor (`{model}_args()`) in `shared_config.R`
+**2 Additional S3 Methods (Optional but Recommended)** across **2 new files**:
+
+| Method | Purpose | File |
+|--------|---------|------|
+| `export_interpretation.{model}_interpretation()` | Export reports to txt/md files | `{model}_export.R` |
+| `plot.{model}_interpretation()` | Visualize model results | `{model}_visualization.R` |
+
+**Plus**: Configuration object constructor (`interpretation_args_{model}()`) in `shared_config.R`
 
 ---
 
@@ -976,8 +983,8 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
   # Section 1: Header
   header <- build_report_header_{model}(
     model_data = model_data,
-    llm_provider = interpretation$llm_provider,
-    llm_model = interpretation$llm_model,
+    provider = interpretation$provider,
+    model = interpretation$model,
     output_format = output_format
   )
 
@@ -1033,8 +1040,8 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
 #'
 #' @keywords internal
 build_report_header_{model} <- function(model_data,
-                                         llm_provider,
-                                         llm_model,
+                                         provider,
+                                         model,
                                                 output_format) {
 
   # Pattern from fa_report.R:132-226
@@ -1047,8 +1054,8 @@ build_report_header_{model} <- function(model_data,
       "# {MODEL} Interpretation Results\n\n",
       "**Number of {COMPONENTS}:** ", n_components, "\n",
       "**Number of Variables:** ", n_variables, "\n",
-      "**LLM Provider:** ", llm_provider, "\n",
-      "**LLM Model:** ", llm_model, "\n"
+      "**LLM Provider:** ", provider, "\n",
+      "**LLM Model:** ", model, "\n"
     )
   } else {
     paste0(
@@ -1056,8 +1063,8 @@ build_report_header_{model} <- function(model_data,
       "========================================\n\n",
       "Number of {COMPONENTS}: ", n_components, "\n",
       "Number of Variables: ", n_variables, "\n",
-      "LLM Provider: ", llm_provider, "\n",
-      "LLM Model: ", llm_model, "\n"
+      "LLM Provider: ", provider, "\n",
+      "LLM Model: ", model, "\n"
     )
   }
 }

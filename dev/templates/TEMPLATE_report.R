@@ -12,8 +12,8 @@
 #'   \item{interpretation}{LLM interpretation results (list)}
 #'   \item{diagnostics}{Diagnostic information}
 #'   \item{output_format}{Output format ("text" or "markdown")}
-#'   \item{llm_provider}{LLM provider used}
-#'   \item{llm_model}{LLM model used}
+#'   \item{provider}{LLM provider used}
+#'   \item{model}{LLM model used}
 #' @param ... Additional arguments (ignored)
 #'
 #' @return Character string with formatted report
@@ -42,8 +42,8 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
   output_format <- interpretation$output_format
 
   # Optional fields
-  llm_provider <- interpretation$llm_provider %||% "unknown"
-  llm_model <- interpretation$llm_model %||% "unknown"
+  provider <- interpretation$provider %||% "unknown"
+  model <- interpretation$model %||% "unknown"
   word_limit <- interpretation$word_limit %||% 150
 
 
@@ -54,8 +54,8 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
   # Section 1: Header with metadata
   header <- build_report_header_{model}(
     model_data = model_data,
-    llm_provider = llm_provider,
-    llm_model = llm_model,
+    provider = provider,
+    model = model,
     output_format = output_format
   )
 
@@ -117,16 +117,16 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
 #' Creates the header section with title, metadata, and LLM information.
 #'
 #' @param model_data Model data
-#' @param llm_provider LLM provider name
-#' @param llm_model LLM model name
+#' @param provider LLM provider name
+#' @param model LLM model name
 #' @param output_format Output format ("text" or "markdown")
 #'
 #' @return Character string with formatted header
 #' @keywords internal
 #' @noRd
 build_report_header_{model} <- function(model_data,
-                                         llm_provider,
-                                         llm_model,
+                                         provider,
+                                         model,
                                          output_format) {
 
   # Pattern from fa_report.R:132-226
@@ -166,8 +166,8 @@ build_report_header_{model} <- function(model_data,
     # Add LLM info
     header <- paste0(
       header,
-      "**LLM Provider:** ", llm_provider, "\n",
-      "**LLM Model:** ", llm_model, "\n"
+      "**LLM Provider:** ", provider, "\n",
+      "**LLM Model:** ", model, "\n"
     )
 
   } else {
@@ -190,8 +190,8 @@ build_report_header_{model} <- function(model_data,
     # Add LLM info
     header <- paste0(
       header,
-      "LLM Provider: ", llm_provider, "\n",
-      "LLM Model: ", llm_model, "\n"
+      "LLM Provider: ", provider, "\n",
+      "LLM Model: ", model, "\n"
     )
   }
 

@@ -8,9 +8,8 @@ interpret_core(
   model_data = NULL,
   fit_results = NULL,
   model_type = NULL,
-  variable_info,
-  llm_provider = NULL,
-  llm_model = NULL,
+  provider = NULL,
+  model = NULL,
   chat_session = NULL,
   system_prompt = NULL,
   word_limit = 100,
@@ -33,11 +32,9 @@ interpret_core(
 
 \item{model_type}{Character. Type of analysis ("fa", "gm", "irt", "cdm")}
 
-\item{variable_info}{Data frame. Variable descriptions with 'variable' and 'description' columns}
+\item{provider}{Character. LLM provider (e.g., "anthropic", "openai", "ollama"). Required when chat_session is NULL (default = NULL)}
 
-\item{llm_provider}{Character. LLM provider (e.g., "anthropic", "openai", "ollama"). Required when chat_session is NULL (default = NULL)}
-
-\item{llm_model}{Character or NULL. Model name}
+\item{model}{Character or NULL. Model name}
 
 \item{chat_session}{Chat session object or NULL. If NULL, creates temporary session}
 
@@ -68,7 +65,8 @@ For backward compatibility, logical values are accepted and converted to integer
 
 \item{params}{ellmer params object or NULL}
 
-\item{...}{Additional arguments passed to model-specific methods}
+\item{...}{Additional arguments passed to model-specific methods, including variable_info
+(data frame with 'variable' and 'description' columns, required for FA)}
 }
 \value{
 Interpretation object with class c("\{model_type\}_interpretation", "interpretation", "list")

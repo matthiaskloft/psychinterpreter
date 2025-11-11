@@ -5,9 +5,8 @@
 #'
 #' @param model_data List. Model-specific data structure (loadings, parameters, etc.)
 #' @param model_type Character. Type of analysis ("fa", "gm", "irt", "cdm")
-#' @param variable_info Data frame. Variable descriptions with 'variable' and 'description' columns
-#' @param llm_provider Character. LLM provider (e.g., "anthropic", "openai", "ollama"). Required when chat_session is NULL (default = NULL)
-#' @param llm_model Character or NULL. Model name
+#' @param provider Character. LLM provider (e.g., "anthropic", "openai", "ollama"). Required when chat_session is NULL (default = NULL)
+#' @param model Character or NULL. Model name
 #' @param chat_session Chat session object or NULL. If NULL, creates temporary session
 #' @param system_prompt Character or NULL. Optional custom system prompt to override the package default.
 #'   If NULL, uses model-specific default system prompt. Ignored if chat_session is provided (default = NULL)
@@ -24,7 +23,8 @@
 #'   For backward compatibility, logical values are accepted and converted to integers.
 #' @param echo Character. Echo level: "none", "output", "all" (default = "none")
 #' @param params ellmer params object or NULL
-#' @param ... Additional arguments passed to model-specific methods
+#' @param ... Additional arguments passed to model-specific methods, including variable_info
+#'   (data frame with 'variable' and 'description' columns, required for FA)
 #'
 #' @return Interpretation object with class c("\{model_type\}_interpretation", "interpretation", "list")
 #'
@@ -44,9 +44,8 @@
 interpret_core <- function(model_data = NULL,
                           fit_results = NULL,
                           model_type = NULL,
-                          variable_info,
-                          llm_provider = NULL,
-                          llm_model = NULL,
+                          provider = NULL,
+                          model = NULL,
                           chat_session = NULL,
                           system_prompt = NULL,
                           word_limit = 100,
@@ -66,8 +65,9 @@ interpret_core <- function(model_data = NULL,
   # Capture start time
   start_time <- Sys.time()
 
-  # Capture ... (no need to filter model-specific params - they're in model_data)
+  # Capture ... and extract variable_info (model-specific parameter)
   dots <- list(...)
+  variable_info <- dots$variable_info  # May be NULL for models that don't need it
 
   # ==========================================================================
   # STEP 0: BUILD MODEL DATA (NEW PATH)
@@ -80,12 +80,12 @@ interpret_core <- function(model_data = NULL,
     }
 
     # Call build_model_data() to extract and validate
+    # variable_info passed through ... (model-specific)
     model_data <- build_model_data(
       fit_results = fit_results,
-      variable_info = variable_info,
       model_type = model_type,
       interpretation_args = interpretation_args,
-      ...
+      ...  # Includes variable_info
     )
 
   }
@@ -112,8 +112,8 @@ interpret_core <- function(model_data = NULL,
 
   # Extract parameters from config objects if provided
   if (!is.null(llm_args)) {
-    if (is.null(llm_provider)) llm_provider <- llm_args$provider
-    if (is.null(llm_model)) llm_model <- llm_args$model
+    if (is.null(provider)) provider <- llm_args$provider
+    if (is.null(model)) model <- llm_args$model
   }
   if (!is.null(output_args)) {
     if (is.null(output_format)) output_format <- output_args$output_format
@@ -162,12 +162,12 @@ interpret_core <- function(model_data = NULL,
     )
   }
 
-  # Validate llm_provider when chat_session is NULL
-  if (is.null(chat_session) && is.null(llm_provider)) {
+  # Validate provider when chat_session is NULL
+  if (is.null(chat_session) && is.null(provider)) {
     cli::cli_abort(
       c(
-        "{.var llm_provider} is required when {.var chat_session} is NULL",
-        "i" = "Specify llm_provider (e.g., 'anthropic', 'openai', 'ollama', 'gemini')",
+        "{.var provider} is required when {.var chat_session} is NULL",
+        "i" = "Specify provider (e.g., 'anthropic', 'openai', 'ollama', 'gemini')",
         "i" = "Or provide a chat_session created with chat_session()"
       )
     )
@@ -180,13 +180,8 @@ interpret_core <- function(model_data = NULL,
   # Validate model_type
   validate_model_type(model_type)
 
-  # Validate variable_info
-  if (!is.data.frame(variable_info)) {
-    cli::cli_abort("{.var variable_info} must be a data frame")
-  }
-  if (!"variable" %in% names(variable_info)) {
-    cli::cli_abort("{.var variable_info} must contain a 'variable' column")
-  }
+  # Note: variable_info validation removed - now handled by model-specific methods
+  # Models that require variable_info will validate it in their interpret_model.X() methods
 
   # ========================================================================
   # Common Parameter Validation (Sprint 2: moved from model-specific functions)
@@ -295,8 +290,8 @@ interpret_core <- function(model_data = NULL,
 
     chat_session <- chat_session(
       model_type = model_type,
-      provider = llm_provider,
-      model = llm_model,
+      provider = provider,
+      model = model,
       system_prompt = final_system_prompt,
       params = params,
       echo = echo
@@ -504,20 +499,19 @@ interpret_core <- function(model_data = NULL,
 #'
 #' @param model_type Object with model type class
 #' @param model_data List. Model-specific data
-#' @param variable_info Data frame. Variable descriptions
 #' @param ... Additional arguments for model-specific diagnostics
 #'
 #' @return List of diagnostic results
 #' @export
 #' @keywords internal
-create_diagnostics <- function(model_type, model_data, variable_info, ...) {
+create_diagnostics <- function(model_type, model_data, ...) {
   UseMethod("create_diagnostics")
 }
 
 #' Default method for create_diagnostics
 #' @export
 #' @keywords internal
-create_diagnostics.default <- function(model_type, model_data, variable_info, ...) {
+create_diagnostics.default <- function(model_type, model_data, ...) {
   # Get the class name
   model_class <- if (is.character(model_type)) {
     model_type

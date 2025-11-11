@@ -885,7 +885,7 @@ build_fa_report <- function(interpretation_results,
 #' with optional line wrapping for better readability in console output. Can regenerate
 #' reports in different formats (text or markdown) with customizable heading levels.
 #'
-#' @param x fa_interpretation object from interpret_fa()
+#' @param x fa_interpretation object from interpret()
 #' @param max_line_length Integer. Maximum line length for text wrapping (default = 80).
 #'   Lines longer than this will be wrapped at word boundaries while preserving
 #'   formatting like headers, indentation, and separators. Only applies to cli format.
@@ -903,7 +903,12 @@ build_fa_report <- function(interpretation_results,
 #' @examples
 #' \dontrun{
 #' # Get interpretation results
-#' results <- interpret_fa(loadings, variable_info, silent = TRUE)
+#' results <- interpret(
+#'   fit_results = fa_result,
+#'   variable_info = var_info,
+#'   provider = "ollama",
+#'   model = "gpt-oss:20b-cloud"
+#' )
 #'
 #' # Print with default format (uses stored report)
 #' print(results)
@@ -928,7 +933,7 @@ print.fa_interpretation <- function(x,
   # Validate input
   if (!inherits(x, "fa_interpretation") || !is.list(x)) {
     cli::cli_abort(
-      c("Input must be a fa_interpretation object", "i" = "This should be the output from interpret_fa()")
+      c("Input must be a fa_interpretation object", "i" = "This should be the output from interpret()")
     )
   }
 

@@ -131,6 +131,7 @@ test_that("hide_low_loadings parameter validates correctly", {
 # ==============================================================================
 
 test_that("interpret_fa comprehensive integration test", {
+  skip_on_ci()
   skip_if_no_llm()
 
   # Use minimal fixtures for token efficiency
@@ -150,7 +151,7 @@ test_that("interpret_fa comprehensive integration test", {
                         model_type = "fa",
                         provider = provider,
                         model = model,
-                        word_limit = 30,  # Reduced for token efficiency
+                        word_limit = 20,  # Minimum for token efficiency
                         silent = TRUE)
 
   # Check main structure
@@ -178,6 +179,7 @@ test_that("interpret_fa comprehensive integration test", {
 # ==============================================================================
 
 test_that("emergency rule behavior with n_emergency = 0", {
+  skip_on_ci()
   skip_if_no_llm()
 
   # Create loadings where one factor has no loadings above cutoff
@@ -203,7 +205,7 @@ test_that("emergency rule behavior with n_emergency = 0", {
                         n_emergency = 0,
                         provider = provider,
                         model = model,
-                        word_limit = 30,
+                        word_limit = 20,  # Minimum for token efficiency
                         silent = TRUE)
 
   # Check that F2 is marked as undefined

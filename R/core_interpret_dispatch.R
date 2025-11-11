@@ -19,7 +19,6 @@
 #'     - For GM: Not yet implemented
 #'     - For IRT: Not yet implemented
 #'     - For CDM: Not yet implemented
-#' @param variable_info Dataframe with 'variable' and 'description' columns describing the variables.
 #' @param chat_session Optional. A chat_session object created with \code{\link{chat_session}}
 #'   for token-efficient multi-analysis workflows (default = NULL).
 #' @param model_type Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
@@ -34,18 +33,19 @@
 #'   \code{\link{llm_args}} or passed as a plain list. Contains: system_prompt, params, word_limit,
 #'   interpretation_guidelines, additional_info, echo. If provider/model are provided at top-level,
 #'   they override values in llm_args (default = NULL).
-#' @param fa_args List or fa_args object. Factor analysis configuration settings. Can be created with
-#'   \code{\link{fa_args}} or passed as a plain list. Contains: cutoff, n_emergency, hide_low_loadings,
-#'   sort_loadings, factor_cor_mat (default = NULL).
+#' @param interpretation_args List or interpretation_args object. Model-specific interpretation configuration.
+#'   Can be created with \code{\link{interpretation_args}} or passed as a plain list. Contents vary by model type.
+#'   For FA: cutoff, n_emergency, hide_low_loadings, sort_loadings, factor_cor_mat (default = NULL).
 #' @param output_args List or output_args object. Output configuration settings. Can be created with
 #'   \code{\link{output_args}} or passed as a plain list. Contains: format, heading_level,
 #'   suppress_heading, max_line_length, silent (default = NULL).
 #'
-#' @param ... Additional arguments passed to model-specific methods.
+#' @param ... Additional arguments passed to model-specific methods. Model-specific methods may require:
+#'   - \code{variable_info}: Data frame with 'variable' and 'description' columns (required for FA)
 #'
 #' @note While only \code{provider} and \code{model} are exposed as top-level parameters for convenience,
 #'   the dual interface pattern allows any argument to be passed either directly or through the respective
-#'   configuration object (\code{llm_args}, \code{fa_args}, \code{output_args}). This keeps the primary
+#'   configuration object (\code{llm_args}, \code{interpretation_args}, \code{output_args}). This keeps the primary
 #'   signature clean while maintaining flexibility
 #'
 #'
@@ -93,6 +93,38 @@
 #' chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
 #' result1 <- interpret(chat_session = chat, fit_results = model1, variable_info = var_info1)
 #' result2 <- interpret(chat_session = chat, fit_results = model2, variable_info = var_info2)
+#' }
+#'
+#' **Pattern 4: Configuration Objects (Advanced)**
+#'
+#' Use configuration objects for reusable settings and cleaner code.
+#'
+#' \preformatted{
+#' # Create configuration objects
+#' interp_config <- interpretation_args(model_type = "fa", cutoff = 0.4, n_emergency = 2)
+#' llm_config <- llm_args(word_limit = 100, additional_info = "Study context")
+#' output_config <- output_args(output_format = "markdown", silent = 1)
+#'
+#' # Use in interpret() call
+#' interpret(
+#'   fit_results = fa_model,
+#'   variable_info = var_info,
+#'   interpretation_args = interp_config,
+#'   llm_args = llm_config,
+#'   output_args = output_config,
+#'   provider = "ollama",
+#'   model = "gpt-oss:20b-cloud"
+#' )
+#'
+#' # Or mix config objects with direct parameters (direct parameters override)
+#' interpret(
+#'   fit_results = fa_model,
+#'   variable_info = var_info,
+#'   interpretation_args = interp_config,
+#'   provider = "ollama",
+#'   model = "gpt-oss:20b-cloud",
+#'   word_limit = 150  # Overrides llm_config if it were provided
+#' )
 #' }
 #'
 #' ## Supported Model Types
@@ -163,7 +195,6 @@
 #' print(chat)  # Check token usage
 #' }
 interpret <- function(fit_results = NULL,
-                      variable_info = NULL,
                       chat_session = NULL,
                       model_type = NULL,
                       provider = NULL,
@@ -177,8 +208,7 @@ interpret <- function(fit_results = NULL,
   # ============================================================================
 
   # Check if all key arguments are missing
-  if (is.null(chat_session) &&
-      is.null(fit_results) && is.null(variable_info)) {
+  if (is.null(chat_session) && is.null(fit_results)) {
     cli::cli_abort(
       c(
         "No arguments provided to interpret()",
@@ -231,33 +261,8 @@ interpret <- function(fit_results = NULL,
     )
   }
 
-  # Check if variable_info is missing
-  if (is.null(variable_info)) {
-    cli::cli_abort(
-      c("{.var variable_info} is required", "i" = "Provide a data frame with 'variable' and 'description' columns")
-    )
-  }
-
-  # Validate variable_info structure
-  if (!is.data.frame(variable_info)) {
-    cli::cli_abort(
-      c(
-        "{.var variable_info} must be a data frame",
-        "x" = "You provided: {.cls {class(variable_info)}}",
-        "i" = "Use data.frame(variable = c(...), description = c(...))"
-      )
-    )
-  }
-
-  if (!"variable" %in% names(variable_info)) {
-    cli::cli_abort(
-      c(
-        "{.var variable_info} must contain a 'variable' column",
-        "x" = "Current columns: {.field {names(variable_info)}}",
-        "i" = "Ensure columns include: 'variable', 'description'"
-      )
-    )
-  }
+  # Note: variable_info validation moved to model-specific methods
+  # Models that require it (like FA) will validate it themselves
 
   # Validate chat_session if provided
   if (!is.null(chat_session)) {
@@ -326,10 +331,10 @@ interpret <- function(fit_results = NULL,
   if (is_fitted_model) {
     # Use internal interpret_model() S3 generic
     # Pass all explicit parameters that were made non-anonymous
+    # Note: variable_info now passed through ... (model-specific)
     return(
       interpret_model(
         fit_results,
-        variable_info,
         chat_session = chat_session,
         llm_args = llm_cfg,
         interpretation_args = interpretation_cfg,
@@ -362,14 +367,13 @@ interpret <- function(fit_results = NULL,
       return(
         handle_raw_data_interpret(
           x = extracted$loadings,
-          variable_info = variable_info,
           model_type = effective_model_type,
           chat_session = chat_session,
           factor_cor_mat = extracted$factor_cor_mat,
           llm_args = llm_cfg,
           interpretation_args = interpretation_cfg,
           output_args = out_cfg,
-          ...
+          ...  # variable_info passed through dots
         )
       )
     } else {
@@ -408,12 +412,12 @@ interpret <- function(fit_results = NULL,
 #' interpret() directly.
 #'
 #' @param model Fitted model object
-#' @param variable_info Variable descriptions dataframe
-#' @param ... Additional arguments
+#' @param ... Additional arguments passed to model-specific methods, including
+#'   variable_info (data frame with 'variable' and 'description' columns)
 #'
 #' @return Interpretation object
-#' @keywords internal
-interpret_model <- function(model, variable_info, ...) {
+#' @noRd
+interpret_model <- function(model, ...) {
   UseMethod("interpret_model")
 }
 
@@ -457,20 +461,30 @@ interpret_model <- function(model, variable_info, ...) {
 #' result <- interpret(fit_results = fa_model, variable_info = var_info,
 #'                     provider = "ollama", model = "gpt-oss:20b-cloud")
 #' }
-interpret_model.fa <- function(model, variable_info, ...) {
-  # Extract chat_session from ... if present
+interpret_model.fa <- function(model, ...) {
+  # Extract parameters from ...
   dots <- list(...)
   chat_session <- dots$chat_session
+  variable_info <- dots$variable_info
 
   # Validate chat_session if provided
   validate_chat_session_for_model_type(chat_session, "fa")
 
+  # Validate variable_info is provided (required for FA)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for factor analysis",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   # Call interpret_core with fit_results (build_model_data will extract loadings)
   result <- interpret_core(
     fit_results = model,
-    variable_info = variable_info,
     model_type = "fa",
-    ...
+    ...  # Includes variable_info
   )
 
   # Validate return class
@@ -510,13 +524,24 @@ interpret_model.fa <- function(model, variable_info, ...) {
 #' result <- interpret(fit_results = pca_model, variable_info = var_info,
 #'                     provider = "ollama", model = "gpt-oss:20b-cloud")
 #' }
-interpret_model.principal <- function(model, variable_info, ...) {
-  # Extract chat_session from ... if present
+interpret_model.principal <- function(model, ...) {
+  # Extract parameters from ...
   dots <- list(...)
   chat_session <- dots$chat_session
+  variable_info <- dots$variable_info
 
   # Validate chat_session if provided
   validate_chat_session_for_model_type(chat_session, "fa")
+
+  # Validate variable_info is provided (required for FA/PCA)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for principal components analysis",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
 
   # Validate model structure
   if (!inherits(model, "psych") && !inherits(model, "principal")) {
@@ -536,9 +561,8 @@ interpret_model.principal <- function(model, variable_info, ...) {
   # Call interpret_core with extracted model
   result <- interpret_core(
     fit_results = model,
-    variable_info = variable_info,
     model_type = "fa",
-    ...
+    ...  # Includes variable_info
   )
 
   # Validate return class
@@ -595,13 +619,24 @@ interpret_model.principal <- function(model, variable_info, ...) {
 #'                     provider = "ollama",
 #'                     model = "gpt-oss:20b-cloud")
 #' }
-interpret_model.lavaan <- function(model, variable_info, ...) {
-  # Extract chat_session from ... if present
+interpret_model.lavaan <- function(model, ...) {
+  # Extract parameters from ...
   dots <- list(...)
   chat_session <- dots$chat_session
+  variable_info <- dots$variable_info
 
   # Validate chat_session if provided
   validate_chat_session_for_model_type(chat_session, "fa")
+
+  # Validate variable_info is provided (required for lavaan)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for lavaan models",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
 
   # Check if lavaan is available
   if (!requireNamespace("lavaan", quietly = TRUE)) {
@@ -672,9 +707,8 @@ interpret_model.lavaan <- function(model, variable_info, ...) {
   # Call interpret_core
   result <- interpret_core(
     fit_results = model,
-    variable_info = variable_info,
     model_type = "fa",
-    ...
+    ...  # Includes variable_info
   )
 
   # Validate return class
@@ -717,9 +751,21 @@ interpret_model.lavaan <- function(model, variable_info, ...) {
 #' result <- interpret(fit_results = fit, variable_info = var_info,
 #'                     provider = "ollama", model = "gpt-oss:20b-cloud")
 #' }
-interpret_model.efaList <- function(model, variable_info, ...) {
-  # Extract chat_session from ... if present
+interpret_model.efaList <- function(model, ...) {
+  # Extract parameters from ...
   dots <- list(...)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for efaList)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for lavaan::efa models",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   chat_session <- dots$chat_session
 
   # Validate chat_session if provided
@@ -810,9 +856,21 @@ interpret_model.efaList <- function(model, variable_info, ...) {
 #' result <- interpret(fit_results = model, variable_info = var_info,
 #'                     provider = "ollama", model = "gpt-oss:20b-cloud")
 #' }
-interpret_model.SingleGroupClass <- function(model, variable_info, rotate = "oblimin", ...) {
-  # Extract chat_session from ... if present
+interpret_model.SingleGroupClass <- function(model, rotate = "oblimin", ...) {
+  # Extract parameters from ...
   dots <- list(...)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for mirt)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for mirt models",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   chat_session <- dots$chat_session
 
   # Validate chat_session if provided
@@ -871,9 +929,8 @@ interpret_model.SingleGroupClass <- function(model, variable_info, rotate = "obl
   # Call interpret_core
   result <- interpret_core(
     fit_results = model,
-    variable_info = variable_info,
     model_type = "fa",
-    ...
+    ...  # Includes variable_info
   )
 
   # Validate return class

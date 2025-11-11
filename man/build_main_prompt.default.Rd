@@ -4,7 +4,7 @@
 \alias{build_main_prompt.default}
 \title{Default method for build_main_prompt}
 \usage{
-\method{build_main_prompt}{default}(model_type, model_data, variable_info, ...)
+\method{build_main_prompt}{default}(model_type, model_data, ...)
 }
 \description{
 Default method for build_main_prompt

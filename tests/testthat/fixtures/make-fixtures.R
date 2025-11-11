@@ -92,13 +92,6 @@ sample_interpretation <- list(
       llm_interpretation = "This factor reflects memory performance and recall ability, with a dominant loading from variable 5 (0.85)."
     )
   ),
-  loading_matrix = data.frame(
-    variable = c("var1", "var2", "var3", "var4", "var5"),
-    ML1 = c(".80", ".70", "", "", ""),
-    ML2 = c("", "", ".75", ".82", ""),
-    ML3 = c("", "", "", "", ".85"),
-    stringsAsFactors = FALSE
-  ),
   model_data = list(
     loadings_df = sample_loadings,
     factor_cor_mat = sample_factor_cor,

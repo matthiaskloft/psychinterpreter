@@ -1,5 +1,5 @@
 ---
-title: "Usage Patterns of the `interpret()` Function"
+title: "`interpret()` Usage Patterns"
 author: 
  - name: Matthias Kloft
    orcid: 0000-0003-1845-6957
@@ -95,10 +95,10 @@ var_info <- data.frame(
 Automatically extracts model components from fitted objects.
 ```{r pattern-1}
 interpret(
-  model_fit = fa_model,
+  fit_results = fa_model,
   variable_info = var_info,
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud",
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud",
   word_limit = 50
 )
 ```
@@ -115,11 +115,11 @@ loadings_matrix <- fa_model$loadings
 factor_cor_mat <- fa_model$Phi
 
 interpret(
-  model_fit = list(loadings = loadings_matrix, factor_cor_mat = factor_cor_mat),
+  fit_results = list(loadings = loadings_matrix, factor_cor_mat = factor_cor_mat),
   variable_info = var_info,
   model_type = "fa",
-  llm_provider = "ollama",
-  llm_model = "gpt-oss:20b-cloud",
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud",
   word_limit = 50
 )
 ```
@@ -135,14 +135,14 @@ chat <- chat_session(model_type = "fa",
                      model = "gpt-oss:20b-cloud")
 result1 <- interpret(
   chat_session = chat,
-  model_fit = fa_model,
+  fit_results = fa_model,
   variable_info = var_info,
   word_limit = 50,
   silent = 1
 )
 result2 <- interpret(
   chat_session = chat,
-  model_fit = list(loadings = loadings_matrix, factor_cor_mat = factor_cor_mat),
+  fit_results = list(loadings = loadings_matrix, factor_cor_mat = factor_cor_mat),
   variable_info = var_info,
   word_limit = 50,
   silent = 1

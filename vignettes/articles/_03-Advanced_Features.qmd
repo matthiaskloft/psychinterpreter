@@ -158,7 +158,7 @@ We now generate factor interpretations using the specified LLM:
 word_limit <- 50
 result <- interpret(
   chat_session = chat,
-  model_fit = fa_result,
+  fit_results = fa_result,
   variable_info = variable_info,
   cutoff = 0.23,
   n_emergency = 2,

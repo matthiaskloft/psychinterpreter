@@ -618,7 +618,7 @@ build_output_args <- function(output_args = NULL, ...) {
 # ==============================================================================
 #
 # Uncomment when implementing GM, IRT, or CDM support
-# These follow the same pattern as build_fa_args() above
+# These follow the same pattern as build_interpretation_args() above
 # ==============================================================================
 
 # #' Build GM Arguments (Internal)

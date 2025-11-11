@@ -7,7 +7,7 @@
 \method{plot}{fa_interpretation}(x, type = "heatmap", cutoff = NULL, ...)
 }
 \arguments{
-\item{x}{An fa_interpretation object from interpret_fa()}
+\item{x}{An fa_interpretation object from interpret()}
 
 \item{type}{Character. Type of plot to create. Currently supports:
 \itemize{
@@ -24,7 +24,7 @@ values at or above this cutoff will be outlined with a black border.}
 A ggplot object that can be displayed, saved, or further customized
 }
 \description{
-S3 plot method for fa_interpretation objects created by interpret_fa().
+S3 plot method for fa_interpretation objects created by interpret().
 Creates publication-ready visualizations of factor loadings.
 }
 \details{
@@ -42,7 +42,12 @@ The heatmap visualization:
 \examples{
 \dontrun{
 # Get interpretation results
-results <- interpret_fa(loadings, variable_info, silent = TRUE)
+results <- interpret(
+  fit_results = fa_result,
+  variable_info = var_info,
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
+)
 
 # Use generic plot method with default cutoff
 plot(results)

@@ -57,20 +57,33 @@ build_system_prompt.fa <- function(model_type, word_limit = 100, ...) {
 #'   - n_emergency: Number of top loadings to use if none exceed cutoff
 #'   - hide_low_loadings: Whether to hide loadings below cutoff
 #'   - factor_cor_mat: Factor correlation matrix (optional)
-#' @param variable_info Data frame with 'variable' and 'description' columns
 #' @param word_limit Integer. Word limit for interpretations
 #' @param additional_info Character or NULL. Additional context
-#' @param ... Additional arguments (unused)
+#' @param ... Additional arguments passed from generic, including variable_info
+#'   (data frame with 'variable' and 'description' columns, required for FA)
 #'
 #' @return Character. User prompt text
 #' @export
 #' @keywords internal
 build_main_prompt.fa <- function(model_type,
                                  model_data,
-                                 variable_info,
                                  word_limit,
                                  additional_info = NULL,
                                  ...) {
+  # Extract parameters from ...
+  dots <- list(...)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for FA)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for factor analysis",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   # Extract FA-specific parameters from model_data
   loadings_df <- model_data$loadings_df
   cutoff <- model_data$cutoff
@@ -83,7 +96,6 @@ build_main_prompt.fa <- function(model_type,
   n_variables <- model_data$n_variables
 
   # Extract optional parameters from ...
-  dots <- list(...)
   interpretation_guidelines <- dots$interpretation_guidelines
 
   # Initialize prompt

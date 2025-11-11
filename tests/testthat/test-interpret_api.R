@@ -214,7 +214,7 @@ test_that("Misuse: interpret() errors when fit_results missing", {
 
   expect_error(
     interpret(variable_info = var_info),
-    "fit_results.*required"
+    "No arguments provided"
   )
 })
 
@@ -222,7 +222,8 @@ test_that("Misuse: interpret() errors when variable_info missing", {
   loadings <- minimal_loadings()
 
   expect_error(
-    interpret(fit_results = loadings, model_type = "fa"),
+    interpret(fit_results = list(loadings = loadings), model_type = "fa",
+              provider = "ollama", model = "gpt-oss:20b-cloud"),
     "variable_info.*required"
   )
 })
@@ -232,9 +233,10 @@ test_that("Misuse: interpret() errors when variable_info not a data.frame", {
 
   expect_error(
     interpret(
-      fit_results = loadings,
+      fit_results = list(loadings = loadings),
       variable_info = list(a = 1, b = 2),
-      model_type = "fa"
+      model_type = "fa",
+      provider = "ollama", model = "gpt-oss:20b-cloud"
     ),
     "variable_info.*must be a data frame"
   )
@@ -245,9 +247,10 @@ test_that("Misuse: interpret() errors when variable_info missing 'variable' colu
 
   expect_error(
     interpret(
-      fit_results = loadings,
+      fit_results = list(loadings = loadings),
       variable_info = data.frame(wrong_column = c("A", "B", "C")),
-      model_type = "fa"
+      model_type = "fa",
+      provider = "ollama", model = "gpt-oss:20b-cloud"
     ),
     "variable.*column"
   )

@@ -14,10 +14,10 @@
 
 #' Plot Factor Analysis Interpretation Results
 #'
-#' S3 plot method for fa_interpretation objects created by interpret_fa().
+#' S3 plot method for fa_interpretation objects created by interpret().
 #' Creates publication-ready visualizations of factor loadings.
 #'
-#' @param x An fa_interpretation object from interpret_fa()
+#' @param x An fa_interpretation object from interpret()
 #' @param type Character. Type of plot to create. Currently supports:
 #'   - "heatmap": Creates a heatmap of factor loadings (default)
 #' @param cutoff Numeric. Cutoff value for highlighting significant loadings. If NULL (default),
@@ -40,7 +40,12 @@
 #' @examples
 #' \dontrun{
 #' # Get interpretation results
-#' results <- interpret_fa(loadings, variable_info, silent = TRUE)
+#' results <- interpret(
+#'   fit_results = fa_result,
+#'   variable_info = var_info,
+#'   provider = "ollama",
+#'   model = "gpt-oss:20b-cloud"
+#' )
 #'
 #' # Use generic plot method with default cutoff
 #' plot(results)
@@ -74,29 +79,30 @@ plot.fa_interpretation <- function(x,
   # Validate input
   if (!inherits(x, "fa_interpretation")) {
     cli::cli_abort(
-      c("Input must be an fa_interpretation object", "i" = "This should be the output from interpret_fa()")
+      c("Input must be an fa_interpretation object", "i" = "This should be the output from interpret()")
     )
   }
 
-  if (!"loading_matrix" %in% names(x)) {
+  # Check for model_data and loadings_df (new structure after Phase 2-3 refactoring)
+  if (!"model_data" %in% names(x) || !"loadings_df" %in% names(x$model_data)) {
     cli::cli_abort(
       c(
-        "fa_interpretation object must contain a 'loading_matrix' component",
-        "i" = "This should be the output from interpret_fa()"
+        "fa_interpretation object must contain model_data with loadings_df",
+        "i" = "This should be the output from interpret()"
       )
     )
   }
 
   # Use stored cutoff if not provided
   if (is.null(cutoff)) {
-    if ("cutoff" %in% names(x)) {
-      cutoff <- x$cutoff
+    if ("model_data" %in% names(x) && "cutoff" %in% names(x$model_data)) {
+      cutoff <- x$model_data$cutoff
     } else {
       cutoff <- 0.3  # Default fallback
     }
   }
 
-  loadings_df <- x$loading_matrix
+  loadings_df <- x$model_data$loadings_df
 
   # Convert to long format for plotting
   loadings_long <- loadings_df |>
@@ -209,7 +215,7 @@ plot.fa_interpretation <- function(x,
 #' of factor analysis results. For new code, consider using the generic plot()
 #' method instead: plot(interpretation_results).
 #'
-#' @param interpretation_results Results from interpret_fa() - an fa_interpretation object
+#' @param interpretation_results Results from interpret() - an fa_interpretation object
 #' @param plot_type Character. Type of plot to create. Currently supports:
 #'   - "heatmap": Creates a heatmap of factor loadings (default)
 #' @param cutoff Numeric. Cutoff value for highlighting significant loadings. If NULL (default),
@@ -234,7 +240,12 @@ plot.fa_interpretation <- function(x,
 #' @examples
 #' \dontrun{
 #' # Get interpretation results
-#' results <- interpret_fa(loadings, variable_info, silent = TRUE)
+#' results <- interpret(
+#'   fit_results = fa_result,
+#'   variable_info = var_info,
+#'   provider = "ollama",
+#'   model = "gpt-oss:20b-cloud"
+#' )
 #'
 #' # Using this function (backward compatible)
 #' p <- create_factor_plot(results)

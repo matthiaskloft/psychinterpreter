@@ -6,7 +6,7 @@
 #' @param fit_results Matrix, data.frame, or list containing factor loadings
 #' @param variable_info Data frame with variable names and descriptions
 #' @param model_type Character. Should be "fa" (used for validation)
-#' @param fa_args FA configuration object from fa_args() or NULL
+#' @param interpretation_args FA interpretation configuration object from interpretation_args() or NULL
 #' @param ... Additional arguments (cutoff, n_emergency, hide_low_loadings, etc.)
 #'
 #' @return List containing:
@@ -26,17 +26,17 @@ build_fa_model_data_internal <- function(fit_results, variable_info, model_type 
   # Extract FA parameters from interpretation_args or ...
   dots <- list(...)
 
-  # Extract from interpretation_args if provided
-  cutoff <- if (!is.null(interpretation_args)) interpretation_args$cutoff else dots$cutoff
+  # Extract from interpretation_args if provided and is a list
+  cutoff <- if (!is.null(interpretation_args) && is.list(interpretation_args)) interpretation_args$cutoff else dots$cutoff
   if (is.null(cutoff)) cutoff <- 0.3
 
-  n_emergency <- if (!is.null(interpretation_args)) interpretation_args$n_emergency else dots$n_emergency
+  n_emergency <- if (!is.null(interpretation_args) && is.list(interpretation_args)) interpretation_args$n_emergency else dots$n_emergency
   if (is.null(n_emergency)) n_emergency <- 2
 
-  hide_low_loadings <- if (!is.null(interpretation_args)) interpretation_args$hide_low_loadings else dots$hide_low_loadings
+  hide_low_loadings <- if (!is.null(interpretation_args) && is.list(interpretation_args)) interpretation_args$hide_low_loadings else dots$hide_low_loadings
   if (is.null(hide_low_loadings)) hide_low_loadings <- FALSE
 
-  sort_loadings <- if (!is.null(interpretation_args)) interpretation_args$sort_loadings else dots$sort_loadings
+  sort_loadings <- if (!is.null(interpretation_args) && is.list(interpretation_args)) interpretation_args$sort_loadings else dots$sort_loadings
   if (is.null(sort_loadings)) sort_loadings <- TRUE
 
   # Initialize factor_cor_mat (will be extracted from fit_results if available)
@@ -264,7 +264,11 @@ build_fa_model_data_internal <- function(fit_results, variable_info, model_type 
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.list <- function(fit_results, variable_info, model_type = NULL, interpretation_args = NULL, ...) {
+build_model_data.list <- function(fit_results, model_type = NULL, interpretation_args = NULL, ...) {
+  # Extract parameters from ...
+  dots <- list(...)
+  variable_info <- dots$variable_info
+
   # For list input, determine model type and route
   if (is.null(model_type)) {
     cli::cli_abort(
@@ -277,10 +281,19 @@ build_model_data.list <- function(fit_results, variable_info, model_type = NULL,
 
   # Route to appropriate method based on model_type
   if (model_type == "fa") {
+    # Validate variable_info is provided (required for FA)
+    if (is.null(variable_info)) {
+      cli::cli_abort(
+        c(
+          "{.var variable_info} is required for factor analysis",
+          "i" = "Provide a data frame with 'variable' and 'description' columns"
+        )
+      )
+    }
     build_fa_model_data_internal(fit_results, variable_info, model_type, interpretation_args, ...)
   } else {
     # Call default which will error with helpful message
-    build_model_data.default(fit_results, variable_info, model_type, interpretation_args, ...)
+    build_model_data.default(fit_results, model_type, interpretation_args, ...)
   }
 }
 
@@ -288,7 +301,21 @@ build_model_data.list <- function(fit_results, variable_info, model_type = NULL,
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.matrix <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
+build_model_data.matrix <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+  # Extract parameters from ...
+  dots <- list(...)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for FA)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for factor analysis",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   # Matrix input - treat as FA loadings
   build_fa_model_data_internal(fit_results, variable_info, model_type, interpretation_args, ...)
 }
@@ -297,7 +324,21 @@ build_model_data.matrix <- function(fit_results, variable_info, model_type = "fa
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.data.frame <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
+build_model_data.data.frame <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+  # Extract parameters from ...
+  dots <- list(...)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for FA)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for factor analysis",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   # Data frame input - treat as FA loadings
   build_fa_model_data_internal(fit_results, variable_info, model_type, interpretation_args, ...)
 }
@@ -310,7 +351,21 @@ build_model_data.data.frame <- function(fit_results, variable_info, model_type =
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.psych <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
+build_model_data.psych <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+  # Extract parameters from ...
+  dots <- list(...)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for FA)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for factor analysis",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   # Validate model structure
   if (!inherits(fit_results, "psych")) {
     cli::cli_abort(
@@ -353,7 +408,21 @@ build_model_data.principal <- build_model_data.psych
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.lavaan <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
+build_model_data.lavaan <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+  # Extract parameters from ...
+  dots <- list(...)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for FA)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for factor analysis",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   # Validate model structure
   if (!inherits(fit_results, "lavaan")) {
     cli::cli_abort(
@@ -393,7 +462,21 @@ build_model_data.lavaan <- function(fit_results, variable_info, model_type = "fa
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.SingleGroupClass <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
+build_model_data.SingleGroupClass <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+  # Extract parameters from ...
+  dots <- list(...)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for FA)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for factor analysis",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   # Validate model structure
   if (!inherits(fit_results, "SingleGroupClass")) {
     cli::cli_abort(

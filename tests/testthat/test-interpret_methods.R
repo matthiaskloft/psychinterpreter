@@ -241,6 +241,7 @@ test_that("interpret validates input model for mirt", {
 # ==============================================================================
 
 test_that("interpret.fa end-to-end integration with psych::fa", {
+  skip_on_ci()
   skip_if_not_installed("psych")
   skip_if_no_llm()
 
@@ -273,6 +274,7 @@ test_that("interpret.fa end-to-end integration with psych::fa", {
 })
 
 test_that("interpret.principal end-to-end integration with psych::principal", {
+  skip_on_ci()
   skip_if_not_installed("psych")
   skip_if_no_llm()
 
@@ -302,6 +304,7 @@ test_that("interpret.principal end-to-end integration with psych::principal", {
 })
 
 test_that("interpret.lavaan end-to-end integration with CFA", {
+  skip_on_ci()
   skip_if_not_installed("lavaan")
   skip_if_no_llm()
 
@@ -333,6 +336,7 @@ test_that("interpret.lavaan end-to-end integration with CFA", {
 })
 
 test_that("interpret.SingleGroupClass end-to-end integration with mirt", {
+  skip_on_ci()
   skip_if_not_installed("mirt")
   skip_if_no_llm()
 

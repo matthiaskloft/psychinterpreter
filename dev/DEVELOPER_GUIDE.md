@@ -17,6 +17,39 @@
 
 ---
 
+## Glossary
+
+### Key Terminology
+
+**Model Type**
+- String identifier used internally to route to appropriate S3 methods
+- Valid values: `"fa"`, `"gm"`, `"irt"`, `"cdm"`
+- Examples: `model_type = "fa"`, `interpretation_args(model_type = "fa")`
+- Used in: Function parameters, configuration objects, S3 method dispatch
+
+**Model Class**
+- R object class of fitted model objects from external packages
+- Examples: `"fa"` (psych), `"psych"` (psych), `"principal"` (psych), `"lavaan"` (lavaan), `"SingleGroupClass"` (mirt), `"Mclust"` (mclust)
+- Used in: S3 method dispatch for `build_model_data.{class}()`
+- Note: Multiple model classes can map to the same model type (e.g., psych, lavaan, mirt all map to "fa")
+
+**Interpretation Args**
+- Configuration object created by `interpretation_args(model_type, ...)`
+- Contains model-specific settings (e.g., cutoff, n_emergency for FA)
+- Replaces deprecated `fa_args()` from Phase 3 refactoring
+
+**Core Methods**
+- The 8 required S3 methods that every model type must implement
+- Essential for interpretation workflow to function
+- See section 1.3 for complete list
+
+**Optional Methods**
+- Additional S3 methods that enhance functionality but aren't required
+- Currently: `export_interpretation()` and `plot()`
+- Recommended to implement for complete feature parity
+
+---
+
 # 1. Package Architecture
 
 ## 1.1 Design Principles
@@ -26,7 +59,7 @@
    - Model-specific behavior via S3 methods
 
 2. **Extensibility**
-   - Adding new model types requires 7 S3 methods
+   - Adding new model types requires 8 S3 methods
    - No changes to core infrastructure needed
 
 3. **Token Efficiency**
@@ -90,18 +123,24 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 | `shared_utils.R` | ~156 | Validation, routing, helper functions |
 | `shared_text.R` | ~107 | Text wrapping, word counting utilities |
 
-### Factor Analysis Implementation (6 files)
+### Factor Analysis Implementation (7 files, 10 methods)
 
 **Purpose**: FA-specific S3 method implementations
 
+**Core Methods (8 required)**:
 | File | Lines | Purpose |
 |------|-------|---------|
-| `fa_model_data.R` | ~436 | S3 methods: `build_model_data.{fa,psych,principal,lavaan,SingleGroupClass}` |
-| `fa_prompt_builder.R` | ~341 | S3 methods: `build_system_prompt.fa()`, `build_main_prompt.fa()` |
-| `fa_json.R` | ~232 | S3 methods: `validate_parsed_result.fa()`, `extract_by_pattern.fa()`, `create_default_result.fa()` |
-| `fa_diagnostics.R` | ~199 | S3 method: `create_diagnostics.fa()` with `find_cross_loadings()`, `find_no_loadings()` |
-| `fa_report.R` | ~838 | S3 method: `build_report.fa_interpretation()` with modular section builders |
-| `fa_visualization.R` | ~253 | S3 method: `plot.fa_interpretation()`, `create_factor_plot()` wrapper |
+| `fa_model_data.R` | ~627 | S3 methods: `build_model_data.{fa,psych,principal,lavaan,SingleGroupClass}` |
+| `fa_prompt_builder.R` | ~356 | S3 methods: `build_system_prompt.fa()`, `build_main_prompt.fa()` |
+| `fa_json.R` | ~225 | S3 methods: `validate_parsed_result.fa()`, `extract_by_pattern.fa()`, `create_default_result.fa()` |
+| `fa_diagnostics.R` | ~197 | S3 method: `create_diagnostics.fa()` with `find_cross_loadings()`, `find_no_loadings()` |
+| `fa_report.R` | ~1084 | S3 method: `build_report.fa_interpretation()` with modular section builders |
+
+**Additional Methods (2 optional but recommended)**:
+| File | Lines | Purpose |
+|------|-------|---------|
+| `fa_export.R` | ~136 | S3 method: `export_interpretation.fa_interpretation()` with format conversion |
+| `fa_visualization.R` | ~266 | S3 method: `plot.fa_interpretation()`, `create_factor_plot()` wrapper |
 
 ### Future Model Types (Planned)
 
@@ -135,7 +174,7 @@ Each model type (FA, GM, IRT, CDM) must implement these 8 methods:
 
 ### Current Implementations
 
-- **Factor Analysis (FA)**: All 7 methods implemented ✓
+- **Factor Analysis (FA)**: All 8 methods implemented ✓
 - **Gaussian Mixture (GM)**: Not implemented
 - **Item Response Theory (IRT)**: Not implemented
 - **Cognitive Diagnosis Models (CDM)**: Not implemented
@@ -405,7 +444,7 @@ The package implements a **dual-tier token tracking system** to accurately monit
 delta = tokens_after - tokens_before  # May be negative if system prompt was cached!
 ```
 
-## 2.4 The Solution: chat_local + max(0, delta) Protection
+## 2.4 The Solution: chat_local + normalize_token_count() Helper
 
 The implementation uses a `chat_local` variable consistently throughout `core_interpret.R` to properly isolate token tracking for each interpretation:
 
@@ -434,30 +473,23 @@ response <- chat_local$chat(user_prompt, system_prompt)
 # 3. Capture after LLM call (WITH system prompt for delta)
 tokens_after <- chat_local$get_tokens(include_system_prompt = TRUE)
 
-# 4. Calculate delta with max(0, ...) protection
-delta_input <- max(0, tokens_after$input - tokens_before$input)
-delta_output <- max(0, tokens_after$output - tokens_before$output)
+# 4. Calculate delta with normalize_token_count() helper
+# Normalizes to non-negative numeric scalars, handling NULL/NA/empty values
+delta_input <- normalize_token_count(tokens_after$input - tokens_before$input)
+delta_output <- normalize_token_count(tokens_after$output - tokens_before$output)
 
-# 5. Defensive token validation (ensures numeric scalars)
-if (is.null(delta_input) || length(delta_input) == 0 || !is.numeric(delta_input)) {
-  delta_input <- 0.0
-}
-if (is.null(delta_output) || length(delta_output) == 0 || !is.numeric(delta_output)) {
-  delta_output <- 0.0
-}
-
-# 6. Update cumulative counters (only if using persistent chat_session)
+# 5. Update cumulative counters (only if using persistent chat_session)
 if (!is.null(chat_session)) {
   chat_session$total_input_tokens <- chat_session$total_input_tokens + delta_input
   chat_session$total_output_tokens <- chat_session$total_output_tokens + delta_output
 }
 
-# 7. Per-run reporting (CONDITIONAL system prompt inclusion)
+# 6. Per-run reporting (CONDITIONAL system prompt inclusion)
 # - Temporary session: Include system prompt (it's part of THIS run)
 # - Persistent session: Exclude system prompt (sent previously)
 tokens_per_message <- chat_local$get_tokens(include_system_prompt = is.null(chat_session))
 
-# 8. Fallback if per-message extraction fails
+# 7. Fallback if per-message extraction fails
 if (run_input_tokens == 0 && delta_input > 0) {
   run_input_tokens <- delta_input
 }
@@ -468,11 +500,11 @@ if (run_output_tokens == 0 && delta_output > 0) {
 
 ## 2.5 Code Locations
 
-- **base_chat_session.R**: Token tracking initialization, storage, print method
+- **class_chat_session.R**: Token tracking initialization, storage, print method
 - **core_interpret.R** (lines 172-260): Full token tracking implementation
   - `chat_local` variable creation
   - Token capture before/after LLM call
-  - Delta calculation with `max(0, ...)` protection
+  - Delta calculation with `normalize_token_count()` helper
   - Defensive validation for NULL/empty values
   - Per-message token extraction with conditional system prompt
   - Fallback to delta if per-message extraction fails
@@ -746,14 +778,14 @@ Detailed explanation:
 
 | Metric | Count |
 |--------|-------|
-| **Active R Files** | 19 |
+| **Active R Files** | 20 |
 | **Archived R Files** | 8 |
-| **Total R Code** | ~6,200 lines |
-| **Core Infrastructure** | ~1,555 lines (25%) |
-| **FA Implementation** | ~2,526 lines (41%) |
-| **Shared Utilities** | ~2,113 lines (34%) |
-| **Test Files** | 8 |
-| **Total Tests** | 90+ tests |
+| **Total R Code** | ~6,437 lines |
+| **Core Infrastructure** | ~2,257 lines (35%) |
+| **FA Implementation** | ~2,891 lines (45%) |
+| **Shared Utilities** | ~1,289 lines (20%) |
+| **Test Files** | 9 |
+| **Total Tests** | 115+ tests |
 | **Exported Functions** | 24 |
 | **Exported S3 Methods** | 33 |
 

@@ -14,7 +14,6 @@
 \usage{
 \method{build_model_data}{list}(
   fit_results,
-  variable_info,
   model_type = NULL,
   interpretation_args = NULL,
   ...
@@ -22,7 +21,6 @@
 
 \method{build_model_data}{matrix}(
   fit_results,
-  variable_info,
   model_type = "fa",
   interpretation_args = NULL,
   ...
@@ -30,7 +28,6 @@
 
 \method{build_model_data}{data.frame}(
   fit_results,
-  variable_info,
   model_type = "fa",
   interpretation_args = NULL,
   ...
@@ -38,7 +35,6 @@
 
 \method{build_model_data}{psych}(
   fit_results,
-  variable_info,
   model_type = "fa",
   interpretation_args = NULL,
   ...
@@ -46,7 +42,6 @@
 
 \method{build_model_data}{fa}(
   fit_results,
-  variable_info,
   model_type = "fa",
   interpretation_args = NULL,
   ...
@@ -54,7 +49,6 @@
 
 \method{build_model_data}{principal}(
   fit_results,
-  variable_info,
   model_type = "fa",
   interpretation_args = NULL,
   ...
@@ -62,7 +56,6 @@
 
 \method{build_model_data}{lavaan}(
   fit_results,
-  variable_info,
   model_type = "fa",
   interpretation_args = NULL,
   ...
@@ -70,7 +63,6 @@
 
 \method{build_model_data}{SingleGroupClass}(
   fit_results,
-  variable_info,
   model_type = "fa",
   interpretation_args = NULL,
   ...
@@ -78,7 +70,6 @@
 
 build_model_data(
   fit_results,
-  variable_info,
   model_type = NULL,
   interpretation_args = NULL,
   ...
@@ -87,13 +78,12 @@ build_model_data(
 \arguments{
 \item{fit_results}{Fitted model object (e.g., psych::fa, lavaan::cfa, list with loadings)}
 
-\item{variable_info}{Data frame with variable names and descriptions}
-
 \item{model_type}{Character. Model type ("fa", "gm", "irt", "cdm"). Required for list inputs.}
 
 \item{interpretation_args}{Interpretation configuration object from interpretation_args() or NULL}
 
-\item{...}{Additional arguments passed to model-specific methods}
+\item{...}{Additional arguments passed to model-specific methods, including variable_info
+(data frame with 'variable' and 'description' columns, required for FA)}
 }
 \value{
 List containing standardized model data:

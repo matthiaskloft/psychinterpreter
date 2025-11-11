@@ -6,7 +6,6 @@
 \usage{
 interpret(
   fit_results = NULL,
-  variable_info = NULL,
   chat_session = NULL,
   model_type = NULL,
   provider = NULL,
@@ -36,8 +35,6 @@ interpret(
 }
 }}
 
-\item{variable_info}{Dataframe with 'variable' and 'description' columns describing the variables.}
-
 \item{chat_session}{Optional. A chat_session object created with \code{\link{chat_session}}
 for token-efficient multi-analysis workflows (default = NULL).}
 
@@ -55,15 +52,18 @@ If NULL, uses provider default. Top-level convenience parameter (default = NULL)
 interpretation_guidelines, additional_info, echo. If provider/model are provided at top-level,
 they override values in llm_args (default = NULL).}
 
+\item{interpretation_args}{List or interpretation_args object. Model-specific interpretation configuration.
+Can be created with \code{\link{interpretation_args}} or passed as a plain list. Contents vary by model type.
+For FA: cutoff, n_emergency, hide_low_loadings, sort_loadings, factor_cor_mat (default = NULL).}
+
 \item{output_args}{List or output_args object. Output configuration settings. Can be created with
 \code{\link{output_args}} or passed as a plain list. Contains: format, heading_level,
 suppress_heading, max_line_length, silent (default = NULL).}
 
-\item{...}{Additional arguments passed to model-specific methods.}
-
-\item{fa_args}{List or fa_args object. Factor analysis configuration settings. Can be created with
-\code{\link{fa_args}} or passed as a plain list. Contains: cutoff, n_emergency, hide_low_loadings,
-sort_loadings, factor_cor_mat (default = NULL).}
+\item{...}{Additional arguments passed to model-specific methods. Model-specific methods may require:
+\itemize{
+\item \code{variable_info}: Data frame with 'variable' and 'description' columns (required for FA)
+}}
 }
 \value{
 Model-specific interpretation object:
@@ -121,6 +121,38 @@ chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20
 result1 <- interpret(chat_session = chat, fit_results = model1, variable_info = var_info1)
 result2 <- interpret(chat_session = chat, fit_results = model2, variable_info = var_info2)
 }
+
+\strong{Pattern 4: Configuration Objects (Advanced)}
+
+Use configuration objects for reusable settings and cleaner code.
+
+\preformatted{
+# Create configuration objects
+interp_config <- interpretation_args(model_type = "fa", cutoff = 0.4, n_emergency = 2)
+llm_config <- llm_args(word_limit = 100, additional_info = "Study context")
+output_config <- output_args(output_format = "markdown", silent = 1)
+
+# Use in interpret() call
+interpret(
+  fit_results = fa_model,
+  variable_info = var_info,
+  interpretation_args = interp_config,
+  llm_args = llm_config,
+  output_args = output_config,
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
+)
+
+# Or mix config objects with direct parameters (direct parameters override)
+interpret(
+  fit_results = fa_model,
+  variable_info = var_info,
+  interpretation_args = interp_config,
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud",
+  word_limit = 150  # Overrides llm_config if it were provided
+)
+}
 }
 
 \subsection{Supported Model Types}{
@@ -135,7 +167,7 @@ result2 <- interpret(chat_session = chat, fit_results = model2, variable_info = 
 \note{
 While only \code{provider} and \code{model} are exposed as top-level parameters for convenience,
 the dual interface pattern allows any argument to be passed either directly or through the respective
-configuration object (\code{llm_args}, \code{fa_args}, \code{output_args}). This keeps the primary
+configuration object (\code{llm_args}, \code{interpretation_args}, \code{output_args}). This keeps the primary
 signature clean while maintaining flexibility
 }
 \examples{

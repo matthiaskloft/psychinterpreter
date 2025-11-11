@@ -30,13 +30,13 @@ build_system_prompt <- function(model_type, word_limit, ...) {
 #'
 #' @param model_type An object with class corresponding to the model type ("fa", "gm", "irt", "cdm")
 #' @param model_data List. Model-specific data (loadings, parameters, etc.)
-#' @param variable_info Data frame. Variable descriptions
-#' @param ... Additional arguments passed to model-specific methods
+#' @param ... Additional arguments passed to model-specific methods, including variable_info
+#'   (data frame with 'variable' and 'description' columns, required for FA)
 #'
 #' @return Character. User prompt text
 #' @export
 #' @keywords internal
-build_main_prompt <- function(model_type, model_data, variable_info, ...) {
+build_main_prompt <- function(model_type, model_data, ...) {
   UseMethod("build_main_prompt")
 }
 
@@ -65,7 +65,7 @@ build_system_prompt.default <- function(model_type, word_limit, ...) {
 #'
 #' @export
 #' @keywords internal
-build_main_prompt.default <- function(model_type, model_data, variable_info, ...) {
+build_main_prompt.default <- function(model_type, model_data, ...) {
   # Get the class name
   model_class <- if (is.character(model_type)) {
     model_type

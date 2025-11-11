@@ -4,7 +4,7 @@
 \alias{create_diagnostics.default}
 \title{Default method for create_diagnostics}
 \usage{
-\method{create_diagnostics}{default}(model_type, model_data, variable_info, ...)
+\method{create_diagnostics}{default}(model_type, model_data, ...)
 }
 \description{
 Default method for create_diagnostics

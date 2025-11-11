@@ -14,7 +14,7 @@
 )
 }
 \arguments{
-\item{x}{fa_interpretation object from interpret_fa()}
+\item{x}{fa_interpretation object from interpret()}
 
 \item{max_line_length}{Integer. Maximum line length for text wrapping (default = 80).
 Lines longer than this will be wrapped at word boundaries while preserving
@@ -43,7 +43,12 @@ reports in different formats (text or markdown) with customizable heading levels
 \examples{
 \dontrun{
 # Get interpretation results
-results <- interpret_fa(loadings, variable_info, silent = TRUE)
+results <- interpret(
+  fit_results = fa_result,
+  variable_info = var_info,
+  provider = "ollama",
+  model = "gpt-oss:20b-cloud"
+)
 
 # Print with default format (uses stored report)
 print(results)
