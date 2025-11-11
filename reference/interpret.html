@@ -60,13 +60,12 @@ for efficient multi-analysis workflows.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">interpret</span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  variable_info <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  chat_session <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  model_type <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  provider <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  model <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  llm_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fa_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  interpretation_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -88,10 +87,6 @@ for efficient multi-analysis workflows.</p>
 <li><p>For CDM: Not yet implemented</p></li>
 </ul></li>
 </ul></dd>
-
-
-<dt id="arg-variable-info">variable_info<a class="anchor" aria-label="anchor" href="#arg-variable-info"></a></dt>
-<dd><p>Dataframe with 'variable' and 'description' columns describing the variables.</p></dd>
 
 
 <dt id="arg-chat-session">chat_session<a class="anchor" aria-label="anchor" href="#arg-chat-session"></a></dt>
@@ -121,10 +116,10 @@ interpretation_guidelines, additional_info, echo. If provider/model are provided
 they override values in llm_args (default = NULL).</p></dd>
 
 
-<dt id="arg-fa-args">fa_args<a class="anchor" aria-label="anchor" href="#arg-fa-args"></a></dt>
-<dd><p>List or fa_args object. Factor analysis configuration settings. Can be created with
-<code><a href="fa_args.html">fa_args</a></code> or passed as a plain list. Contains: cutoff, n_emergency, hide_low_loadings,
-sort_loadings, factor_cor_mat (default = NULL).</p></dd>
+<dt id="arg-interpretation-args">interpretation_args<a class="anchor" aria-label="anchor" href="#arg-interpretation-args"></a></dt>
+<dd><p>List or interpretation_args object. Model-specific interpretation configuration.
+Can be created with <code><a href="interpretation_args.html">interpretation_args</a></code> or passed as a plain list. Contents vary by model type.
+For FA: cutoff, n_emergency, hide_low_loadings, sort_loadings, factor_cor_mat (default = NULL).</p></dd>
 
 
 <dt id="arg-output-args">output_args<a class="anchor" aria-label="anchor" href="#arg-output-args"></a></dt>
@@ -134,7 +129,8 @@ suppress_heading, max_line_length, silent (default = NULL).</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments passed to model-specific methods.</p></dd>
+<dd><p>Additional arguments passed to model-specific methods. Model-specific methods may require:</p><ul><li><p><code>variable_info</code>: Data frame with 'variable' and 'description' columns (required for FA)</p></li>
+</ul></dd>
 
 </dl></div>
     <div class="section level2">
@@ -195,7 +191,7 @@ you're using based on which arguments are provided.</p><div class="section">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
     <p>While only <code>provider</code> and <code>model</code> are exposed as top-level parameters for convenience,
 the dual interface pattern allows any argument to be passed either directly or through the respective
-configuration object (<code>llm_args</code>, <code>fa_args</code>, <code>output_args</code>). This keeps the primary
+configuration object (<code>llm_args</code>, <code>interpretation_args</code>, <code>output_args</code>). This keeps the primary
 signature clean while maintaining flexibility</p>
     </div>
     <div class="section level2">

@@ -31,13 +31,13 @@
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/create_diagnostics.fa.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/create_diagnostics.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/create_factor_plot.html</loc></url>
-<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/default_fa_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/default_output_args.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/export_interpretation.default.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/export_interpretation.fa_interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/export_interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/extract_by_pattern.default.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/extract_by_pattern.fa.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/extract_by_pattern.html</loc></url>
-<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/fa_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/fa_json.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/fa_prompts.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/find_cross_loadings.html</loc></url>
@@ -46,8 +46,8 @@
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/index.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/interpret.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/interpretation.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/interpretation_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/interpret_core.html</loc></url>
-<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/interpret_model.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/is.chat_session.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/is.interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/json_parser.html</loc></url>
@@ -59,9 +59,9 @@
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/plot.fa_interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/plot.interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.chat_session.html</loc></url>
-<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.fa_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.fa_interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.interpretation.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.interpretation_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.llm_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.output_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/prompt_builder.html</loc></url>

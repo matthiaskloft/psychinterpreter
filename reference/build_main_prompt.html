@@ -55,7 +55,7 @@ for a specific model type.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">build_main_prompt</span><span class="op">(</span><span class="va">model_type</span>, <span class="va">model_data</span>, <span class="va">variable_info</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">build_main_prompt</span><span class="op">(</span><span class="va">model_type</span>, <span class="va">model_data</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -70,12 +70,9 @@ for a specific model type.</p>
 <dd><p>List. Model-specific data (loadings, parameters, etc.)</p></dd>
 
 
-<dt id="arg-variable-info">variable_info<a class="anchor" aria-label="anchor" href="#arg-variable-info"></a></dt>
-<dd><p>Data frame. Variable descriptions</p></dd>
-
-
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments passed to model-specific methods</p></dd>
+<dd><p>Additional arguments passed to model-specific methods, including variable_info
+(data frame with 'variable' and 'description' columns, required for FA)</p></dd>
 
 </dl></div>
     <div class="section level2">

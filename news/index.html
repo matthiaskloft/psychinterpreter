@@ -46,107 +46,44 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="psychinterpreter-development-version">psychinterpreter (development version)<a class="anchor" aria-label="anchor" href="#psychinterpreter-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0" id="psychinterpreter-010">psychinterpreter 0.1.0<a class="anchor" aria-label="anchor" href="#psychinterpreter-010"></a></h2>
+<p>Initial release of psychinterpreter - automated interpretation of exploratory factor analysis using Large Language Models.</p>
 <div class="section level3">
-<h3 id="new-features-development-version">New Features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
-<div class="section level4">
-<h4 id="core-functionality-development-version">Core Functionality<a class="anchor" aria-label="anchor" href="#core-functionality-development-version"></a></h4>
-<ul><li>Added <code><a href="https://github.com/matthiaskloft/psychinterpreter/reference/interpret_fa.html">interpret_fa()</a></code> for LLM-powered factor analysis interpretation</li>
-<li>Implemented <code>chat_fa()</code> for persistent chat sessions to reduce token costs</li>
-<li>Added <code>is.chat_fa()</code> and <code>reset.chat_fa()</code> for session management</li>
+<h3 id="core-features-0-1-0">Core Features<a class="anchor" aria-label="anchor" href="#core-features-0-1-0"></a></h3>
+<ul><li>
+<strong>Universal interpretation interface</strong>: <code><a href="../reference/interpret.html">interpret()</a></code> function with S3 dispatch system</li>
+<li>
+<strong>Token-efficient sessions</strong>: <code><a href="../reference/chat_session.html">chat_session()</a></code> saves ~40-60% tokens for multiple analyses</li>
+<li>
+<strong>Flexible input handling</strong>: Supports <code><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">psych::fa()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">lavaan::efa()</a></code>, <code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt::mirt()</a></code>, and custom data structures</li>
+<li>
+<strong>Color-blind friendly visualizations</strong>: <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method with Okabe-Ito palette</li>
+<li>
+<strong>Export functionality</strong>: Save interpretations as text or markdown files</li>
+<li>
+<strong>Diagnostic utilities</strong>: <code><a href="../reference/find_cross_loadings.html">find_cross_loadings()</a></code> and <code><a href="../reference/find_no_loadings.html">find_no_loadings()</a></code>
+</li>
 </ul></div>
-<div class="section level4">
-<h4 id="visualization-development-version">Visualization<a class="anchor" aria-label="anchor" href="#visualization-development-version"></a></h4>
-<ul><li>Implemented <code><a href="../reference/plot.fa_interpretation.html">plot.fa_interpretation()</a></code> S3 method for factor loading heatmaps</li>
-<li>Added <code><a href="../reference/create_factor_plot.html">create_factor_plot()</a></code> as backward-compatible wrapper</li>
-<li>Plots now use LLM-generated suggested factor names automatically</li>
-</ul></div>
-<div class="section level4">
-<h4 id="export--utilities-development-version">Export &amp; Utilities<a class="anchor" aria-label="anchor" href="#export--utilities-development-version"></a></h4>
-<ul><li>Added <code><a href="../reference/export_interpretation.html">export_interpretation()</a></code> supporting txt and md formats</li>
-<li>Implemented <code><a href="../reference/find_cross_loadings.html">find_cross_loadings()</a></code> to detect variables with multiple significant loadings</li>
-<li>Implemented <code><a href="../reference/find_no_loadings.html">find_no_loadings()</a></code> to detect orphaned variables</li>
-</ul></div>
-<div class="section level4">
-<h4 id="print-methods-development-version">Print Methods<a class="anchor" aria-label="anchor" href="#print-methods-development-version"></a></h4>
-<ul><li>Added <code><a href="../reference/print.fa_interpretation.html">print.fa_interpretation()</a></code> for formatted console output</li>
-<li>Added <code>print.chat_fa()</code> to display session information and token usage</li>
-</ul></div>
+<div class="section level3">
+<h3 id="llm-provider-support-0-1-0">LLM Provider Support<a class="anchor" aria-label="anchor" href="#llm-provider-support-0-1-0"></a></h3>
+<p>All providers supported by the <code>ellmer</code> package, including OpenAI, Anthropic, Ollama, Google Gemini, and Azure OpenAI.</p>
 </div>
 <div class="section level3">
-<h3 id="improvements-development-version">Improvements<a class="anchor" aria-label="anchor" href="#improvements-development-version"></a></h3>
-<div class="section level4">
-<h4 id="token-tracking-development-version">Token Tracking<a class="anchor" aria-label="anchor" href="#token-tracking-development-version"></a></h4>
-<ul><li>Implemented dual-tier token tracking system using separate <code>get_tokens()</code> calls:
-<ul><li>Per-run tokens: Uses <code>include_system_prompt = FALSE</code> to extract actual message content (accurate for all providers)</li>
-<li>Cumulative tokens: Uses <code>include_system_prompt = TRUE</code> with safe delta calculation (prevents negative accumulation)</li>
-</ul></li>
-<li>Fixed issue where input tokens showed as 0 with Ollama provider</li>
-<li>Fixed issue where system prompt was incorrectly included in per-run token counts</li>
-<li>Added token usage display in reports and session summaries</li>
-<li>See <code>dev/token_tracking_fix_v3.md</code> for implementation details</li>
-</ul></div>
-<div class="section level4">
-<h4 id="chat-session-management-development-version">Chat Session Management<a class="anchor" aria-label="anchor" href="#chat-session-management-development-version"></a></h4>
-<ul><li>Converted <code>chat_fa</code> objects to use environment-based storage for reference semantics</li>
-<li>Counter increments (<code>n_interpretations</code>) now persist correctly across function calls</li>
-<li>Added cumulative token tracking fields (<code>total_input_tokens</code>, <code>total_output_tokens</code>)</li>
-</ul></div>
-<div class="section level4">
-<h4 id="documentation-development-version">Documentation<a class="anchor" aria-label="anchor" href="#documentation-development-version"></a></h4>
-<ul><li>Added comprehensive roxygen2 documentation for all exported functions</li>
-<li>Created getting started vignette (<code>vignettes/articles/01-Basic_Usage.qmd</code>)</li>
-<li>Added CLAUDE.md with detailed developer guidance</li>
-</ul></div>
-<div class="section level4">
-<h4 id="user-messaging-development-version">User Messaging<a class="anchor" aria-label="anchor" href="#user-messaging-development-version"></a></h4>
-<ul><li>Changed word limit exceedance notification from <code>cli_warn()</code> to <code>cli_inform()</code> (less intrusive for testing and automated workflows)</li>
-<li>Improved messaging clarity with structured format showing expected vs. actual word counts</li>
-</ul></div>
-<div class="section level4">
-<h4 id="package-infrastructure-development-version">Package Infrastructure<a class="anchor" aria-label="anchor" href="#package-infrastructure-development-version"></a></h4>
-<ul><li>Added VignetteBuilder configuration for pkgdown</li>
-<li>Set up _pkgdown.yml for website deployment</li>
-<li>Updated README with installation instructions, examples, and feature highlights</li>
-<li>Configured .Rbuildignore to exclude development files and build artifacts</li>
-</ul></div>
-</div>
-<div class="section level3">
-<h3 id="bug-fixes-development-version">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
-<ul><li>Fixed negative token counts with providers that cache system prompts (e.g., Ollama)</li>
-<li>Fixed <code>n_interpretations</code> counter not persisting across <code><a href="https://github.com/matthiaskloft/psychinterpreter/reference/interpret_fa.html">interpret_fa()</a></code> calls</li>
-<li>Fixed vignette configuration warnings in R CMD check</li>
-<li>Fixed plot to use suggested factor names instead of generic “Factor 1”, “Factor 2”, etc.</li>
+<h3 id="technical-highlights-0-1-0">Technical Highlights<a class="anchor" aria-label="anchor" href="#technical-highlights-0-1-0"></a></h3>
+<ul><li>S3 generic architecture: <code><a href="../reference/interpret.html">interpret()</a></code> → <code><a href="../reference/interpret_core.html">interpret_core()</a></code> → <code><a href="../reference/build_model_data.html">build_model_data.fa()</a></code>
+</li>
+<li>Dual-tier token tracking (per-run and cumulative)</li>
+<li>Environment-based session storage for proper reference semantics</li>
+<li>Multi-tier JSON parsing with automatic fallback handling</li>
+<li>Comprehensive test suite (169 tests)</li>
 </ul></div>
 <div class="section level3">
-<h3 id="technical-details-development-version">Technical Details<a class="anchor" aria-label="anchor" href="#technical-details-development-version"></a></h3>
-<div class="section level4">
-<h4 id="dependencies-development-version">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies-development-version"></a></h4>
-<ul><li>Requires R &gt;= 4.1.0</li>
-<li>Core dependencies: ellmer, dplyr, tidyr, cli, jsonlite</li>
-<li>Optional: ggplot2 (visualization), testthat (testing), knitr, rmarkdown (vignettes)</li>
-</ul></div>
-<div class="section level4">
-<h4 id="supported-llm-providers-development-version">Supported LLM Providers<a class="anchor" aria-label="anchor" href="#supported-llm-providers-development-version"></a></h4>
-<ul><li>OpenAI (GPT models)</li>
-<li>Anthropic (Claude models)</li>
-<li>Ollama (local models)</li>
-<li>Google Gemini</li>
-<li>Azure OpenAI</li>
+<h3 id="documentation-0-1-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-1-0"></a></h3>
+<ul><li>Getting started vignette</li>
+<li>Developer guide with architecture details</li>
+<li>Testing guidelines and templates for future model types</li>
 </ul></div>
 </div>
-<div class="section level3">
-<h3 id="known-issues-development-version">Known Issues<a class="anchor" aria-label="anchor" href="#known-issues-development-version"></a></h3>
-<ul><li>Cumulative input token counts may be approximate with providers that cache system prompts (Ollama)</li>
-<li>Per-run tokens (<code>results$run_tokens</code>) provide accurate counts for all providers</li>
-</ul><hr></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.0.0.9000" id="psychinterpreter-0009000">psychinterpreter 0.0.0.9000<a class="anchor" aria-label="anchor" href="#psychinterpreter-0009000"></a></h2>
-<ul><li>Initial development version</li>
-<li>Package structure initialized</li>
-<li>Basic functionality implemented</li>
-</ul></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

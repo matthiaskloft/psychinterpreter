@@ -6,8 +6,10 @@
     }
   };
 </script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Build User Prompt for Factor Analysis — build_main_prompt.fa"><meta name="description" content="Constructs the complete user prompt containing factor loadings, variable
-descriptions, and interpretation instructions."><meta property="og:description" content="Constructs the complete user prompt containing factor loadings, variable
-descriptions, and interpretation instructions."></head><body>
+descriptions, and interpretation instructions. All FA-specific parameters
+are extracted from model_data."><meta property="og:description" content="Constructs the complete user prompt containing factor loadings, variable
+descriptions, and interpretation instructions. All FA-specific parameters
+are extracted from model_data."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -50,7 +52,8 @@ descriptions, and interpretation instructions."></head><body>
 
     <div class="ref-description section level2">
     <p>Constructs the complete user prompt containing factor loadings, variable
-descriptions, and interpretation instructions.</p>
+descriptions, and interpretation instructions. All FA-specific parameters
+are extracted from model_data.</p>
     </div>
 
     <div class="section level2">
@@ -59,14 +62,8 @@ descriptions, and interpretation instructions.</p>
 <span><span class="fu"><a href="build_main_prompt.html">build_main_prompt</a></span><span class="op">(</span></span>
 <span>  <span class="va">model_type</span>,</span>
 <span>  <span class="va">model_data</span>,</span>
-<span>  <span class="va">variable_info</span>,</span>
-<span>  <span class="va">cutoff</span>,</span>
 <span>  <span class="va">word_limit</span>,</span>
-<span>  n_emergency <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  hide_low_loadings <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  additional_info <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  interpretation_guidelines <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  factor_cor_mat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -85,43 +82,24 @@ descriptions, and interpretation instructions.</p>
 <li><p>factor_cols: Character vector of factor column names</p></li>
 <li><p>n_factors: Number of factors</p></li>
 <li><p>n_variables: Number of variables</p></li>
+<li><p>cutoff: Loading cutoff threshold</p></li>
+<li><p>n_emergency: Number of top loadings to use if none exceed cutoff</p></li>
+<li><p>hide_low_loadings: Whether to hide loadings below cutoff</p></li>
+<li><p>factor_cor_mat: Factor correlation matrix (optional)</p></li>
 </ul></dd>
-
-
-<dt id="arg-variable-info">variable_info<a class="anchor" aria-label="anchor" href="#arg-variable-info"></a></dt>
-<dd><p>Data frame with 'variable' and 'description' columns</p></dd>
-
-
-<dt id="arg-cutoff">cutoff<a class="anchor" aria-label="anchor" href="#arg-cutoff"></a></dt>
-<dd><p>Numeric. Loading cutoff threshold</p></dd>
 
 
 <dt id="arg-word-limit">word_limit<a class="anchor" aria-label="anchor" href="#arg-word-limit"></a></dt>
 <dd><p>Integer. Word limit for interpretations</p></dd>
 
 
-<dt id="arg-n-emergency">n_emergency<a class="anchor" aria-label="anchor" href="#arg-n-emergency"></a></dt>
-<dd><p>Integer. Number of top loadings to use if none exceed cutoff</p></dd>
-
-
-<dt id="arg-hide-low-loadings">hide_low_loadings<a class="anchor" aria-label="anchor" href="#arg-hide-low-loadings"></a></dt>
-<dd><p>Logical. Whether to hide loadings below cutoff</p></dd>
-
-
 <dt id="arg-additional-info">additional_info<a class="anchor" aria-label="anchor" href="#arg-additional-info"></a></dt>
 <dd><p>Character or NULL. Additional context</p></dd>
 
 
-<dt id="arg-interpretation-guidelines">interpretation_guidelines<a class="anchor" aria-label="anchor" href="#arg-interpretation-guidelines"></a></dt>
-<dd><p>Character or NULL. Custom interpretation guidelines</p></dd>
-
-
-<dt id="arg-factor-cor-mat">factor_cor_mat<a class="anchor" aria-label="anchor" href="#arg-factor-cor-mat"></a></dt>
-<dd><p>Matrix or NULL. Factor correlation matrix</p></dd>
-
-
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments (unused)</p></dd>
+<dd><p>Additional arguments passed from generic, including variable_info
+(data frame with 'variable' and 'description' columns, required for FA)</p></dd>
 
 </dl></div>
     <div class="section level2">

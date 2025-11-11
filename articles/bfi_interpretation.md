@@ -3,18 +3,15 @@
 **Number of factors:** 5  
 **Loading cutoff:** 0.3  
 **LLM used:** ollama - gpt-oss:20b-cloud  
-**Tokens:**  
-  Input: 1780  
-  Output: 4887  
-**Elapsed time:** 21  
+**Elapsed time:** 20.6  
 
 ## Suggested Factor Names
 
-- **Factor 1 (9.6%):** *Negative Emotionality*
-- **Factor 2 (7.7%):** *Warmhearted Sociality*
-- **Factor 3 (7.4%):** *Introverted Withdrawal*
-- **Factor 4 (7.7%):** *Conscientious Precision*
-- **Factor 5 (6.3%):** *Intellectual Curiosity*
+- **Factor 1 (9.6%):** *Emotional Instability*
+- **Factor 2 (7.7%):** *Empathic Compassion*
+- **Factor 3 (7.4%):** *Introversion*
+- **Factor 4 (7.7%):** *Conscientiousness*
+- **Factor 5 (6.3%):** *Openness to Experience*
 
 **Total variance explained by all factors: 38.7%**
 
@@ -33,7 +30,7 @@
 
 ## Detailed Factor Interpretations
 
-### Factor 1 (ML2): Negative Emotionality
+### Factor 1 (ML2): Emotional Instability
 
 **Number of significant loadings:** 5  
 **Variance explained:** 9.65%  
@@ -43,16 +40,16 @@ ML4 = -.01
 
 **Variables:**
 
-  1. N1, Get angry easily. (Positive, Very Strong, .852)
-  2. N2, Get irritated easily. (Positive, Very Strong, .817)
-  3. N3, Have frequent mood swings. (Positive, Strong, .665)
-  4. N5, Panic easily. (Positive, Moderate, .439)
-  5. N4, Often feel blue. (Positive, Moderate, .413)
+  1. N1, Get angry easily. (, , .852)
+  2. N2, Get irritated easily. (, , .817)
+  3. N3, Have frequent mood swings. (, , .665)
+  4. N5, Panic easily. (, , .439)
+  5. N4, Often feel blue. (, , .413)
 
 **LLM Interpretation:**  
-ML2 captures core aspects of negative emotionality. The factor is dominated by very high loadings on the five neuroticism items (N1–N5), which represent anger, irritation, mood swings, sadness, and panic. These items share a common, volatile affective dimension that is absent in other factors. The near‑zero loadings on the other scales demonstrate discriminant validity, confirming that ML2 is distinct from social, conscientious, or open‑minded domains. In behavioral terms, individuals high on ML2 are likely to experience frequent mood shifts, feel easily upset, and respond with anxiety in challenging situations, whereas those low on the factor exhibit greater emotional steadiness. These affective fluctuations also interact with social context, often impairing interpersonal interactions and increasing vulnerability to stress‑related health issues over time.
+Emotional Instability reflects an individual’s tendency toward frequent, intense negative affect. High positive loadings on anger (.852), irritation (.817), mood swings (.665), depressive feelings (.413), and panic (.439) converge the factor as a coherent negative affect dimension. The factor shows weak associations with other dimensions, confirming discriminant validity. Minor overlaps with extraversion and conscientiousness suggest occasional anxious introversion, but overall the construct is distinctly centered on emotional volatility.
 
-### Factor 2 (ML5): Warmhearted Sociality
+### Factor 2 (ML5): Empathic Compassion
 
 **Number of significant loadings:** 7  
 **Variance explained:** 7.69%  
@@ -62,18 +59,18 @@ ML4 = .23
 
 **Variables:**
 
-  1. A3, Know how to comfort others. (Positive, Strong, .668)
-  2. A2, Inquire about others' well-being. (Positive, Strong, .603)
-  3. A5, Make people feel at ease. (Positive, Strong, .577)
-  4. A4, Love children. (Positive, Moderate, .456)
-  5. E4, Make friends easily. (Positive, Weak, .362)
-  6. A1, Am indifferent to the feelings of others. (Negative, Weak, -.360)
-  7. E3, Know how to captivate people. (Positive, Weak, .303)
+  1. A3, Know how to comfort others. (, , .668)
+  2. A2, Inquire about others' well-being. (, , .603)
+  3. A5, Make people feel at ease. (, , .577)
+  4. A4, Love children. (, , .456)
+  5. E4, Make friends easily. (, , .362)
+  6. A1, Am indifferent to the feelings of others. (, , -.360)
+  7. E3, Know how to captivate people. (, , .303)
 
 **LLM Interpretation:**  
-ML5 reflects a socially caring disposition. The strongest loadings come from agreeableness items that probe nurturing and supportive behavior (A2, A3, A4, A5). These items describe inquiring about others’ well‑being, comforting people, loving children, and making others feel at ease, which together form a cohesive empathic inclination. The moderate negative loadings on extraversion items (E3, E4) highlight a subtle distinction: while individuals high on ML5 are warm toward others, they may not necessarily seek admiration or assume leadership roles. The factor’s discriminant validity is evident from the lack of substantial loadings on the conscientiousness, neuroticism, or openness dimensions, underscoring that ML5 is a distinct domain of interpersonal connectedness. High scores predict prosocial behavior, cooperative teamwork, and a tendency toward emotional support in both personal and workplace contexts.
+Empathic Compassion captures the capacity to care for others and alleviate distress. Variables A2 (.603), A3 (.668), A4 (.456), and A5 (.577) load strongly, signifying a cohesive caring sub‑scale. Small positive loadings on E3 (.303) and E4 (.362) indicate that social engagement reinforces this trait, while absence of loadings on neurotic or extraversion items confirms discriminant validity. The factor reflects a stable, compassionate orientation toward interpersonal support.
 
-### Factor 3 (ML1): Introverted Withdrawal
+### Factor 3 (ML1): Introversion
 
 **Number of significant loadings:** 7  
 **Variance explained:** 7.36%  
@@ -83,18 +80,18 @@ ML4 = -.17
 
 **Variables:**
 
-  1. E2, Find it difficult to approach others. (Positive, Strong, .667)
-  2. E1, Don't talk a lot. (Positive, Strong, .565)
-  3. E4, Make friends easily. (Negative, Strong, -.527)
-  4. N4, Often feel blue. (Positive, Moderate, .420)
-  5. E5, Take charge. (Negative, Weak, -.394)
-  6. O4, Spend time reflecting on things. (Positive, Weak, .357)
-  7. E3, Know how to captivate people. (Negative, Weak, -.341)
+  1. E2, Find it difficult to approach others. (, , .667)
+  2. E1, Don't talk a lot. (, , .565)
+  3. E4, Make friends easily. (, , -.527)
+  4. N4, Often feel blue. (, , .420)
+  5. E5, Take charge. (, , -.394)
+  6. O4, Spend time reflecting on things. (, , .357)
+  7. E3, Know how to captivate people. (, , -.341)
 
 **LLM Interpretation:**  
-ML1 is the classic extraversion (introversion) axis. Its high positive loadings on E1 (‘Don’t talk a lot’) and E2 (‘Find it difficult to approach others’) capture a withdrawal tendency, while the negative loadings on social‑engagement items (E3, E4, E5) confirm the opposite direction of affective and behavioral assertiveness. The factor also shows little cross‑loading on the agreeableness, conscientiousness, or openness scales, suggesting clear discriminant validity. In practical terms, individuals with high ML1 scores tend to be reserved, prefer solitary activities, and may experience social anxiety. Conversely, low scores indicate sociability, assertive leadership, and comfort in large groups. This factor therefore distinguishes the sociality dimension from affective stability and intellectual curiosity, and aligns closely with the extraversion–introversion continuum widely used in personality assessment. Such introverts tend to seek solitary stimulation and may excel in analytical or reflective tasks.
+Introversion is defined by a preference for quieter environments and reduced social engagement. Loadings of .565 on ‘Don’t talk a lot’ and .667 on ‘Find it difficult to approach others’ contrast sharply with negative loadings on social confidence (.E3 -.341, .E4 -.527, .E5 -.394), reinforcing a coherent introverted profile. The factor shows moderate correlation with Neuroticism (.23) and modest links to the other traits, suggesting it is distinct yet related to negative affect.
 
-### Factor 4 (ML3): Conscientious Precision
+### Factor 4 (ML3): Conscientiousness
 
 **Number of significant loadings:** 5  
 **Variance explained:** 7.71%  
@@ -104,16 +101,16 @@ ML4 = .20
 
 **Variables:**
 
-  1. C4, Do things in a half-way manner. (Negative, Strong, -.643)
-  2. C2, Continue until everything is perfect. (Positive, Strong, .638)
-  3. C5, Waste my time. (Negative, Strong, -.570)
-  4. C3, Do things according to a plan. (Positive, Strong, .564)
-  5. C1, Am exacting in my work. (Positive, Strong, .532)
+  1. C4, Do things in a half-way manner. (, , -.643)
+  2. C2, Continue until everything is perfect. (, , .638)
+  3. C5, Waste my time. (, , -.570)
+  4. C3, Do things according to a plan. (, , .564)
+  5. C1, Am exacting in my work. (, , .532)
 
 **LLM Interpretation:**  
-ML3 corresponds to conscientiousness with a focus on planning and perfection. Strong positive loadings on C1 (exacting), C2 (perfect), and C3 (plan) indicate a firm commitment to order and quality. The negative loadings on C4 (‘half‑way’) and C5 (‘waste’) demonstrate the opposite, tendency toward laxity or procrastination. This contrast gives ML3 an internally coherent structure that separates disciplined, rule‑oriented work from sloppiness. It has negligible loadings on other personality domains, ensuring discriminant validity. In everyday behavior, people scoring high on ML3 are meticulous, methodical, and strive for high standards, whereas low scorers are more flexible, less detail‑oriented, and may tolerate inefficiency. Thus ML3 captures the spectrum between meticulousness and complacency within conscientiousness. This dimension helps educators design feedback regimens that nurture discipline while avoiding over‑rigidity, and is predictive of attention‑to‑detail tasks in professional settings.
+Conscientiousness is characterized by a strong drive for precision, planning, and task completion. Items C1 (.532) ‘exacting’, C2 (.638) ‘continue until perfect’, and C3 (.564) ‘planful’ load positively, whereas C4 (. – .643) and C5 (– .570) load negatively, revealing a clear distinction between organized and careless styles. The factor explains workplace reliability and discipline. Correlations with Introversion (.23) and Emotional Instability (.23) remain low, underscoring discriminant validity.
 
-### Factor 5 (ML4): Intellectual Curiosity
+### Factor 5 (ML4): Openness to Experience
 
 **Number of significant loadings:** 6  
 **Variance explained:** 6.25%  
@@ -123,13 +120,22 @@ ML3 = .20
 
 **Variables:**
 
-  1. O3, Carry the conversation to a higher level. (Positive, Strong, .633)
-  2. O1, Am full of ideas. (Positive, Strong, .534)
-  3. O5, Will not probe deeply into a subject. (Negative, Strong, -.522)
-  4. O2, Avoid difficult reading material. (Negative, Moderate, -.441)
-  5. O4, Spend time reflecting on things. (Positive, Weak, .379)
-  6. E3, Know how to captivate people. (Positive, Weak, .315)
+  1. O3, Carry the conversation to a higher level. (, , .633)
+  2. O1, Am full of ideas. (, , .534)
+  3. O5, Will not probe deeply into a subject. (, , -.522)
+  4. O2, Avoid difficult reading material. (, , -.441)
+  5. O4, Spend time reflecting on things. (, , .379)
+  6. E3, Know how to captivate people. (, , .315)
 
 **LLM Interpretation:**  
-ML4 embodies intellectual curiosity. Positive loadings on O1 (‘full of ideas’), O3 (‘carry conversation to higher level’), and O4 (‘spend time reflecting’) capture the tendency to generate, explore, and deepen concepts. The negative loadings on O2 (‘avoid difficult reading’) and O5 (‘will not probe deeply’) contrast a preference for superficial or non‑challenging material with a drive for abstract thought. Weak E3 and E5 loadings suggest that this dimension is distinct from extraversion and assertiveness. Thus ML4 distinguishes an open‑minded, reflective orientation from a more guarded or pragmatic stance. High scores predict openness to new experiences, imaginative problem‑solving, and engagement in academic or creative pursuits, whereas low scores indicate a preference for concrete facts and routine activities. These traits foster learning environments where questioning norms is encouraged and novel solutions thrive.
+Openness to Experience captures intellectual curiosity and imaginative thinking. High loadings on O1 (.534) ‘full of ideas’, O3 (.633) ‘carry conversation to higher level’, O4 (.379) ‘spend time reflecting’ illustrate a cohesive imaginative domain, while the negative loading on O5 (–.522) ‘will not probe deeply’ indicates a preference for breadth over narrow depth. Small links to other factors confirm discriminant validity. The pattern aligns with theoretical expectations that openness fosters creative, reflective engagement, contrasting with the structured orientation of Conscientiousness.
+
+## Cross-Loading Variables
+
+Variables loading on multiple factors (>= 0.3):
+
+- **E3**: ML5 (.303), ML1 (-.341), ML4 (.315)
+- **E4**: ML5 (.362), ML1 (-.527)
+- **N4**: ML2 (.413), ML1 (.420)
+- **O4**: ML1 (.357), ML4 (.379)
 
