@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Usage Patterns of the interpret() Function • psychinterpreter</title>
+<title>interpret() Usage Patterns • psychinterpreter</title>
 <!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
   window.MathJax = {
     chtml: {
@@ -19,7 +19,7 @@
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="02-Usage_Patterns_files/libs/quarto-html/popper.min.js"></script><script src="02-Usage_Patterns_files/libs/quarto-html/tippy.umd.min.js"></script><link href="02-Usage_Patterns_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="02-Usage_Patterns_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <link href="02-Usage_Patterns_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
-<script src="02-Usage_Patterns_files/libs/pagedtable-1.1/js/pagedtable.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Usage Patterns of the interpret() Function">
+<script src="02-Usage_Patterns_files/libs/pagedtable-1.1/js/pagedtable.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="interpret() Usage Patterns">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -39,7 +39,13 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
+    <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -64,7 +70,8 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Usage Patterns of the <code>interpret()</code> Function</h1>
+      <h1>
+<code>interpret()</code> Usage Patterns</h1>
 
       <p class="author">Matthias Kloft</p>
       <p class="date">2025-11-11</p>
@@ -213,13 +220,13 @@ FACTOR ANALYSIS INTERPRETATION
 Number of factors: 2
 Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
-Elapsed time: 14.6
+Elapsed time: 7.67
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Power Index
-• Factor 2 (1.7%): Residual Engine Variation (n.s.)
+• Factor 1 (84%): Fuel Efficiency vs Power
+• Factor 2 (1.7%): Residual Noise (n.s.)
 
 Total variance explained: 85.7%
 
@@ -232,7 +239,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Power Index
+Factor 1 (MR1) - Fuel Efficiency vs Power
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -244,14 +251,13 @@ Variables:
   4. hp, Horsepower (, , .862)
 
 LLM Interpretation:
-This factor captures engine dimension and performance, loading heavily on cylinders, displacement, horsepower and
-inversely on miles‑per‑gallon. It represents overall engine size and power, explaining 84 % of variance and
-distinguishing larger, high‑power engines from efficient models. This factor is instrumental in engine design
-optimization and vehicle classification.
+MR1 captures the core technical trade‑off in automobiles: larger displacement, more cylinders, and higher horsepower
+strengthen power, while higher miles‑per‑gallon inversely represents fuel efficiency. The dominant negative loading on
+mpg and strong positive loadings on power‑related variables illustrate the classic power‑versus‑economy dilemma.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Engine Variation (n.s.)
+Factor 2 (MR2) - Residual Noise (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 Factor Correlations: MR1 = .03
@@ -264,9 +270,9 @@ Variables:
   2. disp, Displacement (, , -.172)
 
 LLM Interpretation:
-This residual factor, featuring weak loadings on horsepower and displacement only, captures minimal variance (1.7 %). It
-likely represents measurement noise or unmodeled small‑scale engine differences, lacking substantive meaning or strong
-relationships to the primary engine factor. Hence, it receives no substantive emphasis in model reporting.
+MR2 explains only 1.7% of variance and shows negligible loadings on all measures; it represents residual noise or an
+unstructured factor. Its near‑zero correlation with MR1 confirms it captures a construct that is essentially unrelated
+to power or fuel efficiency.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -277,13 +283,13 @@ relationships to the primary engine factor. Hence, it receives no substantive em
 Number of factors: 2
 Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
-Elapsed time: 14.6
+Elapsed time: 7.67
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Power Index
-• Factor 2 (1.7%): Residual Engine Variation (n.s.)
+• Factor 1 (84%): Fuel Efficiency vs Power
+• Factor 2 (1.7%): Residual Noise (n.s.)
 
 Total variance explained: 85.7%
 
@@ -296,7 +302,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Power Index
+Factor 1 (MR1) - Fuel Efficiency vs Power
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -308,15 +314,15 @@ Variables:
   4. hp, Horsepower (, , .862)
 
 LLM Interpretation:
-This factor captures engine dimension and performance, loading heavily on
-cylinders, displacement, horsepower and inversely on miles‑per‑gallon. It
-represents overall engine size and power, explaining 84 % of variance and
-distinguishing larger, high‑power engines from efficient models. This factor is
-instrumental in engine design optimization and vehicle classification.
+MR1 captures the core technical trade‑off in automobiles: larger displacement,
+more cylinders, and higher horsepower strengthen power, while higher
+miles‑per‑gallon inversely represents fuel efficiency. The dominant negative
+loading on mpg and strong positive loadings on power‑related variables
+illustrate the classic power‑versus‑economy dilemma.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Engine Variation (n.s.)
+Factor 2 (MR2) - Residual Noise (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 Factor Correlations: MR1 = .03
@@ -329,11 +335,10 @@ Variables:
   2. disp, Displacement (, , -.172)
 
 LLM Interpretation:
-This residual factor, featuring weak loadings on horsepower and displacement
-only, captures minimal variance (1.7 %). It likely represents measurement noise
-or unmodeled small‑scale engine differences, lacking substantive meaning or
-strong relationships to the primary engine factor. Hence, it receives no
-substantive emphasis in model reporting.
+MR2 explains only 1.7% of variance and shows negligible loadings on all
+measures; it represents residual noise or an unstructured factor. Its near‑zero
+correlation with MR1 confirms it captures a construct that is essentially
+unrelated to power or fuel efficiency.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -387,12 +392,12 @@ FACTOR ANALYSIS INTERPRETATION
 Number of factors: 2
 Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
-Elapsed time: 6.73
+Elapsed time: 8.96
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): High Power / Low Fuel Efficiency
+• Factor 1 (84%): Engine Performance
 • Factor 2 (1.7%): Residual Variation (n.s.)
 
 Total variance explained: 85.7%
@@ -406,7 +411,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - High Power / Low Fuel Efficiency
+Factor 1 (MR1) - Engine Performance
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -418,9 +423,9 @@ Variables:
   4. hp, Horsepower (, , .862)
 
 LLM Interpretation:
-MR1 represents vehicle power characteristics that drive higher horsepower, larger engine displacement, and more
-cylinders, all of which inversely affect fuel economy. The strong loadings indicate a common underlying construct of
-high-performance engines, giving MR1 nearly 84 % of total variance.
+This factor represents engine performance, capturing key power attributes such as cylinders, displacement, and
+horsepower, while inversely related to fuel efficiency (mpg). The high positive loadings on power variables and negative
+mpg loading indicate a trade‑off between power output and fuel economy. It explains 84 % of variance.
 
 ════════════════════════════════════════════════════════════════════════════════
 
@@ -437,9 +442,9 @@ Variables:
   2. disp, Displacement (, , -.172)
 
 LLM Interpretation:
-MR2 aggregates negligible loadings across all variables, showing almost no coherent pattern. Its 1.7 % variance
-contribution and near-zero correlation with MR1 suggest it captures measurement noise or minor idiosyncratic factors
-unrelated to the main power–efficiency construct and offers no substantive insight into vehicle characteristics.
+Despite low loadings, the factor captures a very weak association between horsepower and displacement, reflecting
+residual variance not explained by MR1. Its correlations with MR1 are negligible (.03), indicating it represents
+distinct, minor variation. It explains only 1.7 % of variance.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -450,12 +455,12 @@ unrelated to the main power–efficiency construct and offers no substantive ins
 Number of factors: 2
 Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
-Elapsed time: 6.73
+Elapsed time: 8.96
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): High Power / Low Fuel Efficiency
+• Factor 1 (84%): Engine Performance
 • Factor 2 (1.7%): Residual Variation (n.s.)
 
 Total variance explained: 85.7%
@@ -469,7 +474,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - High Power / Low Fuel Efficiency
+Factor 1 (MR1) - Engine Performance
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -481,10 +486,11 @@ Variables:
   4. hp, Horsepower (, , .862)
 
 LLM Interpretation:
-MR1 represents vehicle power characteristics that drive higher horsepower,
-larger engine displacement, and more cylinders, all of which inversely affect
-fuel economy. The strong loadings indicate a common underlying construct of
-high-performance engines, giving MR1 nearly 84 % of total variance.
+This factor represents engine performance, capturing key power attributes such
+as cylinders, displacement, and horsepower, while inversely related to fuel
+efficiency (mpg). The high positive loadings on power variables and negative mpg
+loading indicate a trade‑off between power output and fuel economy. It explains
+84 % of variance.
 
 ════════════════════════════════════════════════════════════════════════════════
 
@@ -501,11 +507,10 @@ Variables:
   2. disp, Displacement (, , -.172)
 
 LLM Interpretation:
-MR2 aggregates negligible loadings across all variables, showing almost no
-coherent pattern. Its 1.7 % variance contribution and near-zero correlation with
-MR1 suggest it captures measurement noise or minor idiosyncratic factors
-unrelated to the main power–efficiency construct and offers no substantive
-insight into vehicle characteristics.
+Despite low loadings, the factor captures a very weak association between
+horsepower and displacement, reflecting residual variance not explained by MR1.
+Its correlations with MR1 are negligible (.03), indicating it represents
+distinct, minor variation. It explains only 1.7 % of variance.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -584,9 +589,9 @@ insight into vehicle characteristics.
 <pre><code>Factor Analysis Chat Session
 Provider: ollama
 Model: gpt-oss:20b-cloud
-Created: 2025-11-11 17:56:50.480465
+Created: 2025-11-11 18:06:41.801799
 Interpretations run: 2
-Total tokens - Input: 1652 , Output: 2832 </code></pre>
+Total tokens - Input: 1652 , Output: 1900 </code></pre>
 </div>
 </div>
 </section></section><section class="section level2"><h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>

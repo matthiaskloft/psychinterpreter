@@ -22,7 +22,11 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
+    <li><a class="dropdown-item" href="articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json"></form></li>
@@ -402,15 +406,16 @@
 <div class="section level2">
 <h2 id="negativezero-token-counts">Negative/Zero Token Counts<a class="anchor" aria-label="anchor" href="#negativezero-token-counts"></a></h2>
 <p><strong>Cause</strong>: Provider-specific behavior - <strong>Ollama</strong>: No token tracking support (returns 0) - <strong>Anthropic</strong>: Caches system prompts (may undercount) - <strong>OpenAI</strong>: Generally accurate</p>
-<p><strong>Solution</strong>: Current version uses <code>max(0, delta)</code> protection to prevent negatives</p>
+<p><strong>Solution</strong>: Current version uses <code><a href="reference/normalize_token_count.html">normalize_token_count()</a></code> helper to prevent negatives and handle NULL/NA values</p>
 <hr></div>
 </div>
 <div class="section level1">
 <h1 id="active-todos">Active TODOs<a class="anchor" aria-label="anchor" href="#active-todos"></a></h1>
-<ul><li><p>can we further refine R script naming scheme?</p></li>
-<li><p>should we split up visualization for better abstraction?</p></li>
-<li><p><strong>Optimize tests further</strong> - Review fixture usage and caching strategies</p></li>
-<li><p><strong>Implement gaussian_mixture class</strong> - Requires 8 S3 methods (see dev/DEVELOPER_GUIDE.md)</p></li>
+<ul><li>can we further refine R script naming scheme?</li>
+<li>
+<strong>Optimize tests further</strong> - Review fixture usage and caching strategies</li>
+<li>
+<strong>Implement gaussian_mixture class</strong> - Requires 8 S3 methods + 2 optional methods (see dev/DEVELOPER_GUIDE.md)</li>
 </ul><hr></div>
 <div class="section level1">
 <h1 id="quick-reference-tables">Quick Reference Tables<a class="anchor" aria-label="anchor" href="#quick-reference-tables"></a></h1>
@@ -541,7 +546,7 @@
 <strong>Version TODOs</strong>: When completing TODOs from CLAUDE.md, move them to DEV GUIDE section 4 (Package History) with dates</li>
 <li>
 <strong>Keep current</strong>: Delete obsolete sections, update examples to match current API</li>
-</ol><hr><p><strong>Last Updated</strong>: 2025-11-10 <strong>Maintainer</strong>: Update when making significant user-facing changes - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released - use kable() and kable_styling() for .Qmd articles</p>
+</ol><hr><p><strong>Last Updated</strong>: 2025-11-10 <strong>Maintainer</strong>: Update when making significant user-facing changes - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released - use kable() and kable_styling() for .Qmd articles - when adding or editing functions, remember to update the references in the pkgdown.yml</p>
 </div>
 </div>
 

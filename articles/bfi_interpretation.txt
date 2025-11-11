@@ -4,16 +4,16 @@ FACTOR ANALYSIS INTERPRETATION
 Number of factors: 5
 Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
-Elapsed time: 20.6
+Elapsed time: 27.8
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
 • Factor 1 (9.6%): Emotional Instability
-• Factor 2 (7.7%): Empathic Compassion
-• Factor 3 (7.4%): Introversion
-• Factor 4 (7.7%): Conscientiousness
-• Factor 5 (6.3%): Openness to Experience
+• Factor 2 (7.7%): Empathetic Leadership
+• Factor 3 (7.4%): Introverted Reluctance
+• Factor 4 (7.7%): Conscientious Organization
+• Factor 5 (6.3%): Cognitive Openness
 
 Total variance explained: 38.7%
 
@@ -42,11 +42,11 @@ Variables:
   5. N4, Often feel blue. (, , .413)
 
 LLM Interpretation:
-Emotional Instability reflects an individual’s tendency toward frequent, intense negative affect. High positive loadings on anger (.852), irritation (.817), mood swings (.665), depressive feelings (.413), and panic (.439) converge the factor as a coherent negative affect dimension. The factor shows weak associations with other dimensions, confirming discriminant validity. Minor overlaps with extraversion and conscientiousness suggest occasional anxious introversion, but overall the construct is distinctly centered on emotional volatility.
+Factor ML2 is labeled Emotional Instability. It is defined by strong positive loadings on all five Neuroticism items (N1–N5), all exceeding the 0.3 threshold. The pattern indicates a cohesive construct reflecting frequent negative affect—anger, irritability, mood swings, sadness, and panic. Cross‑loadings are negligible, supporting convergent validity. The factor shows modest positive correlation with ML1 (0.23) and weak negative correlation with ML5 (–0.31), suggesting it is distinct from social reticence and empathic traits. It captures a spectrum of reactive, unstable emotions.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (ML5) - Empathic Compassion
+Factor 2 (ML5) - Empathetic Leadership
 Number of significant loadings: 7
 Variance explained: 7.69%
 Factor Correlations: ML2 = -.03, ML1 = -.31, ML3 = .20, ML4 = .23
@@ -61,11 +61,11 @@ Variables:
   7. E3, Know how to captivate people. (, , .303)
 
 LLM Interpretation:
-Empathic Compassion captures the capacity to care for others and alleviate distress. Variables A2 (.603), A3 (.668), A4 (.456), and A5 (.577) load strongly, signifying a cohesive caring sub‑scale. Small positive loadings on E3 (.303) and E4 (.362) indicate that social engagement reinforces this trait, while absence of loadings on neurotic or extraversion items confirms discriminant validity. The factor reflects a stable, compassionate orientation toward interpersonal support.
+Factor ML5, named Empathetic Leadership, is characterized by sizable loadings on the Agreeableness cluster (A2 0.603, A3 0.668, A4 0.456, A5 0.577) and moderate loadings on Extraversion items (E3 0.303, E4 0.362). The high coefficients on caring and comfort‑oriented variables indicate strong empathic concern, while the social‑skill loadings reflect the ability to attract and influence others. Convergent validity is strong among the A‑items. Cross‑loadings to other factors are minimal, and correlation with ML2 is negative (–0.31), signalling that this empathic construct is distinct from emotional instability regard.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 3 (ML1) - Introversion
+Factor 3 (ML1) - Introverted Reluctance
 Number of significant loadings: 7
 Variance explained: 7.36%
 Factor Correlations: ML2 = .23, ML5 = -.31, ML3 = -.22, ML4 = -.17
@@ -80,11 +80,11 @@ Variables:
   7. E3, Know how to captivate people. (, , -.341)
 
 LLM Interpretation:
-Introversion is defined by a preference for quieter environments and reduced social engagement. Loadings of .565 on ‘Don’t talk a lot’ and .667 on ‘Find it difficult to approach others’ contrast sharply with negative loadings on social confidence (.E3 -.341, .E4 -.527, .E5 -.394), reinforcing a coherent introverted profile. The factor shows moderate correlation with Neuroticism (.23) and modest links to the other traits, suggesting it is distinct yet related to negative affect.
+Factor ML1, named Introverted Reluctance, shows high loadings on E1 0.565 and E2 0.667, capturing a tendency to avoid social contact. Negative loadings on E3 (–0.341), E4 (–0.527) and E5 (–0.394) further indicate reduced social initiative and influence. This pattern aligns with a low‑extraversion construct. The factor has a weak positive correlation with ML2 (0.23) yet negligible connections to ML5 and ML4, underscoring its distinctiveness from empathic and cognitive openness traits. Overall, ML1 quantifies social introversion and reticence and helps in understanding personality profiles for research analysis.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 4 (ML3) - Conscientiousness
+Factor 4 (ML3) - Conscientious Organization
 Number of significant loadings: 5
 Variance explained: 7.71%
 Factor Correlations: ML2 = -.21, ML5 = .20, ML1 = -.22, ML4 = .20
@@ -97,11 +97,11 @@ Variables:
   5. C1, Am exacting in my work. (, , .532)
 
 LLM Interpretation:
-Conscientiousness is characterized by a strong drive for precision, planning, and task completion. Items C1 (.532) ‘exacting’, C2 (.638) ‘continue until perfect’, and C3 (.564) ‘planful’ load positively, whereas C4 (. – .643) and C5 (– .570) load negatively, revealing a clear distinction between organized and careless styles. The factor explains workplace reliability and discipline. Correlations with Introversion (.23) and Emotional Instability (.23) remain low, underscoring discriminant validity.
+Factor ML3, termed Conscientious Organization, is defined by strong positive loadings on C1 0.532, C2 0.638, and C3 0.564, and substantial negative loadings on C4 (–0.643) and C5 (–0.570). These coefficients capture a spectrum from orderly, planned behavior to indecisive or half‑hearted action. The factor shows modest negative correlation with ML1 (–0.22), indicating that conscientiousness is slightly inversely related to social reticence, but remains largely distinct from emotional and empathic factors. ML3 thus assesses the degree of dutiful organization versus disorganized execution within the personality structure.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 5 (ML4) - Openness to Experience
+Factor 5 (ML4) - Cognitive Openness
 Number of significant loadings: 6
 Variance explained: 6.25%
 Factor Correlations: ML2 = -.01, ML5 = .23, ML1 = -.17, ML3 = .20
@@ -115,7 +115,7 @@ Variables:
   6. E3, Know how to captivate people. (, , .315)
 
 LLM Interpretation:
-Openness to Experience captures intellectual curiosity and imaginative thinking. High loadings on O1 (.534) ‘full of ideas’, O3 (.633) ‘carry conversation to higher level’, O4 (.379) ‘spend time reflecting’ illustrate a cohesive imaginative domain, while the negative loading on O5 (–.522) ‘will not probe deeply’ indicates a preference for breadth over narrow depth. Small links to other factors confirm discriminant validity. The pattern aligns with theoretical expectations that openness fosters creative, reflective engagement, contrasting with the structured orientation of Conscientiousness.
+Factor ML4, titled Cognitive Openness, boasts large positive loadings on O1 0.534, O3 0.633, and O4 0.379, while O2 (–0.441) and O5 (–0.522) load negatively. This pattern differentiates individuals who generate ideas, deepen conversations, and reflect from those who avoid challenging material or probe deeply. Moderate E3 and E5 loadings link subtle social skill aspects. Correlations with ML5 (0.23) and ML2 (–0.01) confirm that cognitive openness is distinct yet moderately related to empathy and emotional stability. ML4 captures intellectual curiosity and openness to experience and perception within personality landscape.
 
 ════════════════════════════════════════════════════════════════════════════════
 
