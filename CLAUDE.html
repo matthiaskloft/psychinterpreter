@@ -22,13 +22,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
-    <li><a class="dropdown-item" href="articles/02-Usage_Patterns.html">Usage Patterns of the `interpret()` Function</a></li>
-    <li><a class="dropdown-item" href="articles/03-Advanced_Features.html">psychinterpreter: Advanced Features</a></li>
-    <li><a class="dropdown-item" href="articles/04-Gaussian_Mixture_dev.html">Gaussian Mixture</a></li>
-  </ul></li>
+<li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json"></form></li>
@@ -57,7 +51,7 @@
 <p><strong>Purpose</strong>: Quick reference for Claude Code when helping users with the <strong>psychinterpreter</strong> R package.</p>
 <p><strong>For technical/architectural details</strong>: See <a href="dev/DEVELOPER_GUIDE.html">dev/DEVELOPER_GUIDE.md</a></p>
 <p><strong>Status</strong>: Phase 2 Refactoring Complete (2025-11-10) - See <a href="dev/DEVELOPER_GUIDE.html">dev/DEVELOPER_GUIDE.md</a> section 4.2 for details</p>
-<p><strong>IMPORTANT API CHANGES</strong>: - <strong>Phase 1</strong> (2025-11-09): - <code>model_fit</code> renamed to <code>fit_results</code> - <code>llm_provider</code> and <code>llm_model</code> renamed to <code>provider</code> and <code>model</code> - New config objects: <code><a href="reference/llm_args.html">llm_args()</a></code>, <code><a href="reference/fa_args.html">fa_args()</a></code>, <code><a href="reference/output_args.html">output_args()</a></code> - <strong>Phase 2</strong> (2025-11-10): - <code>interpret_fa()</code> removed entirely (functionality now in S3 generic <code><a href="reference/build_model_data.html">build_model_data()</a></code>) - New architecture: interpret() → interpret_core() → build_model_data.fa() - All 169 tests passing with new S3 generic system</p>
+<p><strong>IMPORTANT API CHANGES</strong>: - <strong>Phase 1</strong> (2025-11-09): - <code>model_fit</code> renamed to <code>fit_results</code> - <code>llm_provider</code> and <code>llm_model</code> renamed to <code>provider</code> and <code>model</code> - New config objects: <code><a href="reference/llm_args.html">llm_args()</a></code>, <code><a href="reference/fa_args.html">fa_args()</a></code>, <code><a href="reference/output_args.html">output_args()</a></code> - <strong>Phase 2</strong> (2025-11-10): - <code><a href="https://github.com/matthiaskloft/psychinterpreter/reference/interpret_fa.html">interpret_fa()</a></code> removed entirely (functionality now in S3 generic <code><a href="reference/build_model_data.html">build_model_data()</a></code>) - New architecture: interpret() → interpret_core() → build_model_data.fa() - All 169 tests passing with new S3 generic system</p>
 <hr><div class="section level2">
 <h2 id="quick-reference">Quick Reference<a class="anchor" aria-label="anchor" href="#quick-reference"></a></h2>
 <p><strong>What It Does</strong>: Automates interpretation of exploratory factor analysis (EFA) results using Large Language Models via the <code>ellmer</code> package.</p>

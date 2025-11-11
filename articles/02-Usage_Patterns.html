@@ -39,15 +39,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
-    <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">Usage Patterns of the `interpret()` Function</a></li>
-    <li><a class="dropdown-item" href="../articles/03-Advanced_Features.html">psychinterpreter: Advanced Features</a></li>
-    <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture_dev.html">Gaussian Mixture</a></li>
-  </ul>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -223,21 +215,21 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 826
-  Output: 1422
-Elapsed time: 7.67
+  Output: 1332
+Elapsed time: 6.89
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Performance
-• Factor 2 (1.7%): Residual Variation (n.s.)
+• Factor 1 (84%): Engine Power
+• Factor 2 (1.7%): Residual Noise (n.s.)
 
 Total variance explained: 85.7%
 
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Performance
+Factor 1 (MR1) - Engine Power
 Number of significant loadings: 4
 Variance explained: 84.03%
 
@@ -248,15 +240,15 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-Performance factor: high absolute loadings on cylinders, displacement,
-horsepower, and a strong inverse on miles per gallon. It reflects engine power
-and efficiency trade‑off, characterizing larger, more powerful engines that
-consume more fuel. Correlation with MR2 is near zero, supporting discriminant
-validity.
+MR1 aggregates negative mpg with high cylinder, displacement, and horsepower
+loadings, reflecting an engine size–power construct. High cylinder and
+displacement drive horsepower, reducing fuel efficiency, thereby capturing
+engine performance. This factor explains 84% of variance, making it the key axis
+for vehicle power assessment.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Variation (n.s.)
+Factor 2 (MR2) - Residual Noise (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
@@ -267,11 +259,10 @@ Variables:
   2. disp, Displacement (Negative, Below Cutoff, -.172)
 
 LLM Interpretation:
-Residual variation factor: none. This factor shows negligible loadings on all
-variables, indicating it captures random noise or measurement error rather than
-a substantive construct. Its near-zero correlation with MR1 further confirms
-discriminant validity. It may represent idiosyncratic idiosyncrasies in the
-dataset rather than real dimensions.
+MR2 displays negligible loadings (&lt;0.3) on all variables, explaining only 1.7%
+of variance. Its near-zero correlation with MR1 indicates it captures residual
+or random variation, lacking substantive content. Thus, MR2 serves as a noise or
+unexplained factor rather than a meaningful construct.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -284,21 +275,21 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 826
-  Output: 1422
-Elapsed time: 7.67
+  Output: 1332
+Elapsed time: 6.89
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Performance
-• Factor 2 (1.7%): Residual Variation (n.s.)
+• Factor 1 (84%): Engine Power
+• Factor 2 (1.7%): Residual Noise (n.s.)
 
 Total variance explained: 85.7%
 
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Performance
+Factor 1 (MR1) - Engine Power
 Number of significant loadings: 4
 Variance explained: 84.03%
 
@@ -309,15 +300,15 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-Performance factor: high absolute loadings on cylinders, displacement,
-horsepower, and a strong inverse on miles per gallon. It reflects engine power
-and efficiency trade‑off, characterizing larger, more powerful engines that
-consume more fuel. Correlation with MR2 is near zero, supporting discriminant
-validity.
+MR1 aggregates negative mpg with high cylinder, displacement, and horsepower
+loadings, reflecting an engine size–power construct. High cylinder and
+displacement drive horsepower, reducing fuel efficiency, thereby capturing
+engine performance. This factor explains 84% of variance, making it the key axis
+for vehicle power assessment.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Variation (n.s.)
+Factor 2 (MR2) - Residual Noise (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
@@ -328,11 +319,10 @@ Variables:
   2. disp, Displacement (Negative, Below Cutoff, -.172)
 
 LLM Interpretation:
-Residual variation factor: none. This factor shows negligible loadings on all
-variables, indicating it captures random noise or measurement error rather than
-a substantive construct. Its near-zero correlation with MR1 further confirms
-discriminant validity. It may represent idiosyncratic idiosyncrasies in the
-dataset rather than real dimensions.
+MR2 displays negligible loadings (&lt;0.3) on all variables, explaining only 1.7%
+of variance. Its near-zero correlation with MR1 indicates it captures residual
+or random variation, lacking substantive content. Thus, MR2 serves as a noise or
+unexplained factor rather than a meaningful construct.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -388,21 +378,21 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 826
-  Output: 1429
-Elapsed time: 5
+  Output: 1268
+Elapsed time: 8.08
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Power vs Efficiency
-• Factor 2 (1.7%): Engine Power (n.s.)
+• Factor 1 (84%): Engine Performance
+• Factor 2 (1.7%): Residual Variation (n.s.)
 
 Total variance explained: 85.7%
 
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Power vs Efficiency
+Factor 1 (MR1) - Engine Performance
 Number of significant loadings: 4
 Variance explained: 84.03%
 
@@ -413,14 +403,15 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-Measure capturing inverse relationship between fuel efficiency (mpg) and engine
-size/strength (cyl, disp, hp). It reflects trade‑off; more cylinders, larger
-displacement, higher horsepower reduce miles per gallon. This factor explains
-84% of total variance and stands out as primary dimension.
+MR1 captures engine performance characteristics. High positive loadings on
+cylinders, displacement and horsepower, combined with a strong negative loading
+on fuel efficiency, indicate it represents the trade‑off between power output
+and miles‑per‑gallon. Manufacturers and consumers use it to balance performance
+versus economy.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Engine Power (n.s.)
+Factor 2 (MR2) - Residual Variation (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
@@ -431,11 +422,11 @@ Variables:
   2. disp, Displacement (Negative, Below Cutoff, -.172)
 
 LLM Interpretation:
-Power capacity indicator: primarily loadings on horsepower and displacement.
-Although only 1.7% variance, it reflects raw engine power potential independent
-of fuel efficiency. Shows slight positive correlation with MR1 (0.03),
-suggesting distinct but related constructs. It appears as a minor secondary
-dimension capturing raw power metrics.
+MR2 shows minimal and inconsistent loadings, with only horsepower (0.195) and
+displacement (–0.172) reaching the emergency threshold. Its 1.7 % variance
+explained and near‑zero factor correlation suggest an extraneous construct,
+likely capturing random measurement noise rather than a coherent physical
+characteristic.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -448,21 +439,21 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 826
-  Output: 1429
-Elapsed time: 5
+  Output: 1268
+Elapsed time: 8.08
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Power vs Efficiency
-• Factor 2 (1.7%): Engine Power (n.s.)
+• Factor 1 (84%): Engine Performance
+• Factor 2 (1.7%): Residual Variation (n.s.)
 
 Total variance explained: 85.7%
 
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Power vs Efficiency
+Factor 1 (MR1) - Engine Performance
 Number of significant loadings: 4
 Variance explained: 84.03%
 
@@ -473,14 +464,15 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-Measure capturing inverse relationship between fuel efficiency (mpg) and engine
-size/strength (cyl, disp, hp). It reflects trade‑off; more cylinders, larger
-displacement, higher horsepower reduce miles per gallon. This factor explains
-84% of total variance and stands out as primary dimension.
+MR1 captures engine performance characteristics. High positive loadings on
+cylinders, displacement and horsepower, combined with a strong negative loading
+on fuel efficiency, indicate it represents the trade‑off between power output
+and miles‑per‑gallon. Manufacturers and consumers use it to balance performance
+versus economy.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Engine Power (n.s.)
+Factor 2 (MR2) - Residual Variation (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
@@ -491,11 +483,11 @@ Variables:
   2. disp, Displacement (Negative, Below Cutoff, -.172)
 
 LLM Interpretation:
-Power capacity indicator: primarily loadings on horsepower and displacement.
-Although only 1.7% variance, it reflects raw engine power potential independent
-of fuel efficiency. Shows slight positive correlation with MR1 (0.03),
-suggesting distinct but related constructs. It appears as a minor secondary
-dimension capturing raw power metrics.
+MR2 shows minimal and inconsistent loadings, with only horsepower (0.195) and
+displacement (–0.172) reaching the emergency threshold. Its 1.7 % variance
+explained and near‑zero factor correlation suggest an extraneous construct,
+likely capturing random measurement noise rather than a coherent physical
+characteristic.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -574,9 +566,9 @@ dimension capturing raw power metrics.
 <pre><code>Factor Analysis Chat Session
 Provider: ollama
 Model: gpt-oss:20b-cloud
-Created: 2025-11-11 04:13:12.509074
+Created: 2025-11-11 04:22:51.747078
 Interpretations run: 2
-Total tokens - Input: 1652 , Output: 2112 </code></pre>
+Total tokens - Input: 1652 , Output: 2542 </code></pre>
 </div>
 </div>
 </section></section><section class="section level2"><h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
