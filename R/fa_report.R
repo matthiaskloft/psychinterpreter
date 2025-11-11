@@ -412,7 +412,8 @@ build_diagnostics_section <- function(cross_loadings,
   h2 <- if (output_format == "markdown") paste(rep("#", heading_level + 1), collapse = "") else ""
 
   # Add cross-loadings section
-  if (!is.null(cross_loadings) && nrow(cross_loadings) > 0) {
+  if (!is.null(cross_loadings) && is.data.frame(cross_loadings) && nrow(cross_loadings) > 0 &&
+      all(c("variable", "factors") %in% names(cross_loadings))) {
     if (output_format == "markdown") {
       report <- paste0(report, "\n", h2, " Cross-Loading Variables\n\n")
       report <- paste0(report,
@@ -428,9 +429,10 @@ build_diagnostics_section <- function(cross_loadings,
                        "):\n")
     }
 
-    for (j in 1:nrow(cross_loadings)) {
+    for (j in seq_len(nrow(cross_loadings))) {
       # Use description if available, otherwise fallback to variable name
-      var_display <- if (!is.na(cross_loadings$description[j])) {
+      has_description <- "description" %in% names(cross_loadings)
+      var_display <- if (has_description && !is.na(cross_loadings$description[j])) {
         if (output_format == "markdown") {
           paste0("**",
                  cross_loadings$variable[j],
@@ -459,7 +461,8 @@ build_diagnostics_section <- function(cross_loadings,
   }
 
   # Add section for variables with no loadings above cutoff
-  if (!is.null(no_loadings) && nrow(no_loadings) > 0) {
+  if (!is.null(no_loadings) && is.data.frame(no_loadings) && nrow(no_loadings) > 0 &&
+      all(c("variable", "highest_loading") %in% names(no_loadings))) {
     if (output_format == "markdown") {
       report <- paste0(report, "\n", h2, " Variables Not Covered by Any Factor\n\n")
       report <- paste0(
@@ -479,9 +482,10 @@ build_diagnostics_section <- function(cross_loadings,
       )
     }
 
-    for (j in 1:nrow(no_loadings)) {
+    for (j in seq_len(nrow(no_loadings))) {
       # Use description if available, otherwise fallback to variable name
-      var_display <- if (!is.na(no_loadings$description[j])) {
+      has_description <- "description" %in% names(no_loadings)
+      var_display <- if (has_description && !is.na(no_loadings$description[j])) {
         if (output_format == "markdown") {
           paste0("**",
                  no_loadings$variable[j],
@@ -543,15 +547,17 @@ build_fa_report <- function(interpretation_results,
                             cutoff,
                             suppress_heading = FALSE) {
   # Extract components from results
-  factor_summaries <- interpretation_results$factor_summaries
+  # Use component_summaries (generic name) instead of factor_summaries (old backward compat alias)
+  factor_summaries <- interpretation_results$component_summaries
   suggested_names <- interpretation_results$suggested_names
   llm_info <- interpretation_results$llm_info
   chat <- interpretation_results$chat
-  cross_loadings <- interpretation_results$cross_loadings
-  no_loadings <- interpretation_results$no_loadings
+  cross_loadings <- interpretation_results$diagnostics$cross_loadings
+  no_loadings <- interpretation_results$diagnostics$no_loadings
   elapsed_time <- interpretation_results$elapsed_time
-  factor_cor_mat <- interpretation_results$factor_cor_mat
-  n_emergency <- interpretation_results$params$n_emergency %||% 2  # Default to 2 if not found
+  # Extract from model_data where it's now stored
+  factor_cor_mat <- interpretation_results$model_data$factor_cor_mat
+  n_emergency <- interpretation_results$model_data$n_emergency %||% 2
 
   # Get factor column names
   factor_cols <- names(factor_summaries)
@@ -927,11 +933,11 @@ print.fa_interpretation <- function(x,
   }
 
   if (!("report" %in% names(x)) &&
-      !("factor_summaries" %in% names(x))) {
+      !("component_summaries" %in% names(x))) {
     cli::cli_abort(
       c(
-        "fa_interpretation object must contain 'report' or 'factor_summaries' component",
-        "i" = "This should be the output from interpret_fa()"
+        "fa_interpretation object must contain 'report' or 'component_summaries' component",
+        "i" = "This should be the output from interpret()"
       )
     )
   }
@@ -992,13 +998,15 @@ print.fa_interpretation <- function(x,
   }
 
   # If output_format is specified, regenerate report in that format
-  if (!is.null(output_format) && "factor_summaries" %in% names(x)) {
+  if (!is.null(output_format) && "component_summaries" %in% names(x)) {
     # Extract n_factors and cutoff from the interpretation results if available
-    n_factors <- length(x$factor_summaries)
+    n_factors <- length(x$component_summaries)
 
-    # Try to extract cutoff from the existing report or use default
+    # Try to extract cutoff from model_data, fallback to report parsing, then default
     cutoff <- 0.3  # Default fallback
-    if ("report" %in% names(x)) {
+    if ("model_data" %in% names(x) && "cutoff" %in% names(x$model_data)) {
+      cutoff <- x$model_data$cutoff
+    } else if ("report" %in% names(x)) {
       cutoff_match <- regexpr("Loading cutoff[:\\s]*([0-9.]+)", x$report)
       if (cutoff_match > 0) {
         cutoff_text <- regmatches(x$report, cutoff_match)
@@ -1056,7 +1064,8 @@ build_report.fa_interpretation <- function(interpretation,
                                           ...) {
   # Extract parameters from interpretation object
   n_factors <- length(interpretation$suggested_names)
-  cutoff <- interpretation$params$cutoff %||% 0.3
+  # cutoff is now in model_data (moved from params in Phase 3 refactor)
+  cutoff <- interpretation$model_data$cutoff %||% 0.3
 
   # Call existing build_fa_report function
   build_fa_report(

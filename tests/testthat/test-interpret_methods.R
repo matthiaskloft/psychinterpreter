@@ -266,10 +266,10 @@ test_that("interpret.fa end-to-end integration with psych::fa", {
   # Verify result structure
   expect_s3_class(result, "fa_interpretation")
   expect_true("suggested_names" %in% names(result))
-  expect_true("factor_summaries" %in% names(result))
+  expect_true("component_summaries" %in% names(result))
 
-  # Verify factor correlations were passed through
-  expect_true(!is.null(result$factor_cor_mat))
+  # Verify factor correlations were passed through (now in model_data)
+  expect_true(!is.null(result$model_data$factor_cor_mat))
 })
 
 test_that("interpret.principal end-to-end integration with psych::principal", {

@@ -169,10 +169,7 @@ interpret <- function(fit_results = NULL,
                       provider = NULL,
                       model = NULL,
                       llm_args = NULL,
-                      fa_args = NULL,
-                      # gm_args = NULL,    # TODO: Uncomment when implementing GM support
-                      # irt_args = NULL,   # TODO: Uncomment when implementing IRT support
-                      # cdm_args = NULL,   # TODO: Uncomment when implementing CDM support
+                      interpretation_args = NULL,
                       output_args = NULL,
                       ...) {
   # ============================================================================
@@ -194,12 +191,32 @@ interpret <- function(fit_results = NULL,
     )
   }
 
+  # Validate chat_session if provided
+  if (!is.null(chat_session)) {
+    # Check if it's a valid chat session (inherits from "chat_session" or has class ending in "_chat_session")
+    valid_chat <- inherits(chat_session, "chat_session") ||
+                  any(grepl("_chat_session$", class(chat_session)))
+    if (!valid_chat) {
+      cli::cli_abort(
+        c(
+          "chat_session must be a chat_session object",
+          "x" = "You supplied: {.type {chat_session}}",
+          "i" = "Create with: chat_session(model_type, provider, model)"
+        )
+      )
+    }
+  }
+
+  # Determine effective model_type for config building
+  effective_model_type <- if (!is.null(chat_session)) {
+    chat_session$model_type
+  } else {
+    model_type
+  }
+
   # Build configuration objects from dual interface
   llm_cfg <- build_llm_args(llm_args, provider, model, ...)
-  fa_cfg <- build_fa_args(fa_args, ...)
-  # gm_cfg <- build_gm_args(gm_args, ...)     # TODO: Uncomment for GM support
-  # irt_cfg <- build_irt_args(irt_args, ...)  # TODO: Uncomment for IRT support
-  # cdm_cfg <- build_cdm_args(cdm_args, ...)  # TODO: Uncomment for CDM support
+  interpretation_cfg <- build_interpretation_args(interpretation_args, effective_model_type, ...)
   out_cfg <- build_output_args(output_args, ...)
 
   # Check if fit_results is missing
@@ -268,29 +285,20 @@ interpret <- function(fit_results = NULL,
     )
   }
 
-  # Determine effective model_type
-  effective_model_type <- NULL
-  if (!is.null(chat_session)) {
-    effective_model_type <- chat_session$model_type
-
-    # Early validation: Abort if model_type conflicts with chat_session
-    # This provides immediate feedback at the interpret() entry point
-    if (!is.null(model_type) &&
-        model_type != effective_model_type) {
-      cli::cli_abort(
-        c(
-          "chat_session model_type mismatch",
-          "x" = paste0(
-            "chat_session has model_type '", effective_model_type, "' ",
-            "but you requested interpretation for model_type '", model_type, "'"
-          ),
-          "i" = "Create a new chat_session with model_type = '{model_type}'",
-          "i" = "Or omit the model_type argument to use the chat_session's type"
-        )
+  # Validate model_type conflicts with chat_session
+  if (!is.null(chat_session) && !is.null(model_type) &&
+      model_type != effective_model_type) {
+    cli::cli_abort(
+      c(
+        "chat_session model_type mismatch",
+        "x" = paste0(
+          "chat_session has model_type '", effective_model_type, "' ",
+          "but you requested interpretation for model_type '", model_type, "'"
+        ),
+        "i" = "Create a new chat_session with model_type = '{model_type}'",
+        "i" = "Or omit the model_type argument to use the chat_session's type"
       )
-    }
-  } else {
-    effective_model_type <- model_type
+    )
   }
 
   # ============================================================================
@@ -324,10 +332,7 @@ interpret <- function(fit_results = NULL,
         variable_info,
         chat_session = chat_session,
         llm_args = llm_cfg,
-        fa_args = fa_cfg,
-        # gm_args = gm_cfg,    # TODO: Uncomment when implementing GM
-        # irt_args = irt_cfg,  # TODO: Uncomment when implementing IRT
-        # cdm_args = cdm_cfg,  # TODO: Uncomment when implementing CDM
+        interpretation_args = interpretation_cfg,
         output_args = out_cfg,
         ...
       )
@@ -362,10 +367,7 @@ interpret <- function(fit_results = NULL,
           chat_session = chat_session,
           factor_cor_mat = extracted$factor_cor_mat,
           llm_args = llm_cfg,
-          fa_args = fa_cfg,
-          # gm_args = gm_cfg,    # TODO: Uncomment for GM
-          # irt_args = irt_cfg,  # TODO: Uncomment for IRT
-          # cdm_args = cdm_cfg,  # TODO: Uncomment for CDM
+          interpretation_args = interpretation_cfg,
           output_args = out_cfg,
           ...
         )

@@ -156,25 +156,18 @@ test_that("interpret_fa comprehensive integration test", {
   # Check main structure
   expect_s3_class(result, "fa_interpretation")
   expect_type(result$suggested_names, "list")
-  expect_type(result$factor_summaries, "list")
+  expect_type(result$component_summaries, "list")
   expect_type(result$report, "character")
 
   # Check that all factors are present
   factor_names <- setdiff(names(loadings), "variable")
   expect_true(all(factor_names %in% names(result$suggested_names)))
-  expect_true(all(factor_names %in% names(result$factor_summaries)))
+  expect_true(all(factor_names %in% names(result$component_summaries)))
 
-  # Check token tracking
-  # Token tracking: older versions used `run_tokens`; newer versions expose
-  # numeric `input_tokens` and `output_tokens` directly on the result. Check
-  # for the newer shape first, else fall back to the old `run_tokens` shape.
-  if ("input_tokens" %in% names(result) && "output_tokens" %in% names(result)) {
-    expect_true(is.numeric(result$input_tokens))
-    expect_true(is.numeric(result$output_tokens))
-  } else {
-    expect_true("run_tokens" %in% names(result))
-    expect_type(result$run_tokens, "list")
-  }
+  # Check token tracking - tokens are now in llm_info
+  expect_type(result$llm_info, "list")
+  expect_true(is.numeric(result$llm_info$input_tokens))
+  expect_true(is.numeric(result$llm_info$output_tokens))
 
   # Check report generation
   expect_true(nchar(result$report) > 0)
@@ -215,11 +208,11 @@ test_that("emergency rule behavior with n_emergency = 0", {
 
   # Check that F2 is marked as undefined
   expect_equal(result$suggested_names$F2, "undefined")
-  expect_equal(result$factor_summaries$F2$llm_interpretation, "NA")
+  expect_equal(result$component_summaries$F2$llm_interpretation, "NA")
 
   # Check that F2 has no variables (undefined factor)
-  expect_equal(nrow(result$factor_summaries$F2$variables), 0)
-  expect_false(result$factor_summaries$F2$used_emergency_rule)
+  expect_equal(nrow(result$component_summaries$F2$variables), 0)
+  expect_false(result$component_summaries$F2$used_emergency_rule)
 
   # Check that the report indicates it's marked as undefined
   expect_true(grepl("undefined", result$report, ignore.case = TRUE))

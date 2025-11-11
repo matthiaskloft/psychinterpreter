@@ -2,88 +2,45 @@
 % Please edit documentation in R/s3_export.R
 \name{export_interpretation}
 \alias{export_interpretation}
-\title{Export Factor Analysis Interpretation Report}
+\title{Export Interpretation Report (S3 Generic)}
 \usage{
 export_interpretation(
   interpretation_results,
   format = "txt",
-  file = "fa_interpretation",
+  file = "interpretation",
   silent = 0
 )
 }
 \arguments{
-\item{interpretation_results}{Results from interpret_fa() function - a list containing
-factor analysis interpretation results with a 'report' element}
+\item{interpretation_results}{Interpretation results object from interpret()}
 
 \item{format}{Character. Export format: "txt" for plain text or "md" for markdown
 (default = "txt")}
 
 \item{file}{Character. File path with or without extension. The appropriate extension
 (.txt or .md) will be added automatically if missing. Can include directory path.
-Default is "fa_interpretation"}
+Default is "interpretation"}
 
 \item{silent}{Integer or logical. Controls output verbosity:
 \itemize{
 \item 0 or FALSE: Show success message (default)
 \item 1: Suppress success message (same as 2 for this function)
 \item 2 or TRUE: Suppress success message
-For backward compatibility, logical values are accepted and converted to integers.
 }}
 }
 \value{
 Invisible TRUE on success
 }
 \description{
-Exports the factor analysis interpretation report to a text or markdown file.
+Exports interpretation reports to text or markdown files.
 File extension is automatically added if not provided by the user.
 }
 \details{
-\strong{Supported Export Formats:}
+This is an S3 generic function. Model-specific export methods are implemented as:
 \itemize{
-\item \strong{"txt"}: Exports the report in plain text format. If the report in
-\code{interpretation_results} was generated with \code{output_format = "cli"}, ANSI
-color codes will be stripped for clean text output. Otherwise, markdown formatting may be present.
-\item \strong{"md"}: Exports the report in markdown format. If the report in
-\code{interpretation_results} was generated with \code{output_format = "markdown"}, it will
-be exported with proper markdown formatting. Otherwise, it will export the cli version.
+\item \code{export_interpretation.fa_interpretation()} for factor analysis
+\item Future: \code{export_interpretation.gm_interpretation()} for gaussian mixture
+\item Future: \code{export_interpretation.irt_interpretation()} for IRT
+\item Future: \code{export_interpretation.cdm_interpretation()} for CDM
 }
-
-\strong{File Extension Handling:}
-
-The function intelligently handles file extensions:
-\itemize{
-\item If you provide \code{file = "my_report"}, it becomes \code{"my_report.txt"} or \code{"my_report.md"}
-\item If you provide \code{file = "my_report.txt"}, it stays \code{"my_report.txt"} for format="txt"
-\item Directory paths are preserved: \code{"output/report"} → \code{"output/report.txt"}
-}
-}
-\examples{
-\dontrun{
-# Get interpretation results in cli format
-results_txt <- interpret_fa(loadings, variable_info,
-                           output_format = "cli",
-                           silent = TRUE)
-
-# Export as plain text
-export_interpretation(results_txt, "txt", "my_analysis")
-# Creates: my_analysis.txt
-
-# Get interpretation results in markdown format
-results_md <- interpret_fa(loadings, variable_info,
-                          output_format = "markdown",
-                          silent = TRUE)
-
-# Export as markdown
-export_interpretation(results_md, "md", "my_analysis")
-# Creates: my_analysis.md
-
-# Extension auto-completion works
-export_interpretation(results_txt, "txt", "my_analysis.txt")
-# Creates: my_analysis.txt (not my_analysis.txt.txt)
-
-# Export to specific directory
-export_interpretation(results_md, "md", "output/my_analysis")
-# Creates: output/my_analysis.md
-}
-
 }

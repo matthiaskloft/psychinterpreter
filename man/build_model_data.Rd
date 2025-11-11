@@ -16,7 +16,7 @@
   fit_results,
   variable_info,
   model_type = NULL,
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 
@@ -24,7 +24,7 @@
   fit_results,
   variable_info,
   model_type = "fa",
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 
@@ -32,7 +32,7 @@
   fit_results,
   variable_info,
   model_type = "fa",
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 
@@ -40,7 +40,7 @@
   fit_results,
   variable_info,
   model_type = "fa",
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 
@@ -48,7 +48,7 @@
   fit_results,
   variable_info,
   model_type = "fa",
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 
@@ -56,7 +56,7 @@
   fit_results,
   variable_info,
   model_type = "fa",
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 
@@ -64,7 +64,7 @@
   fit_results,
   variable_info,
   model_type = "fa",
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 
@@ -72,7 +72,7 @@
   fit_results,
   variable_info,
   model_type = "fa",
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 
@@ -80,7 +80,7 @@ build_model_data(
   fit_results,
   variable_info,
   model_type = NULL,
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 }
@@ -91,7 +91,7 @@ build_model_data(
 
 \item{model_type}{Character. Model type ("fa", "gm", "irt", "cdm"). Required for list inputs.}
 
-\item{fa_args}{FA configuration object from fa_args() or NULL}
+\item{interpretation_args}{Interpretation configuration object from interpretation_args() or NULL}
 
 \item{...}{Additional arguments passed to model-specific methods}
 }

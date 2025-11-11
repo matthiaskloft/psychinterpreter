@@ -15,6 +15,11 @@
   - `interpret_fa()` removed entirely (functionality now in S3 generic `build_model_data()`)
   - New architecture: interpret() → interpret_core() → build_model_data.fa()
   - All 169 tests passing with new S3 generic system
+- **Phase 3** (2025-11-11):
+  - `fa_args()` renamed to `interpretation_args(model_type, ...)`
+  - Model-type-aware configuration system
+  - FA-specific functions moved from shared utilities to FA-specific files
+  - Export system refactored to S3 generic pattern
 
 ---
 
@@ -426,7 +431,7 @@ interpret(..., echo = "all")
 | `find_cross_loadings()` | Identify cross-loading variables |
 | `find_no_loadings()` | Identify orphaned variables |
 | `llm_args()` | Create LLM configuration object |
-| `fa_args()` | Create FA configuration object |
+| `interpretation_args()` | Create model-specific interpretation configuration |
 | `output_args()` | Create output configuration object |
 
 ## Key Parameters

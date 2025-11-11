@@ -39,7 +39,7 @@
                           {PARAM2} = NULL,
                           ...) {
 
-  # Pattern from config.R:41-72 (fa_args)
+  # Pattern from shared_config.R - interpretation_args(model_type, ...)
 
   # ============================================================================
   # Validate {PARAM1}
@@ -108,7 +108,7 @@
 #' @noRd
 build_{model}_args <- function({model}_args = NULL, dots = list()) {
 
-  # Pattern from config.R:103-130 (build_fa_args)
+  # Pattern from shared_config.R - build_interpretation_args()
 
   # ============================================================================
   # Define default values

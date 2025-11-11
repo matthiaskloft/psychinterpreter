@@ -12,7 +12,7 @@ interpret(
   provider = NULL,
   model = NULL,
   llm_args = NULL,
-  fa_args = NULL,
+  interpretation_args = NULL,
   output_args = NULL,
   ...
 )
@@ -55,15 +55,15 @@ If NULL, uses provider default. Top-level convenience parameter (default = NULL)
 interpretation_guidelines, additional_info, echo. If provider/model are provided at top-level,
 they override values in llm_args (default = NULL).}
 
-\item{fa_args}{List or fa_args object. Factor analysis configuration settings. Can be created with
-\code{\link{fa_args}} or passed as a plain list. Contains: cutoff, n_emergency, hide_low_loadings,
-sort_loadings, factor_cor_mat (default = NULL).}
-
 \item{output_args}{List or output_args object. Output configuration settings. Can be created with
 \code{\link{output_args}} or passed as a plain list. Contains: format, heading_level,
 suppress_heading, max_line_length, silent (default = NULL).}
 
 \item{...}{Additional arguments passed to model-specific methods.}
+
+\item{fa_args}{List or fa_args object. Factor analysis configuration settings. Can be created with
+\code{\link{fa_args}} or passed as a plain list. Contains: cutoff, n_emergency, hide_low_loadings,
+sort_loadings, factor_cor_mat (default = NULL).}
 }
 \value{
 Model-specific interpretation object:

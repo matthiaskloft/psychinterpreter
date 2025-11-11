@@ -5,42 +5,86 @@
 # across the package. These objects group related parameters and provide
 # validation, making the API cleaner and more maintainable.
 
-#' Create Factor Analysis Configuration
+#' Create Model-Specific Interpretation Configuration
 #'
-#' Creates a configuration object for factor analysis interpretation settings.
-#' This groups FA-specific parameters together for cleaner API usage.
+#' Creates a configuration object for interpretation settings. The available
+#' parameters depend on the model_type.
 #'
-#' @param cutoff Numeric. Minimum loading value to consider significant (default = 0.3)
-#' @param n_emergency Integer. When a factor has no loadings above cutoff, use top N
-#'   highest loadings. If 0, factors with no significant loadings are labeled "undefined" (default = 2)
-#' @param hide_low_loadings Logical. If TRUE, only variables with loadings at or above
-#'   cutoff are included in LLM prompt (default = FALSE)
-#' @param sort_loadings Logical. Sort variables by loading strength within factors (default = TRUE)
+#' @param model_type Character. Type of analysis: "fa" (factor analysis),
+#'   "gm" (gaussian mixture), "irt" (item response theory), or "cdm"
+#'   (cognitive diagnosis model)
+#' @param ... Model-specific parameters. For FA: cutoff, n_emergency,
+#'   hide_low_loadings, sort_loadings. See Details.
 #'
-#' @return A list with class "fa_args" containing validated FA settings
+#' @return A list with class "interpretation_args" containing validated settings
 #'
 #' @details
-#' Note: Factor correlation matrices should be passed via \code{fit_results}
+#' **Factor Analysis (model_type = "fa"):**
+#' - `cutoff`: Numeric. Minimum loading value to consider significant (default = 0.3)
+#' - `n_emergency`: Integer. When a factor has no loadings above cutoff, use top N
+#'   highest loadings. If 0, factors with no significant loadings are labeled
+#'   "undefined" (default = 2)
+#' - `hide_low_loadings`: Logical. If TRUE, only variables with loadings at or above
+#'   cutoff are included in LLM prompt (default = FALSE)
+#' - `sort_loadings`: Logical. Sort variables by loading strength within factors
+#'   (default = TRUE)
+#'
+#' **Note:** Factor correlation matrices should be passed via \code{fit_results}
 #' parameter in list structure: \code{list(loadings = ..., factor_cor_mat = ...)},
-#' not via \code{fa_args}.
+#' not via \code{interpretation_args}.
 #'
 #' @export
 #'
 #' @examples
-#' # Default settings
-#' cfg <- fa_args()
+#' # Factor analysis with default settings
+#' cfg <- interpretation_args(model_type = "fa")
 #'
-#' # Custom settings
-#' cfg <- fa_args(
+#' # Factor analysis with custom settings
+#' cfg <- interpretation_args(
+#'   model_type = "fa",
 #'   cutoff = 0.4,
 #'   n_emergency = 3,
 #'   hide_low_loadings = TRUE
 #' )
-fa_args <- function(cutoff = 0.3,
-                      n_emergency = 2,
-                      hide_low_loadings = FALSE,
-                      sort_loadings = TRUE) {
+interpretation_args <- function(model_type, ...) {
+  # Validate model_type
+  validate_model_type(model_type)
 
+  # Delegate to model-specific constructor
+  if (model_type == "fa") {
+    return(interpretation_args_fa(...))
+  } else if (model_type == "gm") {
+    cli::cli_abort(
+      c(
+        "Gaussian Mixture (gm) interpretation not yet implemented",
+        "i" = "Currently only 'fa' (factor analysis) is supported"
+      )
+    )
+  } else if (model_type == "irt") {
+    cli::cli_abort(
+      c(
+        "IRT interpretation not yet implemented",
+        "i" = "Currently only 'fa' (factor analysis) is supported"
+      )
+    )
+  } else if (model_type == "cdm") {
+    cli::cli_abort(
+      c(
+        "CDM interpretation not yet implemented",
+        "i" = "Currently only 'fa' (factor analysis) is supported"
+      )
+    )
+  }
+}
+
+#' Create FA-Specific Interpretation Args (Internal)
+#'
+#' @keywords internal
+#' @noRd
+interpretation_args_fa <- function(cutoff = 0.3,
+                                   n_emergency = 2,
+                                   hide_low_loadings = FALSE,
+                                   sort_loadings = TRUE) {
   # Validate cutoff
   if (!is.numeric(cutoff) || length(cutoff) != 1) {
     cli::cli_abort("{.arg cutoff} must be a single numeric value")
@@ -69,12 +113,13 @@ fa_args <- function(cutoff = 0.3,
 
   structure(
     list(
+      model_type = "fa",
       cutoff = cutoff,
       n_emergency = as.integer(n_emergency),
       hide_low_loadings = hide_low_loadings,
       sort_loadings = sort_loadings
     ),
-    class = c("fa_args", "model_config", "list")
+    class = c("interpretation_args", "model_config", "list")
   )
 }
 
@@ -276,15 +321,6 @@ output_args <- function(format = "cli",
 }
 
 
-#' Get Default FA Config
-#'
-#' Returns default factor analysis configuration. Useful for programmatic access.
-#'
-#' @return fa_args object with default settings
-#' @export
-default_fa_args <- function() {
-  fa_args()
-}
 
 
 #' Get Default Output Config
@@ -380,17 +416,34 @@ default_output_args <- function() {
 # S3 METHODS FOR CONFIG OBJECTS
 # ==============================================================================
 
-#' Print method for fa_args
+#' Print method for interpretation_args
 #' @export
 #' @keywords internal
-print.fa_args <- function(x, ...) {
-  cli::cli_h2("Factor Analysis Configuration")
-  cli::cli_ul()
-  cli::cli_li("Cutoff: {.val {x$cutoff}}")
-  cli::cli_li("Emergency rule: Use top {.val {x$n_emergency}} loadings")
-  cli::cli_li("Hide low loadings: {.val {x$hide_low_loadings}}")
-  cli::cli_li("Sort loadings: {.val {x$sort_loadings}}")
-  cli::cli_end()
+print.interpretation_args <- function(x, ...) {
+  # Get model type name
+  model_type_names <- c(
+    fa = "Factor Analysis",
+    gm = "Gaussian Mixture",
+    irt = "Item Response Theory",
+    cdm = "Cognitive Diagnosis"
+  )
+  model_name <- model_type_names[x$model_type] %||% x$model_type
+
+  cli::cli_h2("{model_name} Interpretation Configuration")
+
+  # Print model-specific parameters
+  if (x$model_type == "fa") {
+    cli::cli_ul()
+    cli::cli_li("Cutoff: {.val {x$cutoff}}")
+    cli::cli_li("Emergency rule: Use top {.val {x$n_emergency}} loadings")
+    cli::cli_li("Hide low loadings: {.val {x$hide_low_loadings}}")
+    cli::cli_li("Sort loadings: {.val {x$sort_loadings}}")
+    cli::cli_end()
+  } else {
+    # Future model types
+    cli::cli_alert_info("Configuration: {.val {names(x)}}")
+  }
+
   invisible(x)
 }
 
@@ -470,35 +523,55 @@ build_llm_args <- function(llm_args = NULL, provider = NULL, model = NULL, ...) 
 }
 
 
-#' Build FA Arguments from Config Object
+#' Build Interpretation Arguments from Config Object
 #'
-#' Internal helper that validates and normalizes FA configuration.
+#' Internal helper that validates and normalizes interpretation configuration
+#' for any model type.
 #'
-#' @param fa_args fa_args object, list, or NULL
-#' @param ... Additional arguments (filtered to valid fa_args parameters)
+#' @param interpretation_args interpretation_args object, list, or NULL
+#' @param model_type Character or NULL. Model type to infer parameters
+#' @param ... Additional arguments (filtered to valid interpretation_args parameters)
 #'
-#' @return fa_args object or NULL
+#' @return interpretation_args object or NULL
 #' @keywords internal
 #' @noRd
-build_fa_args <- function(fa_args = NULL, ...) {
-  # If fa_args provided, validate and use it
-  if (!is.null(fa_args)) {
-    # Convert list to fa_args if needed
-    if (is.list(fa_args) && !inherits(fa_args, "fa_args")) {
-      fa_args <- do.call("fa_args", fa_args)
+build_interpretation_args <- function(interpretation_args = NULL, model_type = NULL, ...) {
+  # If interpretation_args provided, validate and use it
+  if (!is.null(interpretation_args)) {
+    # Convert list to interpretation_args if needed
+    if (is.list(interpretation_args) && !inherits(interpretation_args, "interpretation_args")) {
+      # Need model_type to build
+      if (is.null(interpretation_args$model_type) && is.null(model_type)) {
+        cli::cli_abort(
+          c(
+            "Cannot build interpretation_args without model_type",
+            "i" = "Provide model_type in the list or as a parameter"
+          )
+        )
+      }
+      mt <- interpretation_args$model_type %||% model_type
+      interpretation_args <- do.call("interpretation_args", c(list(model_type = mt), interpretation_args))
     }
-    return(fa_args)
+    return(interpretation_args)
   }
 
-  # Check if any valid FA parameters in ...
-  dots <- list(...)
-  valid_fa_params <- c("cutoff", "n_emergency", "hide_low_loadings",
-                       "sort_loadings")
-  fa_dots <- dots[names(dots) %in% valid_fa_params]
+  # Check if any valid parameters in ... based on model_type
+  if (!is.null(model_type)) {
+    dots <- list(...)
 
-  # If we have FA parameters, build fa_args
-  if (length(fa_dots) > 0) {
-    return(do.call("fa_args", fa_dots))
+    # Define valid params per model type
+    valid_params <- if (model_type == "fa") {
+      c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings")
+    } else {
+      character(0)  # Future model types
+    }
+
+    model_dots <- dots[names(dots) %in% valid_params]
+
+    # If we have model-specific parameters, build interpretation_args
+    if (length(model_dots) > 0) {
+      return(do.call("interpretation_args", c(list(model_type = model_type), model_dots)))
+    }
   }
 
   NULL

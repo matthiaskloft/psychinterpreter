@@ -8,7 +8,7 @@
   fit_results,
   variable_info,
   model_type = NULL,
-  fa_args = NULL,
+  interpretation_args = NULL,
   ...
 )
 }

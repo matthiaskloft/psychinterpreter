@@ -33,12 +33,13 @@ sample_factor_cor <- matrix(
 
 # Sample interpretation result (fixture to avoid LLM calls in tests)
 sample_interpretation <- list(
+  model_type = "fa",
   suggested_names = list(
     ML1 = "Cognitive Ability",
     ML2 = "Numerical Skills",
     ML3 = "Memory Performance"
   ),
-  factor_summaries = list(
+  component_summaries = list(
     ML1 = list(
       header = "Factor 1 (ML1)",
       summary = "Number of significant loadings: 2\nVariance explained: 28%\n\nVariables:\n  1. var1, First variable description (Positive, Very Strong, .800)\n  2. var2, Second variable description (Positive, Strong, .700)\n",
@@ -98,20 +99,28 @@ sample_interpretation <- list(
     ML3 = c("", "", "", "", ".85"),
     stringsAsFactors = FALSE
   ),
-  factor_cor_mat = sample_factor_cor,
-  cross_loadings = data.frame(
-    variable = character(0),
-    factors = character(0),
-    description = character(0),
-    stringsAsFactors = FALSE
+  model_data = list(
+    loadings_df = sample_loadings,
+    factor_cor_mat = sample_factor_cor,
+    cutoff = 0.3,
+    n_emergency = 2,
+    hide_low_loadings = FALSE,
+    sort_loadings = TRUE
   ),
-  no_loadings = data.frame(
-    variable = character(0),
-    highest_loading = character(0),
-    description = character(0),
-    stringsAsFactors = FALSE
+  diagnostics = list(
+    cross_loadings = data.frame(
+      variable = character(0),
+      factors = character(0),
+      description = character(0),
+      stringsAsFactors = FALSE
+    ),
+    no_loadings = data.frame(
+      variable = character(0),
+      highest_loading = character(0),
+      description = character(0),
+      stringsAsFactors = FALSE
+    )
   ),
-  cutoff = 0.3,
   run_tokens = list(
     input = 250,
     output = 180

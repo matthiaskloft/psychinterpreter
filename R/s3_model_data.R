@@ -17,7 +17,7 @@ NULL
 #' @param fit_results Fitted model object (e.g., psych::fa, lavaan::cfa, list with loadings)
 #' @param variable_info Data frame with variable names and descriptions
 #' @param model_type Character. Model type ("fa", "gm", "irt", "cdm"). Required for list inputs.
-#' @param fa_args FA configuration object from fa_args() or NULL
+#' @param interpretation_args Interpretation configuration object from interpretation_args() or NULL
 #' @param ... Additional arguments passed to model-specific methods
 #'
 #' @return List containing standardized model data:
@@ -30,7 +30,7 @@ NULL
 #'
 #' @export
 #' @keywords internal
-build_model_data <- function(fit_results, variable_info, model_type = NULL, fa_args = NULL, ...) {
+build_model_data <- function(fit_results, variable_info, model_type = NULL, interpretation_args = NULL, ...) {
   UseMethod("build_model_data")
 }
 
@@ -38,7 +38,7 @@ build_model_data <- function(fit_results, variable_info, model_type = NULL, fa_a
 #'
 #' @export
 #' @keywords internal
-build_model_data.default <- function(fit_results, variable_info, model_type = NULL, fa_args = NULL, ...) {
+build_model_data.default <- function(fit_results, variable_info, model_type = NULL, interpretation_args = NULL, ...) {
   # Get the class name
   model_class <- class(fit_results)[1]
 

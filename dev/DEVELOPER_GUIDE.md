@@ -85,7 +85,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `shared_config.R` | ~445 | Config constructors: `llm_args()`, `fa_args()`, `output_args()`, builders |
+| `shared_config.R` | ~580 | Config constructors: `llm_args()`, `interpretation_args()`, `output_args()`, builders |
 | `shared_visualization.R` | ~250 | `psychinterpreter_colors()`, `theme_psychinterpreter()` (color palettes and ggplot2 theme) |
 | `shared_utils.R` | ~156 | Validation, routing, helper functions |
 | `shared_text.R` | ~107 | Text wrapping, word counting utilities |
@@ -148,7 +148,7 @@ The `interpret()` function is implemented as a **plain function with named argum
 User calls interpret(fit_results, variable_info, ...)
         ↓
 1. Parameter validation & config building
-   - Build llm_args, fa_args, output_args from parameters
+   - Build llm_args, interpretation_args, output_args from parameters
    - Validate required parameters
         ↓
 2. Route to interpret_model.{class}() OR interpret_core() directly

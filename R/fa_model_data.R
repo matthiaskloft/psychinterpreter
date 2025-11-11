@@ -21,28 +21,22 @@
 #'
 #' @importFrom dplyr left_join
 #' @importFrom cli cli_abort
-build_fa_model_data_internal <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+build_fa_model_data_internal <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
 
-  # Extract FA parameters from fa_args or ...
+  # Extract FA parameters from interpretation_args or ...
   dots <- list(...)
 
-  # Helper to get value with fallback
-  get_param <- function(from_config, from_dots, default) {
-    if (!is.null(from_config)) return(from_config)
-    if (!is.null(from_dots)) return(from_dots)
-    default
-  }
-
-  cutoff <- if (!is.null(fa_args)) fa_args$cutoff else dots$cutoff
+  # Extract from interpretation_args if provided
+  cutoff <- if (!is.null(interpretation_args)) interpretation_args$cutoff else dots$cutoff
   if (is.null(cutoff)) cutoff <- 0.3
 
-  n_emergency <- if (!is.null(fa_args)) fa_args$n_emergency else dots$n_emergency
+  n_emergency <- if (!is.null(interpretation_args)) interpretation_args$n_emergency else dots$n_emergency
   if (is.null(n_emergency)) n_emergency <- 2
 
-  hide_low_loadings <- if (!is.null(fa_args)) fa_args$hide_low_loadings else dots$hide_low_loadings
+  hide_low_loadings <- if (!is.null(interpretation_args)) interpretation_args$hide_low_loadings else dots$hide_low_loadings
   if (is.null(hide_low_loadings)) hide_low_loadings <- FALSE
 
-  sort_loadings <- if (!is.null(fa_args)) fa_args$sort_loadings else dots$sort_loadings
+  sort_loadings <- if (!is.null(interpretation_args)) interpretation_args$sort_loadings else dots$sort_loadings
   if (is.null(sort_loadings)) sort_loadings <- TRUE
 
   # Initialize factor_cor_mat (will be extracted from fit_results if available)
@@ -270,7 +264,7 @@ build_fa_model_data_internal <- function(fit_results, variable_info, model_type 
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.list <- function(fit_results, variable_info, model_type = NULL, fa_args = NULL, ...) {
+build_model_data.list <- function(fit_results, variable_info, model_type = NULL, interpretation_args = NULL, ...) {
   # For list input, determine model type and route
   if (is.null(model_type)) {
     cli::cli_abort(
@@ -283,10 +277,10 @@ build_model_data.list <- function(fit_results, variable_info, model_type = NULL,
 
   # Route to appropriate method based on model_type
   if (model_type == "fa") {
-    build_fa_model_data_internal(fit_results, variable_info, model_type, fa_args, ...)
+    build_fa_model_data_internal(fit_results, variable_info, model_type, interpretation_args, ...)
   } else {
     # Call default which will error with helpful message
-    build_model_data.default(fit_results, variable_info, model_type, fa_args, ...)
+    build_model_data.default(fit_results, variable_info, model_type, interpretation_args, ...)
   }
 }
 
@@ -294,18 +288,18 @@ build_model_data.list <- function(fit_results, variable_info, model_type = NULL,
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.matrix <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+build_model_data.matrix <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
   # Matrix input - treat as FA loadings
-  build_fa_model_data_internal(fit_results, variable_info, model_type, fa_args, ...)
+  build_fa_model_data_internal(fit_results, variable_info, model_type, interpretation_args, ...)
 }
 
 
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.data.frame <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+build_model_data.data.frame <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
   # Data frame input - treat as FA loadings
-  build_fa_model_data_internal(fit_results, variable_info, model_type, fa_args, ...)
+  build_fa_model_data_internal(fit_results, variable_info, model_type, interpretation_args, ...)
 }
 
 
@@ -316,7 +310,7 @@ build_model_data.data.frame <- function(fit_results, variable_info, model_type =
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.psych <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+build_model_data.psych <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
   # Validate model structure
   if (!inherits(fit_results, "psych")) {
     cli::cli_abort(
@@ -334,13 +328,13 @@ build_model_data.psych <- function(fit_results, variable_info, model_type = "fa"
   # Extract factor correlations if oblique rotation
   factor_cor_mat <- if (!is.null(fit_results$Phi)) fit_results$Phi else NULL
 
-  # Create list and route to .fa method
+  # Create list and route to internal helper
   loadings_list <- list(
     loadings = loadings,
     factor_cor_mat = factor_cor_mat
   )
 
-  build_fa_model_data_internal(loadings_list, variable_info, model_type, fa_args, ...)
+  build_fa_model_data_internal(loadings_list, variable_info, model_type, interpretation_args, ...)
 }
 
 
@@ -359,7 +353,7 @@ build_model_data.principal <- build_model_data.psych
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.lavaan <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+build_model_data.lavaan <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
   # Validate model structure
   if (!inherits(fit_results, "lavaan")) {
     cli::cli_abort(
@@ -392,14 +386,14 @@ build_model_data.lavaan <- function(fit_results, variable_info, model_type = "fa
     factor_cor_mat = factor_cor_mat
   )
 
-  build_fa_model_data_internal(loadings_list, variable_info, model_type, fa_args, ...)
+  build_fa_model_data_internal(loadings_list, variable_info, model_type, interpretation_args, ...)
 }
 
 
 #' @rdname build_model_data
 #' @export
 #' @keywords internal
-build_model_data.SingleGroupClass <- function(fit_results, variable_info, model_type = "fa", fa_args = NULL, ...) {
+build_model_data.SingleGroupClass <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
   # Validate model structure
   if (!inherits(fit_results, "SingleGroupClass")) {
     cli::cli_abort(
@@ -432,5 +426,119 @@ build_model_data.SingleGroupClass <- function(fit_results, variable_info, model_
     factor_cor_mat = factor_cor_mat
   )
 
-  build_fa_model_data_internal(loadings_list, variable_info, model_type, fa_args, ...)
+  build_fa_model_data_internal(loadings_list, variable_info, model_type, interpretation_args, ...)
+}
+
+
+# ==============================================================================
+# FA-SPECIFIC UTILITY FUNCTIONS
+# ==============================================================================
+
+#' Validate Factor Analysis List Structure
+#'
+#' Internal helper to validate and extract components from a structured list
+#' for factor analysis. Used when fit_results is provided as a list instead of
+#' a fitted model object. Accepts both "factor_cor_mat" and "Phi" as names
+#' for the factor correlation matrix (psych::fa uses "Phi").
+#'
+#' @param fit_results_list List with FA model components
+#'
+#' @return List with extracted components:
+#'   - loadings: The loadings matrix (data.frame or matrix)
+#'   - factor_cor_mat: The factor correlation matrix (NULL if not provided)
+#'
+#' @keywords internal
+#' @noRd
+validate_fa_list_structure <- function(fit_results_list) {
+
+  # Check that loadings is present (required)
+  if (!"loadings" %in% names(fit_results_list)) {
+    cli::cli_abort(
+      c(
+        "{.var fit_results} list must contain a 'loadings' component",
+        "x" = "Current components: {.field {names(fit_results_list)}}",
+        "i" = "Minimum required structure: list(loadings = matrix(...))",
+        "i" = "Optional components: factor_cor_mat"
+      )
+    )
+  }
+
+  # Extract loadings
+  loadings <- fit_results_list$loadings
+
+  # Validate loadings is a matrix or data.frame
+  if (!is.matrix(loadings) && !is.data.frame(loadings)) {
+    cli::cli_abort(
+      c(
+        "{.var loadings} component must be a matrix or data.frame",
+        "x" = "You provided: {.cls {class(loadings)}}",
+        "i" = "Convert to matrix or data.frame before passing to interpret()"
+      )
+    )
+  }
+
+  # Extract factor correlation matrix (optional)
+  # Accept both "factor_cor_mat" and "Phi" (psych::fa uses "Phi")
+  factor_cor_mat <- NULL
+  if ("factor_cor_mat" %in% names(fit_results_list)) {
+    factor_cor_mat <- fit_results_list$factor_cor_mat
+  } else if ("Phi" %in% names(fit_results_list)) {
+    factor_cor_mat <- fit_results_list$Phi
+  }
+
+  # Validate and convert factor_cor_mat if provided
+  if (!is.null(factor_cor_mat)) {
+    if (!is.matrix(factor_cor_mat) && !is.data.frame(factor_cor_mat)) {
+      cli::cli_abort(
+        c(
+          "Factor correlation matrix must be a matrix or data.frame",
+          "x" = "You provided: {.cls {class(factor_cor_mat)}}",
+          "i" = "Use matrix() or data.frame() to create a proper correlation matrix"
+        )
+      )
+    }
+
+    # Convert data.frame to matrix if needed
+    if (is.data.frame(factor_cor_mat)) {
+      factor_cor_mat <- as.matrix(factor_cor_mat)
+    }
+  }
+
+  # Warn about unrecognized components
+  # Accept both "factor_cor_mat" and "Phi" (psych::fa uses "Phi")
+  recognized_components <- c("loadings", "factor_cor_mat", "Phi")
+  unrecognized <- setdiff(names(fit_results_list), recognized_components)
+
+  if (length(unrecognized) > 0) {
+    cli::cli_warn(
+      c(
+        "!" = "Unrecognized components in fit_results list will be ignored",
+        "i" = "Unrecognized: {.field {unrecognized}}",
+        "i" = "Recognized components: {.field {recognized_components}}",
+        "i" = "Note: Use {.arg additional_info} parameter for contextual information, not fit_results list"
+      )
+    )
+  }
+
+  # Return extracted components
+  list(
+    loadings = loadings,
+    factor_cor_mat = factor_cor_mat
+  )
+}
+
+#' Calculate Variance Explained by a Factor
+#'
+#' Calculates the proportion of total variance explained by a factor based on
+#' the sum of squared loadings. This is used in factor analysis to understand
+#' how much of the data's variability each factor captures.
+#'
+#' @param loadings Numeric vector of factor loadings
+#' @param n_variables Integer. Total number of variables (for proportion calculation)
+#'
+#' @return Numeric. Proportion of variance explained (0 to 1)
+#' @keywords internal
+#' @noRd
+calculate_variance_explained <- function(loadings, n_variables) {
+  sum(loadings^2) / n_variables
 }

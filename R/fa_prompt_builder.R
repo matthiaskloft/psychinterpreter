@@ -43,7 +43,8 @@ build_system_prompt.fa <- function(model_type, word_limit = 100, ...) {
 #' Build User Prompt for Factor Analysis
 #'
 #' Constructs the complete user prompt containing factor loadings, variable
-#' descriptions, and interpretation instructions.
+#' descriptions, and interpretation instructions. All FA-specific parameters
+#' are extracted from model_data.
 #'
 #' @param model_type Object with class "fa"
 #' @param model_data List containing:
@@ -52,14 +53,13 @@ build_system_prompt.fa <- function(model_type, word_limit = 100, ...) {
 #'   - factor_cols: Character vector of factor column names
 #'   - n_factors: Number of factors
 #'   - n_variables: Number of variables
+#'   - cutoff: Loading cutoff threshold
+#'   - n_emergency: Number of top loadings to use if none exceed cutoff
+#'   - hide_low_loadings: Whether to hide loadings below cutoff
+#'   - factor_cor_mat: Factor correlation matrix (optional)
 #' @param variable_info Data frame with 'variable' and 'description' columns
-#' @param cutoff Numeric. Loading cutoff threshold
 #' @param word_limit Integer. Word limit for interpretations
-#' @param n_emergency Integer. Number of top loadings to use if none exceed cutoff
-#' @param hide_low_loadings Logical. Whether to hide loadings below cutoff
 #' @param additional_info Character or NULL. Additional context
-#' @param interpretation_guidelines Character or NULL. Custom interpretation guidelines
-#' @param factor_cor_mat Matrix or NULL. Factor correlation matrix
 #' @param ... Additional arguments (unused)
 #'
 #' @return Character. User prompt text
@@ -68,20 +68,23 @@ build_system_prompt.fa <- function(model_type, word_limit = 100, ...) {
 build_main_prompt.fa <- function(model_type,
                                  model_data,
                                  variable_info,
-                                 cutoff,
                                  word_limit,
-                                 n_emergency = 3,
-                                 hide_low_loadings = FALSE,
                                  additional_info = NULL,
-                                 interpretation_guidelines = NULL,
-                                  factor_cor_mat = NULL,
                                  ...) {
-  # Extract data from model_data
+  # Extract FA-specific parameters from model_data
   loadings_df <- model_data$loadings_df
+  cutoff <- model_data$cutoff
+  n_emergency <- model_data$n_emergency
+  hide_low_loadings <- model_data$hide_low_loadings
+  factor_cor_mat <- model_data$factor_cor_mat
   factor_summaries <- model_data$factor_summaries
   factor_cols <- model_data$factor_cols
   n_factors <- model_data$n_factors
   n_variables <- model_data$n_variables
+
+  # Extract optional parameters from ...
+  dots <- list(...)
+  interpretation_guidelines <- dots$interpretation_guidelines
 
   # Initialize prompt
   prompt <- ""

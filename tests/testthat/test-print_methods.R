@@ -11,7 +11,7 @@ test_that("print.fa_interpretation validates input object", {
 
   expect_error(
     print(bad_object),
-    "must contain.*report.*or.*factor_summaries"
+    "must contain.*report.*or.*component_summaries"
   )
 
   # Test with fa_interpretation object missing required components
@@ -20,7 +20,7 @@ test_that("print.fa_interpretation validates input object", {
 
   expect_error(
     print(bad_object),
-    "must contain 'report' or 'factor_summaries'"
+    "must contain 'report' or 'component_summaries'"
   )
 })
 

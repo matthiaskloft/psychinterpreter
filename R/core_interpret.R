@@ -58,7 +58,7 @@ interpret_core <- function(model_data = NULL,
                           silent = 0,
                           echo = "none",
                           params = NULL,
-                          fa_args = NULL,
+                          interpretation_args = NULL,
                           llm_args = NULL,
                           output_args = NULL,
                           ...) {
@@ -66,11 +66,8 @@ interpret_core <- function(model_data = NULL,
   # Capture start time
   start_time <- Sys.time()
 
-  # Capture ... and remove FA-specific parameters to avoid duplicates
-  # These will be passed explicitly from model_data or as explicit parameters
+  # Capture ... (no need to filter model-specific params - they're in model_data)
   dots <- list(...)
-  fa_param_names <- c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings", "factor_cor_mat")
-  dots_clean <- dots[!names(dots) %in% fa_param_names]
 
   # ==========================================================================
   # STEP 0: BUILD MODEL DATA (NEW PATH)
@@ -87,24 +84,10 @@ interpret_core <- function(model_data = NULL,
       fit_results = fit_results,
       variable_info = variable_info,
       model_type = model_type,
-      fa_args = fa_args,
+      interpretation_args = interpretation_args,
       ...
     )
 
-  }
-
-  # Extract FA-specific parameters from model_data for FA models
-  # These are needed for build_main_prompt.fa()
-  cutoff <- NULL
-  n_emergency <- NULL
-  hide_low_loadings <- NULL
-  factor_cor_mat <- NULL
-
-  if (!is.null(model_data$cutoff)) {
-    cutoff <- model_data$cutoff
-    n_emergency <- model_data$n_emergency
-    hide_low_loadings <- model_data$hide_low_loadings
-    factor_cor_mat <- model_data$factor_cor_mat
   }
 
   # Validate that we have model_data (either from fit_results or passed directly)
@@ -294,7 +277,7 @@ interpret_core <- function(model_data = NULL,
         model_type = model_type_obj,
         word_limit = word_limit
       ),
-      dots_clean
+      dots
     ))
   }
 
@@ -336,20 +319,16 @@ interpret_core <- function(model_data = NULL,
     cli::cli_alert_info("Building prompt...")
   }
 
-  # Build prompt args (use dots_clean to avoid duplicate FA params)
+  # Build prompt args (model_data contains all model-specific parameters)
   prompt_args <- c(
     list(
       model_type = model_type_obj,
       model_data = model_data,
       variable_info = variable_info,
       word_limit = word_limit,
-      additional_info = additional_info,
-      cutoff = cutoff,
-      n_emergency = n_emergency,
-      hide_low_loadings = hide_low_loadings,
-      factor_cor_mat = factor_cor_mat
+      additional_info = additional_info
     ),
-    dots_clean
+    dots
   )
 
   main_prompt <- do.call(build_main_prompt, prompt_args)
@@ -386,7 +365,7 @@ interpret_core <- function(model_data = NULL,
       model_type = model_type,
       model_data = model_data
     ),
-    dots_clean
+    dots
   ))
 
   # ==========================================================================
@@ -438,7 +417,7 @@ interpret_core <- function(model_data = NULL,
       model_data = model_data,
       variable_info = variable_info
     ),
-    dots_clean
+    dots
   ))
 
   # ==========================================================================
@@ -468,7 +447,7 @@ interpret_core <- function(model_data = NULL,
         output_format = output_format,
         additional_info = additional_info
       ),
-      dots_clean
+      dots
     ),
     variable_info = variable_info
   )
@@ -487,27 +466,6 @@ interpret_core <- function(model_data = NULL,
     "list"
   )
 
-  # Add model-specific aliases for backward compatibility
-  if (model_type == "fa") {
-    interpretation$factor_summaries <- interpretation$component_summaries
-  }
-
-  # Add top-level token fields for backward compatibility
-  interpretation$input_tokens <- input_tokens
-  interpretation$output_tokens <- output_tokens
-
-  # Add FA-specific formatted fields for backward compatibility
-  if (model_type == "fa" && !is.null(model_data$loadings_df)) {
-    # Format loading matrix: remove leading zeros (e.g., -0.456 -> -.456, 0.456 -> .456)
-    loading_matrix <- model_data$loadings_df
-    for (col in model_data$factor_cols) {
-      loading_matrix[[col]] <- format_loading(loading_matrix[[col]])
-    }
-    interpretation$loading_matrix <- loading_matrix
-    interpretation$factor_cor_mat <- model_data$factor_cor_mat
-    interpretation$cutoff <- model_data$cutoff
-  }
-
   # ==========================================================================
   # STEP 10: BUILD REPORT
   # ==========================================================================
@@ -522,7 +480,7 @@ interpret_core <- function(model_data = NULL,
       heading_level = heading_level,
       suppress_heading = suppress_heading
     ),
-    dots_clean
+    dots
   ))
 
   # ==========================================================================

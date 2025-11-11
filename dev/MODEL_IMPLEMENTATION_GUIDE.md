@@ -539,7 +539,7 @@ Add to `shared_config.R`:
 }
 ```
 
-**Pattern from FA**: See `shared_config.R:41-72` for `fa_args()`
+**Pattern from FA**: See `shared_config.R` for `interpretation_args(model_type, ...)` - model-type-aware configuration
 
 #### 2.2 Builder Function
 
@@ -582,7 +582,7 @@ build_{model}_args <- function({model}_args = NULL, dots = list()) {
 }
 ```
 
-**Pattern from FA**: See `shared_config.R:103-130` for `build_fa_args()`
+**Pattern from FA**: See `shared_config.R` for `build_interpretation_args()` - handles all model types
 
 ---
 
@@ -1179,7 +1179,7 @@ This enables validation across the entire package.
 # Uncomment parameter (line ~25-27):
 handle_raw_data_interpret <- function(x, variable_info, model_type,
                                       chat_session, llm_args = NULL,
-                                      fa_args = NULL,
+                                      interpretation_args = NULL,
                                       gm_args = NULL,   # UNCOMMENT for GM
                                       # irt_args = NULL,  # Uncomment for IRT
                                       # cdm_args = NULL,  # Uncomment for CDM

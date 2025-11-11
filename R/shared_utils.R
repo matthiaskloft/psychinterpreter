@@ -21,10 +21,7 @@
 #' @noRd
 handle_raw_data_interpret <- function(x, variable_info, model_type,
                                       chat_session, llm_args = NULL,
-                                      fa_args = NULL,
-                                      # gm_args = NULL,   # TODO: Uncomment for GM support
-                                      # irt_args = NULL,  # TODO: Uncomment for IRT support
-                                      # cdm_args = NULL,  # TODO: Uncomment for CDM support
+                                      interpretation_args = NULL,
                                       output_args = NULL, ...) {
   # Determine effective model_type
   effective_model_type <- if (!is.null(chat_session)) {
@@ -53,7 +50,7 @@ handle_raw_data_interpret <- function(x, variable_info, model_type,
         model_type = "fa",
         chat_session = chat_session,
         llm_args = llm_args,
-        fa_args = fa_args,
+        interpretation_args = interpretation_args,
         output_args = output_args,
         ...
       )
@@ -123,111 +120,3 @@ validate_chat_session_for_model_type <- function(chat_session, expected_type) {
 }
 
 
-#' Validate Factor Analysis List Structure
-#'
-#' Internal helper to validate and extract components from a structured list
-#' for factor analysis. Used when fit_results is provided as a list instead of
-#' a fitted model object. Accepts both "factor_cor_mat" and "Phi" as names
-#' for the factor correlation matrix (psych::fa uses "Phi").
-#'
-#' @param fit_results_list List with FA model components
-#'
-#' @return List with extracted components:
-#'   - loadings: The loadings matrix (data.frame or matrix)
-#'   - factor_cor_mat: The factor correlation matrix (NULL if not provided)
-#'
-#' @keywords internal
-#' @noRd
-validate_fa_list_structure <- function(fit_results_list) {
-
-  # Check that loadings is present (required)
-  if (!"loadings" %in% names(fit_results_list)) {
-    cli::cli_abort(
-      c(
-        "{.var fit_results} list must contain a 'loadings' component",
-        "x" = "Current components: {.field {names(fit_results_list)}}",
-        "i" = "Minimum required structure: list(loadings = matrix(...))",
-        "i" = "Optional components: factor_cor_mat"
-      )
-    )
-  }
-
-  # Extract loadings
-  loadings <- fit_results_list$loadings
-
-  # Validate loadings is a matrix or data.frame
-  if (!is.matrix(loadings) && !is.data.frame(loadings)) {
-    cli::cli_abort(
-      c(
-        "{.var loadings} component must be a matrix or data.frame",
-        "x" = "You provided: {.cls {class(loadings)}}",
-        "i" = "Convert to matrix or data.frame before passing to interpret()"
-      )
-    )
-  }
-
-  # Extract factor correlation matrix (optional)
-  # Accept both "factor_cor_mat" and "Phi" (psych::fa uses "Phi")
-  factor_cor_mat <- NULL
-  if ("factor_cor_mat" %in% names(fit_results_list)) {
-    factor_cor_mat <- fit_results_list$factor_cor_mat
-  } else if ("Phi" %in% names(fit_results_list)) {
-    factor_cor_mat <- fit_results_list$Phi
-  }
-
-  # Validate and convert factor_cor_mat if provided
-  if (!is.null(factor_cor_mat)) {
-    if (!is.matrix(factor_cor_mat) && !is.data.frame(factor_cor_mat)) {
-      cli::cli_abort(
-        c(
-          "Factor correlation matrix must be a matrix or data.frame",
-          "x" = "You provided: {.cls {class(factor_cor_mat)}}",
-          "i" = "Use matrix() or data.frame() to create a proper correlation matrix"
-        )
-      )
-    }
-
-    # Convert data.frame to matrix if needed
-    if (is.data.frame(factor_cor_mat)) {
-      factor_cor_mat <- as.matrix(factor_cor_mat)
-    }
-  }
-
-  # Warn about unrecognized components
-  # Accept both "factor_cor_mat" and "Phi" (psych::fa uses "Phi")
-  recognized_components <- c("loadings", "factor_cor_mat", "Phi")
-  unrecognized <- setdiff(names(fit_results_list), recognized_components)
-
-  if (length(unrecognized) > 0) {
-    cli::cli_warn(
-      c(
-        "!" = "Unrecognized components in fit_results list will be ignored",
-        "i" = "Unrecognized: {.field {unrecognized}}",
-        "i" = "Recognized components: {.field {recognized_components}}",
-        "i" = "Note: Use {.arg additional_info} parameter for contextual information, not fit_results list"
-      )
-    )
-  }
-
-  # Return extracted components
-  list(
-    loadings = loadings,
-    factor_cor_mat = factor_cor_mat
-  )
-}
-
-#' Calculate Variance Explained by a Factor
-#'
-#' Calculates the proportion of total variance explained by a factor based on
-#' the sum of squared loadings. This is used in factor analysis to understand
-#' how much of the data's variability each factor captures.
-#'
-#' @param loadings Numeric vector of factor loadings
-#' @param n_variables Integer. Total number of variables (for proportion calculation)
-#'
-#' @return Numeric. Proportion of variance explained (0 to 1)
-#' @keywords internal
-#' @noRd
-calculate_variance_explained <- function(loadings, n_variables) {
-  sum(loadings^2) / n_variables
-}

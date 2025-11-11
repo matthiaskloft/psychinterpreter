@@ -22,7 +22,7 @@ interpret_core(
   silent = 0,
   echo = "none",
   params = NULL,
-  fa_args = NULL,
+  interpretation_args = NULL,
   llm_args = NULL,
   output_args = NULL,
   ...

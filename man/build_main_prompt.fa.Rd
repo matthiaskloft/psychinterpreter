@@ -8,13 +8,8 @@
   model_type,
   model_data,
   variable_info,
-  cutoff,
   word_limit,
-  n_emergency = 3,
-  hide_low_loadings = FALSE,
   additional_info = NULL,
-  interpretation_guidelines = NULL,
-  factor_cor_mat = NULL,
   ...
 )
 }
@@ -28,23 +23,17 @@
 \item factor_cols: Character vector of factor column names
 \item n_factors: Number of factors
 \item n_variables: Number of variables
+\item cutoff: Loading cutoff threshold
+\item n_emergency: Number of top loadings to use if none exceed cutoff
+\item hide_low_loadings: Whether to hide loadings below cutoff
+\item factor_cor_mat: Factor correlation matrix (optional)
 }}
 
 \item{variable_info}{Data frame with 'variable' and 'description' columns}
 
-\item{cutoff}{Numeric. Loading cutoff threshold}
-
 \item{word_limit}{Integer. Word limit for interpretations}
 
-\item{n_emergency}{Integer. Number of top loadings to use if none exceed cutoff}
-
-\item{hide_low_loadings}{Logical. Whether to hide loadings below cutoff}
-
 \item{additional_info}{Character or NULL. Additional context}
-
-\item{interpretation_guidelines}{Character or NULL. Custom interpretation guidelines}
-
-\item{factor_cor_mat}{Matrix or NULL. Factor correlation matrix}
 
 \item{...}{Additional arguments (unused)}
 }
@@ -53,6 +42,7 @@ Character. User prompt text
 }
 \description{
 Constructs the complete user prompt containing factor loadings, variable
-descriptions, and interpretation instructions.
+descriptions, and interpretation instructions. All FA-specific parameters
+are extracted from model_data.
 }
 \keyword{internal}
