@@ -10,6 +10,7 @@ template:
 exclude: |
   CLAUDE.md
   NEWS.md
+  04-Gaussian_Mixture_dev.qmd
 
 reference:
   - title: "Main Interpretation Functions"
