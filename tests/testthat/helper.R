@@ -1,9 +1,15 @@
 # Test Helper Functions
 # Helper functions and utilities for psychinterpreter tests
 
+# Fixture Cache Environment ----
+# Cache environment to load fixtures only once per test session
+# This significantly reduces I/O overhead during testing
+.test_cache <- new.env(parent = emptyenv())
+
 # Fixture Loading Functions ----
 # These functions use test_path() to load fixture data from RDS files
 # This ensures correct paths in both interactive and automated testing
+# Fixtures are cached in .test_cache and loaded only once per test session
 
 #' Get path to test fixture file
 #'
@@ -23,28 +29,44 @@ get_fixture_path <- function(...) {
 #'
 #' @return A data frame with factor loadings
 sample_loadings <- function() {
-  readRDS(get_fixture_path("fixtures", "sample_loadings.rds"))
+  cache_key <- "sample_loadings"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_loadings.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load sample variable information
 #'
 #' @return A data frame with variable descriptions
 sample_variable_info <- function() {
-  readRDS(get_fixture_path("fixtures", "sample_variable_info.rds"))
+  cache_key <- "sample_variable_info"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_variable_info.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load sample factor correlation matrix
 #'
 #' @return A correlation matrix for oblique rotations
 sample_factor_cor <- function() {
-  readRDS(get_fixture_path("fixtures", "sample_factor_cor.rds"))
+  cache_key <- "sample_factor_cor"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_factor_cor.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load sample interpretation result
 #'
 #' @return A complete fa_interpretation object (fixture to avoid LLM calls)
 sample_interpretation <- function() {
-  readRDS(get_fixture_path("fixtures", "sample_interpretation.rds"))
+  cache_key <- "sample_interpretation"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_interpretation.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 # Minimal Fixtures (Token-Efficient) ----
@@ -55,21 +77,55 @@ sample_interpretation <- function() {
 #'
 #' @return A data frame with 3 variables × 2 factors
 minimal_loadings <- function() {
-  readRDS(get_fixture_path("fixtures", "minimal_loadings.rds"))
+  cache_key <- "minimal_loadings"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_loadings.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load minimal variable information (for token-efficient LLM tests)
 #'
 #' @return A data frame with short variable descriptions
 minimal_variable_info <- function() {
-  readRDS(get_fixture_path("fixtures", "minimal_variable_info.rds"))
+  cache_key <- "minimal_variable_info"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_variable_info.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load minimal factor correlation matrix (for token-efficient LLM tests)
 #'
 #' @return A 2×2 correlation matrix
 minimal_factor_cor <- function() {
-  readRDS(get_fixture_path("fixtures", "minimal_factor_cor.rds"))
+  cache_key <- "minimal_factor_cor"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_factor_cor.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load minimal FA model fixture (for token-efficient LLM tests)
+#'
+#' @return A psych::fa fitted model object with 3 variables × 2 factors
+minimal_fa_model <- function() {
+  cache_key <- "minimal_fa_model"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_fa_model.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load minimal PCA model fixture (for token-efficient LLM tests)
+#'
+#' @return A psych::principal fitted model object with 3 variables × 2 components
+minimal_pca_model <- function() {
+  cache_key <- "minimal_pca_model"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "minimal_pca_model.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 # Correlational Data Fixtures (for S3 method testing) ----
@@ -79,14 +135,86 @@ minimal_factor_cor <- function() {
 #'
 #' @return A data frame with 6 variables having proper factor structure
 correlational_data <- function() {
-  readRDS(get_fixture_path("fixtures", "correlational_data.rds"))
+  cache_key <- "correlational_data"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "correlational_data.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 #' Load correlational variable info (for S3 method tests)
 #'
 #' @return A data frame with variable descriptions for correlational data
 correlational_var_info <- function() {
-  readRDS(get_fixture_path("fixtures", "correlational_var_info.rds"))
+  cache_key <- "correlational_var_info"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "correlational_var_info.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+# Psych Package Fixtures (for S3 method testing) ----
+# These fixtures cache psych::fa and psych::principal models
+
+#' Load sample FA model with oblimin rotation (for S3 method tests)
+#'
+#' @return A fitted psych::fa object (2 factors, oblique rotation)
+sample_fa_oblimin <- function() {
+  cache_key <- "sample_fa_oblimin"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_fa_oblimin.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load sample FA model with varimax rotation (for S3 method tests)
+#'
+#' @return A fitted psych::fa object (2 factors, orthogonal rotation)
+sample_fa_varimax <- function() {
+  cache_key <- "sample_fa_varimax"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_fa_varimax.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load sample PCA model with varimax rotation (for S3 method tests)
+#'
+#' @return A fitted psych::principal object (2 components, orthogonal rotation)
+sample_pca_varimax <- function() {
+  cache_key <- "sample_pca_varimax"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_pca_varimax.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+# Lavaan Package Fixtures (for S3 method testing) ----
+# These fixtures cache lavaan CFA models
+
+#' Load sample lavaan CFA model (for S3 method tests)
+#'
+#' @return A fitted lavaan CFA object (2 factors on HolzingerSwineford1939 data)
+sample_lavaan_cfa <- function() {
+  cache_key <- "sample_lavaan_cfa"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_lavaan_cfa.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+# MIRT Fixtures (for S3 method testing) ----
+# These fixtures cache expensive MIRT model fits
+
+#' Load sample MIRT model (for S3 method tests)
+#'
+#' @return A fitted mirt::SingleGroupClass object (2-dimensional 2PL model)
+sample_mirt_model <- function() {
+  cache_key <- "sample_mirt_model"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_mirt_model.rds"))
+  }
+  .test_cache[[cache_key]]
 }
 
 # LLM Availability Functions ----
@@ -100,11 +228,24 @@ has_ollama <- function() {
     return(FALSE)
   }
 
-  # Try to check if Ollama is running by attempting to load ellmer
+  # Check if ellmer package is available
+  if (!requireNamespace("ellmer", quietly = TRUE)) {
+    return(FALSE)
+  }
+
+  # Try to actually connect to Ollama and run a minimal test
   tryCatch({
-    requireNamespace("ellmer", quietly = TRUE)
+    # Create a minimal chat session to test connectivity
+    test_chat <- ellmer::chat(
+      name = "ollama/gpt-oss:20b-cloud",
+      system_prompt = "test"
+    )
+    # Try a simple query - if this fails, Ollama isn't properly available
+    test_chat$chat("hello", echo = "none")
+    return(TRUE)
   }, error = function(e) {
-    FALSE
+    # If we get any error (including HTTP 500), Ollama isn't available
+    return(FALSE)
   })
 }
 
@@ -113,8 +254,9 @@ has_ollama <- function() {
 #' Skips the current test if:
 #' - Running in CI environment
 #' - ellmer package is not available
+#' - Ollama service is not running or not responding
 skip_if_no_llm <- function() {
   if (!has_ollama()) {
-    testthat::skip("ellmer package not available for Ollama")
+    testthat::skip("Ollama LLM not available (either ellmer package missing or service not responding)")
   }
 }

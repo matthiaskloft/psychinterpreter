@@ -15,3 +15,4 @@
 ^\.github$
 ^tests/testthat/fixtures/make-fixtures\.R$
 ^tests/testthat/fixtures/README\.md$
+^README\.Rmd$

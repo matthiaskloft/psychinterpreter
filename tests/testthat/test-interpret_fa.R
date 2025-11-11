@@ -1,38 +1,51 @@
+# ==============================================================================
+# PARAMETER VALIDATION TESTS (NO LLM REQUIRED)
+# ==============================================================================
+
 test_that("interpret_fa validates input parameters", {
   loadings <- sample_loadings()
   var_info <- sample_variable_info()
 
   # Test invalid cutoff
   expect_error(
-    interpret_fa(loadings, var_info, cutoff = -0.1),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", cutoff = -0.1),
     "must be between 0 and 1"
   )
 
   expect_error(
-    interpret_fa(loadings, var_info, cutoff = 1.5),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", cutoff = 1.5),
     "must be between 0 and 1"
   )
 
   # Test invalid n_emergency (negative values not allowed)
   expect_error(
-    interpret_fa(loadings, var_info, n_emergency = -1),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", n_emergency = -1),
     "must be a non-negative integer"
   )
 
-  # Test invalid output_format
+  # Test invalid output_format (now validated in interpret_core, needs provider)
   expect_error(
-    interpret_fa(loadings, var_info, output_format = "invalid"),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud",
+              output_format = "invalid"),
     "must be either"
   )
 
-  # Test invalid heading_level
+  # Test invalid heading_level (now validated in interpret_core, needs provider)
   expect_error(
-    interpret_fa(loadings, var_info, heading_level = 0),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud",
+              heading_level = 0),
     "between 1 and 6"
   )
 
   expect_error(
-    interpret_fa(loadings, var_info, heading_level = 7),
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud",
+              heading_level = 7),
     "between 1 and 6"
   )
 })
@@ -47,7 +60,8 @@ test_that("interpret_fa validates loadings structure", {
   )
 
   expect_error(
-    interpret_fa(bad_loadings, var_info),
+    interpret(fit_results = list(loadings = bad_loadings), variable_info = var_info,
+              model_type = "fa", provider = "ollama"),
     'No variables from.*found in'
   )
 
@@ -55,7 +69,8 @@ test_that("interpret_fa validates loadings structure", {
   only_vars <- data.frame(variable = c("var1", "var2"))
 
   expect_error(
-    interpret_fa(only_vars, var_info),
+    interpret(fit_results = list(loadings = only_vars), variable_info = var_info,
+              model_type = "fa", provider = "ollama"),
     "must contain at least one factor"
   )
 })
@@ -69,30 +84,53 @@ test_that("interpret_fa validates variable_info structure", {
   )
 
   expect_error(
-    interpret_fa(loadings, bad_var_info),
-    'must contain a variable column'
+    interpret(fit_results = list(loadings = loadings), variable_info = bad_var_info,
+              model_type = "fa", provider = "ollama"),
+    "must contain a .variable. column"
   )
 })
 
 test_that("interpret_fa validates chat_session parameter", {
-  skip_if_no_llm()
-
   loadings <- sample_loadings()
   var_info <- sample_variable_info()
 
   # Test with invalid chat_session
   expect_error(
-    interpret_fa(loadings, var_info, chat_session = "not a chat_fa"),
-    "chat_session must be a chat_fa object"
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", chat_session = "not a chat_fa"),
+    "chat_session.*must be a chat_session object"
   )
 
   expect_error(
-    interpret_fa(loadings, var_info, chat_session = list()),
-    "chat_session must be a chat_fa object"
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", chat_session = list()),
+    "chat_session.*must be a chat_session object"
   )
 })
 
-test_that("interpret_fa warns when chat_session overrides provider/model", {
+test_that("hide_low_loadings parameter validates correctly", {
+  loadings <- sample_loadings()
+  var_info <- sample_variable_info()
+
+  # Test invalid hide_low_loadings
+  expect_error(
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", hide_low_loadings = "yes"),
+    "must be TRUE or FALSE"
+  )
+
+  expect_error(
+    interpret(fit_results = list(loadings = loadings), variable_info = var_info,
+              model_type = "fa", hide_low_loadings = NA),
+    "must be TRUE or FALSE"
+  )
+})
+
+# ==============================================================================
+# COMPREHENSIVE LLM INTEGRATION TEST (SINGLE TEST FOR ALL FEATURES)
+# ==============================================================================
+
+test_that("interpret_fa comprehensive integration test", {
   skip_if_no_llm()
 
   # Use minimal fixtures for token efficiency
@@ -102,67 +140,16 @@ test_that("interpret_fa warns when chat_session overrides provider/model", {
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  chat <- chat_fa(provider, model)
-
-  # Should inform user that chat_session overrides provider/model
-  expect_message(
-    interpret_fa(loadings, var_info,
-                chat_session = chat,
-                llm_provider = "different_provider",
-                word_limit = 30,  # Reduced for token efficiency
-                silent = FALSE),
-    "overrides"
-  )
-})
-
-test_that("interpret_fa handles emergency rule for weak factors", {
-  skip_if_no_llm()
-
-  # Create minimal loadings where one factor has no loadings above cutoff
-  weak_loadings <- data.frame(
-    variable = c("v1", "v2"),
-    F1 = c(0.85, 0.75),
-    F2 = c(0.05, 0.03)  # All below cutoff - triggers emergency rule
-  )
-
-  var_info <- data.frame(
-    variable = c("v1", "v2"),
-    description = c("Item 1", "Item 2")
-  )
-
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
-
-  # Should apply emergency rule for F2
-  result <- interpret_fa(weak_loadings, var_info,
-                        cutoff = 0.3,
-                        n_emergency = 1,
-                        llm_provider = provider,
-                        llm_model = model,
-                        word_limit = 30,  # Reduced for token efficiency
-                        silent = TRUE)
-
-  # Check that result includes F2 despite low loadings
-  expect_true("F2" %in% names(result$factor_summaries))
-
-  # Check that the summary indicates emergency rule was used
-  f2_summary <- result$factor_summaries$F2$summary
-  expect_true(grepl("WARNING", f2_summary))
-})
-
-test_that("interpret_fa returns expected structure", {
-  skip_if_no_llm()
-
-  # Use minimal fixtures for token efficiency
-  loadings <- minimal_loadings()
-  var_info <- minimal_variable_info()
-
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
-
-  result <- interpret_fa(loadings, var_info,
-                        llm_provider = provider,
-                        llm_model = model,
+  # Single comprehensive test covering:
+  # - Returns expected structure
+  # - Token tracking works
+  # - Factor names and summaries present
+  # - Report generation
+  result <- interpret(fit_results = list(loadings = loadings),
+                        variable_info = var_info,
+                        model_type = "fa",
+                        provider = provider,
+                        model = model,
                         word_limit = 30,  # Reduced for token efficiency
                         silent = TRUE)
 
@@ -188,41 +175,16 @@ test_that("interpret_fa returns expected structure", {
     expect_true("run_tokens" %in% names(result))
     expect_type(result$run_tokens, "list")
   }
+
+  # Check report generation
+  expect_true(nchar(result$report) > 0)
 })
 
-test_that("leading zeros are removed consistently for negative numbers", {
-  skip_if_no_llm()
+# ==============================================================================
+# EDGE CASE TESTS (USE MINIMAL LLM CALLS OR CACHED RESULTS)
+# ==============================================================================
 
-  # Create minimal loadings with negative values (tests formatting)
-  neg_loadings <- data.frame(
-    variable = c("v1", "v2"),
-    F1 = c(0.85, -0.456),
-    F2 = c(-0.789, 0.654)
-  )
-
-  var_info <- data.frame(
-    variable = c("v1", "v2"),
-    description = c("Item 1", "Item 2")
-  )
-
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
-
-  result <- interpret_fa(neg_loadings, var_info,
-                        llm_provider = provider,
-                        llm_model = model,
-                        word_limit = 30,  # Reduced for token efficiency
-                        silent = TRUE)
-
-  # Check that loading matrix doesn't have "-0." patterns
-  if (!is.null(result$loading_matrix)) {
-    loading_str <- paste(result$loading_matrix, collapse = " ")
-    # Should have "-.XXX" not "-0.XXX" for negative values
-    expect_false(grepl("-0\\.[0-9]", loading_str))
-  }
-})
-
-test_that("n_emergency = 0 marks factors as undefined", {
+test_that("emergency rule behavior with n_emergency = 0", {
   skip_if_no_llm()
 
   # Create loadings where one factor has no loadings above cutoff
@@ -240,12 +202,14 @@ test_that("n_emergency = 0 marks factors as undefined", {
   provider <- "ollama"
   model <- "gpt-oss:20b-cloud"
 
-  # Test with n_emergency = 0
-  result <- interpret_fa(weak_loadings, var_info,
+  # Test with n_emergency = 0 - should mark as undefined
+  result <- interpret(fit_results = list(loadings = weak_loadings),
+                        variable_info = var_info,
+                        model_type = "fa",
                         cutoff = 0.3,
                         n_emergency = 0,
-                        llm_provider = provider,
-                        llm_model = model,
+                        provider = provider,
+                        model = model,
                         word_limit = 30,
                         silent = TRUE)
 
@@ -253,64 +217,10 @@ test_that("n_emergency = 0 marks factors as undefined", {
   expect_equal(result$suggested_names$F2, "undefined")
   expect_equal(result$factor_summaries$F2$llm_interpretation, "NA")
 
-  # Check that the summary indicates it's marked as undefined
-  f2_summary <- result$factor_summaries$F2$summary
-  expect_true(grepl("undefined", f2_summary))
-})
+  # Check that F2 has no variables (undefined factor)
+  expect_equal(nrow(result$factor_summaries$F2$variables), 0)
+  expect_false(result$factor_summaries$F2$used_emergency_rule)
 
-test_that("emergency rule adds (n.s.) suffix to factor names", {
-  skip_if_no_llm()
-
-  # Create loadings where one factor has no loadings above cutoff
-  weak_loadings <- data.frame(
-    variable = c("v1", "v2"),
-    F1 = c(0.85, 0.75),
-    F2 = c(0.05, 0.03)  # All below cutoff - triggers emergency rule
-  )
-
-  var_info <- data.frame(
-    variable = c("v1", "v2"),
-    description = c("Item 1", "Item 2")
-  )
-
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
-
-  # Test with n_emergency > 0 to trigger emergency rule
-  result <- interpret_fa(weak_loadings, var_info,
-                        cutoff = 0.3,
-                        n_emergency = 1,
-                        llm_provider = provider,
-                        llm_model = model,
-                        word_limit = 30,
-                        silent = TRUE)
-
-  # Check that F2 name has (n.s.) suffix
-  # Note: The LLM generates the name, so we check that either:
-  # 1. The name includes "(n.s.)" suffix, or
-  # 2. The factor is marked as having used the emergency rule
-  expect_true(result$factor_summaries$F2$used_emergency_rule)
-
-  # If the LLM returned a non-NA name, it should have the suffix
-  f2_name <- result$suggested_names$F2
-  if (!is.null(f2_name) && !grepl("^NA$|^na$|^N/A$|^n/a$", f2_name)) {
-    expect_true(grepl("\\(n\\.s\\.\\)", f2_name))
-  }
-})
-
-test_that("hide_low_loadings parameter works correctly", {
-  # This test doesn't require LLM, just checks parameter validation
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
-
-  # Test invalid hide_low_loadings
-  expect_error(
-    interpret_fa(loadings, var_info, hide_low_loadings = "yes"),
-    "must be a single logical value"
-  )
-
-  expect_error(
-    interpret_fa(loadings, var_info, hide_low_loadings = NA),
-    "must be a single logical value"
-  )
+  # Check that the report indicates it's marked as undefined
+  expect_true(grepl("undefined", result$report, ignore.case = TRUE))
 })

@@ -1,0 +1,221 @@
+---
+title: "Gaussian Mixture"
+subtitle: "Development"
+author: 
+ - name: Matthias Kloft
+   orcid: 0000-0003-1845-6957
+date: "`r Sys.Date()`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    source: repo
+    code-tools: true
+    df-print: paged
+execute:
+  warning: true
+  message: true
+---
+
+## Overview
+
+
+
+## Setup and Data Preparation
+
+```{r setup}
+packages <- c(
+  "psychinterpreter",
+  "ellmer",
+  "ollamar",
+  "psych",
+  "lavaan",
+  "mirt",
+  "mclust",
+  "dplyr",
+  "here",
+  "kableExtra",
+  "pander"
+)
+# Load required packages using pacman
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(char = packages)
+
+# Load the BFI dataset and dictionary
+data("bfi")
+data("bfi.dictionary")
+```
+
+# Preparing the BFI Data
+
+Exclude demographic variables for factor analysis
+
+```{r}
+bfi <- bfi[,1:25]
+bfi.dictionary <- bfi.dictionary[1:25, ]
+```
+
+Show the first few rows of the BFI data:
+```{r data-exploration}
+head(bfi,10) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+Display the BFI dictionary showing item descriptions:
+```{r}
+bfi.dictionary |> select(Item) |> as.data.frame()|> DT::datatable(options = list(scrollX = TRUE))
+```
+
+
+# Factor Analysis
+
+## Determining Number of Factors
+
+```{r parallel-analysis}
+# Parallel analysis to determine optimal number of factors
+pa_result <- fa.parallel(
+  bfi,
+  fa = "fa",
+  n.iter = 100,
+  use = "pairwise.complete.obs",
+  main = "Parallel Analysis: BFI Data"
+)
+```
+
+## Exploratory Factor Analysis Using 6 Factors
+
+Perform FA with 6 factors identified by the parallel analysis
+```{r fa-analysis}
+fa_result <- fa(
+  bfi,
+  nfactors = pa_result$nfact,
+  rotate = "oblimin",
+  fm = "ml"
+)
+summary(fa_result)
+```
+
+Loadings:
+```{r}
+# Extract loading matrix for interpretation
+loadings_matrix <- unclass(fa_result$loadings) |> as.data.frame()
+round(loadings_matrix, 2) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+Factor Correlation Matrix
+```{r}
+# Extract factor correlation matrix
+factor_cor_mat <- fa_result$Phi |> as.data.frame()
+round(factor_cor_mat, 2) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+
+## Interpreting Factor Analysis Results
+
+Create variable information dataframe from BFI dictionary
+```{r test-basic-interpretation}
+variable_info <- data.frame(
+  variable = rownames(bfi.dictionary),
+  description = as.character(bfi.dictionary$Item),
+  stringsAsFactors = FALSE
+)
+
+head(variable_info) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+We now generate factor interpretations using the specified LLM:
+```{r interpret-with-chat}
+#| output: asis
+
+word_limit <- 50
+
+result <- interpret(
+  model_fit = fa_result,
+  llm_provider = "ollama",
+  llm_model = "qwen3-vl:235b-instruct-cloud",
+  #model = "gpt-oss:20b-cloud",
+  # set temperature and seed for reproducibility
+  params = params(temperature = 0, seed = 42),
+  variable_info = variable_info,
+  cutoff = 0.23,
+  n_emergency = 2,
+  additional_info = NULL,
+  sort_loadings = TRUE,
+  word_limit =  word_limit,
+  max_line_length = 80,
+  silent = FALSE,
+  echo = "none",
+  output_format = "markdown",
+  heading_level = 3
+)
+```
+Let's do a cluster analysis on the factor scores using a Gaussian Mixture Model (GMM).
+
+## Cluster Analysis (Gaussian Mixture Model)
+
+Extract factor scores
+```{r usage1}
+fa_scores <- fa_result$scores |> 
+  # remove rows with NAs
+  na.omit()
+
+# add names from interpretation
+colnames(fa_scores) <- result$suggested_names
+
+head(fa_scores) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
+
+```
+
+
+Find Best Gaussian Mixture Model
+```{r}
+gmm_model <- mclustBIC(fa_scores, G = 1:10)
+
+summary(gmm_model)
+```
+
+Fit the Best Model
+```{r}
+gmm_best <- Mclust(fa_scores, x = gmm_model)
+
+summary(gmm_best)
+```
+
+Get the mean vector, covariance matrix, and mixing proportions from the model fit.
+
+Means:
+```{r}
+gmm_means <- gmm_best$parameters$mean
+head(gmm_means) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+Covariance Matrix:
+```{r}
+gmm_covariances <- gmm_best$parameters$variance$sigma
+head(gmm_covariances[,,1]) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+Mixing proportions
+```{r}
+gmm_proportions <- gmm_best$parameters$pro
+gmm_proportions |> as.data.frame() |> round(3) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+z matrix as the membership grades for every person
+```{r}
+gmm_z <- gmm_best$z
+head(gmm_z) |> round(3) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+
+We can again check the total global token usage:
+```{r usage2}
+print(chat)
+```
+
+
+# Session Info
+```{r}
+pander::pander(sessionInfo())
+```
+

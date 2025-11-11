@@ -1,0 +1,162 @@
+---
+title: "Usage Patterns of the `interpret()` Function"
+author: 
+ - name: Matthias Kloft
+   orcid: 0000-0003-1845-6957
+date: "`r Sys.Date()`"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    source: repo
+    code-tools: true
+    df-print: paged
+execute:
+  warning: true
+  message: true
+---
+
+## Overview
+
+This document demonstrates the different usage patterns for `interpret()`.
+The `interpret()` function is the main function of the **psychinterpreter** package and can be used in multiple ways. It will automatically detect the type of input provided and run the appropriate method for interpretation.
+
+
+## Setup
+
+### Packages
+```{r setup}
+packages <- c(
+  "psychinterpreter",
+  "ellmer",
+  "ollamar",
+  "psych",
+  "lavaan",
+  "mirt",
+  "dplyr",
+  "here",
+  "DT",
+  "pander"
+)
+# Load required packages using pacman
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(char = packages)
+
+```
+
+
+### LLM Setup
+
+We use Ollama, so we need to make sure to start the server before running this.
+```{bash start-ollama-server}
+#!/bin/bash
+
+# Check if port 11434 (default Ollama port) is in use
+if netstat -ano | grep 11434 > /dev/null; then
+    echo "Ollama is already running."
+else
+    echo "Starting Ollama..."
+    ollama serve
+fi
+```
+
+Test the connection:
+```{r test-connection}
+system2("ollama serve", wait = FALSE)
+# test the connection to the Ollama server
+ollamar::test_connection()
+```
+
+We will use the model "gpt-oss:20b-cloud", which needs to be installed. 
+Since this is a cloud-powered model, you need an account with Ollama and be logged in to run this model.
+
+```{r install-model}
+# pull the model from ollama if it is not already installed
+if (!"gpt-oss:20b-cloud" %in% ollamar::list_models()$name) {
+  ollamar::pull("gpt-oss:20b-cloud")
+}
+```
+
+## Run Factor Analysis
+```{r run-fa}
+fa_model <- fa(mtcars[,1:4], nfactors = 2, rotate = "oblimin")
+
+var_info <- data.frame(
+  variable = c("mpg", "cyl", "disp", "hp"),
+  description = c("Miles per gallon", "Cylinders", "Displacement", "Horsepower")
+)
+```
+
+## Usage Patterns
+
+### Pattern 1: Fitted Model Object
+
+Automatically extracts model components from fitted objects.
+```{r pattern-1}
+interpret(
+  model_fit = fa_model,
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+  word_limit = 50
+)
+```
+
+
+### Pattern 2: Structured List
+
+For custom data structures or manual extraction.
+
+For FA, provide loadings (required) and optionally factor_cor_mat:
+
+```{r pattern-2}
+loadings_matrix <- fa_model$loadings
+factor_cor_mat <- fa_model$Phi
+
+interpret(
+  model_fit = list(loadings = loadings_matrix, factor_cor_mat = factor_cor_mat),
+  variable_info = var_info,
+  model_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+  word_limit = 50
+)
+```
+
+
+### Pattern 3: Chat Session (Token-Efficient)
+
+Reuse chat session across analyses to save tokens.
+
+```{r pattern-3}
+chat <- chat_session(model_type = "fa",
+                     provider = "ollama",
+                     model = "gpt-oss:20b-cloud")
+result1 <- interpret(
+  chat_session = chat,
+  model_fit = fa_model,
+  variable_info = var_info,
+  word_limit = 50,
+  silent = 1
+)
+result2 <- interpret(
+  chat_session = chat,
+  model_fit = list(loadings = loadings_matrix, factor_cor_mat = factor_cor_mat),
+  variable_info = var_info,
+  word_limit = 50,
+  silent = 1
+)
+```
+
+We can check the total global token usage:
+```{r total-usage}
+print(chat)
+```
+
+
+# Session Info
+```{r seeion-info}
+pander::pander(sessionInfo())
+```
+

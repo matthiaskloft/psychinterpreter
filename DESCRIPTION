@@ -22,7 +22,8 @@ Imports:
     ggplot2,
     tidyr,
     cli,
-    jsonlite
+    jsonlite,
+    rlang
 Suggests:
     testthat (>= 3.0.0),
     psych,

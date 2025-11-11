@@ -10,35 +10,45 @@ template:
 exclude: |
   CLAUDE.md
   NEWS.md
+  04-Gaussian_Mixture_dev.html
 
 reference:
   - title: "Main Interpretation Functions"
     desc: >
-      Core functions for interpreting factor analysis results using LLMs.
-    contents:
-      - interpret_fa
-      - chat_fa
-      - is.chat_fa
-      - reset.chat_fa
-
-  - title: "S3 Methods for Package Integration"
-    desc: >
-      Convenient S3 methods for interpreting results from popular factor analysis packages.
-      Automatically extract loadings and factor correlations from fitted model objects.
+      Core functions for interpreting psychometric analysis results using LLMs.
     contents:
       - interpret
-      - interpret.fa
-      - interpret.principal
-      - interpret.lavaan
-      - interpret.efaList
-      - interpret.SingleGroupClass
 
-  - title: "Visualization"
+  - title: "Chat Session Management"
     desc: >
-      Functions for creating visual representations of factor analysis results.
+      Functions for creating and managing persistent LLM chat sessions for token-efficient
+      multi-analysis workflows. Chat sessions preserve system prompts across multiple interpretations,
+      reducing API costs by 40-60%.
+    contents:
+      - chat_session
+      - is.chat_session
+      - reset.chat_session
+
+  - title: "Configuration Functions"
+    desc: >
+      Functions for creating configuration objects that control LLM parameters,
+      model-specific settings, and output formatting.
+    contents:
+      - llm_args
+      - fa_args
+      - output_args
+      - default_fa_args
+      - default_output_args
+
+  - title: "Visualization & Theming"
+    desc: >
+      Functions for creating visual representations and applying consistent styling.
     contents:
       - plot.fa_interpretation
+      - plot.interpretation
       - create_factor_plot
+      - theme_psychinterpreter
+      - psychinterpreter_colors
 
   - title: "Export Functions"
     desc: >
@@ -48,14 +58,19 @@ reference:
 
   - title: "Utility Functions"
     desc: >
-      Helper functions for analyzing factor loading patterns.
+      Helper functions for analyzing factor loading patterns and checking object types.
     contents:
       - find_cross_loadings
       - find_no_loadings
+      - is.interpretation
 
   - title: "Print Methods"
     desc: >
-      S3 methods for displaying interpretation results.
+      S3 methods for displaying interpretation results, chat sessions, and configuration objects.
     contents:
       - print.fa_interpretation
-      - print.chat_fa
+      - print.interpretation
+      - print.chat_session
+      - print.llm_args
+      - print.fa_args
+      - print.output_args

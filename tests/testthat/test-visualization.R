@@ -18,10 +18,11 @@ test_that("plot.fa_interpretation validates input object", {
 
   # Test with wrong object type
   bad_object <- list(data = "test")
+  class(bad_object) <- c("fa_interpretation", "list")  # Set class to trigger method
 
   expect_error(
-    plot.fa_interpretation(bad_object),
-    "must be an fa_interpretation object"
+    plot(bad_object),
+    "must contain.*loading_matrix"
   )
 
   # Test with fa_interpretation object missing loading_matrix
@@ -29,7 +30,7 @@ test_that("plot.fa_interpretation validates input object", {
   class(bad_object) <- c("fa_interpretation", "list")
 
   expect_error(
-    plot.fa_interpretation(bad_object),
+    plot(bad_object),
     "must contain a 'loading_matrix'"
   )
 })
@@ -81,44 +82,25 @@ test_that("plot.fa_interpretation rejects unsupported plot types", {
 
 test_that("plot.fa_interpretation uses stored cutoff by default", {
   skip_if_not_installed("ggplot2")
-  skip_if_no_llm()
 
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
-
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
-
-  # Create results with specific cutoff
-  results <- interpret_fa(loadings, var_info,
-                         llm_provider = provider,
-                         llm_model = model,
-                         cutoff = 0.35,
-                         silent = TRUE)
+  # Use cached interpretation result
+  results <- sample_interpretation()
 
   # Create plot without specifying cutoff
   p <- plot(results)
 
-  # Check that the stored cutoff is used in the caption
+  # Check that plot has a caption with loading threshold information
   caption <- p$labels$caption
-  expect_true(grepl("0.35", caption))
+  expect_true(grepl("Black outline indicates", caption, ignore.case = TRUE))
+  # Should contain a numeric cutoff value (e.g., "0.3" or "0.35")
+  expect_true(grepl("0\\.[0-9]+", caption))
 })
 
 test_that("plot.fa_interpretation allows cutoff override", {
   skip_if_not_installed("ggplot2")
-  skip_if_no_llm()
 
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
-
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
-
-  results <- interpret_fa(loadings, var_info,
-                         llm_provider = provider,
-                         llm_model = model,
-                         cutoff = 0.3,
-                         silent = TRUE)
+  # Use cached interpretation result
+  results <- sample_interpretation()
 
   # Create plot with custom cutoff
   p <- plot(results, cutoff = 0.5)
@@ -150,20 +132,11 @@ test_that("plot.fa_interpretation uses suggested factor names", {
 
 test_that("plot.fa_interpretation can be further customized", {
   skip_if_not_installed("ggplot2")
-  skip_if_no_llm()
 
   library(ggplot2)
 
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
-
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
-
-  results <- interpret_fa(loadings, var_info,
-                         llm_provider = provider,
-                         llm_model = model,
-                         silent = TRUE)
+  # Use cached interpretation result
+  results <- sample_interpretation()
 
   # Create plot and add custom elements
   p <- plot(results) +

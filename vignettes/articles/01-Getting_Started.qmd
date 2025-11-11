@@ -1,0 +1,314 @@
+---
+title: "Getting Started with psychinterpreter"
+subtitle: "LLM-Powered Interpretation of Psychometric Analyses"
+author: 
+ - name: Matthias Kloft
+   orcid: 0000-0003-1845-6957
+date: "`r Sys.Date()`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    source: repo
+    code-tools: true
+    df-print: paged
+execute:
+  warning: false
+  message: false
+---
+
+## What is psychinterpreter?
+
+The **psychinterpreter** package automatically interprets psychometric analysis results using **Large Language Models (LLMs)**. LLMs are AI systems (like ChatGPT, Claude, or open-source alternatives) that can understand and generate human-like text. Instead of manually examining complex statistical output and guessing what patterns represent, you get clear, human-readable interpretations and actionable insights.
+
+**Currently supported analyses:**
+
+- **Factor Analysis** - Interpret factor loadings and suggest meaningful factor names
+
+**Planned analysis classes:**
+
+- Gaussian Mixture Models - Interpret cluster profiles
+- Item Response Theory (IRT) - Interpret item diagnostics
+- Cognitive Diagnostic Models (CDM) - Interpret Q-matrix patterns
+
+**Use this package when you:**
+
+- Have run a psychometric analysis (e.g., factor analysis, clustering)
+- Want automated, data-driven interpretations of your results
+- Need to quickly understand complex patterns in your data
+
+## What You Need
+
+Before starting, make sure you have:
+
+1. **Analysis results** - from `psych::fa()`, `lavaan::efa()`, or similar functions
+2. **Variable descriptions** - brief explanations of what each variable measures
+3. **A language model** - we recommend [Ollama](https://ollama.com/) (free, runs locally, offers cloud-powered models if you have an Ollama account)
+
+## Quick Start Example
+
+Here's a complete workflow for **factor analysis** using Big Five personality data in just a few lines:
+
+```{r quick-example}
+#| eval: false
+
+library(psychinterpreter)
+library(psych)
+library(ollamar)
+
+# 1. Run factor analysis
+fa_result <- psych::fa(bfi[,1:25], nfactors = 5, rotate = "oblimin")
+
+# 2. Describe your variables
+var_info <- data.frame(
+  variable = c("A1", "A2", "A3", ...),
+  description = c("Am indifferent to others", "Inquire about others", ...)
+)
+
+# 3. Get LLM interpretation
+interpretation <- interpret(
+  model_fit = fa_result,
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# 4. View results
+print(interpretation)
+plot(interpretation)
+```
+
+## Step-by-Step Tutorial: Factor Analysis
+
+This tutorial demonstrates the package using **factor analysis**, but the same workflow applies to other analysis types when they become available.
+
+Let's walk through a complete example using the Big Five Inventory (BFI) personality data.
+
+### Setup
+
+Load the packages we'll need:
+
+```{r setup}
+# Install pacman if needed for easy package loading
+if (!require("pacman")) install.packages("pacman")
+
+# Load packages
+pacman::p_load(
+  "psychinterpreter",  # This package
+  "psych",             # For factor analysis
+  "DT",        # For nice tables
+  "dplyr",             # For data manipulation
+  "pander"             # package for pretty printing
+)
+```
+
+### Load and Prepare Data
+
+The BFI dataset contains 25 personality items measuring the Big Five traits.
+
+```{r load-data}
+# Load Big Five Inventory data
+data("bfi")
+data("bfi.dictionary")
+
+# Keep only the 25 personality items (remove demographics)
+bfi_items <- bfi[, 1:25]
+bfi_dict <- bfi.dictionary[1:25, ]
+```
+
+Here's what the data looks like:
+
+```{r show-data}
+head(bfi_items, 5) |>
+  as.data.frame() |>
+   DT::datatable(options = list(scrollX = TRUE))
+```
+
+And here are the item descriptions:
+
+```{r show-dictionary}
+bfi_dict |>
+  select(Item) |>
+  as.data.frame() |>
+  DT::datatable(options = list(scrollX = TRUE))
+```
+
+### Run Factor Analysis
+
+Perform a standard exploratory factor analysis with 5 factors:
+
+```{r factor-analysis}
+fa_result <- psych::fa(
+  bfi_items,
+  nfactors = 5,
+  rotate = "oblimin",  # Oblique rotation
+  fm = "ml"            # Maximum likelihood
+)
+```
+
+View the factor loadings:
+
+```{r show-loadings}
+# Extract and display loadings
+loadings_matrix <- unclass(fa_result$loadings) |> 
+  as.data.frame()
+
+round(loadings_matrix, 2) |> 
+  DT::datatable(options = list(scrollX = TRUE))
+```
+
+### Prepare Variable Descriptions
+
+Create a data frame mapping variable names to their descriptions:
+
+```{r prepare-descriptions}
+variable_info <- data.frame(
+  variable = rownames(bfi_dict),
+  description = as.character(bfi_dict$Item),
+  stringsAsFactors = FALSE
+)
+
+head(variable_info, 10) |> 
+  DT::datatable(options = list(scrollX = TRUE))
+```
+
+### Get LLM Interpretation
+
+Now use `interpret()` to get automatic factor interpretations:
+
+```{r interpret}
+interpretation <- interpret(
+  model_fit = fa_result,
+  variable_info = variable_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+```
+
+::: {.callout-note}
+**First time using Ollama?**
+
+1. Install Ollama from [ollama.com](https://ollama.com/) and the `ollamar` package: `install.packages("ollamar")`
+2. Pull the model: `ollamar::pull("gpt-oss:20b-cloud")`
+3. Start the Ollama server before running `interpret()`
+:::
+
+### View Results
+
+Print the interpretation report:
+
+```{r print-results}
+print(interpretation)
+```
+
+The output shows:
+- Suggested factor names
+- Which variables load on each factor
+- A brief interpretation of what the factor represents
+
+View suggested factor names:
+
+```{r show-names}
+interpretation$suggested_names |>
+  unlist() |>  data.frame(Suggested_Factor_Name = _) |>
+  DT::datatable(options = list(scrollX = TRUE), colnames = "Suggested Factor Name")
+```
+
+### Visualize Factor Structure
+
+Create a visual representation of the factor loadings:
+
+```{r plot-loadings}
+plot(interpretation, cutoff = 0.3)
+```
+
+This plot shows which variables load strongly on each factor, making it easy to see the factor structure at a glance.
+
+### Export Results
+
+Save your interpretation to a file:
+
+```{r export}
+# Export as markdown
+export_interpretation(
+  interpretation,
+  format = "md",
+  file = "bfi_interpretation"
+)
+
+# Export as plain text
+export_interpretation(
+  interpretation,
+  format = "txt",
+  file = "bfi_interpretation"
+)
+```
+
+## Customizing Your Interpretation
+
+You can control several aspects of the interpretation:
+
+**Key parameters:**
+
+- `cutoff`: Threshold for displaying results (e.g., minimum loading for FA)
+- `hide_low_loadings`: Whether to hide loadings below the cutoff from the LLM
+- `word_limit`: Control how verbose the LLM interpretations are
+- `output_format`: Choose between plain text or markdown formatting
+- `heading_level`: Heading level to start the report with.
+
+```{r customization}
+#| output: asis
+
+interpretation <- interpret(
+  model_fit = fa_result,
+  variable_info = variable_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+
+  cutoff = 0.4,              # Threshold for including results (default: 0.3)
+  hide_low_loadings = TRUE,  # hide low loadings below cutoff from the LLM
+  word_limit = 30,          # Max words per interpretation (default: 150)
+  output_format = "markdown",# Output format: "text" or "markdown"
+  heading_level = 3,         # set heading level for markdown output
+)
+```
+
+
+
+## Common Questions
+
+**Q: What if the LLM interpretation seems wrong?**
+
+The LLM bases interpretations on your variable descriptions and statistical results. You can:
+
+- Provide better, more descriptive variable descriptions
+- Use a bigger LLM. Small models may struggle with the task and structured output requirements.
+- Adjust the `cutoff` and `hide_low_loadings` parameters to change which results are included
+- Add context with the `additional_info` parameter
+
+**Q: Can I use different LLMs?**
+
+Yes! The package supports all providers supported by the [`ellmer`](https://ellmer.tidyverse.org/) package, for example:
+
+- **Ollama** (local, free): `llm_provider = "ollama"`
+- **OpenAI** (API key required): `llm_provider = "openai"`
+- **Anthropic Claude** (API key required): `llm_provider = "anthropic"`
+
+**Q: How do I set API keys for OpenAI or Anthropic?**
+
+```{r api-keys}
+#| eval: false
+
+# Add to your .Renviron file:
+Sys.setenv(OPENAI_API_KEY = "your-key-here")
+Sys.setenv(ANTHROPIC_API_KEY = "your-key-here")
+```
+
+Also refer to the documentation of the `ellmer` [https://ellmer.tidyverse.org/](https://ellmer.tidyverse.org/) package.
+
+## Session Info
+
+```{r session-info}
+pander::pander(sessionInfo())
+```
