@@ -6,17 +6,17 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 1780
-  Output: 7125
-Elapsed time: 36.5
+  Output: 3351
+Elapsed time: 20.2
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (9.6%): Neurotic Temperament
-• Factor 2 (7.7%): Social Altruism
-• Factor 3 (7.4%): Social Inhibition
-• Factor 4 (7.7%): Conscientious Planning
-• Factor 5 (6.3%): Intellectual Openness
+• Factor 1 (9.6%): Negative Affectivity
+• Factor 2 (7.7%): Compassionate Warmth
+• Factor 3 (7.4%): Introverted Reflection
+• Factor 4 (7.7%): Perfectionist Conscientiousity
+• Factor 5 (6.3%): Intellectual Curiosity
 
 Total variance explained: 38.7%
 
@@ -32,7 +32,7 @@ ML4: ML2 = -.01, ML5 = .23, ML1 = -.17, ML3 = .20
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (ML2) - Neurotic Temperament
+Factor 1 (ML2) - Negative Affectivity
 Number of significant loadings: 5
 Variance explained: 9.65%
 Factor Correlations: ML5 = -.03, ML1 = .23, ML3 = -.21, ML4 = -.01
@@ -45,11 +45,11 @@ Variables:
   5. N4, Often feel blue. (Positive, Moderate, .413)
 
 LLM Interpretation:
-The neurotic temperament factor is dominated by extremely high positive loadings on the five negative‑affect items (N1 through N5). This pattern signals a pronounced tendency toward emotional instability, irritability, mood volatility, sadness, and anxiety, hallmark traits of neuroticism in the Big Five taxonomy. The factor explains 9.6 % of the variance, a substantial share given other factors’ contributions. Correlation analysis shows a modest positive link with Social Inhibition (ML1, r = .23) and a slight negative with Intellectual Openness (–.01), indicating that intense negative affect tends to coexist with social reticence rather than with openness. The negligible correlations with Social Altruism (–.03) and Conscientious Planning (–.21) suggest that high neuroticism is largely distinct from these personality dimensions, yet displays a small tendency to coexist with disorganized behavior. The construct aligns with the clinical concept of anxiety‑driven emotional reactivity, underscoring its role in interpersonal and self‑regulatory challenges.
+ML2 captures a cohesive negative affectivity construct. The predominance of strong loadings from N1 through N5 indicates that this factor reflects a general tendency toward mood volatility, irritability, and anxiety. The uniformly positive loadings confirm convergent validity: all neurotic symptoms load together, making this factor a clear manifestation of neuroticism. No other variable demonstrates a significant loading, evidencing discriminant validity with the other dimensions. Cross‑factor correlations show a modest positive association with Introverted Reflection (ML1) and a mild negative link with Perfectionist Conscientiousness (ML3), suggesting that those high in neuroticism tend to be more introspective and less meticulously organized. The negligible correlations with Compassionate Warmth (ML5) and Intellectual Curiosity (ML4) imply that emotional instability largely operates independently of interpersonal warmth and cognitive openness.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (ML5) - Social Altruism
+Factor 2 (ML5) - Compassionate Warmth
 Number of significant loadings: 7
 Variance explained: 7.69%
 Factor Correlations: ML2 = -.03, ML1 = -.31, ML3 = .20, ML4 = .23
@@ -64,11 +64,11 @@ Variables:
   7. E3, Know how to captivate people. (Positive, Weak, .303)
 
 LLM Interpretation:
-The social altruism factor is the strong positive loading on the four empathy‑centered variables (A2, A3, A5, and A4) together with moderate contributions from the outward‑charming items E3 and E4. This pattern indicates a disposition marked by proactive concern for others, readiness to comfort, and a genuine fondness for children. The factor captures 7.7 % of the total variance and displays a moderate positive association with Conscientious Planning (r = .20) and Intellectual Openness (r = .23), suggesting that individuals who invest extra effort in caring for others also tend to value organized preparation and novel ideas. Its weak negative correlation with Neurotic Temperament (–.03) and a modest inverse relation with Social Inhibition (–.31) reflect that socially altruistic people are generally less emotionally volatile and less shy. This construct maps onto the Big Five “agreeableness” dimension, emphasizing warmth and cooperation.
+ML5 represents an empathic‑warmth dimension, anchored by high loadings from A2, A3, A4, and A5. These items map onto the ability to recognize others’ needs, provide comfort, show affection toward children, and create a sense of ease, constructing a clear convergent cluster. Supporting variables E3 (captivate people) and E4 (make friends easily) emphasize social skill and interpersonal approach, reinforcing the warmth aspect. Low or negative loadings from other factors confirm its discriminant validity. Cross‑factor correlations indicate a slight positive link with Intellectual Curiosity (ML4), suggesting that individuals who value cognitive exploration also tend to be socially attuned. A negative correlation with Introverted Reflection (ML1) and a marginal negative relationship to Perfectionist Conscientiousness (ML3) imply that warmth is relatively independent from shyness or meticulous work habits.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 3 (ML1) - Social Inhibition
+Factor 3 (ML1) - Introverted Reflection
 Number of significant loadings: 7
 Variance explained: 7.36%
 Factor Correlations: ML2 = .23, ML5 = -.31, ML3 = -.22, ML4 = -.17
@@ -83,11 +83,11 @@ Variables:
   7. E3, Know how to captivate people. (Negative, Weak, -.341)
 
 LLM Interpretation:
-The social inhibition factor emerges from the sizable positive loadings on the two introverted indicators E1 (“Don’t talk a lot”) and E2 (“Find it difficult to approach others”), weighed against strong negative loadings on the sociable traits E3, E4, and E5. The factor captures 7.4 % of overall variance and illustrates a clear tendency toward social reticence, low talkativeness, and modest impulse control in interpersonal situations. Correlation patterns reveal a moderate positive link with Neurotic Temperament (r = .23), implying that anxious individuals are more likely to withdraw socially, and a moderate negative association with Social Altruism (r = –.31), indicating that altruistic warmth tends to coexist with lower social withdrawal. The factor is relatively independent from Conscientious Planning (–.22) and Intellectual Openness (–.17). Psychologically, it aligns with the Big Five “extraversion” antipode, marking a preference for solitude and communicated limitation.
+ML1 functions as a latent dimension of introverted self‑contemplation. Two core items, E1 and E2, load strongly, signifying a tendency to speak sparingly and approach others cautiously. The negative loadings of E3, E4, and E5—behaviors associated with talkativeness, engagement, and initiative—reinforce this conception of reticence. O4’s positive loading additionally signals a preference for reflective thought. Consequently, ML1 captures introversion coupled with introspective tendencies. Convergent validity is evident through the clustering of these related behaviors, while weak loadings of all other variables establish discriminant separation from the other factors. Correlations reveal a moderate positive association with Neuroticism (ML2) and moderate negative associations with Compassionate Warmth (ML5) and Perfectionist Conscientiousness (ML3), indicating that introverted reflection often co‑occurs with emotional volatility but diverges from socially warm or highly organized profiles.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 4 (ML3) - Conscientious Planning
+Factor 4 (ML3) - Perfectionist Conscientiousity
 Number of significant loadings: 5
 Variance explained: 7.71%
 Factor Correlations: ML2 = -.21, ML5 = .20, ML1 = -.22, ML4 = .20
@@ -100,11 +100,11 @@ Variables:
   5. C1, Am exacting in my work. (Positive, Strong, .532)
 
 LLM Interpretation:
-Conscientious planning is driven by robust positive loadings on the orderly traits (C1, C2, and C3) and sizable negative loadings on the disorderly items (C4 “half‑way manner” and C5 “waste my time”). This factor signals a distinctive blend of meticulous planning, perfectionistic drive, and resistance to procrastination, collectively explaining 7.7 % of the data variability. The factor displays a weak negative relationship with Neurotic Temperament (–.21) and Social Inhibition (–.22), indicating that highly organized individuals are less prone to emotional instability or social withdrawal. Its modest positive associations with Social Altruism (.20) and Intellectual Openness (.20) suggest that organized achievers also value caring for others and novel thought. The construct closely corresponds to the Big Five “conscientiousness” dimension, emphasizing diligence, orderliness, and self‑regulation.
+ML3 encapsulates a perfectionistic, conscientious work orientation. Strong positive loadings on C1 (exacting), C2 (perfection) and C3 (planful) align these items around a rigorous, organized approach to tasks. The notable negative loadings from C4 (half‑way approach) and C5 (time‑wasting) clarify that this factor is not simply general conscientiousness but a specific anti‑slackness orientation. Convergent validity is established by the coherence of these opposite ends of work style. Weak or non‑existent loadings on extraneous factors illustrate discriminant validity. Cross‑factor correlations show a slight negative link to Introverted Reflection (ML1), moderate negative with Compassionate Warmth (ML5), and weak positive with Neuroticism (ML2), suggesting that highly perfectionistic individuals are slightly more introspective, less warm, and may carry a modest level of emotional reactivity.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 5 (ML4) - Intellectual Openness
+Factor 5 (ML4) - Intellectual Curiosity
 Number of significant loadings: 6
 Variance explained: 6.25%
 Factor Correlations: ML2 = -.01, ML5 = .23, ML1 = -.17, ML3 = .20
@@ -118,7 +118,7 @@ Variables:
   6. E3, Know how to captivate people. (Positive, Weak, .315)
 
 LLM Interpretation:
-Intellectual openness is reflected through substantial positive loadings on the imaginative and conceptually oriented items O1 (“full of ideas”), O3 (“carry conversation to higher level”), and O4 (“spend time reflecting on things”), coupled with negative loadings on the selective items O2 (“avoid difficult reading material”) and O5 (“will not probe deeply into a subject”). The resulting contrast captures 6.3 % of variance, representing a personality that values creative thinking and deep discussion while tempering extreme curiosity or critical inquiry. Correlations show a small antihypothesis with Neurotic Temperament (–.01), a modest positive link with Social Altruism (.23) and Conscientious Planning (.20), and a weak negative association with Social Inhibition (–.17). These relationships highlight that open‑minded individuals tend to be more socially caring and organized, yet less socially withdrawn. This alignment maps the classic “openness to experience” construct, underscoring intellectual curiosity, imagination, and reflective engagement.
+ML4 represents an intellectual curiosity construct, grounded by high loadings on O1 (full of ideas), O3 (carry conversation higher level) and O4 (spend time reflecting). The opposing loadings on O2 (avoid difficult reading) and O5 (will not probe deeply) reinforce this interpretation as a preference for exploring complex ideas versus superficial engagement. E3 (captivate people) and E5 (take charge) provide secondary support for social‑cognitive expression. Convergent validity is robust, with the key Openness items coalescing under a single factor, while the lack of strong loadings from other domains underscores discriminant separation. Factor correlations reveal modest positive associations with Compassionate Warmth (ML5) and Negative Affectivity (ML2), indicating that curious individuals may simultaneously exhibit warmth or emotional sensitivity, yet remain relatively independent from Introverted Reflection (ML1) and Perfectionist Conscientiousness (ML3).
 
 ════════════════════════════════════════════════════════════════════════════════
 
