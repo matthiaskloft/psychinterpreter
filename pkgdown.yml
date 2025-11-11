@@ -2,8 +2,11 @@ pandoc: 3.6.3
 pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
-  articles/01-Basic_Usage: 01-Basic_Usage.html
-last_built: 2025-11-05T16:21Z
+  articles/01-Getting_Started: 01-Getting_Started.html
+  articles/02-Usage_Patterns: 02-Usage_Patterns.html
+  articles/03-Advanced_Features: 03-Advanced_Features.html
+  articles/04-Gaussian_Mixture_dev: 04-Gaussian_Mixture_dev.html
+last_built: 2025-11-11T02:55Z
 urls:
   reference: https://github.com/matthiaskloft/psychinterpreter/reference
   article: https://github.com/matthiaskloft/psychinterpreter/articles

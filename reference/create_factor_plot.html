@@ -28,7 +28,10 @@ method instead: plot(interpretation_results)."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Basic_Usage.html">psychinterpreter: Getting Started</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
+    <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">Usage Patterns of the `interpret()` Function</a></li>
+    <li><a class="dropdown-item" href="../articles/03-Advanced_Features.html">psychinterpreter: Advanced Features</a></li>
+    <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture_dev.html">Gaussian Mixture</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -49,7 +52,7 @@ method instead: plot(interpretation_results)."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Create a visual representation of factor loadings</h1>
-      <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/R/visualization.R"><code>R/visualization.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/R/fa_visualization.R"><code>R/fa_visualization.R</code></a></small>
       <div class="d-none name"><code>create_factor_plot.Rd</code></div>
     </div>
 
@@ -96,11 +99,12 @@ values at or above this cutoff will be outlined with a black border.</p></dd>
     <p>This function provides backward compatibility. New code should use the generic
 plot() method: plot(interpretation_results).</p>
 <p>The heatmap visualization:</p><ul><li><p>Uses LLM-generated suggested factor names (if available)</p></li>
-<li><p>Uses a blue-white-red color scale (negative to positive loadings)</p></li>
+<li><p>Uses a color-blind friendly orange-white-blue scale (negative to positive loadings)</p></li>
 <li><p>Automatically handles suppressed small loadings (empty strings)</p></li>
 <li><p>Rotates factor names for better readability</p></li>
 <li><p>Scales variable names appropriately</p></li>
 <li><p>Highlights loadings above cutoff with a black outline</p></li>
+<li><p>Applies the custom theme_psychinterpreter() theme</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -111,7 +115,7 @@ plot() method: plot(interpretation_results).</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Get interpretation results</span></span></span>
-<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="interpret_fa.html">interpret_fa</a></span><span class="op">(</span><span class="va">loadings</span>, <span class="va">variable_info</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">interpret_fa</span><span class="op">(</span><span class="va">loadings</span>, <span class="va">variable_info</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Using this function (backward compatible)</span></span></span>
 <span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">create_factor_plot</span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></span>

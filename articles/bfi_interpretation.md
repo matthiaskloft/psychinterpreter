@@ -1,0 +1,135 @@
+# Factor Analysis Interpretation
+
+**Number of factors:** 5  
+**Loading cutoff:** 0.3  
+**LLM used:** ollama - gpt-oss:20b-cloud  
+**Tokens:**  
+  Input: 1780  
+  Output: 7125  
+**Elapsed time:** 36.5  
+
+## Suggested Factor Names
+
+- **Factor 1 (9.6%):** *Neurotic Temperament*
+- **Factor 2 (7.7%):** *Social Altruism*
+- **Factor 3 (7.4%):** *Social Inhibition*
+- **Factor 4 (7.7%):** *Conscientious Planning*
+- **Factor 5 (6.3%):** *Intellectual Openness*
+
+**Total variance explained by all factors: 38.7%**
+
+## Factor Correlations
+
+- **ML2:** ML5 = -.03, ML1 = .23, ML3 = -.21,  
+  ML4 = -.01
+- **ML5:** ML2 = -.03, ML1 = -.31, ML3 = .20,  
+  ML4 = .23
+- **ML1:** ML2 = .23, ML5 = -.31, ML3 = -.22,  
+  ML4 = -.17
+- **ML3:** ML2 = -.21, ML5 = .20, ML1 = -.22,  
+  ML4 = .20
+- **ML4:** ML2 = -.01, ML5 = .23, ML1 = -.17,  
+  ML3 = .20
+
+## Detailed Factor Interpretations
+
+### Factor 1 (ML2): Neurotic Temperament
+
+**Number of significant loadings:** 5  
+**Variance explained:** 9.65%  
+**Factor Correlations:** ML5 = -.03, ML1 = .23, ML3 = -.21,    
+
+ML4 = -.01
+
+**Variables:**
+
+  1. N1, Get angry easily. (Positive, Very Strong, .852)
+  2. N2, Get irritated easily. (Positive, Very Strong, .817)
+  3. N3, Have frequent mood swings. (Positive, Strong, .665)
+  4. N5, Panic easily. (Positive, Moderate, .439)
+  5. N4, Often feel blue. (Positive, Moderate, .413)
+
+**LLM Interpretation:**  
+The neurotic temperament factor is dominated by extremely high positive loadings on the five negative‑affect items (N1 through N5). This pattern signals a pronounced tendency toward emotional instability, irritability, mood volatility, sadness, and anxiety, hallmark traits of neuroticism in the Big Five taxonomy. The factor explains 9.6 % of the variance, a substantial share given other factors’ contributions. Correlation analysis shows a modest positive link with Social Inhibition (ML1, r = .23) and a slight negative with Intellectual Openness (–.01), indicating that intense negative affect tends to coexist with social reticence rather than with openness. The negligible correlations with Social Altruism (–.03) and Conscientious Planning (–.21) suggest that high neuroticism is largely distinct from these personality dimensions, yet displays a small tendency to coexist with disorganized behavior. The construct aligns with the clinical concept of anxiety‑driven emotional reactivity, underscoring its role in interpersonal and self‑regulatory challenges.
+
+### Factor 2 (ML5): Social Altruism
+
+**Number of significant loadings:** 7  
+**Variance explained:** 7.69%  
+**Factor Correlations:** ML2 = -.03, ML1 = -.31, ML3 = .20,    
+
+ML4 = .23
+
+**Variables:**
+
+  1. A3, Know how to comfort others. (Positive, Strong, .668)
+  2. A2, Inquire about others' well-being. (Positive, Strong, .603)
+  3. A5, Make people feel at ease. (Positive, Strong, .577)
+  4. A4, Love children. (Positive, Moderate, .456)
+  5. E4, Make friends easily. (Positive, Weak, .362)
+  6. A1, Am indifferent to the feelings of others. (Negative, Weak, -.360)
+  7. E3, Know how to captivate people. (Positive, Weak, .303)
+
+**LLM Interpretation:**  
+The social altruism factor is the strong positive loading on the four empathy‑centered variables (A2, A3, A5, and A4) together with moderate contributions from the outward‑charming items E3 and E4. This pattern indicates a disposition marked by proactive concern for others, readiness to comfort, and a genuine fondness for children. The factor captures 7.7 % of the total variance and displays a moderate positive association with Conscientious Planning (r = .20) and Intellectual Openness (r = .23), suggesting that individuals who invest extra effort in caring for others also tend to value organized preparation and novel ideas. Its weak negative correlation with Neurotic Temperament (–.03) and a modest inverse relation with Social Inhibition (–.31) reflect that socially altruistic people are generally less emotionally volatile and less shy. This construct maps onto the Big Five “agreeableness” dimension, emphasizing warmth and cooperation.
+
+### Factor 3 (ML1): Social Inhibition
+
+**Number of significant loadings:** 7  
+**Variance explained:** 7.36%  
+**Factor Correlations:** ML2 = .23, ML5 = -.31, ML3 = -.22,    
+
+ML4 = -.17
+
+**Variables:**
+
+  1. E2, Find it difficult to approach others. (Positive, Strong, .667)
+  2. E1, Don't talk a lot. (Positive, Strong, .565)
+  3. E4, Make friends easily. (Negative, Strong, -.527)
+  4. N4, Often feel blue. (Positive, Moderate, .420)
+  5. E5, Take charge. (Negative, Weak, -.394)
+  6. O4, Spend time reflecting on things. (Positive, Weak, .357)
+  7. E3, Know how to captivate people. (Negative, Weak, -.341)
+
+**LLM Interpretation:**  
+The social inhibition factor emerges from the sizable positive loadings on the two introverted indicators E1 (“Don’t talk a lot”) and E2 (“Find it difficult to approach others”), weighed against strong negative loadings on the sociable traits E3, E4, and E5. The factor captures 7.4 % of overall variance and illustrates a clear tendency toward social reticence, low talkativeness, and modest impulse control in interpersonal situations. Correlation patterns reveal a moderate positive link with Neurotic Temperament (r = .23), implying that anxious individuals are more likely to withdraw socially, and a moderate negative association with Social Altruism (r = –.31), indicating that altruistic warmth tends to coexist with lower social withdrawal. The factor is relatively independent from Conscientious Planning (–.22) and Intellectual Openness (–.17). Psychologically, it aligns with the Big Five “extraversion” antipode, marking a preference for solitude and communicated limitation.
+
+### Factor 4 (ML3): Conscientious Planning
+
+**Number of significant loadings:** 5  
+**Variance explained:** 7.71%  
+**Factor Correlations:** ML2 = -.21, ML5 = .20, ML1 = -.22,    
+
+ML4 = .20
+
+**Variables:**
+
+  1. C4, Do things in a half-way manner. (Negative, Strong, -.643)
+  2. C2, Continue until everything is perfect. (Positive, Strong, .638)
+  3. C5, Waste my time. (Negative, Strong, -.570)
+  4. C3, Do things according to a plan. (Positive, Strong, .564)
+  5. C1, Am exacting in my work. (Positive, Strong, .532)
+
+**LLM Interpretation:**  
+Conscientious planning is driven by robust positive loadings on the orderly traits (C1, C2, and C3) and sizable negative loadings on the disorderly items (C4 “half‑way manner” and C5 “waste my time”). This factor signals a distinctive blend of meticulous planning, perfectionistic drive, and resistance to procrastination, collectively explaining 7.7 % of the data variability. The factor displays a weak negative relationship with Neurotic Temperament (–.21) and Social Inhibition (–.22), indicating that highly organized individuals are less prone to emotional instability or social withdrawal. Its modest positive associations with Social Altruism (.20) and Intellectual Openness (.20) suggest that organized achievers also value caring for others and novel thought. The construct closely corresponds to the Big Five “conscientiousness” dimension, emphasizing diligence, orderliness, and self‑regulation.
+
+### Factor 5 (ML4): Intellectual Openness
+
+**Number of significant loadings:** 6  
+**Variance explained:** 6.25%  
+**Factor Correlations:** ML2 = -.01, ML5 = .23, ML1 = -.17,    
+
+ML3 = .20
+
+**Variables:**
+
+  1. O3, Carry the conversation to a higher level. (Positive, Strong, .633)
+  2. O1, Am full of ideas. (Positive, Strong, .534)
+  3. O5, Will not probe deeply into a subject. (Negative, Strong, -.522)
+  4. O2, Avoid difficult reading material. (Negative, Moderate, -.441)
+  5. O4, Spend time reflecting on things. (Positive, Weak, .379)
+  6. E3, Know how to captivate people. (Positive, Weak, .315)
+
+**LLM Interpretation:**  
+Intellectual openness is reflected through substantial positive loadings on the imaginative and conceptually oriented items O1 (“full of ideas”), O3 (“carry conversation to higher level”), and O4 (“spend time reflecting on things”), coupled with negative loadings on the selective items O2 (“avoid difficult reading material”) and O5 (“will not probe deeply into a subject”). The resulting contrast captures 6.3 % of variance, representing a personality that values creative thinking and deep discussion while tempering extreme curiosity or critical inquiry. Correlations show a small antihypothesis with Neurotic Temperament (–.01), a modest positive link with Social Altruism (.23) and Conscientious Planning (.20), and a weak negative association with Social Inhibition (–.17). These relationships highlight that open‑minded individuals tend to be more socially caring and organized, yet less socially withdrawn. This alignment maps the classic “openness to experience” construct, underscoring intellectual curiosity, imagination, and reflective engagement.
+
