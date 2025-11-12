@@ -112,9 +112,9 @@ print(chat)
 - **Articles:**
 
   - [Getting Started
-    Guide](https://matthiaskloft.github.io/psychinterpreter/articles/01-Getting-Started.html)
+    Guide](https://matthiaskloft.github.io/psychinterpreter/articles/01-Getting_Started.html)
   - [Usage Patterns for
-    `interpret()`](https://matthiaskloft.github.io/psychinterpreter/articles/02-Usage-Patterns.html)
+    `interpret()`](https://matthiaskloft.github.io/psychinterpreter/articles/02-Usage_Patterns.html)
 
 ## Contributing
 

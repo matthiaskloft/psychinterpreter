@@ -83,7 +83,7 @@ plot.fa_interpretation <- function(x,
     )
   }
 
-  # Check for model_data and loadings_df (new structure after Phase 2-3 refactoring)
+  # Validate interpretation object structure
   if (!"model_data" %in% names(x) || !"loadings_df" %in% names(x$model_data)) {
     cli::cli_abort(
       c(

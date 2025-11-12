@@ -4,22 +4,13 @@
 
 **For technical/architectural details**: See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md)
 
-**Status**: Phase 3 Complete (2025-11-11) - Model-type-aware configuration system fully implemented
+**Status**: Stable (2025-11-12) - Model-type-aware configuration system fully implemented
 
-**IMPORTANT API CHANGES**:
-- **Phase 1** (2025-11-09):
-  - `fit_results` renamed to `fit_results`
-  - `provider` and `model` renamed to `provider` and `model`
-  - New config objects: `llm_args()`, `fa_args()`, `output_args()`
-- **Phase 2** (2025-11-10):
-  - `interpret_fa()` removed entirely (functionality now in S3 generic `build_model_data()`)
-  - New architecture: interpret() → interpret_core() → build_model_data.fa()
-  - All 169 tests passing with new S3 generic system
-- **Phase 3** (2025-11-11):
-  - `fa_args()` renamed to `interpretation_args(model_type, ...)`
-  - Model-type-aware configuration system
-  - FA-specific functions moved from shared utilities to FA-specific files
-  - Export system refactored to S3 generic pattern
+**Current API** (as of 2025-11-12):
+- Main entry point: `interpret()` - Universal interpretation function
+- Configuration objects: `llm_args()`, `interpretation_args(model_type, ...)`, `output_args()`
+- Architecture: interpret() → interpret_model.{class}() → build_model_data.{class}()
+- S3 generics: build_model_data(), build_system_prompt(), build_main_prompt(), export_interpretation()
 
 ---
 
@@ -162,7 +153,9 @@ interpret(chat_session = chat, fit_results = fa_result, variable_info = var_info
 interpret(chat_session = chat, fit_results = loadings_list, variable_info = var_info)  # Structured list works too
 ```
 
-## Pattern 4: Using Configuration Objects
+## Pattern 4: Using Configuration Objects (Advanced)
+
+The package supports a **dual interface pattern** for maximum flexibility: you can pass parameters either directly or through configuration objects.
 
 ```r
 # Create configuration objects for reusable settings
@@ -201,9 +194,40 @@ interpret(
   interpretation_args = interp_config,  # Use config for interpretation settings
   provider = "ollama",                   # Direct parameters for LLM
   model = "gpt-oss:20b-cloud",
-  word_limit = 150                       # Direct parameter overrides llm_args
+  word_limit = 150                       # Direct parameter OVERRIDES llm_args
 )
 ```
+
+### Parameter Precedence Rules
+
+When both configuration objects and direct parameters are provided:
+
+1. **Direct parameters always win**: `word_limit = 150` overrides `llm_args = llm_args(word_limit = 100)`
+2. **Config objects provide defaults**: If no direct parameter, uses value from config object
+3. **Package defaults as fallback**: If neither provided, uses package defaults
+
+**Example**:
+```r
+# llm_config specifies word_limit = 100
+llm_config <- llm_args(word_limit = 100)
+
+interpret(
+  ...,
+  llm_args = llm_config,  # word_limit = 100
+  word_limit = 150        # This wins! Final word_limit = 150
+)
+```
+
+**When to use configuration objects**:
+- Reusing settings across multiple analyses
+- Sharing configurations in team workflows
+- Programmatically building complex configurations
+- Cleaner code when passing many parameters
+
+**When to use direct parameters**:
+- Simple, one-off analyses
+- Quick overrides of config object values
+- Learning the package (more explicit)
 
 **When to use each**:
 - **Single analysis**: Pattern 1 (fitted model) - simplest

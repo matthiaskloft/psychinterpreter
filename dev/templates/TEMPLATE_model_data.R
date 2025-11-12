@@ -1,12 +1,42 @@
 # Template for {MODEL}_model_data.R
 # Replace all instances of {MODEL}, {model}, {CLASS}, {PARAM1}, etc. with your values
 #
-# Example replacements for Gaussian Mixture:
+# ==============================================================================
+# EXAMPLE REPLACEMENTS BY MODEL TYPE
+# ==============================================================================
+#
+# Gaussian Mixture (GM):
 #   {MODEL} -> Gaussian Mixture
 #   {model} -> gm
 #   {CLASS} -> Mclust
+#   {PACKAGE} -> mclust
 #   {PARAM1} -> covariance_type
 #   {PARAM2} -> n_clusters
+#   {DATA_FIELD1} -> means
+#   {DATA_FIELD2} -> covariances
+#   {COMPONENTS} -> clusters
+#
+# Item Response Theory (IRT):
+#   {MODEL} -> Item Response Theory
+#   {model} -> irt
+#   {CLASS} -> SingleGroupClass
+#   {PACKAGE} -> mirt
+#   {PARAM1} -> model_spec
+#   {PARAM2} -> n_factors
+#   {DATA_FIELD1} -> item_params
+#   {DATA_FIELD2} -> ability_estimates
+#   {COMPONENTS} -> items
+#
+# Cognitive Diagnosis Models (CDM):
+#   {MODEL} -> Cognitive Diagnosis Model
+#   {model} -> cdm
+#   {CLASS} -> gdina
+#   {PACKAGE} -> GDINA
+#   {PARAM1} -> rule
+#   {PARAM2} -> n_attributes
+#   {DATA_FIELD1} -> q_matrix
+#   {DATA_FIELD2} -> item_params
+#   {COMPONENTS} -> attributes
 
 #' Build model data for {MODEL} interpretation
 #'

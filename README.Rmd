@@ -119,8 +119,8 @@ print(chat)
 - **Website:** [https://matthiaskloft.github.io/psychinterpreter/](https://matthiaskloft.github.io/psychinterpreter/)
 
 - **Articles:**
-  - [Getting Started Guide](https://matthiaskloft.github.io/psychinterpreter/articles/01-Getting-Started.html)
-  - [Usage Patterns for `interpret()`](https://matthiaskloft.github.io/psychinterpreter/articles/02-Usage-Patterns.html)
+  - [Getting Started Guide](https://matthiaskloft.github.io/psychinterpreter/articles/01-Getting_Started.html)
+  - [Usage Patterns for `interpret()`](https://matthiaskloft.github.io/psychinterpreter/articles/02-Usage_Patterns.html)
 
 
 ## Contributing

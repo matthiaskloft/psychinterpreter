@@ -776,18 +776,29 @@ Detailed explanation:
 
 ## 4.6 Package Statistics
 
-| Metric | Count |
-|--------|-------|
-| **Active R Files** | 20 |
-| **Archived R Files** | 8 |
-| **Total R Code** | ~6,437 lines |
-| **Core Infrastructure** | ~2,257 lines (35%) |
-| **FA Implementation** | ~2,891 lines (45%) |
-| **Shared Utilities** | ~1,289 lines (20%) |
-| **Test Files** | 9 |
-| **Total Tests** | 115+ tests |
-| **Exported Functions** | 24 |
-| **Exported S3 Methods** | 33 |
+To get current package statistics, run:
+
+```r
+# Count R source files
+length(list.files("R/", pattern = "\\.R$"))
+
+# Count total lines of R code
+sum(sapply(list.files("R/", pattern = "\\.R$", full.names = TRUE),
+          function(x) length(readLines(x, warn = FALSE))))
+
+# Count test files
+length(list.files("tests/testthat", pattern = "^test-.*\\.R$"))
+
+# Count exports
+exports <- readLines("NAMESPACE")
+length(grep("^export\\(", exports))
+length(grep("^S3method\\(", exports))
+
+# Count archived files (if archive exists outside package)
+if (dir.exists("../psychinterpreter_archive")) {
+  length(list.files("../psychinterpreter_archive", pattern = "\\.R$"))
+}
+```
 
 ---
 

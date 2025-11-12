@@ -16,7 +16,10 @@
 #'
 #' @keywords internal
 #' @noRd
-VALID_MODEL_TYPES <- c("fa")  # , "gm", "irt", "cdm")  # Uncomment when implemented
+VALID_MODEL_TYPES <- c("fa", "gm", "irt", "cdm")
+
+# Model types with full implementation
+IMPLEMENTED_MODEL_TYPES <- c("fa")
 
 
 #' Validate Model Type
@@ -50,6 +53,15 @@ validate_model_type <- function(model_type, allow_null = FALSE) {
       "x" = "Invalid model_type: {.val {model_type}}",
       "i" = "Valid types: {.val {VALID_MODEL_TYPES}}",
       "i" = "Only 'fa' (factor analysis) is currently fully implemented"
+    ))
+  }
+
+  # Check if implemented
+  if (!model_type %in% IMPLEMENTED_MODEL_TYPES) {
+    cli::cli_abort(c(
+      "x" = "Model type '{model_type}' is not yet implemented",
+      "i" = "Currently only 'fa' (factor analysis) is fully supported",
+      "i" = "Implementation for '{model_type}' is planned for a future release"
     ))
   }
 

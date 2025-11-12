@@ -39,8 +39,8 @@
 #' 7. Build report (model-specific via S3)
 #' 8. Return interpretation object
 #'
-#' @export
 #' @keywords internal
+#' @noRd
 interpret_core <- function(model_data = NULL,
                           fit_results = NULL,
                           model_type = NULL,

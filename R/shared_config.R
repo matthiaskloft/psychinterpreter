@@ -47,34 +47,15 @@
 #'   hide_low_loadings = TRUE
 #' )
 interpretation_args <- function(model_type, ...) {
-  # Validate model_type
+  # Validate model_type (also checks if implemented)
   validate_model_type(model_type)
 
   # Delegate to model-specific constructor
+  # validate_model_type ensures only implemented types reach here
   if (model_type == "fa") {
     return(interpretation_args_fa(...))
-  } else if (model_type == "gm") {
-    cli::cli_abort(
-      c(
-        "Gaussian Mixture (gm) interpretation not yet implemented",
-        "i" = "Currently only 'fa' (factor analysis) is supported"
-      )
-    )
-  } else if (model_type == "irt") {
-    cli::cli_abort(
-      c(
-        "IRT interpretation not yet implemented",
-        "i" = "Currently only 'fa' (factor analysis) is supported"
-      )
-    )
-  } else if (model_type == "cdm") {
-    cli::cli_abort(
-      c(
-        "CDM interpretation not yet implemented",
-        "i" = "Currently only 'fa' (factor analysis) is supported"
-      )
-    )
   }
+  # Future model types will be handled here when IMPLEMENTED_MODEL_TYPES is updated
 }
 
 #' Create FA-Specific Interpretation Args (Internal)

@@ -1069,7 +1069,7 @@ build_report.fa_interpretation <- function(interpretation,
                                           ...) {
   # Extract parameters from interpretation object
   n_factors <- length(interpretation$suggested_names)
-  # cutoff is now in model_data (moved from params in Phase 3 refactor)
+  # Extract cutoff from model_data
   cutoff <- interpretation$model_data$cutoff %||% 0.3
 
   # Call existing build_fa_report function

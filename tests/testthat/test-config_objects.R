@@ -74,17 +74,17 @@ test_that("interpretation_args() uses default values when not specified", {
 test_that("interpretation_args() errors for unimplemented model types", {
   expect_error(
     interpretation_args(model_type = "gm"),
-    "Invalid model_type"
+    "not yet implemented"
   )
 
   expect_error(
     interpretation_args(model_type = "irt"),
-    "Invalid model_type"
+    "not yet implemented"
   )
 
   expect_error(
     interpretation_args(model_type = "cdm"),
-    "Invalid model_type"
+    "not yet implemented"
   )
 })
 
