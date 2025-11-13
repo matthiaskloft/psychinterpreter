@@ -296,7 +296,7 @@ cat_cols <- psychinterpreter_colors("categorical") # Okabe-Ito palette
 
 ```r
 # Emergency rule: use top N loadings if none exceed cutoff
-interpret(..., n_emergency = 3)  # Use top 3 loadings (default)
+interpret(..., n_emergency = 2)  # Use top 2 loadings (default)
 interpret(..., n_emergency = 0)  # Label weak factors as "undefined"
 
 # Hide non-significant loadings to save tokens
@@ -473,8 +473,8 @@ interpret(..., echo = "all")
 
 # Active TODOs
 
-- can we further refine R script naming scheme?
-- **Optimize tests further** - Review fixture usage and caching strategies
+- **Optimize tests further**: coverage and efficiency
+
 - **Implement gaussian_mixture class** - Requires 8 S3 methods + 2 optional methods (see dev/DEVELOPER_GUIDE.md)
 
 ---
@@ -489,6 +489,7 @@ interpret(..., echo = "all")
 | `chat_session()` | Create persistent LLM session |
 | `export_interpretation()` | Export to txt/md files |
 | `plot.fa_interpretation()` | Visualize factor loadings with color-blind friendly palette |
+| `create_factor_plot()` | Create factor loading heatmap (standalone wrapper) |
 | `theme_psychinterpreter()` | Custom ggplot2 theme for publication-ready plots |
 | `psychinterpreter_colors()` | Get color-blind friendly palettes |
 | `find_cross_loadings()` | Identify cross-loading variables |
@@ -504,7 +505,7 @@ interpret(..., echo = "all")
 | `silent` | 0, 1, 2 | 0 | 0=report+messages, 1=messages only, 2=silent |
 | `output_format` | "text", "markdown" | "text" | Report format |
 | `word_limit` | 20-500 | 150 | Max words per factor interpretation |
-| `n_emergency` | 0-10 | 3 | Top N loadings for weak factors (0=undefined) |
+| `n_emergency` | 0-10 | 2 | Top N loadings for weak factors (0=undefined) |
 | `hide_low_loadings` | TRUE/FALSE | FALSE | Hide non-significant loadings in prompt |
 | `echo` | "all", "none" | "none" | Show LLM prompts/responses |
 
@@ -530,6 +531,12 @@ testthat::test_file("tests/testthat/test-interpret_fa.R") # Run single test file
 devtools::check()                                         # R CMD check
 devtools::load_all()                                      # Load for development
 ```
+
+- After implementing new code, run tests and fix failures
+- After implementing new functions or changing parameters, update roxygen docs and run `devtools::document()`
+- After adding, removing, or renaming functions, update _pkgdown.yml if needed
+- After major changes, run `devtools::check()` to ensure package integrity
+
 
 ## Code Style (Brief)
 
@@ -583,7 +590,7 @@ Update the developer guide when making **architectural or implementation changes
 
 ---
 
-**Last Updated**: 2025-11-11
+**Last Updated**: 2025-11-12
 **Maintainer**: Update when making significant user-facing changes
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
 - use kable() and kable_styling() for .Qmd articles

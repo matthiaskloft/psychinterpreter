@@ -358,12 +358,16 @@ interpret <- function(fit_results = NULL,
       )
     }
 
-    # Handle list structure based on model type
-    if (effective_model_type == "fa") {
-      # Validate and extract FA list components
-      extracted <- validate_fa_list_structure(fit_results)
+    # Validate and extract list components (model-specific via S3 dispatch)
+    extracted <- validate_list_structure(
+      model_type = effective_model_type,
+      fit_results_list = fit_results
+    )
 
-      # Call handle_raw_data_interpret with extracted loadings
+    # For FA, extract loadings and factor_cor_mat for handle_raw_data_interpret
+    # For other model types, the S3 method will return appropriate structure
+    if (effective_model_type == "fa") {
+      # Call handle_raw_data_interpret with extracted FA components
       return(
         handle_raw_data_interpret(
           x = extracted$loadings,
@@ -377,10 +381,12 @@ interpret <- function(fit_results = NULL,
         )
       )
     } else {
+      # For future model types (gm, irt, cdm), handle their specific structure here
       cli::cli_abort(
         c(
-          "Structured list support not yet implemented for model_type: {.val {effective_model_type}}",
-          "i" = "Currently only 'fa' supports list structure"
+          "Structured list routing not yet implemented for model_type: {.val {effective_model_type}}",
+          "i" = "The list was validated successfully, but routing logic needs to be added",
+          "i" = "Implement handle_raw_data_interpret routing for {.val {effective_model_type}}"
         )
       )
     }

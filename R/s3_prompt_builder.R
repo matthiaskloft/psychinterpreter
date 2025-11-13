@@ -56,7 +56,7 @@ build_system_prompt.default <- function(model_type, word_limit, ...) {
     c(
       "No system prompt builder for model type: {.val {model_class}}",
       "i" = "Available types: fa, gm, irt, cdm",
-      "i" = "Implement build_system_prompt.{model_class}() in R/models/{model_class}/prompt_{model_class}.R"
+      "i" = "Implement build_system_prompt.{model_class}() in R/{model_class}_prompt_builder.R"
     )
   )
 }
@@ -77,7 +77,7 @@ build_main_prompt.default <- function(model_type, model_data, ...) {
     c(
       "No user prompt builder for model type: {.val {model_class}}",
       "i" = "Available types: fa, gm, irt, cdm",
-      "i" = "Implement build_main_prompt.{model_class}() in R/models/{model_class}/prompt_{model_class}.R"
+      "i" = "Implement build_main_prompt.{model_class}() in R/{model_class}_prompt_builder.R"
     )
   )
 }

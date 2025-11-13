@@ -47,7 +47,7 @@ build_model_data.default <- function(fit_results, model_type = NULL, interpretat
       "No model data builder for object of class: {.val {model_class}}",
       "i" = "Supported types: fa, psych, principal, lavaan, SingleGroupClass (mirt), or list",
       "i" = "For list input, provide model_type parameter (e.g., model_type = 'fa')",
-      "i" = "Implement build_model_data.{model_class}() to add support"
+      "i" = "Implement build_model_data.{model_class}() in R/{model_class}_model_data.R to add support"
     )
   )
 }

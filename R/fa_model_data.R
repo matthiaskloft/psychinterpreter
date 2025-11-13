@@ -248,6 +248,7 @@ build_fa_model_data_internal <- function(fit_results, variable_info, model_type 
   # ==========================================================================
 
   list(
+    model_type = model_type,
     loadings_df = loadings_df,
     factor_summaries = factor_summaries,
     factor_cols = factor_cols,
@@ -356,6 +357,12 @@ build_model_data.psych <- function(fit_results, model_type = "fa", interpretatio
   dots <- list(...)
   variable_info <- dots$variable_info
 
+  # Remove variable_info from dots to avoid passing it twice
+  dots$variable_info <- NULL
+
+  # Ensure model_type is "fa" if NULL (use default)
+  if (is.null(model_type)) model_type <- "fa"
+
   # Validate variable_info is provided (required for FA)
   if (is.null(variable_info)) {
     cli::cli_abort(
@@ -389,7 +396,19 @@ build_model_data.psych <- function(fit_results, model_type = "fa", interpretatio
     factor_cor_mat = factor_cor_mat
   )
 
-  build_fa_model_data_internal(loadings_list, variable_info, model_type, interpretation_args, ...)
+  # Call internal function with named parameters, passing remaining dots
+  do.call(
+    build_fa_model_data_internal,
+    c(
+      list(
+        fit_results = loadings_list,
+        variable_info = variable_info,
+        model_type = model_type,
+        interpretation_args = interpretation_args
+      ),
+      dots
+    )
+  )
 }
 
 
@@ -412,6 +431,12 @@ build_model_data.lavaan <- function(fit_results, model_type = "fa", interpretati
   # Extract parameters from ...
   dots <- list(...)
   variable_info <- dots$variable_info
+
+  # Remove variable_info from dots to avoid passing it twice
+  dots$variable_info <- NULL
+
+  # Ensure model_type is "fa" if NULL (use default)
+  if (is.null(model_type)) model_type <- "fa"
 
   # Validate variable_info is provided (required for FA)
   if (is.null(variable_info)) {
@@ -455,7 +480,19 @@ build_model_data.lavaan <- function(fit_results, model_type = "fa", interpretati
     factor_cor_mat = factor_cor_mat
   )
 
-  build_fa_model_data_internal(loadings_list, variable_info, model_type, interpretation_args, ...)
+  # Call internal function with named parameters, passing remaining dots
+  do.call(
+    build_fa_model_data_internal,
+    c(
+      list(
+        fit_results = loadings_list,
+        variable_info = variable_info,
+        model_type = model_type,
+        interpretation_args = interpretation_args
+      ),
+      dots
+    )
+  )
 }
 
 
@@ -466,6 +503,12 @@ build_model_data.SingleGroupClass <- function(fit_results, model_type = "fa", in
   # Extract parameters from ...
   dots <- list(...)
   variable_info <- dots$variable_info
+
+  # Remove variable_info from dots to avoid passing it twice
+  dots$variable_info <- NULL
+
+  # Ensure model_type is "fa" if NULL (use default)
+  if (is.null(model_type)) model_type <- "fa"
 
   # Validate variable_info is provided (required for FA)
   if (is.null(variable_info)) {
@@ -509,7 +552,19 @@ build_model_data.SingleGroupClass <- function(fit_results, model_type = "fa", in
     factor_cor_mat = factor_cor_mat
   )
 
-  build_fa_model_data_internal(loadings_list, variable_info, model_type, interpretation_args, ...)
+  # Call internal function with named parameters, passing remaining dots
+  do.call(
+    build_fa_model_data_internal,
+    c(
+      list(
+        fit_results = loadings_list,
+        variable_info = variable_info,
+        model_type = model_type,
+        interpretation_args = interpretation_args
+      ),
+      dots
+    )
+  )
 }
 
 

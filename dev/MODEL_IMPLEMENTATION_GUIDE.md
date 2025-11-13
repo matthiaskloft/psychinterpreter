@@ -2,7 +2,7 @@
 
 **Purpose**: Step-by-step guide for implementing new model types in the psychinterpreter package.
 
-**Last Updated**: 2025-11-10
+**Last Updated**: 2025-11-12
 
 **Status**: Template ready for GM, IRT, and CDM implementations
 
@@ -76,12 +76,15 @@ build_report.{model}_interpretation() [STEP 11: Format report]
 | `create_diagnostics.{model}()` | Model-specific diagnostics | `{model}_diagnostics.R` |
 | `build_report.{model}_interpretation()` | Format user-facing report | `{model}_report.R` |
 
-**2 Additional S3 Methods (Optional but Recommended)** across **2 new files**:
+**3 Additional S3 Methods (Optional but Recommended)**:
 
 | Method | Purpose | File |
 |--------|---------|------|
+| `validate_list_structure.{model}()` | Validate structured list input | `s3_list_validation.R` (add to existing) |
 | `export_interpretation.{model}_interpretation()` | Export reports to txt/md files | `{model}_export.R` |
 | `plot.{model}_interpretation()` | Visualize model results | `{model}_visualization.R` |
+
+**Note**: `validate_list_structure.{model}()` enables users to pass structured lists (e.g., `list(loadings = ...)` for FA) directly to `interpret()`. See `validate_list_structure.fa()` in `R/s3_list_validation.R` for reference implementation.
 
 **Plus**: Configuration object constructor (`interpretation_args_{model}()`) in `shared_config.R`
 
@@ -1985,5 +1988,5 @@ message("Actual keys: ", paste(names(parsed_result), collapse = ", "))
 
 ---
 
-**Last Updated**: 2025-11-10
+**Last Updated**: 2025-11-12
 **Maintainer**: Update when adding new model types or discovering new patterns

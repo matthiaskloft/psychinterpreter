@@ -61,6 +61,27 @@
 
 **Estimated Time**: 4-6 hours
 
+### 2.3 List Validation S3 Method (Optional - for Structured List Support)
+
+**File**: `R/s3_list_validation.R` (add to existing file)
+
+- [ ] Implement `validate_list_structure.{model}()` S3 method
+  - [ ] Define required components for structured list
+  - [ ] Validate component types (matrix, data.frame, etc.)
+  - [ ] Warn about unrecognized components
+  - [ ] Return standardized extracted structure
+- [ ] Add roxygen2 documentation with examples
+- [ ] Create unit tests in existing test file
+  - [ ] Test validation with valid structure
+  - [ ] Test validation with missing required components
+  - [ ] Test validation with wrong component types
+  - [ ] Test warning messages for unrecognized components
+- [ ] All tests passing
+
+**Estimated Time**: 1-2 hours
+
+**Note**: This enables users to pass structured lists like `list(difficulty = vector, discrimination = vector)` directly to `interpret()`. See `validate_list_structure.fa()` for reference implementation.
+
 ---
 
 ## Phase 3: Prompt Building (Requires LLM for Testing)

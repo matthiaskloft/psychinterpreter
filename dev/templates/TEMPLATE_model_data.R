@@ -46,7 +46,7 @@
 #' @param fit_results Fitted {MODEL} object from {PACKAGE}::{CLASS}()
 #' @param variable_info Data frame with columns 'variable' and 'description'
 #' @param model_type Model type identifier (should be "{model}")
-#' @param {model}_args Optional configuration object from {model}_args()
+#' @param interpretation_args Optional configuration object from interpretation_args(model_type = "{model}", ...)
 #' @param ... Additional arguments (for parameter extraction)
 #'
 #' @return List with standardized {MODEL} data structure containing:
@@ -79,7 +79,7 @@
 build_model_data.{CLASS} <- function(fit_results,
                                       variable_info,
                                       model_type = "{model}",
-                                      {model}_args = NULL,
+                                      interpretation_args = NULL,
                                       ...) {
 
   # Call internal helper to avoid S3 method naming conflicts
@@ -87,7 +87,7 @@ build_model_data.{CLASS} <- function(fit_results,
     fit_results = fit_results,
     variable_info = variable_info,
     model_type = model_type,
-    {model}_args = {model}_args,
+    interpretation_args = interpretation_args,
     ...
   )
 }
@@ -100,7 +100,7 @@ build_model_data.{CLASS} <- function(fit_results,
 build_{model}_model_data_internal <- function(fit_results,
                                                variable_info,
                                                model_type = "{model}",
-                                               {model}_args = NULL,
+                                               interpretation_args = NULL,
                                                ...) {
 
   # ============================================================================

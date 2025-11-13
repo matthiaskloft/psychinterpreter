@@ -54,8 +54,25 @@ interpretation_args <- function(model_type, ...) {
   # validate_model_type ensures only implemented types reach here
   if (model_type == "fa") {
     return(interpretation_args_fa(...))
+  } else if (model_type == "gm") {
+    # Placeholder for Gaussian Mixture implementation
+    cli::cli_abort(c(
+      "x" = "interpretation_args for model_type '{model_type}' not yet implemented",
+      "i" = "Add interpretation_args_{model_type}() function and routing logic"
+    ))
+  } else if (model_type %in% c("irt", "cdm")) {
+    # Placeholders for future model types
+    cli::cli_abort(c(
+      "x" = "interpretation_args for model_type '{model_type}' not yet implemented",
+      "i" = "Add interpretation_args_{model_type}() function and routing logic"
+    ))
+  } else {
+    # Should never reach here due to validate_model_type() check
+    cli::cli_abort(c(
+      "x" = "Unknown model_type: '{model_type}'",
+      "i" = "This should have been caught by validate_model_type()"
+    ))
   }
-  # Future model types will be handled here when IMPLEMENTED_MODEL_TYPES is updated
 }
 
 #' Create FA-Specific Interpretation Args (Internal)
@@ -420,8 +437,12 @@ print.interpretation_args <- function(x, ...) {
     cli::cli_li("Hide low loadings: {.val {x$hide_low_loadings}}")
     cli::cli_li("Sort loadings: {.val {x$sort_loadings}}")
     cli::cli_end()
+  } else if (x$model_type %in% c("gm", "irt", "cdm")) {
+    # Future model types - show generic configuration
+    cli::cli_alert_info("Configuration parameters: {.val {setdiff(names(x), 'model_type')}}")
   } else {
-    # Future model types
+    # Unknown model type
+    cli::cli_alert_warning("Unknown model_type: {.val {x$model_type}}")
     cli::cli_alert_info("Configuration: {.val {names(x)}}")
   }
 
@@ -543,8 +564,11 @@ build_interpretation_args <- function(interpretation_args = NULL, model_type = N
     # Define valid params per model type
     valid_params <- if (model_type == "fa") {
       c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings")
+    } else if (model_type %in% c("gm", "irt", "cdm")) {
+      # Future model types - no parameters defined yet
+      character(0)
     } else {
-      character(0)  # Future model types
+      character(0)  # Unknown model types
     }
 
     model_dots <- dots[names(dots) %in% valid_params]
