@@ -6,17 +6,17 @@ Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
 Tokens:
   Input: 1780
-  Output: 5281
-Elapsed time: 25.8
+  Output: 5777
+Elapsed time: 29.5
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (9.6%): Neurotic Tendencies
-• Factor 2 (7.7%): Prosocial Orientation
-• Factor 3 (7.4%): Low Extraversion
-• Factor 4 (7.7%): Conscientiousness
-• Factor 5 (6.3%): Openness
+• Factor 1 (9.6%): Negative Affectivity
+• Factor 2 (7.7%): Warmth & Empathy
+• Factor 3 (7.4%): Introverted Reflection
+• Factor 4 (7.7%): Perfectionist Conscientiousness
+• Factor 5 (6.3%): Creative Social Insight
 
 Total variance explained: 38.7%
 
@@ -32,7 +32,7 @@ ML4: ML2 = -.01, ML5 = .23, ML1 = -.17, ML3 = .20
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (ML2) - Neurotic Tendencies
+Factor 1 (ML2) - Negative Affectivity
 Number of significant loadings: 5
 Variance explained: 9.65%
 Factor Correlations: ML5 = -.03, ML1 = .23, ML3 = -.21, ML4 = -.01
@@ -45,11 +45,11 @@ Variables:
   5. N4, Often feel blue. (, , .413)
 
 LLM Interpretation:
-ML2 represents neurotic tendencies, with high loadings on N1–N5 (0.41–0.85). These items capture irritability, mood swings, and anxiety, supporting convergent validity. The factor shows a modest positive correlation with Introverted Social Tendencies (ML1, r=.23) and near-zero relationship with Openness (ML4, r≈0). Its negative correlation with Conscientiousness (ML3, r=–.21) suggests that higher neuroticism is linked to lower orderliness. These patterns differentiate ML2 from other factors while underscoring its role in emotional instability. This core emotional volatility factor shapes behavior across situations.
+ML2 captures core Neuroticism, with high loadings on anger, irritability, mood swings, sadness, and panic. The construct represents emotional instability and frequent negative affect. These variables converge to form a cohesive “Negative Affectivity” factor, explaining 9.6 % of overall variance. Its modest correlations with other factors (e.g., -.03 with ML5, .23 with ML1) suggest it is distinct yet shares a slight positive link with extraversion‑related traits. The factor shows excellent convergent validity, as all five high‑loading items consistently reflect the same affective domain.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (ML5) - Prosocial Orientation
+Factor 2 (ML5) - Warmth & Empathy
 Number of significant loadings: 7
 Variance explained: 7.69%
 Factor Correlations: ML2 = -.03, ML1 = -.31, ML3 = .20, ML4 = .23
@@ -64,11 +64,11 @@ Variables:
   7. E3, Know how to captivate people. (, , .303)
 
 LLM Interpretation:
-ML5 captures prosocial orientation, evidenced by strong loadings on A2–A5 (0.45–0.67) reflecting concern for others, comforting, and fostering ease. The factor’s negative loading on A1 indicates that indifference detracts from the construct. Low correlations with the other factors (e.g., r≈–.31 with Introverted Social Tendencies) suggest a distinct social warmth dimension. Its moderate association with Openness (r=.20) and low relation to Neurotic Tendencies reflects its unique, adaptive social engagement profile for behavior regulation. This construct aligns with Agreeableness traits from the Big Five.
+ML5 embodies Agreeableness and Social Warmth, with strong loadings on interpersonal concern (Ask about well‑being), comfort skills (Know how to comfort), and empathy (Make people feel at ease). Its moderate loadings from extroverted actions (Make friends easily) and thoughtfulness (Avoid difficult reading) reflect a balanced, considerate disposition. The factor accounts for 7.7 % of variance and shows weak negative correlations with ML2 (‑.03) and modest positive liens with ML4 (.23) and ML1 (‑.31), indicating it’s largely distinct from affective and extraverted constructs while offering complementary insights.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 3 (ML1) - Low Extraversion
+Factor 3 (ML1) - Introverted Reflection
 Number of significant loadings: 7
 Variance explained: 7.36%
 Factor Correlations: ML2 = .23, ML5 = -.31, ML3 = -.22, ML4 = -.17
@@ -83,11 +83,11 @@ Variables:
   7. E3, Know how to captivate people. (, , -.341)
 
 LLM Interpretation:
-ML1 represents low extraversion or introversion, strongly loading on E1 (talk‑less, 0.57) and E2 (social approach difficulty, 0.67). Negative loadings on E3 (captivate people), E4 (make friends), and E5 (take charge) further characterize reduced outward energy. The factor also captures modest internalizing aspects with positive loadings on O4 (reflecting introverted cognition, 0.36) and mild neurotic items (N4, N5). Its positive correlation with Neurotic Tendencies (r=.23) and negative link with Conscientiousness (r≈–.22) illustrate its role particularly for others in guarded social interaction.
+ML1 reflects Introverted Reflection, integrating high loadings on reserved extraversion items (Don’t talk a lot, Find it difficult to approach others) and low assertiveness indicators (Know how to captivate, Make friends easily, Take charge). The additional positive loading on Reflective Thinking (Spend time reflecting) and modest positive mood cues (Often feel blue, Panic) suggest a conscientious, self‑contained orientation. Accounting for 7.4 % of variance, this factor presents moderate correlations with extraversion (ML5, .23) but remains largely independent of neuroticism (ML2, .23) and conscientiousness (ML3, −.22).
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 4 (ML3) - Conscientiousness
+Factor 4 (ML3) - Perfectionist Conscientiousness
 Number of significant loadings: 5
 Variance explained: 7.71%
 Factor Correlations: ML2 = -.21, ML5 = .20, ML1 = -.22, ML4 = .20
@@ -100,11 +100,11 @@ Variables:
   5. C1, Am exacting in my work. (, , .532)
 
 LLM Interpretation:
-ML3 signifies conscientiousness, driven by high positive loadings on C1–C3 (0.53–0.64) that capture exactness, perseverance, and planning. Negative loadings on C4 (half‑way approach) and C5 (time wasting) emphasize low procrastination and sloppiness. The factor exhibits a weak negative correlation with Introverted Social Tendencies (r≈–.22) and a small positive link to Openness (r=.20). ML3 therefore denotes a structured, diligent mindset that contrasts with impulsivity and emotional reactivity, mirroring the Big Five’s conscientiousness dimension, providing a foundation for goal attainment and reliable self‑regulation.
+ML3 captures Conscientiousness‑Perfect, dominated by high loadings on diligent planning and order (Exacting work, Continue until perfect, Do things according to a plan) and negatively on half‑way and wasted work, underscoring a disciplined, perfectionistic ethos. The modest positive loading on making people feel at ease (A5) hints at a prosocial element. Explaining 7.7 % of the variance, the factor shows small inverse ties to extraversion (ML1, −.22) and modest positive links to Agreeableness and Creativity (ML4, .20, .23), and further enrich the model.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 5 (ML4) - Openness
+Factor 5 (ML4) - Creative Social Insight
 Number of significant loadings: 6
 Variance explained: 6.25%
 Factor Correlations: ML2 = -.01, ML5 = .23, ML1 = -.17, ML3 = .20
@@ -118,7 +118,7 @@ Variables:
   6. E3, Know how to captivate people. (, , .315)
 
 LLM Interpretation:
-ML4 captures openness to experience, with strong positive loadings on O1 (ideas, .53) and O3 (conversation depth, .63) and moderate positive on O4 (.38). Negative loadings on O2 (avoiding reading) and O5 (non‑probe) reflect a preference for intellectual challenge over routine. The factor is weakly correlated with Introverted Social Tendencies (.20) and positively linked to Prosocial Orientation (.23). ML4 therefore reflects intellectual curiosity and imaginative engagement, aligning with the Openness dimension of the Big Five, supporting creative problem‑solving in varied contexts.
+ML4 illustrates Creative Social Insight, merging high loadings from idea generation (Full of ideas, Carry conversation to a higher level) and social charm (Know how to captivate, Take charge) with a tendency to avoid deep probing and complex reading. This factor embodies a sociable, imaginative orientation emphasizing surface‑level elaboration. It accounts for 6.3 % of total variance and shows weak negative ties to neuroticism (ML2, −.01) but relatively stronger positive relations with Agreeableness (ML5, .23) and Introverted Reflection (ML1, −.17), reflecting its complementary yet distinct nature.
 
 ════════════════════════════════════════════════════════════════════════════════
 
