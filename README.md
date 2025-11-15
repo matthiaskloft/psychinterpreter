@@ -94,7 +94,9 @@ datasets:
 
 ``` r
 # Create reusable chat session
-chat <- chat_session(analysis_type = "fa", llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+chat <- chat_session(analysis_type = "fa", 
+                     llm_provider = "ollama", 
+                     llm_model = "gpt-oss:20b-cloud")
 
 # Run multiple interpretations (saves ~40-60% tokens)
 result1 <- interpret(chat_session = chat, fit_results = fa_result1, variable_info = var_info1, silent = 2)
