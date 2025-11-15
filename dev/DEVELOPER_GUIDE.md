@@ -10,12 +10,13 @@
 
 ## Table of Contents
 
-1. [Package Architecture](#1-package-architecture)
-2. [Token Tracking System](#2-token-tracking-system)
-3. [Implementation Details](#3-implementation-details)
-4. [Development Reference](#4-development-reference)
-5. [Current Package Analysis (2025-11-12)](#5-current-package-analysis-2025-11-12)
-6. [Maintenance History](#6-maintenance-history)
+1. [Quick Start for Developers](#1-quick-start-for-developers)
+2. [Package Architecture](#2-package-architecture)
+3. [Token Tracking System](#3-token-tracking-system)
+4. [Implementation Details](#4-implementation-details)
+5. [Development Reference](#5-development-reference)
+6. [Current Package Analysis (2025-11-15)](#6-current-package-analysis-2025-11-15)
+7. [Maintenance History](#7-maintenance-history)
 
 ---
 
@@ -43,7 +44,7 @@
 **Core Methods**
 - The 8 required S3 methods that every analysis type must implement
 - Essential for interpretation workflow to function
-- See section 1.3 for complete list
+- See section 2.3 for complete list
 
 **Optional Methods**
 - Additional S3 methods that enhance functionality but aren't required
@@ -52,9 +53,142 @@
 
 ---
 
-# 1. Package Architecture
+# 1. Quick Start for Developers
 
-## 1.1 Design Principles
+## 1.1 Documentation Overview
+
+### Core Documentation
+
+| File | Purpose | Audience |
+|------|---------|----------|
+| **DEVELOPER_GUIDE.md** (this file) | Complete technical architecture and implementation details | Package maintainers |
+| **TESTING_GUIDELINES.md** | Test suite organization, patterns, and best practices | Test developers |
+| **OPEN_ISSUES.md** | Current issues, future work, and refactoring decisions | All developers |
+
+### Implementation Guides
+
+| File | Purpose | Audience |
+|------|---------|----------|
+| **MODEL_IMPLEMENTATION_GUIDE.md** | Step-by-step guide for adding new model types (GM, IRT, CDM) | New implementers |
+| **FIXES_IMPLEMENTATION_SUMMARY.md** | Summary of consistency fixes (Phase 1 & 2 - 2025-11-15) | Maintainers |
+
+### Reference
+
+| File | Purpose |
+|------|---------|
+| **prompts.md** | LLM prompt templates and patterns |
+
+## 1.2 Quick Navigation
+
+### I want to...
+
+**Understand the package architecture**
+→ Read Section 2 of this guide
+
+**Add a new model type (GM, IRT, CDM)**
+→ Follow `MODEL_IMPLEMENTATION_GUIDE.md`
+→ Use templates in `templates/` directory
+
+**Write or modify tests**
+→ Follow `TESTING_GUIDELINES.md`
+
+**Know what needs to be done**
+→ Check `OPEN_ISSUES.md`
+
+**Understand recent fixes**
+→ Read `FIXES_IMPLEMENTATION_SUMMARY.md`
+
+## 1.3 Current Status (2025-11-15)
+
+### Completed Work ✅
+
+**Namespace Refactoring** (2025-11-15):
+- Disambiguated LLM vs Analysis parameters
+- `provider` → `llm_provider`, `model` → `llm_model`
+- `model_type` → `analysis_type`, `model_data` → `analysis_data`
+- ~450 occurrences across 50+ files
+
+**Consistency Fixes** (2025-11-15):
+- Fixed function name mismatches
+- Fixed parameter examples
+- Fixed test field access bugs
+- Added S3 method registrations
+- Added configuration precedence tests
+
+### Active Development 🔨
+
+**Priority: MAJOR** (this week):
+- Increase mock LLM tests by 20+ (~4 hours)
+
+**Priority: ENHANCEMENT** (next sprint):
+- Test coverage improvements (~21 hours)
+- Performance benchmarking (~10 hours)
+- Provider-specific tests (~8 hours)
+
+### Planned Features 📋
+
+**New Model Types** (future):
+- Gaussian Mixture (GM) - 32-40 hours
+- Item Response Theory (IRT) - 40-50 hours
+- Cognitive Diagnostic Models (CDM) - 40-50 hours
+
+See `OPEN_ISSUES.md` for complete details.
+
+## 1.4 Package Statistics
+
+- **R Files**: 20
+- **Lines of Code**: ~6,462
+- **Test Files**: 25
+- **Tests**: 347+ (including all new tests)
+- **Test Coverage**: ~80%
+- **LLM Tests**: 14 (~4% of total, 56% reduction from original)
+
+## 1.5 Development Workflow
+
+### Before Making Changes
+
+1. Read relevant documentation above
+2. Check `OPEN_ISSUES.md` for related work
+3. Review `TESTING_GUIDELINES.md` for test patterns
+
+### After Making Changes
+
+1. Run tests: `devtools::test()`
+2. Update documentation: `devtools::document()`
+3. Check package: `devtools::check()`
+4. Update relevant docs in `dev/`
+5. Update `OPEN_ISSUES.md` if completing an issue
+
+### Adding New Model Types
+
+1. Follow `MODEL_IMPLEMENTATION_GUIDE.md` exactly
+2. Copy templates from `templates/` directory
+3. Implement 8 required S3 methods
+4. Add tests following patterns in `TESTING_GUIDELINES.md`
+5. Update `OPEN_ISSUES.md` to mark as complete
+
+## 1.6 Getting Help
+
+- **Architecture questions**: See Section 2-4 of this guide
+- **Implementation questions**: See `MODEL_IMPLEMENTATION_GUIDE.md`
+- **Testing questions**: See `TESTING_GUIDELINES.md`
+- **What to work on**: See `OPEN_ISSUES.md`
+
+## 1.7 Document Maintenance
+
+When updating these docs:
+
+- Update "Last Updated" date at top of file
+- Keep documentation current with code
+- Cross-reference related sections
+- Document decisions in `OPEN_ISSUES.md`
+- Remove obsolete information
+
+---
+
+# 2. Package Architecture
+
+## 2.1 Design Principles
 
 1. **Generic Core + Analysis-Specific Implementations**
    - Core interpretation logic is analysis-agnostic
@@ -68,7 +202,7 @@
    - Persistent chat sessions reuse system prompts (~40-60% savings)
    - Conditional token tracking accounts for system prompt caching
 
-## 1.2 File Structure
+## 2.2 File Structure
 
 All R files are organized in a **flat `R/` directory** (no subdirectories) following a **prefix-first naming convention**. This structure simplifies R package development while making the abstraction hierarchy immediately clear.
 
@@ -79,7 +213,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 - `{analysis}_*` = Analysis-specific implementations (e.g., `fa_*`)
 - `shared_*` = Shared utilities (regular functions, not S3)
 
-**See section 4.1 "Naming Conventions"** for detailed explanation of prefix meanings and distinctions.
+**See section 5.2 "Naming Conventions"** for detailed explanation of prefix meanings and distinctions.
 
 ---
 
@@ -156,7 +290,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 
 **Implementation Note**: Extensibility infrastructure already in place with commented placeholders. See `dev/templates/` and `dev/MODEL_IMPLEMENTATION_GUIDE.md` for implementation instructions.
 
-## 1.3 S3 Method System
+## 2.3 S3 Method System
 
 Each S3 generic is exported with `#' @export`, and individual S3 methods are also exported with `#' @export` following standard R package practices.
 
@@ -180,7 +314,7 @@ Each analysis type (FA, GM, IRT, CDM) must implement these 8 methods:
 - **Item Response Theory (IRT)**: Not implemented
 - **Cognitive Diagnosis Models (CDM)**: Not implemented
 
-## 1.4 Interpretation Workflow
+## 2.4 Interpretation Workflow
 
 The `interpret()` function is implemented as a **plain function with named arguments**, not an S3 generic. This design prevents positional dispatch confusion and provides clear parameter validation. Internally, it uses S3 dispatch via `interpret_model()` methods for fitted model objects.
 
@@ -227,7 +361,7 @@ User calls interpret(fit_results, variable_info, ...)
 4. Return interpretation object with token tracking
 ```
 
-## 1.5 Adding a New Analysis Type
+## 2.5 Adding a New Analysis Type
 
 Complete templates and implementation guide are available:
 - **📖 Implementation Guide**: `dev/MODEL_IMPLEMENTATION_GUIDE.md` - Comprehensive step-by-step guide
@@ -410,13 +544,13 @@ Core infrastructure (`interpret_core()`, JSON parsing, token tracking) requires 
 
 ---
 
-# 2. Token Tracking System
+# 3. Token Tracking System
 
-## 2.1 Overview
+## 3.1 Overview
 
 The package implements a **dual-tier token tracking system** to accurately monitor LLM API usage. This architecture separates cumulative session-level totals from individual interpretation costs, while tracking system prompts separately. This design handles system prompt caching behavior and prevents negative token accumulation from provider inconsistencies.
 
-## 2.2 Two Tracking Tiers
+## 3.2 Two Tracking Tiers
 
 ### Tier 1: Cumulative Tracking (chat_session objects)
 - **Purpose**: Track total tokens across multiple interpretations
@@ -433,7 +567,7 @@ The package implements a **dual-tier token tracking system** to accurately monit
   - `results$used_chat_session`: Boolean flag indicating if persistent session was used
 - **Extracted**: Per-message from chat object, conditionally including system prompt
 
-## 2.3 The System Prompt Caching Problem
+## 3.3 The System Prompt Caching Problem
 
 **Issue**: LLM providers cache system prompts to reduce costs. In persistent sessions:
 - First call: System prompt tokens counted
@@ -445,7 +579,7 @@ The package implements a **dual-tier token tracking system** to accurately monit
 delta = tokens_after - tokens_before  # May be negative if system prompt was cached!
 ```
 
-## 2.4 The Solution: chat_local + normalize_token_count() Helper
+## 3.4 The Solution: chat_local + normalize_token_count() Helper
 
 The implementation uses a `chat_local` variable consistently throughout `core_interpret.R` to properly isolate token tracking for each interpretation:
 
@@ -499,7 +633,7 @@ if (run_output_tokens == 0 && delta_output > 0) {
 }
 ```
 
-## 2.5 Code Locations
+## 3.5 Code Locations
 
 - **class_chat_session.R**: Token tracking initialization, storage, print method
 - **core_interpret.R** (lines 172-260): Full token tracking implementation
@@ -512,7 +646,7 @@ if (run_output_tokens == 0 && delta_output > 0) {
   - Update cumulative counters in chat_session object
 - **report_fa.R**: Conditional system prompt display in reports
 
-## 2.6 Expected Behavior
+## 3.6 Expected Behavior
 
 ### print(interpretation) - Per-Run Tokens
 - **Temporary session**: Includes system prompt + user prompt + assistant response
@@ -523,7 +657,7 @@ if (run_output_tokens == 0 && delta_output > 0) {
 - **Total Output**: Sum of all assistant responses
 - **System Prompt**: One-time cost tracked separately
 
-## 2.7 Provider-Specific Caveats
+## 3.7 Provider-Specific Caveats
 
 - **Ollama**: No token tracking support (returns 0)
 - **Anthropic**: Caches system prompts aggressively (may undercount input)
@@ -532,9 +666,9 @@ if (run_output_tokens == 0 && delta_output > 0) {
 
 ---
 
-# 3. Implementation Details
+# 4. Implementation Details
 
-## 3.1 JSON Parsing Strategy
+## 4.1 JSON Parsing Strategy
 
 Multi-tiered fallback for robust LLM response handling:
 
@@ -546,14 +680,14 @@ Multi-tiered fallback for robust LLM response handling:
 **Location**: `R/s3_parsing.R` (generics) and `R/fa_json.R` (FA implementation)
 **Rationale**: Critical for handling small/local models with imperfect JSON output
 
-## 3.2 System Prompt Architecture
+## 4.2 System Prompt Architecture
 
 The psychometric expert system prompt is defined in **ONE location**:
 - `R/fa_prompt_builder.R` via S3 method `build_system_prompt.fa()`
 - Used by both single-use and persistent sessions
 - **Single source of truth** - no duplication
 
-## 3.3 Emergency Rule Logic
+## 4.3 Emergency Rule Logic
 
 If a factor has zero loadings above cutoff:
 - Uses top `n_emergency` highest absolute loadings instead
@@ -563,7 +697,7 @@ If a factor has zero loadings above cutoff:
 
 **Implementation**: `R/fa_diagnostics.R`
 
-## 3.4 Output Format System
+## 4.4 Output Format System
 
 ### Supported Formats
 
@@ -581,14 +715,14 @@ If a factor has zero loadings above cutoff:
   - CLI-specific logic (text with `====` separators, plain text)
 - **R/s3_export.R**: Converts export format to output_format
 
-## 3.5 Word Limit Enforcement
+## 4.5 Word Limit Enforcement
 
 Targets 80-100% of `word_limit` parameter:
 - System prompt includes explicit word targets
 - Post-processing validates and **informs** (via `cli::cli_inform()`) if exceeded
 - Helper function `count_words()` in `utils_text_processing.R`
 
-## 3.6 Silent Parameter System
+## 4.6 Silent Parameter System
 
 The silent parameter uses integer values for granular control:
 
@@ -602,9 +736,9 @@ The silent parameter uses integer values for granular control:
 
 ---
 
-# 4. Development Reference
+# 5. Development Reference
 
-## 4.1 Code Style Guidelines
+## 5.1 Code Style Guidelines
 
 ### Required
 - **Roxygen2 documentation** for all exported functions
@@ -613,9 +747,9 @@ The silent parameter uses integer values for granular control:
 - **Pipe operator**: Base R `|>` (not magrittr `%>%`)
 - **Parameter validation**: Extensive validation with informative errors at function start
 
-### Naming Conventions
+## 5.2 Naming Conventions
 
-#### File Naming Scheme
+### File Naming Scheme
 
 **Format**: `{prefix}_{description}.R`
 
@@ -672,7 +806,7 @@ helpers.R                     # Too vague - use appropriate prefix
 
 **For detailed implementation plan**: See `dev/FILE_NAMING_ANALYSIS.md` and `dev/RENAME_IMPLEMENTATION_PLAN.md`
 
-#### Function and Variable Naming
+### Function and Variable Naming
 
 - **Functions**: snake_case (e.g., `build_analysis_data()`, `psychinterpreter_colors()`)
 - **S3 methods**: `method.class()` format (e.g., `build_system_prompt.fa()`, `plot.fa_interpretation()`)
@@ -680,7 +814,7 @@ helpers.R                     # Too vague - use appropriate prefix
 - **Internal functions**: Prefix with `.` (e.g., `.internal_helper()`, `.validate_structure()`)
 - **Variables**: snake_case (e.g., `analysis_data`, `factor_summaries`, `n_factors`)
 
-## 4.2 Test Development Guidelines
+## 5.3 Test Development Guidelines
 
 ### Test Organization
 - One test file per R source file (generally)
@@ -706,7 +840,7 @@ helpers.R                     # Too vague - use appropriate prefix
 
 **For detailed testing guidelines**: See [dev/TESTING_GUIDELINES.md](TESTING_GUIDELINES.md)
 
-## 4.3 Common Development Tasks
+## 5.4 Common Development Tasks
 
 ```r
 # Documentation
@@ -738,7 +872,7 @@ interpret(..., echo = "all")  # View LLM prompts/responses
 - `dev/templates/` - Code templates for all required files
 - `dev/templates/IMPLEMENTATION_CHECKLIST.md` - Track your progress
 
-## 4.4 Git Commit Guidelines
+## 5.5 Git Commit Guidelines
 
 ### Before Committing
 ```bash
@@ -760,7 +894,7 @@ Detailed explanation:
 🤖 Generated with Claude Code
 ```
 
-## 4.5 Known Limitations
+## 5.6 Known Limitations
 
 ### Token Tracking Inconsistencies
 - **Ollama**: Returns 0 (no tracking support)
@@ -782,9 +916,9 @@ Detailed explanation:
 ### Only FA Model Type Implemented
 - **Current Support**: Factor Analysis (FA) only
 - **Planned**: Gaussian Mixture (GM), Item Response Theory (IRT), Cognitive Diagnosis Models (CDM)
-- **Status**: Architecture ready for new model types (see section 1.5)
+- **Status**: Architecture ready for new model types (see section 2.5)
 
-## 4.6 Package Statistics
+## 5.7 Package Statistics
 
 To get current package statistics, run:
 
@@ -812,15 +946,15 @@ if (dir.exists("../psychinterpreter_archive")) {
 
 ---
 
-# 5. Current Package Analysis (2025-11-12)
+# 6. Current Package Analysis (2025-11-15)
 
-## 5.1 Package Statistics
+## 6.1 Package Statistics
 
 **Current State**:
 - **Total R files**: 20 files in R/ directory
 - **Total lines of R code**: 6,462 lines
-- **Test files**: 9 test files
-- **Total tests**: 115 test_that blocks
+- **Test files**: 25 test files
+- **Total tests**: 347+ test_that blocks
 - **Exported functions**: 23 user-facing functions
 - **S3 methods**: 35 methods registered
 
@@ -835,7 +969,7 @@ if (dir.exists("../psychinterpreter_archive")) {
 | FA Implementation | 7 | ~3,141 | Complete FA implementation |
 | **Total** | **20** | **~6,462** | |
 
-## 5.2 Consistency Analysis
+## 6.2 Consistency Analysis
 
 ### ✅ Strengths
 
@@ -880,13 +1014,24 @@ if (dir.exists("../psychinterpreter_archive")) {
    - Internal functions could use more inline comments
    - Some S3 methods lack detailed parameter descriptions
 
-### 🔧 Fixed Issues (2025-11-12)
+### 🔧 Fixed Issues (2025-11-15)
 
 1. **pkgdown.yml Updated**
    - Added missing internal S3 generics section
    - Now documents all 23 exported functions
 
-## 5.3 Design Decisions & Rationale
+2. **Namespace Refactoring**
+   - Disambiguated LLM vs Analysis parameters
+   - ~450 occurrences across 50+ files
+
+3. **Consistency Fixes**
+   - Fixed function name mismatches
+   - Fixed parameter examples
+   - Fixed test field access bugs
+   - Added S3 method registrations
+   - Added configuration precedence tests
+
+## 6.3 Design Decisions & Rationale
 
 ### Key Architectural Choices
 
@@ -910,7 +1055,7 @@ if (dir.exists("../psychinterpreter_archive")) {
    - **Rationale**: Required for package extensions, but not for end users
    - **Documentation**: Separate pkgdown section for internal generics
 
-## 5.4 Extension Readiness
+## 6.4 Extension Readiness
 
 ### Current Extensibility Infrastructure
 
@@ -931,11 +1076,11 @@ if (dir.exists("../psychinterpreter_archive")) {
 - **Gaussian Mixture (GM)**: For clustering analyses
 - **Item Response Theory (IRT)**: For item analysis
 - **Cognitive Diagnosis Models (CDM)**: For diagnostic assessment
-  - Q-Matrix interpretation: 
+  - Q-Matrix interpretation:
     - packages: GDINA, CDM, cdmTools
-    
 
-## 5.5 Quality Metrics
+
+## 6.5 Quality Metrics
 
 ### Code Quality Indicators
 
@@ -955,7 +1100,7 @@ if (dir.exists("../psychinterpreter_archive")) {
 - **Test Speed**: ~30 seconds for full suite (with cached fixtures)
 - **Memory Usage**: Minimal, no large objects retained
 
-## 5.6 Maintenance Notes
+## 6.6 Maintenance Notes
 
 ### Regular Maintenance Tasks
 
@@ -984,7 +1129,7 @@ if (dir.exists("../psychinterpreter_archive")) {
 3. **Test Fixture Management**: Could benefit from systematic organization
 4. **Edge Case Coverage**: Some error conditions not fully tested
 
-## 5.7 Code Style Reference
+## 6.7 Code Style Reference
 
 ### Established Patterns in Codebase
 
@@ -1033,9 +1178,9 @@ cli::cli_abort(c(
 
 ---
 
-# 6. Maintenance History
+# 7. Maintenance History
 
-## 6.1 Package Consistency Fixes (2025-11-15)
+## 7.1 Package Consistency Fixes (2025-11-15)
 
 This section documents the implementation of critical consistency fixes identified through comprehensive package analysis.
 

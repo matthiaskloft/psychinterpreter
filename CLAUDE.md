@@ -30,9 +30,9 @@
 - **CLAUDE.md** (this file): Usage guide and quick reference for Claude Code sessions
 - **dev/DEVELOPER_GUIDE.md**: Technical architecture and implementation details for maintainers
 - **dev/TESTING_GUIDELINES.md**: Testing standards and patterns
-- **dev/TEST_OPTIMIZATION_PLAN.md**: Test suite optimization strategy (Phase 1 complete - 75% faster!)
 - **dev/templates/**: Ready-to-copy code templates for implementing new model types (GM, IRT, CDM)
-- **dev/MODEL_IMPLEMENTATION_GUIDE.md**: Conceptual guide for new model type implementation
+- **dev/MODEL_IMPLEMENTATION_GUIDE.md**: Step-by-step guide for new model type implementation
+- **dev/OPEN_ISSUES.md**: Current issues, future work, and priorities
 
 ---
 
@@ -512,7 +512,7 @@ interpret(..., echo = "all")
 
 ## Package Files
 
-**See dev/DEVELOPER_GUIDE.md section 1.3 for detailed file structure**
+**See dev/DEVELOPER_GUIDE.md section 2.2 for detailed file structure**
 
 | Category | Key Files |
 |----------|-------------|
@@ -521,7 +521,7 @@ interpret(..., echo = "all")
 | **Classes** | class_chat_session.R, class_interpretation.R |
 | **Shared Utilities** | shared_config.R, shared_utils.R, shared_text.R, shared_visualization.R |
 | **FA Implementation** | fa_model_data.R, fa_prompt_builder.R, fa_json.R, fa_diagnostics.R, fa_report.R, fa_visualization.R |
-| **Tests** | tests/testthat/ (7 test files, 70+ tests) |
+| **Tests** | tests/testthat/ (25 test files, 347+ tests) |
 
 ## Development Commands
 
@@ -547,7 +547,7 @@ devtools::load_all()                                      # Load for development
 - **Pipe**: Base R `|>` (not `%>%`)
 - **Naming**: snake_case for functions, S3 methods as `method.class()`
 
-**For detailed style guide**: See dev/DEVELOPER_GUIDE.md section 5.7
+**For detailed style guide**: See dev/DEVELOPER_GUIDE.md section 5.1
 
 ---
 
