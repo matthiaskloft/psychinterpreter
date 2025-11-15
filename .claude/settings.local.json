@@ -80,7 +80,8 @@
       "Bash(do awk '/^#.*@export/{e=NR} /^#.*@keywords internal/{if(e && NR-e<20) print FILENAME\"\"\"\":\"\"\"\"e\"\"\"\"-\"\"\"\"NR}' \"$file\")",
       "Bash(do Rscript -e \"parse(''''$file'''')\")",
       "Bash(sed:*)",
-      "Bash(if grep -q \"export($func)\" NAMESPACE)"
+      "Bash(if grep -q \"export($func)\" NAMESPACE)",
+      "Bash(cp:*)"
     ],
     "deny": [
       "Read(./.env*)",
