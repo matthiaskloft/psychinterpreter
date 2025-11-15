@@ -71,14 +71,14 @@ try_parse_json <- function(json_string) {
 #' Tier 4: Default values (model-specific via S3)
 #'
 #' @param response Character. Raw LLM response
-#' @param model_type Character. Model type ("fa", "gm", "irt", "cdm")
+#' @param analysis_type Character. Model type ("fa", "gm", "irt", "cdm")
 #' @param ... Additional arguments passed to model-specific methods
 #' @return List. Parsed and validated result
 #' @keywords internal
-parse_llm_response <- function(response, model_type, ...) {
+parse_llm_response <- function(response, analysis_type, ...) {
   if (is.null(response)) {
     cli::cli_warn("LLM returned NULL response")
-    return(create_default_result(model_type, ...))
+    return(create_default_result(analysis_type, ...))
   }
 
   # Tier 1: Try cleaning and parsing
@@ -87,7 +87,7 @@ parse_llm_response <- function(response, model_type, ...) {
 
   if (!is.null(parsed) && is.list(parsed)) {
     # Validate and return (model-specific validation via S3)
-    validated <- validate_parsed_result(parsed, model_type, ...)
+    validated <- validate_parsed_result(parsed, analysis_type, ...)
     if (!is.null(validated)) {
       return(validated)
     }
@@ -97,7 +97,7 @@ parse_llm_response <- function(response, model_type, ...) {
   parsed <- try_parse_json(response)
 
   if (!is.null(parsed) && is.list(parsed)) {
-    validated <- validate_parsed_result(parsed, model_type, ...)
+    validated <- validate_parsed_result(parsed, analysis_type, ...)
     if (!is.null(validated)) {
       return(validated)
     }
@@ -105,7 +105,7 @@ parse_llm_response <- function(response, model_type, ...) {
 
   # Tier 3: Pattern-based extraction (model-specific)
   cli::cli_alert_info("Standard JSON parsing failed, attempting pattern-based extraction")
-  extracted <- extract_by_pattern(response, model_type, ...)
+  extracted <- extract_by_pattern(response, analysis_type, ...)
 
   if (!is.null(extracted)) {
     return(extracted)
@@ -118,7 +118,7 @@ parse_llm_response <- function(response, model_type, ...) {
       "i" = "Consider using a larger model for better JSON generation"
     )
   )
-  return(create_default_result(model_type, ...))
+  return(create_default_result(analysis_type, ...))
 }
 
 #' Validate Parsed Result (S3 Generic)
@@ -127,13 +127,13 @@ parse_llm_response <- function(response, model_type, ...) {
 #' Should return the validated result or NULL if validation fails.
 #'
 #' @param parsed List. Parsed JSON object
-#' @param model_type Character. Model type
+#' @param analysis_type Character. Model type
 #' @param ... Additional arguments for model-specific validation
 #' @return List or NULL. Validated result or NULL if invalid
 #' @export
 #' @keywords internal
-validate_parsed_result <- function(parsed, model_type, ...) {
-  UseMethod("validate_parsed_result", structure(list(), class = model_type))
+validate_parsed_result <- function(parsed, analysis_type, ...) {
+  UseMethod("validate_parsed_result", structure(list(), class = analysis_type))
 }
 
 #' Extract by Pattern (S3 Generic)
@@ -141,35 +141,35 @@ validate_parsed_result <- function(parsed, model_type, ...) {
 #' Model-specific pattern-based extraction when JSON parsing fails.
 #'
 #' @param response Character. Raw LLM response
-#' @param model_type Character. Model type
+#' @param analysis_type Character. Model type
 #' @param ... Additional arguments for model-specific extraction
 #' @return List or NULL. Extracted result or NULL if extraction failed
 #' @export
 #' @keywords internal
-extract_by_pattern <- function(response, model_type, ...) {
-  UseMethod("extract_by_pattern", structure(list(), class = model_type))
+extract_by_pattern <- function(response, analysis_type, ...) {
+  UseMethod("extract_by_pattern", structure(list(), class = analysis_type))
 }
 
 #' Create Default Result (S3 Generic)
 #'
 #' Model-specific default result when all parsing methods fail.
 #'
-#' @param model_type Character. Model type
+#' @param analysis_type Character. Model type
 #' @param ... Additional arguments for model-specific defaults
 #' @return List. Default result structure
 #' @export
 #' @keywords internal
-create_default_result <- function(model_type, ...) {
-  UseMethod("create_default_result", structure(list(), class = model_type))
+create_default_result <- function(analysis_type, ...) {
+  UseMethod("create_default_result", structure(list(), class = analysis_type))
 }
 
 #' Default method for validate_parsed_result
 #' @export
 #' @keywords internal
-validate_parsed_result.default <- function(parsed, model_type, ...) {
+validate_parsed_result.default <- function(parsed, analysis_type, ...) {
   cli::cli_abort(
     c(
-      "No validation method for model type: {.val {model_type}}",
+      "No validation method for model type: {.val {analysis_type}}",
       "i" = "Available types: fa, gm, irt, cdm"
     )
   )
@@ -178,10 +178,10 @@ validate_parsed_result.default <- function(parsed, model_type, ...) {
 #' Default method for extract_by_pattern
 #' @export
 #' @keywords internal
-extract_by_pattern.default <- function(response, model_type, ...) {
+extract_by_pattern.default <- function(response, analysis_type, ...) {
   cli::cli_abort(
     c(
-      "No pattern extraction method for model type: {.val {model_type}}",
+      "No pattern extraction method for model type: {.val {analysis_type}}",
       "i" = "Available types: fa, gm, irt, cdm"
     )
   )
@@ -190,10 +190,10 @@ extract_by_pattern.default <- function(response, model_type, ...) {
 #' Default method for create_default_result
 #' @export
 #' @keywords internal
-create_default_result.default <- function(model_type, ...) {
+create_default_result.default <- function(analysis_type, ...) {
   cli::cli_abort(
     c(
-      "No default result method for model type: {.val {model_type}}",
+      "No default result method for model type: {.val {analysis_type}}",
       "i" = "Available types: fa, gm, irt, cdm"
     )
   )

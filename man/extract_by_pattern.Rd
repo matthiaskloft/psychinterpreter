@@ -4,12 +4,12 @@
 \alias{extract_by_pattern}
 \title{Extract by Pattern (S3 Generic)}
 \usage{
-extract_by_pattern(response, model_type, ...)
+extract_by_pattern(response, analysis_type, ...)
 }
 \arguments{
 \item{response}{Character. Raw LLM response}
 
-\item{model_type}{Character. Model type}
+\item{analysis_type}{Character. Model type}
 
 \item{...}{Additional arguments for model-specific extraction}
 }

@@ -32,8 +32,8 @@
 #'   fit_results = fit,
 #'   variable_info = var_info,
 #'   {model}_args = config,
-#'   provider = "ollama",
-#'   model = "gpt-oss:20b-cloud"
+#'   llm_provider = "ollama",
+#'   llm_model = "gpt-oss:20b-cloud"
 #' )
 {model}_args <- function({PARAM1} = NULL,
                           {PARAM2} = NULL,
@@ -191,13 +191,13 @@ build_{model}_args <- function({model}_args = NULL, dots = list()) {
 #
 # 4. Update R/core_interpret.R:
 #    - Uncomment {model}_args parameter in interpret_core() signature
-#    - Uncomment {model}_args in build_model_data() call
+#    - Uncomment {model}_args in build_analysis_data() call
 #
 # 5. Run devtools::document() to update documentation
 #
 # IMPORTANT: Only include ANALYSIS PARAMETERS in {model}_args.
 # Do NOT include model DATA fields (e.g., factor_cor_mat for FA).
-# Model data should be extracted from fit_results in build_model_data.{CLASS}().
+# Model data should be extracted from fit_results in build_analysis_data.{CLASS}().
 #
 # ==============================================================================
 

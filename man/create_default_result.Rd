@@ -4,10 +4,10 @@
 \alias{create_default_result}
 \title{Create Default Result (S3 Generic)}
 \usage{
-create_default_result(model_type, ...)
+create_default_result(analysis_type, ...)
 }
 \arguments{
-\item{model_type}{Character. Model type}
+\item{analysis_type}{Character. Model type}
 
 \item{...}{Additional arguments for model-specific defaults}
 }

@@ -1,11 +1,11 @@
 #' Build Model Data for Factor Analysis (Internal Helper)
 #'
 #' Internal helper that extracts and validates FA-specific data from loadings
-#' matrices, data frames, or lists. Called by all build_model_data S3 methods.
+#' matrices, data frames, or lists. Called by all build_analysis_data S3 methods.
 #'
 #' @param fit_results Matrix, data.frame, or list containing factor loadings
 #' @param variable_info Data frame with variable names and descriptions
-#' @param model_type Character. Should be "fa" (used for validation)
+#' @param analysis_type Character. Should be "fa" (used for validation)
 #' @param interpretation_args FA interpretation configuration object from interpretation_args() or NULL
 #' @param ... Additional arguments (cutoff, n_emergency, hide_low_loadings, etc.)
 #'
@@ -21,7 +21,7 @@
 #'
 #' @importFrom dplyr left_join
 #' @importFrom cli cli_abort
-build_fa_model_data_internal <- function(fit_results, variable_info, model_type = "fa", interpretation_args = NULL, ...) {
+build_fa_analysis_data_internal <- function(fit_results, variable_info, analysis_type = "fa", interpretation_args = NULL, ...) {
 
   # Extract FA parameters from interpretation_args or ...
   dots <- list(...)
@@ -248,7 +248,7 @@ build_fa_model_data_internal <- function(fit_results, variable_info, model_type 
   # ==========================================================================
 
   list(
-    model_type = model_type,
+    analysis_type = analysis_type,
     loadings_df = loadings_df,
     factor_summaries = factor_summaries,
     factor_cols = factor_cols,
@@ -262,26 +262,26 @@ build_fa_model_data_internal <- function(fit_results, variable_info, model_type 
 }
 
 
-#' @rdname build_model_data
+#' @rdname build_analysis_data
 #' @export
 #' @keywords internal
-build_model_data.list <- function(fit_results, model_type = NULL, interpretation_args = NULL, ...) {
+build_analysis_data.list <- function(fit_results, analysis_type = NULL, interpretation_args = NULL, ...) {
   # Extract parameters from ...
   dots <- list(...)
   variable_info <- dots$variable_info
 
   # For list input, determine model type and route
-  if (is.null(model_type)) {
+  if (is.null(analysis_type)) {
     cli::cli_abort(
       c(
-        "model_type must be specified when fit_results is a list",
-        "i" = "Use: interpret(..., model_type = 'fa')"
+        "analysis_type must be specified when fit_results is a list",
+        "i" = "Use: interpret(..., analysis_type = 'fa')"
       )
     )
   }
 
-  # Route to appropriate method based on model_type
-  if (model_type == "fa") {
+  # Route to appropriate method based on analysis_type
+  if (analysis_type == "fa") {
     # Validate variable_info is provided (required for FA)
     if (is.null(variable_info)) {
       cli::cli_abort(
@@ -291,18 +291,18 @@ build_model_data.list <- function(fit_results, model_type = NULL, interpretation
         )
       )
     }
-    build_fa_model_data_internal(fit_results, variable_info, model_type, interpretation_args, ...)
+    build_fa_analysis_data_internal(fit_results, variable_info, analysis_type, interpretation_args, ...)
   } else {
     # Call default which will error with helpful message
-    build_model_data.default(fit_results, model_type, interpretation_args, ...)
+    build_analysis_data.default(fit_results, analysis_type, interpretation_args, ...)
   }
 }
 
 
-#' @rdname build_model_data
+#' @rdname build_analysis_data
 #' @export
 #' @keywords internal
-build_model_data.matrix <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+build_analysis_data.matrix <- function(fit_results, analysis_type = "fa", interpretation_args = NULL, ...) {
   # Extract parameters from ...
   dots <- list(...)
   variable_info <- dots$variable_info
@@ -318,14 +318,14 @@ build_model_data.matrix <- function(fit_results, model_type = "fa", interpretati
   }
 
   # Matrix input - treat as FA loadings
-  build_fa_model_data_internal(fit_results, variable_info, model_type, interpretation_args, ...)
+  build_fa_analysis_data_internal(fit_results, variable_info, analysis_type, interpretation_args, ...)
 }
 
 
-#' @rdname build_model_data
+#' @rdname build_analysis_data
 #' @export
 #' @keywords internal
-build_model_data.data.frame <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+build_analysis_data.data.frame <- function(fit_results, analysis_type = "fa", interpretation_args = NULL, ...) {
   # Extract parameters from ...
   dots <- list(...)
   variable_info <- dots$variable_info
@@ -341,7 +341,7 @@ build_model_data.data.frame <- function(fit_results, model_type = "fa", interpre
   }
 
   # Data frame input - treat as FA loadings
-  build_fa_model_data_internal(fit_results, variable_info, model_type, interpretation_args, ...)
+  build_fa_analysis_data_internal(fit_results, variable_info, analysis_type, interpretation_args, ...)
 }
 
 
@@ -349,10 +349,10 @@ build_model_data.data.frame <- function(fit_results, model_type = "fa", interpre
 # METHODS FOR FITTED MODEL OBJECTS
 # ==============================================================================
 
-#' @rdname build_model_data
+#' @rdname build_analysis_data
 #' @export
 #' @keywords internal
-build_model_data.psych <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+build_analysis_data.psych <- function(fit_results, analysis_type = "fa", interpretation_args = NULL, ...) {
   # Extract parameters from ...
   dots <- list(...)
   variable_info <- dots$variable_info
@@ -360,8 +360,8 @@ build_model_data.psych <- function(fit_results, model_type = "fa", interpretatio
   # Remove variable_info from dots to avoid passing it twice
   dots$variable_info <- NULL
 
-  # Ensure model_type is "fa" if NULL (use default)
-  if (is.null(model_type)) model_type <- "fa"
+  # Ensure analysis_type is "fa" if NULL (use default)
+  if (is.null(analysis_type)) analysis_type <- "fa"
 
   # Validate variable_info is provided (required for FA)
   if (is.null(variable_info)) {
@@ -398,12 +398,12 @@ build_model_data.psych <- function(fit_results, model_type = "fa", interpretatio
 
   # Call internal function with named parameters, passing remaining dots
   do.call(
-    build_fa_model_data_internal,
+    build_fa_analysis_data_internal,
     c(
       list(
         fit_results = loadings_list,
         variable_info = variable_info,
-        model_type = model_type,
+        analysis_type = analysis_type,
         interpretation_args = interpretation_args
       ),
       dots
@@ -412,22 +412,22 @@ build_model_data.psych <- function(fit_results, model_type = "fa", interpretatio
 }
 
 
-#' @rdname build_model_data
+#' @rdname build_analysis_data
 #' @export
 #' @keywords internal
-build_model_data.fa <- build_model_data.psych
+build_analysis_data.fa <- build_analysis_data.psych
 
 
-#' @rdname build_model_data
+#' @rdname build_analysis_data
 #' @export
 #' @keywords internal
-build_model_data.principal <- build_model_data.psych
+build_analysis_data.principal <- build_analysis_data.psych
 
 
-#' @rdname build_model_data
+#' @rdname build_analysis_data
 #' @export
 #' @keywords internal
-build_model_data.lavaan <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+build_analysis_data.lavaan <- function(fit_results, analysis_type = "fa", interpretation_args = NULL, ...) {
   # Extract parameters from ...
   dots <- list(...)
   variable_info <- dots$variable_info
@@ -435,8 +435,8 @@ build_model_data.lavaan <- function(fit_results, model_type = "fa", interpretati
   # Remove variable_info from dots to avoid passing it twice
   dots$variable_info <- NULL
 
-  # Ensure model_type is "fa" if NULL (use default)
-  if (is.null(model_type)) model_type <- "fa"
+  # Ensure analysis_type is "fa" if NULL (use default)
+  if (is.null(analysis_type)) analysis_type <- "fa"
 
   # Validate variable_info is provided (required for FA)
   if (is.null(variable_info)) {
@@ -482,12 +482,12 @@ build_model_data.lavaan <- function(fit_results, model_type = "fa", interpretati
 
   # Call internal function with named parameters, passing remaining dots
   do.call(
-    build_fa_model_data_internal,
+    build_fa_analysis_data_internal,
     c(
       list(
         fit_results = loadings_list,
         variable_info = variable_info,
-        model_type = model_type,
+        analysis_type = analysis_type,
         interpretation_args = interpretation_args
       ),
       dots
@@ -496,10 +496,10 @@ build_model_data.lavaan <- function(fit_results, model_type = "fa", interpretati
 }
 
 
-#' @rdname build_model_data
+#' @rdname build_analysis_data
 #' @export
 #' @keywords internal
-build_model_data.SingleGroupClass <- function(fit_results, model_type = "fa", interpretation_args = NULL, ...) {
+build_analysis_data.SingleGroupClass <- function(fit_results, analysis_type = "fa", interpretation_args = NULL, ...) {
   # Extract parameters from ...
   dots <- list(...)
   variable_info <- dots$variable_info
@@ -507,8 +507,8 @@ build_model_data.SingleGroupClass <- function(fit_results, model_type = "fa", in
   # Remove variable_info from dots to avoid passing it twice
   dots$variable_info <- NULL
 
-  # Ensure model_type is "fa" if NULL (use default)
-  if (is.null(model_type)) model_type <- "fa"
+  # Ensure analysis_type is "fa" if NULL (use default)
+  if (is.null(analysis_type)) analysis_type <- "fa"
 
   # Validate variable_info is provided (required for FA)
   if (is.null(variable_info)) {
@@ -554,12 +554,12 @@ build_model_data.SingleGroupClass <- function(fit_results, model_type = "fa", in
 
   # Call internal function with named parameters, passing remaining dots
   do.call(
-    build_fa_model_data_internal,
+    build_fa_analysis_data_internal,
     c(
       list(
         fit_results = loadings_list,
         variable_info = variable_info,
-        model_type = model_type,
+        analysis_type = analysis_type,
         interpretation_args = interpretation_args
       ),
       dots

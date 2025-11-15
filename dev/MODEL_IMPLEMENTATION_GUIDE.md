@@ -45,20 +45,20 @@ interpret_model.{class}() [class-based routing - OPTIONAL]
     ↓
 interpret_core() [universal orchestrator - NEVER MODIFY]
     ↓
-build_model_data.{class}() [STEP 0: Extract model data]
+build_analysis_data.{class}() [STEP 0: Extract analysis data]
     ↓
-build_system_prompt.{model}() [STEP 4: System prompt]
-build_main_prompt.{model}() [STEP 6: User prompt]
+build_system_prompt.{analysis}() [STEP 4: System prompt]
+build_main_prompt.{analysis}() [STEP 6: User prompt]
     ↓
 [LLM API call - handled by interpret_core]
     ↓
-validate_parsed_result.{model}() [STEP 8: Validate JSON]
-extract_by_pattern.{model}() [STEP 8: Fallback extraction]
-create_default_result.{model}() [STEP 8: Last resort]
+validate_parsed_result.{analysis}() [STEP 8: Validate JSON]
+extract_by_pattern.{analysis}() [STEP 8: Fallback extraction]
+create_default_result.{analysis}() [STEP 8: Last resort]
     ↓
-create_diagnostics.{model}() [STEP 10: Model diagnostics]
+create_diagnostics.{analysis}() [STEP 10: Analysis diagnostics]
     ↓
-build_report.{model}_interpretation() [STEP 11: Format report]
+build_report.{analysis}_interpretation() [STEP 11: Format report]
 ```
 
 ### What You Need to Implement
@@ -67,26 +67,26 @@ build_report.{model}_interpretation() [STEP 11: Format report]
 
 | Method | Purpose | File |
 |--------|---------|------|
-| `build_model_data.{class}()` | Extract data from fitted models | `{model}_model_data.R` |
-| `build_system_prompt.{model}()` | Create LLM system prompt | `{model}_prompt_builder.R` |
-| `build_main_prompt.{model}()` | Create LLM user prompt | `{model}_prompt_builder.R` |
-| `validate_parsed_result.{model}()` | Validate JSON structure | `{model}_json.R` |
-| `extract_by_pattern.{model}()` | Pattern-based extraction fallback | `{model}_json.R` |
-| `create_default_result.{model}()` | Default values if parsing fails | `{model}_json.R` |
-| `create_diagnostics.{model}()` | Model-specific diagnostics | `{model}_diagnostics.R` |
-| `build_report.{model}_interpretation()` | Format user-facing report | `{model}_report.R` |
+| `build_analysis_data.{class}()` | Extract data from fitted models | `{analysis}_model_data.R` |
+| `build_system_prompt.{analysis}()` | Create LLM system prompt | `{analysis}_prompt_builder.R` |
+| `build_main_prompt.{analysis}()` | Create LLM user prompt | `{analysis}_prompt_builder.R` |
+| `validate_parsed_result.{analysis}()` | Validate JSON structure | `{analysis}_json.R` |
+| `extract_by_pattern.{analysis}()` | Pattern-based extraction fallback | `{analysis}_json.R` |
+| `create_default_result.{analysis}()` | Default values if parsing fails | `{analysis}_json.R` |
+| `create_diagnostics.{analysis}()` | Analysis-specific diagnostics | `{analysis}_diagnostics.R` |
+| `build_report.{analysis}_interpretation()` | Format user-facing report | `{analysis}_report.R` |
 
 **3 Additional S3 Methods (Optional but Recommended)**:
 
 | Method | Purpose | File |
 |--------|---------|------|
-| `validate_list_structure.{model}()` | Validate structured list input | `s3_list_validation.R` (add to existing) |
-| `export_interpretation.{model}_interpretation()` | Export reports to txt/md files | `{model}_export.R` |
-| `plot.{model}_interpretation()` | Visualize model results | `{model}_visualization.R` |
+| `validate_list_structure.{analysis}()` | Validate structured list input | `s3_list_validation.R` (add to existing) |
+| `export_interpretation.{analysis}_interpretation()` | Export reports to txt/md files | `{analysis}_export.R` |
+| `plot.{analysis}_interpretation()` | Visualize analysis results | `{analysis}_visualization.R` |
 
-**Note**: `validate_list_structure.{model}()` enables users to pass structured lists (e.g., `list(loadings = ...)` for FA) directly to `interpret()`. See `validate_list_structure.fa()` in `R/s3_list_validation.R` for reference implementation.
+**Note**: `validate_list_structure.{analysis}()` enables users to pass structured lists (e.g., `list(loadings = ...)` for FA) directly to `interpret()`. See `validate_list_structure.fa()` in `R/s3_list_validation.R` for reference implementation.
 
-**Plus**: Configuration object constructor (`interpretation_args_{model}()`) in `shared_config.R`
+**Plus**: Configuration object constructor (`interpretation_args_{analysis}()`) in `shared_config.R`
 
 ---
 
@@ -123,32 +123,32 @@ Before implementing a new model type, **thoroughly read these FA implementation 
 
 ### Key Concepts
 
-**1. model_data Structure**
+**1. analysis_data Structure**
 
-The output of `build_model_data.{class}()` MUST be a named list containing:
-- Model-specific data (loadings, means, probabilities, etc.)
-- Model type identifier: `model_type = "fa"` or `"gm"` etc.
-- Model-specific parameters (cutoff, n_emergency, covariance_type, etc.)
+The output of `build_analysis_data.{class}()` MUST be a named list containing:
+- Analysis-specific data (loadings, means, probabilities, etc.)
+- Analysis type identifier: `analysis_type = "fa"` or `"gm"` etc.
+- Analysis-specific parameters (cutoff, n_emergency, covariance_type, etc.)
 
-**2. Model vs Class Dispatch**
+**2. Analysis Type vs Class Dispatch**
 
-- **Model type**: String identifier ("fa", "gm", "irt", "cdm") - used for most S3 dispatch
-- **Class**: R object class (psych, fa, Mclust, mirt) - used only in `build_model_data()` and optional `interpret_model()`
+- **Analysis type**: String identifier ("fa", "gm", "irt", "cdm") - used for most S3 dispatch
+- **Class**: R object class (psych, fa, Mclust, mirt) - used only in `build_analysis_data()` and optional `interpret_model()`
 
 **3. Parameter Flow**
 
 ```
-User call with {model}_args or individual params
+User call with {analysis}_args or individual params
     ↓
-build_{model}_args() merges sources
+build_{analysis}_args() merges sources
     ↓
 interpret_core() extracts common params
     ↓
-build_model_data.{class}() extracts model-specific params from {model}_args
+build_analysis_data.{class}() extracts analysis-specific params from {analysis}_args
     ↓
-Model-specific params stored in model_data
+Analysis-specific params stored in analysis_data
     ↓
-interpret_core() extracts params from model_data to pass to prompt builders
+interpret_core() extracts params from analysis_data to pass to prompt builders
 ```
 
 **Why?** Prevents parameter duplication and keeps prompt builders as pure functions.
@@ -157,59 +157,59 @@ interpret_core() extracts params from model_data to pass to prompt builders
 
 ## Implementation Checklist
 
-Use this checklist when implementing a new model type (replace `{model}` with "gm", "irt", or "cdm"):
+Use this checklist when implementing a new analysis type (replace `{analysis}` with "gm", "irt", or "cdm"):
 
 ### Phase 1: Setup
 
-- [ ] Create `dev/templates/{model}/` directory
+- [ ] Create `dev/templates/{analysis}/` directory
 - [ ] Copy template files from `dev/templates/` (see next section)
-- [ ] Choose model abbreviation: "gm", "irt", or "cdm"
+- [ ] Choose analysis abbreviation: "gm", "irt", or "cdm"
 - [ ] Identify primary fitted model class(es): e.g., `Mclust`, `SingleGroupClass`
-- [ ] Document expected model_data structure
+- [ ] Document expected analysis_data structure
 
 ### Phase 2: Core Files (No LLM needed)
 
-- [ ] **`R/{model}_model_data.R`**
-  - [ ] `build_model_data.{primary_class}()` method
-  - [ ] `build_{model}_model_data_internal()` helper
-  - [ ] Additional `build_model_data.{other_class}()` methods if needed
+- [ ] **`R/{analysis}_model_data.R`**
+  - [ ] `build_analysis_data.{primary_class}()` method
+  - [ ] `build_{analysis}_model_data_internal()` helper
+  - [ ] Additional `build_analysis_data.{other_class}()` methods if needed
   - [ ] Parameter extraction and validation
   - [ ] Unit tests (no LLM required)
 
 - [ ] **`R/shared_config.R`** modifications
-  - [ ] `{model}_args()` constructor
+  - [ ] `{analysis}_args()` constructor
   - [ ] Parameter validation in constructor
-  - [ ] `build_{model}_args()` builder function
+  - [ ] `build_{analysis}_args()` builder function
   - [ ] Documentation
 
 ### Phase 3: Prompt Building (Requires LLM testing)
 
-- [ ] **`R/{model}_prompt_builder.R`**
-  - [ ] `build_system_prompt.{model}()` - expert persona, guidelines
-  - [ ] `build_main_prompt.{model}()` - data formatting, sections
-  - [ ] Helper functions for formatting model-specific data
+- [ ] **`R/{analysis}_prompt_builder.R`**
+  - [ ] `build_system_prompt.{analysis}()` - expert persona, guidelines
+  - [ ] `build_main_prompt.{analysis}()` - data formatting, sections
+  - [ ] Helper functions for formatting analysis-specific data
   - [ ] Test prompts with sample data
 
 ### Phase 4: JSON Parsing
 
-- [ ] **`R/{model}_json.R`**
-  - [ ] `validate_parsed_result.{model}()` - structure validation
-  - [ ] `extract_by_pattern.{model}()` - regex fallback
-  - [ ] `create_default_result.{model}()` - default values
+- [ ] **`R/{analysis}_json.R`**
+  - [ ] `validate_parsed_result.{analysis}()` - structure validation
+  - [ ] `extract_by_pattern.{analysis}()` - regex fallback
+  - [ ] `create_default_result.{analysis}()` - default values
   - [ ] Test with various JSON structures (valid, malformed, partial)
 
 ### Phase 5: Diagnostics
 
-- [ ] **`R/{model}_diagnostics.R`**
-  - [ ] `create_diagnostics.{model}()` - main function
-  - [ ] Model-specific diagnostic checks
+- [ ] **`R/{analysis}_diagnostics.R`**
+  - [ ] `create_diagnostics.{analysis}()` - main function
+  - [ ] Analysis-specific diagnostic checks
   - [ ] Message formatting
   - [ ] Unit tests
 
 ### Phase 6: Report Generation
 
-- [ ] **`R/{model}_report.R`**
-  - [ ] `build_report.{model}_interpretation()` - orchestrator
+- [ ] **`R/{analysis}_report.R`**
+  - [ ] `build_report.{analysis}_interpretation()` - orchestrator
   - [ ] Helper functions for each report section (~60-130 lines each)
   - [ ] Text and Markdown formatting support
   - [ ] Test report generation
@@ -217,54 +217,54 @@ Use this checklist when implementing a new model type (replace `{model}` with "g
 ### Phase 7: Integration
 
 - [ ] **Modify `R/core_constants.R`**
-  - [ ] Uncomment "{model}" in VALID_MODEL_TYPES array (line ~6)
+  - [ ] Uncomment "{analysis}" in VALID_ANALYSIS_TYPES array (line ~6)
   - [ ] This enables validation across the package
 
 - [ ] **Modify `R/core_interpret_dispatch.R`**
-  - [ ] Uncomment {model}_args parameter in interpret() signature
-  - [ ] Uncomment build_{model}_args() call
-  - [ ] Uncomment {model}_args in interpret_model() and handle_raw_data_interpret() calls
+  - [ ] Uncomment {analysis}_args parameter in interpret() signature
+  - [ ] Uncomment build_{analysis}_args() call
+  - [ ] Uncomment {analysis}_args in interpret_model() and handle_raw_data_interpret() calls
 
 - [ ] **Modify `R/shared_utils.R`**
-  - [ ] Uncomment {model}_args parameter in handle_raw_data_interpret()
-  - [ ] Uncomment {model} case in switch statement
+  - [ ] Uncomment {analysis}_args parameter in handle_raw_data_interpret()
+  - [ ] Uncomment {analysis} case in switch statement
 
 - [ ] **Modify `R/shared_config.R`**
-  - [ ] Uncomment {model}_args() constructor
-  - [ ] Uncomment build_{model}_args() builder function
+  - [ ] Uncomment {analysis}_args() constructor
+  - [ ] Uncomment build_{analysis}_args() builder function
 
 - [ ] **Optional: Modify `R/shared_utils.R`**
-  - [ ] Add {model} case to `handle_raw_data_interpret()` switch (lines ~45-85)
+  - [ ] Add {analysis} case to `handle_raw_data_interpret()` switch (lines ~45-85)
 
 - [ ] **Optional: Add to `R/core_interpret_dispatch.R`**
   - [ ] Create `interpret_model.{class}()` method if needed
 
 ### Phase 8: Testing
 
-- [ ] Create `tests/testthat/fixtures/{model}/` directory
-- [ ] Create fixture generation script: `tests/testthat/fixtures/{model}/make-{model}-fixture.R`
-- [ ] **Test file 1**: `test-{model}_model_data.R` (no LLM)
+- [ ] Create `tests/testthat/fixtures/{analysis}/` directory
+- [ ] Create fixture generation script: `tests/testthat/fixtures/{analysis}/make-{analysis}-fixture.R`
+- [ ] **Test file 1**: `test-{analysis}_model_data.R` (no LLM)
   - [ ] Test data extraction from fitted models
   - [ ] Test parameter validation
   - [ ] Test edge cases
 
-- [ ] **Test file 2**: `test-{model}_prompt.R` (no LLM)
+- [ ] **Test file 2**: `test-{analysis}_prompt.R` (no LLM)
   - [ ] Test prompt building with sample data
   - [ ] Test parameter effects on prompts
 
-- [ ] **Test file 3**: `test-{model}_json.R` (no LLM)
+- [ ] **Test file 3**: `test-{analysis}_json.R` (no LLM)
   - [ ] Test valid JSON parsing
   - [ ] Test malformed JSON fallback
   - [ ] Test default value generation
 
-- [ ] **Test file 4**: `test-{model}_diagnostics.R` (no LLM)
+- [ ] **Test file 4**: `test-{analysis}_diagnostics.R` (no LLM)
   - [ ] Test diagnostic calculations
 
-- [ ] **Test file 5**: `test-{model}_report.R` (minimal LLM)
+- [ ] **Test file 5**: `test-{analysis}_report.R` (minimal LLM)
   - [ ] Use cached interpretation fixture
   - [ ] Test text vs markdown formatting
 
-- [ ] **Test file 6**: `test-interpret_{model}.R` (minimal LLM)
+- [ ] **Test file 6**: `test-interpret_{analysis}.R` (minimal LLM)
   - [ ] ONE comprehensive end-to-end test with `word_limit = 20`
   - [ ] Add `skip_on_ci()`
   - [ ] Cache result for other tests
@@ -273,8 +273,8 @@ Use this checklist when implementing a new model type (replace `{model}` with "g
 
 - [ ] Add roxygen2 documentation to all exported functions
 - [ ] Run `devtools::document()`
-- [ ] Create vignette: `vignettes/{model}_interpretation.Rmd` or `.Qmd`
-- [ ] Update `CLAUDE.md` with {model} examples
+- [ ] Create vignette: `vignettes/{analysis}_interpretation.Rmd` or `.Qmd`
+- [ ] Update `CLAUDE.md` with {analysis} examples
 - [ ] Update `dev/DEVELOPER_GUIDE.md` section 4.2 (Package History)
 
 ### Phase 10: Final Checks
@@ -288,64 +288,64 @@ Use this checklist when implementing a new model type (replace `{model}` with "g
 
 ## Step-by-Step Guide
 
-### Step 1: Create Model Data Extractor
+### Step 1: Create Analysis Data Extractor
 
-**File**: `R/{model}_model_data.R`
+**File**: `R/{analysis}_model_data.R`
 
 **Purpose**: Extract and standardize data from fitted model objects.
 
 #### 1.1 Main S3 Method
 
 ```r
-#' Build model data for {MODEL} interpretation
+#' Build analysis data for {ANALYSIS} interpretation
 #'
-#' @param fit_results Fitted {MODEL} object from package {pkg}
+#' @param fit_results Fitted {ANALYSIS} object from package {pkg}
 #' @param variable_info Data frame with variable names and descriptions
-#' @param model_type Model type identifier (should be "{model}")
-#' @param {model}_args Configuration object from {model}_args()
+#' @param analysis_type Analysis type identifier (should be "{analysis}")
+#' @param {analysis}_args Configuration object from {analysis}_args()
 #' @param ... Additional arguments (for parameter extraction)
 #'
-#' @return List with standardized {MODEL} data structure
+#' @return List with standardized {ANALYSIS} data structure
 #' @export
-build_model_data.{PrimaryClass} <- function(fit_results,
+build_analysis_data.{PrimaryClass} <- function(fit_results,
                                              variable_info,
-                                             model_type = "{model}",
-                                             {model}_args = NULL,
+                                             analysis_type = "{analysis}",
+                                             {analysis}_args = NULL,
                                              ...) {
 
   # Call internal helper to avoid S3 method naming conflicts
-  build_{model}_model_data_internal(
+  build_{analysis}_model_data_internal(
     fit_results = fit_results,
     variable_info = variable_info,
-    model_type = model_type,
-    {model}_args = {model}_args,
+    analysis_type = analysis_type,
+    {analysis}_args = {analysis}_args,
     ...
   )
 }
 ```
 
-**Pattern from FA**: See `fa_model_data.R:11-23` for `build_model_data.psych()`
+**Pattern from FA**: See `fa_model_data.R:11-23` for `build_analysis_data.psych()`
 
 #### 1.2 Internal Helper Function
 
 ```r
-#' Internal helper to build {MODEL} model data
+#' Internal helper to build {ANALYSIS} analysis data
 #'
 #' @keywords internal
-build_{model}_model_data_internal <- function(fit_results,
+build_{analysis}_model_data_internal <- function(fit_results,
                                                variable_info,
-                                               model_type = "{model}",
-                                               {model}_args = NULL,
+                                               analysis_type = "{analysis}",
+                                               {analysis}_args = NULL,
                                                ...) {
 
-  # STEP 1: Extract model-specific parameters
+  # STEP 1: Extract analysis-specific parameters
   # Pattern from fa_model_data.R:26-48
 
   dots <- list(...)
 
-  # Build config from multiple sources (precedence: {model}_args > ... > defaults)
-  config <- build_{model}_args(
-    {model}_args = {model}_args,
+  # Build config from multiple sources (precedence: {analysis}_args > ... > defaults)
+  config <- build_{analysis}_args(
+    {analysis}_args = {analysis}_args,
     dots = dots
   )
 
@@ -428,63 +428,63 @@ build_{model}_model_data_internal <- function(fit_results,
 
   structure(
     list(
-      # Core model data (MODEL-SPECIFIC)
+      # Core analysis data (ANALYSIS-SPECIFIC)
       data_field1 = ...,  # e.g., means, item_params
       data_field2 = ...,  # e.g., covariances, ability_estimates
 
       # Metadata
       n_components = ...,  # e.g., n_clusters, n_factors, n_items
       n_variables = n_variables,
-      model_type = model_type,
+      analysis_type = analysis_type,
 
-      # Model-specific parameters (used later in prompts)
+      # Analysis-specific parameters (used later in prompts)
       param1 = param1,
       param2 = param2
     ),
-    class = c("{model}_model_data", "model_data", "list")
+    class = c("{analysis}_model_data", "analysis_data", "list")
   )
 }
 ```
 
 **Key Points**:
-- Use `build_{model}_args()` to merge parameter sources
+- Use `build_{analysis}_args()` to merge parameter sources
 - Validate all parameters with clear error messages
 - Extract data from fitted model object
-- Return standardized list structure with `model_type` field
+- Return standardized list structure with `analysis_type` field
 
 #### 1.3 Additional Class Methods (if needed)
 
-If the model type has multiple fitted object classes, create additional methods:
+If the analysis type has multiple fitted object classes, create additional methods:
 
 ```r
 #' @export
-build_model_data.OtherClass <- function(fit_results,
+build_analysis_data.OtherClass <- function(fit_results,
                                         variable_info,
-                                        model_type = "{model}",
-                                        {model}_args = NULL,
+                                        analysis_type = "{analysis}",
+                                        {analysis}_args = NULL,
                                         ...) {
 
   # Convert to standard format, then call internal helper
-  # Pattern from fa_model_data.R:282-298 (build_model_data.fa)
+  # Pattern from fa_model_data.R:282-298 (build_analysis_data.fa)
 
   converted_data <- ... # Extract from OtherClass object
 
-  build_{model}_model_data_internal(
+  build_{analysis}_model_data_internal(
     fit_results = converted_data,
     variable_info = variable_info,
-    model_type = model_type,
-    {model}_args = {model}_args,
+    analysis_type = analysis_type,
+    {analysis}_args = {analysis}_args,
     ...
   )
 }
 ```
 
 **Pattern from FA**:
-- `build_model_data.psych()` - line 11
-- `build_model_data.fa()` - line 282
-- `build_model_data.principal()` - line 300
-- `build_model_data.lavaan()` - line 318
-- `build_model_data.SingleGroupClass()` - line 382
+- `build_analysis_data.psych()` - line 11
+- `build_analysis_data.fa()` - line 282
+- `build_analysis_data.principal()` - line 300
+- `build_analysis_data.lavaan()` - line 318
+- `build_analysis_data.SingleGroupClass()` - line 382
 
 ---
 
@@ -492,26 +492,26 @@ build_model_data.OtherClass <- function(fit_results,
 
 **File**: `R/shared_config.R` (modify existing)
 
-**Purpose**: Create constructor and builder for model-specific parameters.
+**Purpose**: Create constructor and builder for analysis-specific parameters.
 
 #### 2.1 Constructor Function
 
 Add to `shared_config.R`:
 
 ```r
-#' Create {MODEL} configuration object
+#' Create {ANALYSIS} configuration object
 #'
 #' @param param1 Description of param1
 #' @param param2 Description of param2
 #' @param ... Additional parameters
 #'
-#' @return {MODEL} configuration object
+#' @return {ANALYSIS} configuration object
 #' @export
 #'
 #' @examples
-#' # Create {MODEL} configuration
-#' config <- {model}_args(param1 = "value1", param2 = "value2")
-{model}_args <- function(param1 = NULL,
+#' # Create {ANALYSIS} configuration
+#' config <- {analysis}_args(param1 = "value1", param2 = "value2")
+{analysis}_args <- function(param1 = NULL,
                           param2 = NULL,
                           ...) {
 
@@ -544,26 +544,26 @@ Add to `shared_config.R`:
 
   structure(
     config,
-    class = c("{model}_args", "model_config", "list")
+    class = c("{analysis}_args", "analysis_config", "list")
   )
 }
 ```
 
-**Pattern from FA**: See `shared_config.R` for `interpretation_args(model_type, ...)` - model-type-aware configuration
+**Pattern from FA**: See `shared_config.R` for `interpretation_args(analysis_type, ...)` - analysis-type-aware configuration
 
 #### 2.2 Builder Function
 
 Add to `shared_config.R`:
 
 ```r
-#' Build {MODEL} arguments from multiple sources
+#' Build {ANALYSIS} arguments from multiple sources
 #'
-#' @param {model}_args Configuration object from {model}_args()
+#' @param {analysis}_args Configuration object from {analysis}_args()
 #' @param dots List of additional arguments (from ...)
 #'
 #' @return Merged configuration
 #' @keywords internal
-build_{model}_args <- function({model}_args = NULL, dots = list()) {
+build_{analysis}_args <- function({analysis}_args = NULL, dots = list()) {
 
   # Default values
   defaults <- list(
@@ -571,9 +571,9 @@ build_{model}_args <- function({model}_args = NULL, dots = list()) {
     param2 = 3  # Example default
   )
 
-  # Extract from {model}_args if provided
-  if (!is.null({model}_args) && inherits({model}_args, "{model}_args")) {
-    args_list <- as.list({model}_args)
+  # Extract from {analysis}_args if provided
+  if (!is.null({analysis}_args) && inherits({analysis}_args, "{analysis}_args")) {
+    args_list <- as.list({analysis}_args)
   } else {
     args_list <- list()
   }
@@ -582,43 +582,43 @@ build_{model}_args <- function({model}_args = NULL, dots = list()) {
   param_names <- c("param1", "param2")
   dots_params <- dots[names(dots) %in% param_names]
 
-  # Merge (precedence: {model}_args > dots > defaults)
+  # Merge (precedence: {analysis}_args > dots > defaults)
   merged <- defaults
   merged[names(dots_params)] <- dots_params
   merged[names(args_list)] <- args_list
 
   # Create final config
-  do.call({model}_args, merged)
+  do.call({analysis}_args, merged)
 }
 ```
 
-**Pattern from FA**: See `shared_config.R` for `build_interpretation_args()` - handles all model types
+**Pattern from FA**: See `shared_config.R` for `build_interpretation_args()` - handles all analysis types
 
 ---
 
 ### Step 3: Build System Prompt
 
-**File**: `R/{model}_prompt_builder.R`
+**File**: `R/{analysis}_prompt_builder.R`
 
 **Purpose**: Create LLM system prompt defining expert persona and guidelines.
 
 ```r
-#' Build system prompt for {MODEL} interpretation
+#' Build system prompt for {ANALYSIS} interpretation
 #'
-#' @param model_type Model type identifier (should be "{model}")
+#' @param analysis_type Analysis type identifier (should be "{analysis}")
 #' @param ... Additional arguments (ignored)
 #'
 #' @return Character string with system prompt
 #' @export
-build_system_prompt.{model} <- function(model_type, ...) {
+build_system_prompt.{analysis} <- function(analysis_type, ...) {
 
   # Define expert persona and guidelines
   # Pattern from fa_prompt_builder.R:23-41
 
   paste0(
-    "You are an expert in {MODEL_FULL_NAME} and psychological measurement.\n\n",
+    "You are an expert in {ANALYSIS_FULL_NAME} and psychological measurement.\n\n",
 
-    "Your task is to interpret {MODEL} results by analyzing {WHAT_YOU_ANALYZE}.\n\n",
+    "Your task is to interpret {ANALYSIS} results by analyzing {WHAT_YOU_ANALYZE}.\n\n",
 
     "Guidelines:\n",
     "1. Base interpretations ONLY on the provided {DATA_TYPE} and variable descriptions\n",
@@ -643,24 +643,24 @@ build_system_prompt.{model} <- function(model_type, ...) {
 
 ### Step 4: Build Main Prompt
 
-**File**: `R/{model}_prompt_builder.R`
+**File**: `R/{analysis}_prompt_builder.R`
 
-**Purpose**: Format model data into LLM user prompt with structured sections.
+**Purpose**: Format analysis data into LLM user prompt with structured sections.
 
 ```r
-#' Build main user prompt for {MODEL} interpretation
+#' Build main user prompt for {ANALYSIS} interpretation
 #'
-#' @param model_data Model data from build_model_data.{class}()
+#' @param analysis_data Analysis data from build_analysis_data.{class}()
 #' @param variable_info Data frame with variable information
 #' @param word_limit Maximum words per {COMPONENT} interpretation
 #' @param additional_info Optional context string
-#' @param param1 Model-specific parameter 1
-#' @param param2 Model-specific parameter 2
+#' @param param1 Analysis-specific parameter 1
+#' @param param2 Analysis-specific parameter 2
 #' @param ... Additional arguments (ignored)
 #'
 #' @return Character string with formatted user prompt
 #' @export
-build_main_prompt.{model} <- function(model_data,
+build_main_prompt.{analysis} <- function(analysis_data,
                                        variable_info,
                                        word_limit = 150,
                                        additional_info = NULL,
@@ -668,16 +668,16 @@ build_main_prompt.{model} <- function(model_data,
                                        param2 = NULL,
                                        ...) {
 
-  # Extract data from model_data
-  data_field1 <- model_data$data_field1
-  data_field2 <- model_data$data_field2
-  n_components <- model_data$n_components
+  # Extract data from analysis_data
+  data_field1 <- analysis_data$data_field1
+  data_field2 <- analysis_data$data_field2
+  n_components <- analysis_data$n_components
 
   # SECTION 1: Context and task
   # Pattern from fa_prompt_builder.R:78-93
 
   context <- paste0(
-    "Please interpret the following {MODEL} results.\n\n",
+    "Please interpret the following {ANALYSIS} results.\n\n",
     "You have {n_components} {COMPONENTS} to interpret.\n\n"
   )
 
@@ -703,11 +703,11 @@ build_main_prompt.{model} <- function(model_data,
   }
   var_section <- paste0(var_section, "\n")
 
-  # SECTION 3: Model-specific data
-  # THIS IS MODEL-SPECIFIC - format your data appropriately
+  # SECTION 3: Analysis-specific data
+  # THIS IS ANALYSIS-SPECIFIC - format your data appropriately
 
   # Example for GM: Format cluster means
-  # data_section <- "{MODEL} Results:\n\n"
+  # data_section <- "{ANALYSIS} Results:\n\n"
   # for (k in 1:n_components) {
   #   data_section <- paste0(
   #     data_section,
@@ -746,7 +746,7 @@ build_main_prompt.{model} <- function(model_data,
 ```
 
 **Key Points**:
-- Accept model-specific parameters explicitly (param1, param2, etc.)
+- Accept analysis-specific parameters explicitly (param1, param2, etc.)
 - Format data sections clearly for LLM readability
 - Specify exact JSON output format with examples
 - Include word_limit in instructions
@@ -757,22 +757,22 @@ build_main_prompt.{model} <- function(model_data,
 
 ### Step 5: Implement JSON Parsing
 
-**File**: `R/{model}_json.R`
+**File**: `R/{analysis}_json.R`
 
 **Purpose**: Validate, extract, and provide defaults for LLM responses.
 
 #### 5.1 Validate Parsed Result
 
 ```r
-#' Validate parsed JSON for {MODEL} results
+#' Validate parsed JSON for {ANALYSIS} results
 #'
 #' @param parsed_result Parsed JSON object (list)
-#' @param model_data Model data from build_model_data.{class}()
+#' @param analysis_data Analysis data from build_analysis_data.{class}()
 #' @param ... Additional arguments (ignored)
 #'
 #' @return Logical - TRUE if valid, FALSE otherwise
 #' @export
-validate_parsed_result.{model} <- function(parsed_result, model_data, ...) {
+validate_parsed_result.{analysis} <- function(parsed_result, analysis_data, ...) {
 
   # Pattern from fa_json.R:22-94
 
@@ -782,7 +782,7 @@ validate_parsed_result.{model} <- function(parsed_result, model_data, ...) {
   }
 
   # Check 2: Does it have expected keys?
-  expected_keys <- ... # Extract from model_data (e.g., cluster names, item IDs)
+  expected_keys <- ... # Extract from analysis_data (e.g., cluster names, item IDs)
   actual_keys <- names(parsed_result)
 
   if (length(actual_keys) == 0) {
@@ -808,20 +808,20 @@ validate_parsed_result.{model} <- function(parsed_result, model_data, ...) {
 #### 5.2 Extract by Pattern (Fallback)
 
 ```r
-#' Extract {MODEL} interpretations using pattern matching
+#' Extract {ANALYSIS} interpretations using pattern matching
 #'
 #' @param response Raw LLM response string
-#' @param model_data Model data from build_model_data.{class}()
+#' @param analysis_data Analysis data from build_analysis_data.{class}()
 #' @param ... Additional arguments (ignored)
 #'
 #' @return List with extracted interpretations or NULL if failed
 #' @export
-extract_by_pattern.{model} <- function(response, model_data, ...) {
+extract_by_pattern.{analysis} <- function(response, analysis_data, ...) {
 
   # Pattern from fa_json.R:130-208
 
   # Get expected keys
-  expected_keys <- ... # Extract from model_data
+  expected_keys <- ... # Extract from analysis_data
 
   # Try to extract using regex patterns
   # Example: Look for "{component_1}": "interpretation text"
@@ -850,19 +850,19 @@ extract_by_pattern.{model} <- function(response, model_data, ...) {
 #### 5.3 Create Default Result
 
 ```r
-#' Create default {MODEL} interpretation
+#' Create default {ANALYSIS} interpretation
 #'
-#' @param model_data Model data from build_model_data.{class}()
+#' @param analysis_data Analysis data from build_analysis_data.{class}()
 #' @param ... Additional arguments (ignored)
 #'
 #' @return List with default interpretations
 #' @export
-create_default_result.{model} <- function(model_data, ...) {
+create_default_result.{analysis} <- function(analysis_data, ...) {
 
   # Pattern from fa_json.R:210-226
 
   # Get component identifiers
-  component_ids <- ... # Extract from model_data
+  component_ids <- ... # Extract from analysis_data
 
   # Create default interpretations
   result <- list()
@@ -880,20 +880,20 @@ create_default_result.{model} <- function(model_data, ...) {
 
 ### Step 6: Create Diagnostics
 
-**File**: `R/{model}_diagnostics.R`
+**File**: `R/{analysis}_diagnostics.R`
 
-**Purpose**: Perform model-specific diagnostic checks and generate warnings.
+**Purpose**: Perform analysis-specific diagnostic checks and generate warnings.
 
 ```r
-#' Create diagnostics for {MODEL} interpretation
+#' Create diagnostics for {ANALYSIS} interpretation
 #'
-#' @param model_data Model data from build_model_data.{class}()
+#' @param analysis_data Analysis data from build_analysis_data.{class}()
 #' @param interpretation Interpretation result from LLM
 #' @param ... Additional arguments (ignored)
 #'
 #' @return List with diagnostic information
 #' @export
-create_diagnostics.{model} <- function(model_data, interpretation, ...) {
+create_diagnostics.{analysis} <- function(analysis_data, interpretation, ...) {
 
   # Pattern from fa_diagnostics.R:12-178
 
@@ -904,7 +904,7 @@ create_diagnostics.{model} <- function(model_data, interpretation, ...) {
     info = list()
   )
 
-  # DIAGNOSTIC CHECK 1: Model-specific issue
+  # DIAGNOSTIC CHECK 1: Analysis-specific issue
   # Example for GM: Check for overlapping clusters
   # Example for IRT: Check for poor item fit
   # Example for FA: Check for cross-loadings
@@ -920,7 +920,7 @@ create_diagnostics.{model} <- function(model_data, interpretation, ...) {
     diagnostics$info$issue1_details <- ... # Details
   }
 
-  # DIAGNOSTIC CHECK 2: Another model-specific issue
+  # DIAGNOSTIC CHECK 2: Another analysis-specific issue
 
   issue2_detected <- ... # YOUR CHECK
 
@@ -943,7 +943,7 @@ create_diagnostics.{model} <- function(model_data, interpretation, ...) {
 #' Detect specific diagnostic issue
 #'
 #' @keywords internal
-detect_{issue}_{model} <- function(model_data) {
+detect_{issue}_{analysis} <- function(analysis_data) {
   # Implementation
 }
 ```
@@ -957,26 +957,26 @@ detect_{issue}_{model} <- function(model_data) {
 
 ### Step 7: Build Report
 
-**File**: `R/{model}_report.R`
+**File**: `R/{analysis}_report.R`
 
 **Purpose**: Format interpretation into user-facing report (text or markdown).
 
 #### 7.1 Main Report Builder
 
 ```r
-#' Build report for {MODEL} interpretation
+#' Build report for {ANALYSIS} interpretation
 #'
-#' @param interpretation fa_interpretation object (NOTE: class will be {model}_interpretation)
+#' @param interpretation fa_interpretation object (NOTE: class will be {analysis}_interpretation)
 #' @param ... Additional arguments (ignored)
 #'
 #' @return Character string with formatted report
 #' @export
-build_report.{model}_interpretation <- function(interpretation, ...) {
+build_report.{analysis}_interpretation <- function(interpretation, ...) {
 
   # Pattern from fa_report.R:28-838
 
   # Extract components
-  model_data <- interpretation$model_data
+  analysis_data <- interpretation$analysis_data
   llm_result <- interpretation$interpretation
   diagnostics <- interpretation$diagnostics
   output_format <- interpretation$output_format
@@ -984,17 +984,17 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
   # Build report sections using helper functions
 
   # Section 1: Header
-  header <- build_report_header_{model}(
-    model_data = model_data,
-    provider = interpretation$provider,
-    model = interpretation$model,
+  header <- build_report_header_{analysis}(
+    analysis_data = analysis_data,
+    llm_provider = interpretation$llm_provider,
+    llm_model = interpretation$llm_model,
     output_format = output_format
   )
 
   # Section 2: Component interpretations
-  interpretations_section <- build_{component}_interpretations_{model}(
+  interpretations_section <- build_{component}_interpretations_{analysis}(
     llm_result = llm_result,
-    model_data = model_data,
+    analysis_data = analysis_data,
     output_format = output_format
   )
 
@@ -1003,13 +1003,13 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
   # Example for GM: cluster statistics
   # Example for IRT: item statistics
 
-  additional_section <- build_additional_data_section_{model}(
-    model_data = model_data,
+  additional_section <- build_additional_data_section_{analysis}(
+    analysis_data = analysis_data,
     output_format = output_format
   )
 
   # Section 4: Diagnostics
-  diagnostics_section <- build_diagnostics_section_{model}(
+  diagnostics_section <- build_diagnostics_section_{analysis}(
     diagnostics = diagnostics,
     output_format = output_format
   )
@@ -1039,35 +1039,35 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
 **Keep each helper ~60-130 lines focused on one section**:
 
 ```r
-#' Build report header for {MODEL}
+#' Build report header for {ANALYSIS}
 #'
 #' @keywords internal
-build_report_header_{model} <- function(model_data,
-                                         provider,
-                                         model,
+build_report_header_{analysis} <- function(analysis_data,
+                                         llm_provider,
+                                         llm_model,
                                                 output_format) {
 
   # Pattern from fa_report.R:132-226
 
-  n_components <- model_data$n_components
-  n_variables <- model_data$n_variables
+  n_components <- analysis_data$n_components
+  n_variables <- analysis_data$n_variables
 
   if (output_format == "markdown") {
     paste0(
-      "# {MODEL} Interpretation Results\n\n",
+      "# {ANALYSIS} Interpretation Results\n\n",
       "**Number of {COMPONENTS}:** ", n_components, "\n",
       "**Number of Variables:** ", n_variables, "\n",
-      "**LLM Provider:** ", provider, "\n",
-      "**LLM Model:** ", model, "\n"
+      "**LLM Provider:** ", llm_provider, "\n",
+      "**LLM Model:** ", llm_model, "\n"
     )
   } else {
     paste0(
-      "{MODEL} INTERPRETATION RESULTS\n",
+      "{ANALYSIS} INTERPRETATION RESULTS\n",
       "========================================\n\n",
       "Number of {COMPONENTS}: ", n_components, "\n",
       "Number of Variables: ", n_variables, "\n",
-      "LLM Provider: ", provider, "\n",
-      "LLM Model: ", model, "\n"
+      "LLM Provider: ", llm_provider, "\n",
+      "LLM Model: ", llm_model, "\n"
     )
   }
 }
@@ -1075,8 +1075,8 @@ build_report_header_{model} <- function(model_data,
 #' Build component interpretations section
 #'
 #' @keywords internal
-build_{component}_interpretations_{model} <- function(llm_result,
-                                                       model_data,
+build_{component}_interpretations_{analysis} <- function(llm_result,
+                                                       analysis_data,
                                                        output_format) {
 
   # Pattern from fa_report.R:321-475 (build_factor_names_section)
@@ -1112,7 +1112,7 @@ build_{component}_interpretations_{model} <- function(llm_result,
 #' Build diagnostics section
 #'
 #' @keywords internal
-build_diagnostics_section_{model} <- function(diagnostics, output_format) {
+build_diagnostics_section_{analysis} <- function(diagnostics, output_format) {
 
   # Pattern from fa_report.R:695-838
 
@@ -1148,21 +1148,21 @@ build_diagnostics_section_{model} <- function(diagnostics, output_format) {
 
 ### Step 8: Uncomment Extensibility Placeholders
 
-The package has extensibility infrastructure with commented placeholders for new model
+The package has extensibility infrastructure with commented placeholders for new analysis
 types. Instead of adding new code, you **uncomment existing code**.
 
 #### 8.1 Uncomment in `R/core_constants.R`
 
 **Location**: Line ~6
 
-**Change**: Uncomment "{model}" in VALID_MODEL_TYPES constant
+**Change**: Uncomment "{analysis}" in VALID_ANALYSIS_TYPES constant
 
 ```r
 # Before:
-VALID_MODEL_TYPES <- c("fa") # , "gm", "irt", "cdm")
+VALID_ANALYSIS_TYPES <- c("fa") # , "gm", "irt", "cdm")
 
 # After (for GM):
-VALID_MODEL_TYPES <- c("fa", "gm") # , "irt", "cdm")
+VALID_ANALYSIS_TYPES <- c("fa", "gm") # , "irt", "cdm")
 ```
 
 This enables validation across the entire package.
@@ -1172,22 +1172,22 @@ This enables validation across the entire package.
 **Locations**: Lines ~175, ~200-202, ~328-330, ~366-368
 
 **Changes**:
-1. Uncomment {model}_args parameter in interpret() signature
-2. Uncomment build_{model}_args() call
-3. Uncomment {model}_args in interpret_model() call
-4. Uncomment {model}_args in handle_raw_data_interpret() call
+1. Uncomment {analysis}_args parameter in interpret() signature
+2. Uncomment build_{analysis}_args() call
+3. Uncomment {analysis}_args in interpret_model() call
+4. Uncomment {analysis}_args in handle_raw_data_interpret() call
 
 #### 8.3 Uncomment in `R/shared_utils.R`
 
 **Locations**: Lines ~25-27 (parameters), lines ~61-78 (switch cases)
 
 **Changes**:
-1. Uncomment {model}_args parameter in handle_raw_data_interpret() signature
-2. Uncomment {model} case in switch statement
+1. Uncomment {analysis}_args parameter in handle_raw_data_interpret() signature
+2. Uncomment {analysis} case in switch statement
 
 ```r
 # Uncomment parameter (line ~25-27):
-handle_raw_data_interpret <- function(x, variable_info, model_type,
+handle_raw_data_interpret <- function(x, variable_info, analysis_type,
                                       chat_session, llm_args = NULL,
                                       interpretation_args = NULL,
                                       gm_args = NULL,   # UNCOMMENT for GM
@@ -1196,15 +1196,15 @@ handle_raw_data_interpret <- function(x, variable_info, model_type,
                                       output_args = NULL, ...) {
 
 # Uncomment case in switch (lines ~61-78):
-  switch(effective_model_type,
+  switch(effective_analysis_type,
     fa = {
       interpret_core(...)
     },
     gm = {  # UNCOMMENT THIS ENTIRE CASE for GM
       interpret_core(
-        fit_results = list(...),  # Your model-specific structure
+        fit_results = list(...),  # Your analysis-specific structure
         variable_info = variable_info,
-        model_type = "gm",
+        analysis_type = "gm",
         chat_session = chat_session,
         llm_args = llm_args,
         gm_args = gm_args,
@@ -1222,8 +1222,8 @@ handle_raw_data_interpret <- function(x, variable_info, model_type,
 **Locations**: Lines ~307-381 (constructor), lines ~549-621 (builder)
 
 **Changes**:
-1. Uncomment {model}_args() constructor function
-2. Uncomment build_{model}_args() builder function
+1. Uncomment {analysis}_args() constructor function
+2. Uncomment build_{analysis}_args() builder function
 
 These are already written as templates - just uncomment the entire functions.
 
@@ -1235,12 +1235,12 @@ These are already written as templates - just uncomment the entire functions.
 #' @export
 interpret_model.{SpecialClass} <- function(fit_results, ...) {
 
-  # Delegate to interpret_core via build_model_data dispatch
+  # Delegate to interpret_core via build_analysis_data dispatch
   # Pattern from core_interpret_dispatch.R:195-198
 
   interpret_core(
     fit_results = fit_results,
-    model_type = "{model}",
+    analysis_type = "{analysis}",
     ...
   )
 }
@@ -1250,53 +1250,53 @@ interpret_model.{SpecialClass} <- function(fit_results, ...) {
 
 ## Method Implementation Details
 
-### build_model_data.{class}()
+### build_analysis_data.{class}()
 
 **Purpose**: Extract and standardize data from fitted model objects.
 
 **Inputs**:
 - `fit_results`: Fitted model object (e.g., `Mclust`, `mirt`)
 - `variable_info`: Data frame with variable names and descriptions
-- `model_type`: String identifier ("{model}")
-- `{model}_args`: Configuration object
+- `analysis_type`: String identifier ("{analysis}")
+- `{analysis}_args`: Configuration object
 - `...`: Additional parameters
 
 **Outputs**: List with structure:
 ```r
 list(
-  # Core data fields (model-specific)
+  # Core data fields (analysis-specific)
   data_field1 = ...,
   data_field2 = ...,
 
   # Metadata
   n_components = ...,
   n_variables = ...,
-  model_type = "{model}",
+  analysis_type = "{analysis}",
 
-  # Model-specific parameters
+  # Analysis-specific parameters
   param1 = ...,
   param2 = ...
 )
 ```
 
 **Key Responsibilities**:
-1. Extract parameters from `{model}_args` or `...`
+1. Extract parameters from `{analysis}_args` or `...`
 2. Validate parameters
 3. Extract data from fitted model
 4. Validate variable_info structure and alignment
 5. Format data into standardized structure
-6. Return list with class `c("{model}_model_data", "model_data", "list")`
+6. Return list with class `c("{analysis}_model_data", "analysis_data", "list")`
 
 **FA Example**: `fa_model_data.R:24-265`
 
 ---
 
-### build_system_prompt.{model}()
+### build_system_prompt.{analysis}()
 
 **Purpose**: Create LLM system prompt defining expert role and guidelines.
 
 **Inputs**:
-- `model_type`: String identifier
+- `analysis_type`: String identifier
 - `...`: Additional arguments (ignored)
 
 **Outputs**: Character string with system prompt
@@ -1311,16 +1311,16 @@ list(
 
 ---
 
-### build_main_prompt.{model}()
+### build_main_prompt.{analysis}()
 
-**Purpose**: Format model data into structured LLM user prompt.
+**Purpose**: Format analysis data into structured LLM user prompt.
 
 **Inputs**:
-- `model_data`: Output from `build_model_data.{class}()`
+- `analysis_data`: Output from `build_analysis_data.{class}()`
 - `variable_info`: Data frame
 - `word_limit`: Integer
 - `additional_info`: Optional string
-- Model-specific parameters (param1, param2, etc.)
+- Analysis-specific parameters (param1, param2, etc.)
 - `...`: Additional arguments (ignored)
 
 **Outputs**: Character string with formatted prompt
@@ -1329,20 +1329,20 @@ list(
 1. Context and task description
 2. Additional info (if provided)
 3. Variable descriptions
-4. Model-specific data (formatted for readability)
+4. Analysis-specific data (formatted for readability)
 5. JSON output format specification with example
 
 **FA Example**: `fa_prompt_builder.R:68-341`
 
 ---
 
-### validate_parsed_result.{model}()
+### validate_parsed_result.{analysis}()
 
 **Purpose**: Validate LLM JSON response structure.
 
 **Inputs**:
 - `parsed_result`: Parsed JSON (list)
-- `model_data`: Model data for reference
+- `analysis_data`: Analysis data for reference
 - `...`: Additional arguments (ignored)
 
 **Outputs**: Logical (TRUE/FALSE)
@@ -1357,19 +1357,19 @@ list(
 
 ---
 
-### extract_by_pattern.{model}()
+### extract_by_pattern.{analysis}()
 
 **Purpose**: Extract interpretations using regex if JSON parsing fails.
 
 **Inputs**:
 - `response`: Raw LLM response string
-- `model_data`: Model data for expected keys
+- `analysis_data`: Analysis data for expected keys
 - `...`: Additional arguments (ignored)
 
 **Outputs**: List with extractions or NULL if failed
 
 **Approach**:
-1. Get expected component keys from model_data
+1. Get expected component keys from analysis_data
 2. Use regex to find "{key}": "value" patterns
 3. Extract values for each key
 4. Return NULL if no matches
@@ -1378,12 +1378,12 @@ list(
 
 ---
 
-### create_default_result.{model}()
+### create_default_result.{analysis}()
 
 **Purpose**: Generate default interpretations if all parsing fails.
 
 **Inputs**:
-- `model_data`: Model data for component keys
+- `analysis_data`: Analysis data for component keys
 - `...`: Additional arguments (ignored)
 
 **Outputs**: List with default interpretations
@@ -1397,12 +1397,12 @@ list(
 
 ---
 
-### create_diagnostics.{model}()
+### create_diagnostics.{analysis}()
 
-**Purpose**: Perform model-specific diagnostic checks.
+**Purpose**: Perform analysis-specific diagnostic checks.
 
 **Inputs**:
-- `model_data`: Model data
+- `analysis_data`: Analysis data
 - `interpretation`: LLM interpretation result
 - `...`: Additional arguments (ignored)
 
@@ -1417,7 +1417,7 @@ list(
 
 **Approach**:
 1. Initialize diagnostics list
-2. Perform model-specific checks
+2. Perform analysis-specific checks
 3. Add warnings and info as issues detected
 4. Return diagnostics
 
@@ -1425,12 +1425,12 @@ list(
 
 ---
 
-### build_report.{model}_interpretation()
+### build_report.{analysis}_interpretation()
 
 **Purpose**: Format interpretation into user-facing report.
 
 **Inputs**:
-- `interpretation`: Interpretation object (class `{model}_interpretation`)
+- `interpretation`: Interpretation object (class `{analysis}_interpretation`)
 - `...`: Additional arguments (ignored)
 
 **Outputs**: Character string with formatted report
@@ -1438,7 +1438,7 @@ list(
 **Structure** (use helper functions):
 1. Header with metadata
 2. Component interpretations
-3. Additional data sections (model-specific)
+3. Additional data sections (analysis-specific)
 4. Diagnostics warnings
 
 **Approach**:
@@ -1457,21 +1457,21 @@ list(
 
 Create **6 test files** for comprehensive coverage:
 
-1. **`test-{model}_model_data.R`** - Data extraction (no LLM)
-2. **`test-{model}_prompt.R`** - Prompt building (no LLM)
-3. **`test-{model}_json.R`** - JSON parsing (no LLM)
-4. **`test-{model}_diagnostics.R`** - Diagnostics (no LLM)
-5. **`test-{model}_report.R`** - Report formatting (minimal LLM, use cached)
-6. **`test-interpret_{model}.R`** - End-to-end integration (minimal LLM)
+1. **`test-{analysis}_model_data.R`** - Data extraction (no LLM)
+2. **`test-{analysis}_prompt.R`** - Prompt building (no LLM)
+3. **`test-{analysis}_json.R`** - JSON parsing (no LLM)
+4. **`test-{analysis}_diagnostics.R`** - Diagnostics (no LLM)
+5. **`test-{analysis}_report.R`** - Report formatting (minimal LLM, use cached)
+6. **`test-interpret_{analysis}.R`** - End-to-end integration (minimal LLM)
 
 ### Fixture Setup
 
-**Location**: `tests/testthat/fixtures/{model}/`
+**Location**: `tests/testthat/fixtures/{analysis}/`
 
 **Files**:
-- `make-{model}-fixture.R` - Script to generate cached interpretation
-- `{model}_interpretation.rds` - Cached interpretation result
-- `sample_{model}_data.rds` - Sample model data for testing
+- `make-{analysis}-fixture.R` - Script to generate cached interpretation
+- `{analysis}_interpretation.rds` - Cached interpretation result
+- `sample_{analysis}_data.rds` - Sample analysis data for testing
 
 **Example fixture generator**:
 
@@ -1498,17 +1498,17 @@ var_info <- data.frame(
 interpretation <- interpret(
   fit_results = fit,
   variable_info = var_info,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
   word_limit = 20  # MINIMUM for token efficiency
 )
 
 # Save fixture
 saveRDS(interpretation, "tests/testthat/fixtures/gm/gm_interpretation.rds")
 
-# Also save model_data for other tests
-model_data <- build_model_data(fit, var_info, model_type = "gm")
-saveRDS(model_data, "tests/testthat/fixtures/gm/sample_gm_data.rds")
+# Also save analysis_data for other tests
+analysis_data <- build_analysis_data(fit, var_info, analysis_type = "gm")
+saveRDS(analysis_data, "tests/testthat/fixtures/gm/sample_gm_data.rds")
 ```
 
 ### Test Patterns
@@ -1518,7 +1518,7 @@ saveRDS(model_data, "tests/testthat/fixtures/gm/sample_gm_data.rds")
 ```r
 # tests/testthat/test-gm_model_data.R
 
-test_that("build_model_data.Mclust extracts means correctly", {
+test_that("build_analysis_data.Mclust extracts means correctly", {
 
   # Arrange
   fit <- ... # Create test fitted object
@@ -1528,7 +1528,7 @@ test_that("build_model_data.Mclust extracts means correctly", {
   )
 
   # Act
-  result <- build_model_data(fit, var_info, model_type = "gm")
+  result <- build_analysis_data(fit, var_info, analysis_type = "gm")
 
   # Assert
   expect_s3_class(result, "gm_model_data")
@@ -1536,14 +1536,14 @@ test_that("build_model_data.Mclust extracts means correctly", {
   expect_equal(result$n_clusters, 3)
 })
 
-test_that("build_model_data.Mclust validates parameters", {
+test_that("build_analysis_data.Mclust validates parameters", {
 
   fit <- ... # Test object
   var_info <- data.frame(variable = "var1", description = "Desc")
 
   # Invalid parameter should error
   expect_error(
-    build_model_data(fit, var_info, model_type = "gm",
+    build_analysis_data(fit, var_info, analysis_type = "gm",
                      gm_args = gm_args(covariance_type = "invalid")),
     "Invalid covariance_type"
   )
@@ -1584,7 +1584,7 @@ test_that("build_main_prompt.gm includes cluster data", {
 
 test_that("validate_parsed_result.gm accepts valid structure", {
 
-  model_data <- readRDS("fixtures/gm/sample_gm_data.rds")
+  analysis_data <- readRDS("fixtures/gm/sample_gm_data.rds")
 
   valid_result <- list(
     Cluster_1 = "Interpretation 1",
@@ -1592,16 +1592,16 @@ test_that("validate_parsed_result.gm accepts valid structure", {
     Cluster_3 = "Interpretation 3"
   )
 
-  expect_true(validate_parsed_result(valid_result, model_data, model_type = "gm"))
+  expect_true(validate_parsed_result(valid_result, analysis_data, analysis_type = "gm"))
 })
 
 test_that("extract_by_pattern.gm extracts from malformed JSON", {
 
-  model_data <- readRDS("fixtures/gm/sample_gm_data.rds")
+  analysis_data <- readRDS("fixtures/gm/sample_gm_data.rds")
 
   response <- 'Here are the results: {"Cluster_1": "Interpretation", "Cluster_2": "Another"}'
 
-  result <- extract_by_pattern(response, model_data, model_type = "gm")
+  result <- extract_by_pattern(response, analysis_data, analysis_type = "gm")
 
   expect_type(result, "list")
   expect_true("Cluster_1" %in% names(result))
@@ -1625,8 +1625,8 @@ test_that("GM interpretation works end-to-end", {
   result <- interpret(
     fit_results = fit,
     variable_info = var_info,
-    provider = "ollama",
-    model = "gpt-oss:20b-cloud",
+    llm_provider = "ollama",
+    llm_model = "gpt-oss:20b-cloud",
     word_limit = 20  # MINIMUM
   )
 
@@ -1686,14 +1686,14 @@ test_that("build_report.gm_interpretation creates markdown report", {
 
 ### Pattern 1: Parameter Extraction
 
-**Location**: `build_{model}_model_data_internal()` (first 30 lines)
+**Location**: `build_{analysis}_model_data_internal()` (first 30 lines)
 
 **Code**:
 ```r
 dots <- list(...)
 
-config <- build_{model}_args(
-  {model}_args = {model}_args,
+config <- build_{analysis}_args(
+  {analysis}_args = {analysis}_args,
   dots = dots
 )
 
@@ -1730,7 +1730,7 @@ if (!valid_condition) {
 
 ### Pattern 3: Section Building in Prompts
 
-**Location**: `build_main_prompt.{model}()`
+**Location**: `build_main_prompt.{analysis}()`
 
 **Code**:
 ```r
@@ -1751,16 +1751,16 @@ paste0(section1, section2, section3)
 
 ### Pattern 4: Modular Report Helpers
 
-**Location**: `build_report.{model}_interpretation()` and helpers
+**Location**: `build_report.{analysis}_interpretation()` and helpers
 
 **Code**:
 ```r
 # Main orchestrator
-build_report.{model}_interpretation <- function(interpretation, ...) {
-  header <- build_report_header_{model}(...)
-  section1 <- build_section1_{model}(...)
-  section2 <- build_section2_{model}(...)
-  diagnostics <- build_diagnostics_section_{model}(...)
+build_report.{analysis}_interpretation <- function(interpretation, ...) {
+  header <- build_report_header_{analysis}(...)
+  section1 <- build_section1_{analysis}(...)
+  section2 <- build_section2_{analysis}(...)
+  diagnostics <- build_diagnostics_section_{analysis}(...)
 
   report_parts <- c(header, section1, section2, diagnostics)
   report_parts <- Filter(Negate(is.null), report_parts)
@@ -1769,8 +1769,8 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
 }
 
 # Helper functions (~60-130 lines each)
-build_report_header_{model} <- function(...) { ... }
-build_section1_{model} <- function(...) { ... }
+build_report_header_{analysis} <- function(...) { ... }
+build_section1_{analysis} <- function(...) { ... }
 ```
 
 **Why**:
@@ -1812,31 +1812,31 @@ if (output_format == "markdown") {
 
 ### Pattern 6: Multi-tier JSON Fallback
 
-**Location**: `s3_json_parser.R` calls model-specific methods
+**Location**: `s3_json_parser.R` calls analysis-specific methods
 
 **Code**:
 ```r
 # Tier 1: Clean and parse
 cleaned <- clean_json_response(response)
 parsed <- jsonlite::fromJSON(cleaned, simplifyVector = FALSE)
-if (validate_parsed_result(parsed, model_data, model_type)) {
+if (validate_parsed_result(parsed, analysis_data, analysis_type)) {
   return(parsed)
 }
 
 # Tier 2: Parse original
 parsed <- jsonlite::fromJSON(response, simplifyVector = FALSE)
-if (validate_parsed_result(parsed, model_data, model_type)) {
+if (validate_parsed_result(parsed, analysis_data, analysis_type)) {
   return(parsed)
 }
 
 # Tier 3: Pattern extraction
-extracted <- extract_by_pattern(response, model_data, model_type)
+extracted <- extract_by_pattern(response, analysis_data, analysis_type)
 if (!is.null(extracted)) {
   return(extracted)
 }
 
 # Tier 4: Default values
-create_default_result(model_data, model_type)
+create_default_result(analysis_data, analysis_type)
 ```
 
 **Why**: Defensive parsing handles small/local models with imperfect JSON.
@@ -1847,16 +1847,16 @@ create_default_result(model_data, model_type)
 
 ## Troubleshooting
 
-### Issue: "Error: model_type must be specified"
+### Issue: "Error: analysis_type must be specified"
 
-**Cause**: Using structured list without specifying model_type
+**Cause**: Using structured list without specifying analysis_type
 
-**Solution**: Always specify model_type when using list input
+**Solution**: Always specify analysis_type when using list input
 ```r
 interpret(
   fit_results = list(means = means_matrix),
   variable_info = var_info,
-  model_type = "gm"  # REQUIRED
+  analysis_type = "gm"  # REQUIRED
 )
 ```
 
@@ -1870,19 +1870,19 @@ interpret(
 
 ---
 
-### Issue: Parameter not found in model_data
+### Issue: Parameter not found in analysis_data
 
-**Cause**: Forgot to extract parameter in `build_{model}_model_data_internal()`
+**Cause**: Forgot to extract parameter in `build_{analysis}_model_data_internal()`
 
 **Solution**: Ensure parameters are extracted from config and stored in returned list
 ```r
-config <- build_{model}_args({model}_args = {model}_args, dots = dots)
+config <- build_{analysis}_args({analysis}_args = {analysis}_args, dots = dots)
 param1 <- config$param1  # Extract
 
 # ... later in return statement
 list(
   ...,
-  param1 = param1  # Include in model_data
+  param1 = param1  # Include in analysis_data
 )
 ```
 
@@ -1900,28 +1900,28 @@ list(
 
 ### Issue: Prompt builder receives NULL parameters
 
-**Cause**: Parameters not extracted from model_data in `interpret_core()`
+**Cause**: Parameters not extracted from analysis_data in `interpret_core()`
 
-**Solution**: Add parameter extraction in `interpret_core()` for your model type (similar to FA pattern at lines 96-108)
+**Solution**: Add parameter extraction in `interpret_core()` for your analysis type (similar to FA pattern at lines 96-108)
 
 ```r
 # In interpret_core()
 param1 <- NULL
 param2 <- NULL
 
-if (!is.null(model_data$param1)) {
-  param1 <- model_data$param1
-  param2 <- model_data$param2
+if (!is.null(analysis_data$param1)) {
+  param1 <- analysis_data$param1
+  param2 <- analysis_data$param2
 }
 
 # Pass to prompt builder
 main_prompt <- build_main_prompt(
-  model_data = model_data,
+  analysis_data = analysis_data,
   variable_info = variable_info,
   word_limit = word_limit,
   param1 = param1,
   param2 = param2,
-  model_type = model_type
+  analysis_type = analysis_type
 )
 ```
 
@@ -1929,12 +1929,12 @@ main_prompt <- build_main_prompt(
 
 ### Issue: JSON validation fails with valid structure
 
-**Cause**: Expected keys not correctly extracted from model_data
+**Cause**: Expected keys not correctly extracted from analysis_data
 
-**Solution**: Debug expected keys in `validate_parsed_result.{model}()`:
+**Solution**: Debug expected keys in `validate_parsed_result.{analysis}()`:
 ```r
 # Temporarily add debugging
-expected_keys <- ... # Extract from model_data
+expected_keys <- ... # Extract from analysis_data
 message("Expected keys: ", paste(expected_keys, collapse = ", "))
 message("Actual keys: ", paste(names(parsed_result), collapse = ", "))
 ```

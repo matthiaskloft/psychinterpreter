@@ -25,16 +25,16 @@ test_that("plot.fa_interpretation validates input object", {
 
   expect_error(
     plot(bad_object),
-    "must contain model_data with loadings_df"
+    "must contain analysis_data with loadings_df"
   )
 
-  # Test with fa_interpretation object missing model_data
+  # Test with fa_interpretation object missing analysis_data
   bad_object <- list(suggested_names = list())
   class(bad_object) <- c("fa_interpretation", "list")
 
   expect_error(
     plot(bad_object),
-    "must contain model_data with loadings_df"
+    "must contain analysis_data with loadings_df"
   )
 })
 

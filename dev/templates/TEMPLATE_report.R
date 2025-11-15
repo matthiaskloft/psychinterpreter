@@ -8,7 +8,7 @@
 #' diagnostic warnings. Supports both text and markdown output formats.
 #'
 #' @param interpretation {model}_interpretation object containing:
-#'   \item{model_data}{Model data from build_model_data.{CLASS}()}
+#'   \item{analysis_data}{Analysis data from build_analysis_data.{CLASS}()}
 #'   \item{interpretation}{LLM interpretation results (list)}
 #'   \item{diagnostics}{Diagnostic information}
 #'   \item{output_format}{Output format ("text" or "markdown")}
@@ -36,7 +36,7 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
   # Extract components from interpretation object
   # ============================================================================
 
-  model_data <- interpretation$model_data
+  analysis_data <- interpretation$analysis_data
   llm_result <- interpretation$interpretation
   diagnostics <- interpretation$diagnostics
   output_format <- interpretation$output_format
@@ -53,16 +53,16 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
 
   # Section 1: Header with metadata
   header <- build_report_header_{model}(
-    model_data = model_data,
-    provider = provider,
-    model = model,
+    analysis_data = analysis_data,
+    llm_provider = llm_provider,
+    llm_model = llm_model,
     output_format = output_format
   )
 
   # Section 2: Component interpretations
   interpretations_section <- build_{component}_interpretations_{model}(
     llm_result = llm_result,
-    model_data = model_data,
+    analysis_data = analysis_data,
     output_format = output_format
   )
 
@@ -73,7 +73,7 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
   #   - IRT: Item statistics table
   #   - CDM: Q-matrix or attribute profiles
   additional_section <- build_additional_data_section_{model}(
-    model_data = model_data,
+    analysis_data = analysis_data,
     output_format = output_format
   )
 
@@ -116,31 +116,31 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
 #'
 #' Creates the header section with title, metadata, and LLM information.
 #'
-#' @param model_data Model data
-#' @param provider LLM provider name
-#' @param model LLM model name
+#' @param analysis_data Analysis data
+#' @param llm_provider LLM provider name
+#' @param llm_model LLM model name
 #' @param output_format Output format ("text" or "markdown")
 #'
 #' @return Character string with formatted header
 #' @keywords internal
 #' @noRd
-build_report_header_{model} <- function(model_data,
-                                         provider,
-                                         model,
+build_report_header_{model} <- function(analysis_data,
+                                         llm_provider,
+                                         llm_model,
                                          output_format) {
 
   # Pattern from fa_report.R:132-226
 
   # ============================================================================
-  # Extract metadata from model_data
+  # Extract metadata from analysis_data
   # ============================================================================
 
-  n_components <- model_data$n_components
-  n_variables <- model_data$n_variables
+  n_components <- analysis_data$n_components
+  n_variables <- analysis_data$n_variables
 
   # Optional: Extract model-specific parameters
-  param1 <- model_data${PARAM1}  # TODO: Replace with actual param name
-  param2 <- model_data${PARAM2}  # TODO: Replace with actual param name
+  param1 <- analysis_data${PARAM1}  # TODO: Replace with actual param name
+  param2 <- analysis_data${PARAM2}  # TODO: Replace with actual param name
 
 
   # ============================================================================
@@ -166,8 +166,8 @@ build_report_header_{model} <- function(model_data,
     # Add LLM info
     header <- paste0(
       header,
-      "**LLM Provider:** ", provider, "\n",
-      "**LLM Model:** ", model, "\n"
+      "**LLM Provider:** ", llm_provider, "\n",
+      "**LLM Model:** ", llm_model, "\n"
     )
 
   } else {
@@ -190,8 +190,8 @@ build_report_header_{model} <- function(model_data,
     # Add LLM info
     header <- paste0(
       header,
-      "LLM Provider: ", provider, "\n",
-      "LLM Model: ", model, "\n"
+      "LLM Provider: ", llm_provider, "\n",
+      "LLM Model: ", llm_model, "\n"
     )
   }
 
@@ -208,14 +208,14 @@ build_report_header_{model} <- function(model_data,
 #' Formats the LLM-generated interpretations for each {COMPONENT_LOWER}.
 #'
 #' @param llm_result List of {COMPONENT_LOWER} interpretations from LLM
-#' @param model_data Model data
+#' @param analysis_data Analysis data
 #' @param output_format Output format ("text" or "markdown")
 #'
 #' @return Character string with formatted interpretations
 #' @keywords internal
 #' @noRd
 build_{component}_interpretations_{model} <- function(llm_result,
-                                                       model_data,
+                                                       analysis_data,
                                                        output_format) {
 
   # Pattern from fa_report.R:321-475
@@ -291,13 +291,13 @@ build_{component}_interpretations_{model} <- function(llm_result,
 #' Formats model-specific additional information (e.g., correlations, statistics).
 #' Returns NULL if no additional data to display.
 #'
-#' @param model_data Model data
+#' @param analysis_data Analysis data
 #' @param output_format Output format ("text" or "markdown")
 #'
 #' @return Character string with formatted additional data, or NULL
 #' @keywords internal
 #' @noRd
-build_additional_data_section_{model} <- function(model_data, output_format) {
+build_additional_data_section_{model} <- function(analysis_data, output_format) {
 
   # Pattern from fa_report.R:477-693 (build_correlations_section)
 
@@ -315,7 +315,7 @@ build_additional_data_section_{model} <- function(model_data, output_format) {
   # has_data <- !is.null(model_data$item_stats)
 
   # TODO: Replace with your check
-  additional_data <- model_data$additional_data_field  # TODO: Replace
+  additional_data <- analysis_data$additional_data_field  # TODO: Replace
   has_data <- !is.null(additional_data)
 
   if (!has_data) {

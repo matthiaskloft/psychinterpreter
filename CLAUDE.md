@@ -4,13 +4,13 @@
 
 **For technical/architectural details**: See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md)
 
-**Status**: Stable (2025-11-12) - Model-type-aware configuration system fully implemented
+**Status**: Stable (2025-11-15) - Namespace refactoring completed for clarity
 
-**Current API** (as of 2025-11-12):
+**Current API** (as of 2025-11-15):
 - Main entry point: `interpret()` - Universal interpretation function
-- Configuration objects: `llm_args()`, `interpretation_args(model_type, ...)`, `output_args()`
-- Architecture: interpret() → interpret_model.{class}() → build_model_data.{class}()
-- S3 generics: build_model_data(), build_system_prompt(), build_main_prompt(), export_interpretation()
+- Configuration objects: `llm_args()`, `interpretation_args(analysis_type, ...)`, `output_args()`
+- Architecture: interpret() → interpret_model.{class}() → build_analysis_data.{class}()
+- S3 generics: build_analysis_data(), build_system_prompt(), build_main_prompt(), export_interpretation()
 
 ---
 
@@ -23,13 +23,14 @@
 - `chat_session()` - Create persistent LLM session (saves ~40-60% tokens for multiple analyses)
 
 **Standards for Examples/Tests**:
-- Always use `provider = "ollama"` and `model = "gpt-oss:20b-cloud"`
+- Always use `llm_provider = "ollama"` and `llm_model = "gpt-oss:20b-cloud"`
 - For LLM tests: `word_limit = 20` (minimum allowed) for token efficiency
 
 **Documentation Structure**:
 - **CLAUDE.md** (this file): Usage guide and quick reference for Claude Code sessions
 - **dev/DEVELOPER_GUIDE.md**: Technical architecture and implementation details for maintainers
 - **dev/TESTING_GUIDELINES.md**: Testing standards and patterns
+- **dev/TEST_OPTIMIZATION_PLAN.md**: Test suite optimization strategy (Phase 1 complete - 75% faster!)
 - **dev/templates/**: Ready-to-copy code templates for implementing new model types (GM, IRT, CDM)
 - **dev/MODEL_IMPLEMENTATION_GUIDE.md**: Conceptual guide for new model type implementation
 
@@ -73,8 +74,8 @@ var_info <- data.frame(
 interpretation <- interpret(
   fit_results = fa_result,
   variable_info = var_info,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 
 # 4. View and export results
@@ -88,9 +89,9 @@ export_interpretation(interpretation, "results.md", "md") # Export
 ```r
 # Create session once (saves ~40-60% tokens)
 chat <- chat_session(
-  model_type = "fa",
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  analysis_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 
 # Reuse for multiple interpretations
@@ -106,7 +107,7 @@ print(chat)
 
 # Usage Patterns
 
-The `interpret()` function accepts different input types. **All arguments are named** to prevent confusion.
+The `interpret()` function accepts different input types. **All arguments must be named** to prevent confusion.
 
 ## Pattern 1: Fitted Model Objects (Recommended)
 
@@ -115,8 +116,8 @@ The `interpret()` function accepts different input types. **All arguments are na
 interpret(
   fit_results = psych::fa(...),        # Or lavaan::efa(), mirt::mirt(), etc.
   variable_info = var_info,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 ```
 
@@ -136,9 +137,9 @@ interpret(
     Phi = correlation_matrix          # Optional (for oblique rotations)
   ),
   variable_info = var_info,
-  model_type = "fa",                  # REQUIRED for lists
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  analysis_type = "fa",               # REQUIRED for lists
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 ```
 
@@ -146,7 +147,7 @@ interpret(
 
 ```r
 # Create session once
-chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+chat <- chat_session(analysis_type = "fa", llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 
 # Use with any fit_results type
 interpret(chat_session = chat, fit_results = fa_result, variable_info = var_info)
@@ -160,7 +161,7 @@ The package supports a **dual interface pattern** for maximum flexibility: you c
 ```r
 # Create configuration objects for reusable settings
 interp_config <- interpretation_args(
-  model_type = "fa",
+  analysis_type = "fa",
   cutoff = 0.3,
   n_emergency = 3,
   hide_low_loadings = FALSE
@@ -183,8 +184,8 @@ interpret(
   interpretation_args = interp_config,
   llm_args = llm_config,
   output_args = output_config,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 
 # Or mix config objects with direct parameters
@@ -192,8 +193,8 @@ interpret(
   fit_results = fa_result,
   variable_info = var_info,
   interpretation_args = interp_config,  # Use config for interpretation settings
-  provider = "ollama",                   # Direct parameters for LLM
-  model = "gpt-oss:20b-cloud",
+  llm_provider = "ollama",               # Direct parameters for LLM
+  llm_model = "gpt-oss:20b-cloud",
   word_limit = 150                       # Direct parameter OVERRIDES llm_args
 )
 ```
@@ -202,9 +203,9 @@ interpret(
 
 When both configuration objects and direct parameters are provided:
 
-1. **Direct parameters always win**: `word_limit = 150` overrides `llm_args = llm_args(word_limit = 100)`
-2. **Config objects provide defaults**: If no direct parameter, uses value from config object
-3. **Package defaults as fallback**: If neither provided, uses package defaults
+1. **Direct parameters always take precedence**: `word_limit = 150` overrides `llm_args = llm_args(word_limit = 100)`
+2. **Configuration objects provide defaults**: If no direct parameter is specified, uses value from config object
+3. **Package defaults as fallback**: If neither is provided, uses package defaults
 
 **Example**:
 ```r
@@ -214,7 +215,7 @@ llm_config <- llm_args(word_limit = 100)
 interpret(
   ...,
   llm_args = llm_config,  # word_limit = 100
-  word_limit = 150        # This wins! Final word_limit = 150
+  word_limit = 150        # This takes precedence! Final word_limit = 150
 )
 ```
 
@@ -229,7 +230,7 @@ interpret(
 - Quick overrides of config object values
 - Learning the package (more explicit)
 
-**When to use each**:
+**Pattern selection guide**:
 - **Single analysis**: Pattern 1 (fitted model) - simplest
 - **Multiple analyses**: Pattern 3 (chat session) - most efficient
 - **Custom data**: Pattern 2 (structured list)
@@ -319,17 +320,17 @@ Sys.setenv(ANTHROPIC_API_KEY = "your-key")   # Anthropic
 ## 1. Positional vs Named Arguments
 
 ```r
-# ❌ WRONG - positional arguments
+# ❌ INCORRECT - positional arguments
 interpret(chat, loadings, var_info)
 
 # ✅ CORRECT - named arguments
 interpret(chat_session = chat, fit_results = loadings, variable_info = var_info)
 ```
 
-## 2. Missing model_type for Structured Lists
+## 2. Missing analysis_type for Structured Lists
 
 ```r
-# ❌ WRONG
+# ❌ INCORRECT
 interpret(
   fit_results = list(loadings = loadings_matrix),
   variable_info = var_info
@@ -339,7 +340,7 @@ interpret(
 interpret(
   fit_results = list(loadings = loadings_matrix),
   variable_info = var_info,
-  model_type = "fa"
+  analysis_type = "fa"
 )
 ```
 
@@ -347,11 +348,11 @@ interpret(
 
 ```r
 # ❌ INEFFICIENT - creates new session each time (~2x token cost)
-result1 <- interpret(fit_results = fa1, variable_info = vars1, provider = "ollama", model = "gpt-oss:20b-cloud")
-result2 <- interpret(fit_results = fa2, variable_info = vars2, provider = "ollama", model = "gpt-oss:20b-cloud")
+result1 <- interpret(fit_results = fa1, variable_info = vars1, llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+result2 <- interpret(fit_results = fa2, variable_info = vars2, llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 
 # ✅ EFFICIENT - reuse session (saves ~40-60% tokens)
-chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+chat <- chat_session(analysis_type = "fa", llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 result1 <- interpret(chat_session = chat, fit_results = fa1, variable_info = vars1)
 result2 <- interpret(chat_session = chat, fit_results = fa2, variable_info = vars2)
 ```
@@ -359,7 +360,7 @@ result2 <- interpret(chat_session = chat, fit_results = fa2, variable_info = var
 ## 4. Wrong Pipe Operator in Package Code
 
 ```r
-# ❌ WRONG - magrittr pipe
+# ❌ INCORRECT - magrittr pipe
 data %>% dplyr::filter(x > 0)
 
 # ✅ CORRECT - base R pipe
@@ -369,10 +370,10 @@ data |> dplyr::filter(x > 0)
 ## 5. additional_info Parameter Location
 
 ```r
-# ❌ WRONG - additional_info inside fit_results list
+# ❌ INCORRECT - additional_info inside fit_results list
 interpret(
   fit_results = list(loadings = loadings, additional_info = "Context"),
-  variable_info = var_info, model_type = "fa"
+  variable_info = var_info, analysis_type = "fa"
 )
 
 # ✅ CORRECT - additional_info as separate parameter
@@ -380,7 +381,7 @@ interpret(
   fit_results = list(loadings = loadings),
   variable_info = var_info,
   additional_info = "Context",  # Separate parameter
-  model_type = "fa"
+  analysis_type = "fa"
 )
 ```
 
@@ -396,27 +397,27 @@ devtools::document()  # ✅ ALWAYS run this
 ```r
 # ❌ INEFFICIENT
 interpret(fit_results = list(loadings = loadings), variable_info = var_info,
-          model_type = "fa", provider = "ollama", word_limit = 150)  # Default, wastes tokens
+          analysis_type = "fa", llm_provider = "ollama", word_limit = 150)  # Default, wastes tokens
 
 # ✅ EFFICIENT
 interpret(fit_results = list(loadings = loadings), variable_info = var_info,
-          model_type = "fa", provider = "ollama", word_limit = 20)   # Minimum allowed
+          analysis_type = "fa", llm_provider = "ollama", word_limit = 20)   # Minimum allowed
 ```
 
 ---
 
 # Troubleshooting
 
-## "Error: model_type must be specified"
+## "Error: analysis_type must be specified"
 
-**Cause**: Using structured list without specifying model_type
+**Cause**: Using structured list without specifying analysis_type
 
 **Solution**:
 ```r
 interpret(
   fit_results = list(loadings = loadings_matrix),
   variable_info = var_info,
-  model_type = "fa"
+  analysis_type = "fa"
 )
 ```
 
@@ -484,7 +485,7 @@ interpret(..., echo = "all")
 ## Key Functions
 
 | Function | Purpose |
-|----------|---------|
+|----------|----------|
 | `interpret()` | Universal interpretation function (recommended) |
 | `chat_session()` | Create persistent LLM session |
 | `export_interpretation()` | Export to txt/md files |
@@ -514,7 +515,7 @@ interpret(..., echo = "all")
 **See dev/DEVELOPER_GUIDE.md section 1.3 for detailed file structure**
 
 | Category | Key Files |
-|----------|-----------|
+|----------|-------------|
 | **Core** | core_interpret_dispatch.R, core_interpret.R, core_constants.R |
 | **S3 Generics** | s3_model_data.R, s3_prompt_builder.R, s3_json_parser.R, s3_export.R |
 | **Classes** | class_chat_session.R, class_interpretation.R |
@@ -590,7 +591,7 @@ Update the developer guide when making **architectural or implementation changes
 
 ---
 
-**Last Updated**: 2025-11-12
+**Last Updated**: 2025-11-15
 **Maintainer**: Update when making significant user-facing changes
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
 - use kable() and kable_styling() for .Qmd articles

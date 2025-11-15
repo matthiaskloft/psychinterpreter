@@ -15,7 +15,7 @@
 #' Creates the LLM system prompt that defines the expert persona and interpretation
 #' guidelines for {MODEL} analysis.
 #'
-#' @param model_type Model type identifier (should be "{model}")
+#' @param analysis_type Analysis type identifier (should be "{model}")
 #' @param ... Additional arguments (ignored)
 #'
 #' @return Character string with system prompt
@@ -24,7 +24,7 @@
 #' @examples
 #' prompt <- build_system_prompt("{model}")
 #' cat(prompt)
-build_system_prompt.{model} <- function(model_type, ...) {
+build_system_prompt.{model} <- function(analysis_type, ...) {
 
   # Pattern from fa_prompt_builder.R:23-41
 
@@ -55,7 +55,7 @@ build_system_prompt.{model} <- function(model_type, ...) {
 #' Formats {MODEL} data into a structured user prompt for LLM interpretation,
 #' including variable descriptions, {DATA_TYPE}, and output format specifications.
 #'
-#' @param model_data Model data from build_model_data.{CLASS}() containing {DATA_TYPE}
+#' @param analysis_data Analysis data from build_analysis_data.{CLASS}() containing {DATA_TYPE}
 #' @param variable_info Data frame with variable names and descriptions
 #' @param word_limit Maximum words per {COMPONENT_LOWER} interpretation (default: 150)
 #' @param additional_info Optional additional context string
@@ -68,15 +68,15 @@ build_system_prompt.{model} <- function(model_type, ...) {
 #'
 #' @examples
 #' \dontrun{
-#' model_data <- build_model_data(fit, var_info, model_type = "{model}")
+#' analysis_data <- build_analysis_data(fit, var_info, analysis_type = "{model}")
 #' prompt <- build_main_prompt(
-#'   model_data,
+#'   analysis_data,
 #'   var_info,
 #'   word_limit = 100
 #' )
 #' cat(prompt)
 #' }
-build_main_prompt.{model} <- function(model_data,
+build_main_prompt.{model} <- function(analysis_data,
                                        variable_info,
                                        word_limit = 150,
                                        additional_info = NULL,
@@ -87,12 +87,12 @@ build_main_prompt.{model} <- function(model_data,
   # Pattern from fa_prompt_builder.R:68-341
 
   # ============================================================================
-  # Extract data from model_data
+  # Extract data from analysis_data
   # ============================================================================
 
-  data_field1 <- model_data$data_field1  # TODO: Replace with actual field name
-  data_field2 <- model_data$data_field2  # TODO: Replace with actual field name
-  n_components <- model_data$n_components
+  data_field1 <- analysis_data$data_field1  # TODO: Replace with actual field name
+  data_field2 <- analysis_data$data_field2  # TODO: Replace with actual field name
+  n_components <- analysis_data$n_components
 
   # Generate component identifiers (e.g., "Cluster_1", "Factor_1", "Item_1")
   component_ids <- paste0("{COMPONENT}_", seq_len(n_components))

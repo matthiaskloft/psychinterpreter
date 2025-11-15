@@ -3,10 +3,10 @@
 # This file contains constants used throughout the package to ensure consistency
 # and make it easier to add new model types.
 
-#' Valid Model Types
+#' Valid Analysis Types
 #'
-#' Vector of valid model type identifiers supported by the package.
-#' When implementing a new model type, add it to this vector.
+#' Vector of valid analysis type identifiers supported by the package.
+#' When implementing a new analysis type, add it to this vector.
 #'
 #' Current types:
 #' - "fa": Factor Analysis
@@ -16,54 +16,54 @@
 #'
 #' @keywords internal
 #' @noRd
-VALID_MODEL_TYPES <- c("fa", "gm", "irt", "cdm")
+VALID_ANALYSIS_TYPES <- c("fa", "gm", "irt", "cdm")
 
-# Model types with full implementation
-IMPLEMENTED_MODEL_TYPES <- c("fa")
+# Analysis types with full implementation
+IMPLEMENTED_ANALYSIS_TYPES <- c("fa")
 
 
-#' Validate Model Type
+#' Validate Analysis Type
 #'
-#' Internal helper to validate model_type parameter against VALID_MODEL_TYPES.
+#' Internal helper to validate analysis_type parameter against VALID_ANALYSIS_TYPES.
 #' Provides clear error messages when invalid type is provided.
 #'
-#' @param model_type Character string representing the model type
+#' @param analysis_type Character string representing the analysis type
 #' @param allow_null Logical. If TRUE, NULL values are allowed (default: FALSE)
 #'
-#' @return Invisibly returns the validated model_type
+#' @return Invisibly returns the validated analysis_type
 #' @keywords internal
 #' @noRd
-validate_model_type <- function(model_type, allow_null = FALSE) {
+validate_analysis_type <- function(analysis_type, allow_null = FALSE) {
   # Allow NULL if specified
-  if (allow_null && is.null(model_type)) {
+  if (allow_null && is.null(analysis_type)) {
     return(invisible(NULL))
   }
 
   # Check for NULL when not allowed
-  if (is.null(model_type)) {
+  if (is.null(analysis_type)) {
     cli::cli_abort(c(
-      "x" = "{.var model_type} cannot be NULL",
-      "i" = "Valid types: {.val {VALID_MODEL_TYPES}}"
+      "x" = "{.var analysis_type} cannot be NULL",
+      "i" = "Valid types: {.val {VALID_ANALYSIS_TYPES}}"
     ))
   }
 
   # Check if valid
-  if (!model_type %in% VALID_MODEL_TYPES) {
+  if (!analysis_type %in% VALID_ANALYSIS_TYPES) {
     cli::cli_abort(c(
-      "x" = "Invalid model_type: {.val {model_type}}",
-      "i" = "Valid types: {.val {VALID_MODEL_TYPES}}",
+      "x" = "Invalid analysis_type: {.val {analysis_type}}",
+      "i" = "Valid types: {.val {VALID_ANALYSIS_TYPES}}",
       "i" = "Only 'fa' (factor analysis) is currently fully implemented"
     ))
   }
 
   # Check if implemented
-  if (!model_type %in% IMPLEMENTED_MODEL_TYPES) {
+  if (!analysis_type %in% IMPLEMENTED_ANALYSIS_TYPES) {
     cli::cli_abort(c(
-      "x" = "Model type '{model_type}' is not yet implemented",
+      "x" = "Analysis type '{analysis_type}' is not yet implemented",
       "i" = "Currently only 'fa' (factor analysis) is fully supported",
-      "i" = "Implementation for '{model_type}' is planned for a future release"
+      "i" = "Implementation for '{analysis_type}' is planned for a future release"
     ))
   }
 
-  invisible(model_type)
+  invisible(analysis_type)
 }

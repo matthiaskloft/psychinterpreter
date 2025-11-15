@@ -9,7 +9,7 @@
 #'
 #' @param x Extracted loadings matrix/data.frame from structured list
 #' @param variable_info Variable descriptions dataframe
-#' @param model_type Character or NULL. Determined from chat_session if NULL
+#' @param analysis_type Character or NULL. Determined from chat_session if NULL
 #' @param chat_session chat_session object or NULL
 #' @param llm_args LLM configuration list
 #' @param interpretation_args Model-specific interpretation configuration list
@@ -19,22 +19,22 @@
 #' @return Interpretation object
 #' @keywords internal
 #' @noRd
-handle_raw_data_interpret <- function(x, model_type,
+handle_raw_data_interpret <- function(x, analysis_type,
                                       chat_session, llm_args = NULL,
                                       interpretation_args = NULL,
                                       output_args = NULL, ...) {
-  # Determine effective model_type
-  effective_model_type <- if (!is.null(chat_session)) {
-    chat_session$model_type
+  # Determine effective analysis_type
+  effective_analysis_type <- if (!is.null(chat_session)) {
+    chat_session$analysis_type
   } else {
-    model_type
+    analysis_type
   }
 
-  # Validate model_type
-  validate_model_type(effective_model_type)
+  # Validate analysis_type
+  validate_analysis_type(effective_analysis_type)
 
   # Route to model-specific function
-  switch(effective_model_type,
+  switch(effective_analysis_type,
     fa = {
       # Extract factor_cor_mat from dots if provided
       dots <- list(...)
@@ -47,7 +47,7 @@ handle_raw_data_interpret <- function(x, model_type,
           loadings = x,
           factor_cor_mat = factor_cor_mat
         ),
-        model_type = "fa",
+        analysis_type = "fa",
         chat_session = chat_session,
         llm_args = llm_args,
         interpretation_args = interpretation_args,
@@ -73,14 +73,14 @@ handle_raw_data_interpret <- function(x, model_type,
         "i" = "Currently only 'fa' (factor analysis) is supported"
       )
     ),
-    cli::cli_abort("Unsupported model_type: {effective_model_type}")
+    cli::cli_abort("Unsupported analysis_type: {effective_analysis_type}")
   )
 }
 
 
 #' Validate Chat Session Model Type Consistency
 #'
-#' Internal helper to ensure chat_session model_type matches expected type.
+#' Internal helper to ensure chat_session analysis_type matches expected type.
 #' Used by model-specific interpret() methods (e.g., interpret_model.fa()).
 #'
 #' @param chat_session chat_session object or NULL
@@ -89,27 +89,27 @@ handle_raw_data_interpret <- function(x, model_type,
 #' @return NULL (invisibly) if validation passes, errors otherwise
 #' @keywords internal
 #' @noRd
-validate_chat_session_for_model_type <- function(chat_session, expected_type) {
+validate_chat_session_for_analysis_type <- function(chat_session, expected_type) {
   if (!is.null(chat_session)) {
     if (!is.chat_session(chat_session)) {
       cli::cli_abort(
         c(
           "{.var chat_session} must be a chat_session object",
-          "i" = "Create one with chat_session(model_type, provider, model)"
+          "i" = "Create one with chat_session(analysis_type, provider, model)"
         )
       )
     }
 
-    if (chat_session$model_type != expected_type) {
+    if (chat_session$analysis_type != expected_type) {
       cli::cli_abort(
         c(
-          "Chat session model_type mismatch",
+          "Chat session analysis_type mismatch",
           "x" = paste0(
-            "chat_session has model_type '", chat_session$model_type, "' ",
+            "chat_session has analysis_type '", chat_session$analysis_type, "' ",
             "but expected '", expected_type, "'"
           ),
           "i" = paste0(
-            "Create a new chat_session with model_type = '", expected_type, "'"
+            "Create a new chat_session with analysis_type = '", expected_type, "'"
           )
         )
       )

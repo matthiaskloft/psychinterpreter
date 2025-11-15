@@ -84,10 +84,10 @@ plot.fa_interpretation <- function(x,
   }
 
   # Validate interpretation object structure
-  if (!"model_data" %in% names(x) || !"loadings_df" %in% names(x$model_data)) {
+  if (!"analysis_data" %in% names(x) || !"loadings_df" %in% names(x$analysis_data)) {
     cli::cli_abort(
       c(
-        "fa_interpretation object must contain model_data with loadings_df",
+        "fa_interpretation object must contain analysis_data with loadings_df",
         "i" = "This should be the output from interpret()"
       )
     )
@@ -95,14 +95,14 @@ plot.fa_interpretation <- function(x,
 
   # Use stored cutoff if not provided
   if (is.null(cutoff)) {
-    if ("model_data" %in% names(x) && "cutoff" %in% names(x$model_data)) {
-      cutoff <- x$model_data$cutoff
+    if ("analysis_data" %in% names(x) && "cutoff" %in% names(x$analysis_data)) {
+      cutoff <- x$analysis_data$cutoff
     } else {
       cutoff <- 0.3  # Default fallback
     }
   }
 
-  loadings_df <- x$model_data$loadings_df
+  loadings_df <- x$analysis_data$loadings_df
 
   # Convert to long format for plotting
   loadings_long <- loadings_df |>

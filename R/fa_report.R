@@ -133,9 +133,9 @@ build_report_header <- function(interpretation_results,
     if (!is.null(chat)) {
       report <- paste0(report,
                        "**LLM used:** ",
-                       chat$provider,
+                       chat$llm_provider,
                        " - ",
-                       chat$model %||% "default",
+                       chat$llm_model %||% "default",
                        "  \n")
 
       if (!is.null(interpretation_results$input_tokens) &&
@@ -153,9 +153,9 @@ build_report_header <- function(interpretation_results,
       report <- paste0(
         report,
         "**LLM used:** ",
-        llm_info$provider,
+        llm_info$llm_provider,
         " - ",
-        llm_info$model %||% "default",
+        llm_info$llm_model %||% "default",
         "  \n"
       )
     }
@@ -175,9 +175,9 @@ build_report_header <- function(interpretation_results,
     if (!is.null(chat)) {
       report <- paste0(report,
                        cli::style_bold("LLM used:"), " ",
-                       chat$provider,
+                       chat$llm_provider,
                        " - ",
-                       chat$model %||% "default",
+                       chat$llm_model %||% "default",
                        "\n")
 
       if (!is.null(interpretation_results$input_tokens) &&
@@ -194,9 +194,9 @@ build_report_header <- function(interpretation_results,
     } else if (!is.null(llm_info)) {
       report <- paste0(report,
                        cli::style_bold("LLM used:"), " ",
-                       llm_info$provider,
+                       llm_info$llm_provider,
                        " - ",
-                       llm_info$model %||% "default",
+                       llm_info$llm_model %||% "default",
                        "\n")
     }
   }
@@ -388,10 +388,10 @@ build_correlations_section <- function(factor_cor_mat,
   return(report)
 }
 
-#' Build Diagnostics Section
+#' Build Fit Summary Section
 #'
-#' Generates the diagnostics section showing cross-loading variables and variables
-#' not covered by any factor. Returns empty string if no diagnostics to report.
+#' Generates the fit summary section showing cross-loading variables and variables
+#' not covered by any factor. Returns empty string if no summary items to report.
 #'
 #' @param cross_loadings Data.frame. Cross-loading variables (can be NULL)
 #' @param no_loadings Data.frame. Variables with no significant loadings (can be NULL)
@@ -399,11 +399,11 @@ build_correlations_section <- function(factor_cor_mat,
 #' @param output_format Character. "cli" or "markdown"
 #' @param heading_level Integer. Markdown heading level (for markdown format)
 #'
-#' @return Character string with formatted diagnostics section
+#' @return Character string with formatted fit summary section
 #'
 #' @keywords internal
 #' @noRd
-build_diagnostics_section <- function(cross_loadings,
+build_fit_summary_section <- function(cross_loadings,
                                        no_loadings,
                                        cutoff,
                                        output_format,
@@ -552,12 +552,12 @@ build_fa_report <- function(interpretation_results,
   suggested_names <- interpretation_results$suggested_names
   llm_info <- interpretation_results$llm_info
   chat <- interpretation_results$chat
-  cross_loadings <- interpretation_results$diagnostics$cross_loadings
-  no_loadings <- interpretation_results$diagnostics$no_loadings
+  cross_loadings <- interpretation_results$fit_summary$cross_loadings
+  no_loadings <- interpretation_results$fit_summary$no_loadings
   elapsed_time <- interpretation_results$elapsed_time
-  # Extract from model_data where it's now stored
-  factor_cor_mat <- interpretation_results$model_data$factor_cor_mat
-  n_emergency <- interpretation_results$model_data$n_emergency %||% 2
+  # Extract from analysis_data where it's now stored
+  factor_cor_mat <- interpretation_results$analysis_data$factor_cor_mat
+  n_emergency <- interpretation_results$analysis_data$n_emergency %||% 2
 
   # Get factor column names
   factor_cols <- names(factor_summaries)
@@ -805,10 +805,10 @@ build_fa_report <- function(interpretation_results,
     }
   }
 
-  # 5. Diagnostics section (cross-loadings and no-loadings)
+  # 5. Fit summary section (cross-loadings and no-loadings)
   report <- paste0(
     report,
-    build_diagnostics_section(
+    build_fit_summary_section(
       cross_loadings = cross_loadings,
       no_loadings = no_loadings,
       cutoff = cutoff,
@@ -1007,10 +1007,10 @@ print.fa_interpretation <- function(x,
     # Extract n_factors and cutoff from the interpretation results if available
     n_factors <- length(x$component_summaries)
 
-    # Try to extract cutoff from model_data, fallback to report parsing, then default
+    # Try to extract cutoff from analysis_data, fallback to report parsing, then default
     cutoff <- 0.3  # Default fallback
-    if ("model_data" %in% names(x) && "cutoff" %in% names(x$model_data)) {
-      cutoff <- x$model_data$cutoff
+    if ("analysis_data" %in% names(x) && "cutoff" %in% names(x$analysis_data)) {
+      cutoff <- x$analysis_data$cutoff
     } else if ("report" %in% names(x)) {
       cutoff_match <- regexpr("Loading cutoff[:\\s]*([0-9.]+)", x$report)
       if (cutoff_match > 0) {
@@ -1069,8 +1069,8 @@ build_report.fa_interpretation <- function(interpretation,
                                           ...) {
   # Extract parameters from interpretation object
   n_factors <- length(interpretation$suggested_names)
-  # Extract cutoff from model_data
-  cutoff <- interpretation$model_data$cutoff %||% 0.3
+  # Extract cutoff from analysis_data
+  cutoff <- interpretation$analysis_data$cutoff %||% 0.3
 
   # Call existing build_fa_report function
   build_fa_report(

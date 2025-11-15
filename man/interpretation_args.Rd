@@ -4,10 +4,10 @@
 \alias{interpretation_args}
 \title{Create Model-Specific Interpretation Configuration}
 \usage{
-interpretation_args(model_type, ...)
+interpretation_args(analysis_type, ...)
 }
 \arguments{
-\item{model_type}{Character. Type of analysis: "fa" (factor analysis),
+\item{analysis_type}{Character. Type of analysis: "fa" (factor analysis),
 "gm" (gaussian mixture), "irt" (item response theory), or "cdm"
 (cognitive diagnosis model)}
 
@@ -19,10 +19,10 @@ A list with class "interpretation_args" containing validated settings
 }
 \description{
 Creates a configuration object for interpretation settings. The available
-parameters depend on the model_type.
+parameters depend on the analysis_type.
 }
 \details{
-\strong{Factor Analysis (model_type = "fa"):}
+\strong{Factor Analysis (analysis_type = "fa"):}
 \itemize{
 \item \code{cutoff}: Numeric. Minimum loading value to consider significant (default = 0.3)
 \item \code{n_emergency}: Integer. When a factor has no loadings above cutoff, use top N
@@ -40,11 +40,11 @@ not via \code{interpretation_args}.
 }
 \examples{
 # Factor analysis with default settings
-cfg <- interpretation_args(model_type = "fa")
+cfg <- interpretation_args(analysis_type = "fa")
 
 # Factor analysis with custom settings
 cfg <- interpretation_args(
-  model_type = "fa",
+  analysis_type = "fa",
   cutoff = 0.4,
   n_emergency = 3,
   hide_low_loadings = TRUE

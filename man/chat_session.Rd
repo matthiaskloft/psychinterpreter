@@ -5,9 +5,9 @@
 \title{Create Analysis Chat Session}
 \usage{
 chat_session(
-  model_type = "fa",
-  provider,
-  model = NULL,
+  analysis_type = "fa",
+  llm_provider,
+  llm_model = NULL,
   system_prompt = NULL,
   params = NULL,
   echo = "none",
@@ -15,12 +15,12 @@ chat_session(
 )
 }
 \arguments{
-\item{model_type}{Character. Type of analysis: "fa" (factor analysis), "gm" (gaussian mixture),
+\item{analysis_type}{Character. Type of analysis: "fa" (factor analysis), "gm" (gaussian mixture),
 "irt" (item response theory), or "cdm" (cognitive diagnosis model)}
 
-\item{provider}{Character. LLM provider (e.g., "anthropic", "openai", "ollama")}
+\item{llm_provider}{Character. LLM provider (e.g., "anthropic", "openai", "ollama")}
 
-\item{model}{Character. Model name (e.g., "claude-haiku-4-5-20251001")}
+\item{llm_model}{Character. Model name (e.g., "claude-haiku-4-5-20251001")}
 
 \item{system_prompt}{Character or NULL. Optional custom system prompt text to override the model-specific
 default system prompt. Use this to provide institution- or project-specific framing for the LLM
@@ -46,7 +46,7 @@ token costs.
 The chat_session object stores:
 \itemize{
 \item A persistent ellmer chat session with the model-specific system prompt already loaded
-\item Model type, provider, and model information
+\item Analysis type, provider, and model information
 \item Token usage tracking (cumulative input/output tokens across all interpretations)
 \item Session metadata (number of interpretations run, creation timestamp)
 }
@@ -79,7 +79,7 @@ result2 <- interpret_fa(loadings2, var_info2, chat_session = chat)
 # Check token usage
 print(chat)
 
-# Create session for different model type
+# Create session for different analysis type
 chat_gm <- chat_session("gm", "anthropic", "claude-haiku-4-5-20251001")
 }
 

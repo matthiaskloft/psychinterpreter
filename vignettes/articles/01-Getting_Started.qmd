@@ -70,8 +70,8 @@ var_info <- data.frame(
 interpretation <- interpret(
   fit_results = fa_result,
   variable_info = var_info,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 
 # 4. View results
@@ -181,8 +181,8 @@ Now use `interpret()` to get automatic factor interpretations:
 interpretation <- interpret(
   fit_results = fa_result,
   variable_info = variable_info,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 ```
 
@@ -263,8 +263,8 @@ You can control several aspects of the interpretation:
 interpretation <- interpret(
   fit_results = fa_result,
   variable_info = variable_info,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
 
   cutoff = 0.4,              # Threshold for including results (default: 0.3)
   hide_low_loadings = TRUE,  # hide low loadings below cutoff from the LLM
@@ -291,9 +291,9 @@ The LLM bases interpretations on your variable descriptions and statistical resu
 
 Yes! The package supports all providers supported by the [`ellmer`](https://ellmer.tidyverse.org/) package, for example:
 
-- **Ollama** (local, free): `provider = "ollama"`
-- **OpenAI** (API key required): `provider = "openai"`
-- **Anthropic Claude** (API key required): `provider = "anthropic"`
+- **Ollama** (local, free): `llm_provider = "ollama"`
+- **OpenAI** (API key required): `llm_provider = "openai"`
+- **Anthropic Claude** (API key required): `llm_provider = "anthropic"`
 
 **Q: How do I set API keys for OpenAI or Anthropic?**
 

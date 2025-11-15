@@ -5,6 +5,6 @@
 \title{Prompt Builder Framework}
 \description{
 S3 generic functions for building model-specific system and user prompts.
-Model-specific implementations are located in R/models/\{model_type\}/prompt_\{model_type\}.R
+Model-specific implementations are located in R/models/\{analysis_type\}/prompt_\{analysis_type\}.R
 }
 \keyword{internal}

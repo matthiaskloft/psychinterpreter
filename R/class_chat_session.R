@@ -4,10 +4,10 @@
 #' across multiple analyses to avoid repeating the system prompt and reduce
 #' token costs.
 #'
-#' @param model_type Character. Type of analysis: "fa" (factor analysis), "gm" (gaussian mixture),
+#' @param analysis_type Character. Type of analysis: "fa" (factor analysis), "gm" (gaussian mixture),
 #'   "irt" (item response theory), or "cdm" (cognitive diagnosis model)
-#' @param provider Character. LLM provider (e.g., "anthropic", "openai", "ollama")
-#' @param model Character. Model name (e.g., "claude-haiku-4-5-20251001")
+#' @param llm_provider Character. LLM provider (e.g., "anthropic", "openai", "ollama")
+#' @param llm_model Character. Model name (e.g., "claude-haiku-4-5-20251001")
 #' @param system_prompt Character or NULL. Optional custom system prompt text to override the model-specific
 #'   default system prompt. Use this to provide institution- or project-specific framing for the LLM
 #'   (e.g., preferred terminology, audience level, or reporting conventions). If NULL, the model-specific
@@ -22,7 +22,7 @@
 #' @details
 #' The chat_session object stores:
 #' - A persistent ellmer chat session with the model-specific system prompt already loaded
-#' - Model type, provider, and model information
+#' - Analysis type, provider, and model information
 #' - Token usage tracking (cumulative input/output tokens across all interpretations)
 #' - Session metadata (number of interpretations run, creation timestamp)
 #'
@@ -54,29 +54,29 @@
 #' # Check token usage
 #' print(chat)
 #'
-#' # Create session for different model type
+#' # Create session for different analysis type
 #' chat_gm <- chat_session("gm", "anthropic", "claude-haiku-4-5-20251001")
 #' }
 #'
 #' @export
-chat_session <- function(model_type = "fa",
-                        provider,
-                        model = NULL,
+chat_session <- function(analysis_type = "fa",
+                        llm_provider,
+                        llm_model = NULL,
                         system_prompt = NULL,
                         params = NULL,
                         echo = "none",
                         word_limit = 100) {
-  # Validate model_type
-  validate_model_type(model_type)
+  # Validate analysis_type
+  validate_analysis_type(analysis_type)
 
   # Validate inputs
-  if (!is.character(provider) || length(provider) != 1) {
-    cli::cli_abort("provider must be a single character string")
+  if (!is.character(llm_provider) || length(llm_provider) != 1) {
+    cli::cli_abort("llm_provider must be a single character string")
   }
 
-  if (!is.null(model) &&
-      (!is.character(model) || length(model) != 1)) {
-    cli::cli_abort("model must be a single character string or NULL")
+  if (!is.null(llm_model) &&
+      (!is.character(llm_model) || length(llm_model) != 1)) {
+    cli::cli_abort("llm_model must be a single character string or NULL")
   }
 
   if (is.null(params)) {
@@ -89,17 +89,17 @@ chat_session <- function(model_type = "fa",
   } else {
     # Delegate to model-specific system prompt builder (S3 dispatch)
     final_system_prompt <- build_system_prompt(
-      structure(list(), class = model_type),
+      structure(list(), class = analysis_type),
       word_limit = word_limit
     )
   }
 
   # Create provider/model specification
-  provider_spec <- if (!is.null(model)) {
-    provider <- tolower(provider)
-    paste0(provider, "/", model)
+  provider_spec <- if (!is.null(llm_model)) {
+    llm_provider <- tolower(llm_provider)
+    paste0(llm_provider, "/", llm_model)
   } else {
-    provider
+    llm_provider
   }
 
   # Initialize chat using generic ellmer::chat
@@ -114,7 +114,7 @@ chat_session <- function(model_type = "fa",
     cli::cli_abort(
       c(
         "Failed to initialize LLM chat",
-        "x" = "Provider: {.val {provider}}, Model: {.val {model %||% 'default'}}",
+        "x" = "Provider: {.val {llm_provider}}, Model: {.val {llm_model %||% 'default'}}",
         "i" = "Error: {e$message}",
         "i" = "Check your API credentials and model availability"
       )
@@ -124,10 +124,10 @@ chat_session <- function(model_type = "fa",
   # Create chat_session object using environment for reference semantics
   # This allows modifications (like incrementing counters) to persist
   chat_obj <- new.env(parent = emptyenv())
-  chat_obj$model_type <- model_type
+  chat_obj$analysis_type <- analysis_type
   chat_obj$chat <- chat
-  chat_obj$provider <- provider
-  chat_obj$model <- model
+  chat_obj$llm_provider <- llm_provider
+  chat_obj$llm_model <- llm_model
   chat_obj$params <- params
   chat_obj$echo <- echo
   chat_obj$created_at <- Sys.time()
@@ -138,7 +138,7 @@ chat_session <- function(model_type = "fa",
   chat_obj$total_output_tokens <- 0.0
   chat_obj$system_prompt <- final_system_prompt
 
-  class(chat_obj) <- c(paste0(model_type, "_chat_session"), "chat_session")
+  class(chat_obj) <- c(paste0(analysis_type, "_chat_session"), "chat_session")
   return(chat_obj)
 }
 
@@ -149,18 +149,18 @@ chat_session <- function(model_type = "fa",
 #'
 #' @export
 print.chat_session <- function(x, ...) {
-  # Get nice model type name
-  model_type_names <- c(
+  # Get nice analysis type name
+  analysis_type_names <- c(
     fa = "Factor Analysis",
     gm = "Gaussian Mixture",
     irt = "Item Response Theory",
     cdm = "Cognitive Diagnosis"
   )
-  model_type_name <- model_type_names[x$model_type] %||% x$model_type
+  analysis_type_name <- analysis_type_names[x$analysis_type] %||% x$analysis_type
 
-  cat(model_type_name, "Chat Session\n")
-  cat("Provider:", x$provider, "\n")
-  cat("Model:", x$model %||% "default", "\n")
+  cat(analysis_type_name, "Chat Session\n")
+  cat("Provider:", x$llm_provider, "\n")
+  cat("Model:", x$llm_model %||% "default", "\n")
   cat("Created:", as.character(x$created_at), "\n")
   cat("Interpretations run:", x$n_interpretations, "\n")
 
@@ -203,9 +203,9 @@ reset.chat_session <- function(chat_obj) {
 
   # Reset the chat session by creating a new one
   new_chat <- chat_session(
-    model_type = chat_obj$model_type,
-    provider = chat_obj$provider,
-    model = chat_obj$model,
+    analysis_type = chat_obj$analysis_type,
+    llm_provider = chat_obj$llm_provider,
+    llm_model = chat_obj$llm_model,
     system_prompt = chat_obj$system_prompt,  # Reuse same prompt
     params = chat_obj$params,
     echo = chat_obj$echo

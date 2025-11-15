@@ -92,8 +92,8 @@ test_that("Pattern 2: interpret() requires loadings in list", {
     interpret(
       fit_results = list(factor_cor_mat = phi),  # Missing loadings
       variable_info = var_info,
-      model_type = "fa",
-      provider = "ollama"  # Provide provider to get past that validation
+      analysis_type = "fa",
+      llm_provider = "ollama"  # Provide llm_provider to get past that validation
     ),
     "loadings.*required|must contain.*loadings"
   )
@@ -222,8 +222,8 @@ test_that("Misuse: interpret() errors when variable_info missing", {
   loadings <- minimal_loadings()
 
   expect_error(
-    interpret(fit_results = list(loadings = loadings), model_type = "fa",
-              provider = "ollama", model = "gpt-oss:20b-cloud"),
+    interpret(fit_results = list(loadings = loadings), analysis_type = "fa",
+              llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud"),
     "variable_info.*required"
   )
 })
@@ -235,8 +235,8 @@ test_that("Misuse: interpret() errors when variable_info not a data.frame", {
     interpret(
       fit_results = list(loadings = loadings),
       variable_info = list(a = 1, b = 2),
-      model_type = "fa",
-      provider = "ollama", model = "gpt-oss:20b-cloud"
+      analysis_type = "fa",
+      llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud"
     ),
     "variable_info.*must be a data frame"
   )
@@ -249,8 +249,8 @@ test_that("Misuse: interpret() errors when variable_info missing 'variable' colu
     interpret(
       fit_results = list(loadings = loadings),
       variable_info = data.frame(wrong_column = c("A", "B", "C")),
-      model_type = "fa",
-      provider = "ollama", model = "gpt-oss:20b-cloud"
+      analysis_type = "fa",
+      llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud"
     ),
     "variable.*column"
   )
@@ -270,7 +270,7 @@ test_that("Misuse: interpret() errors with invalid chat_session", {
   )
 })
 
-test_that("Misuse: interpret() handles chat_session with conflicting model_type", {
+test_that("Misuse: interpret() handles chat_session with conflicting analysis_type", {
   # This test validates parameter handling logic without LLM call
   # When both chat_session and model_type are provided, chat_session takes precedence
   # Full behavior tested in test-chat_fa.R
@@ -287,7 +287,7 @@ test_that("Misuse: interpret() handles chat_session with conflicting model_type"
       fit_results = loadings,
       variable_info = var_info,
       chat_session = list(not = "valid"),
-      model_type = "fa"
+      analysis_type = "fa"
     ),
     "chat_session.*must be a chat_session object"
   )
@@ -303,8 +303,8 @@ test_that("Misuse: interpret() errors for unsupported fit_results type", {
     interpret(
       fit_results = "not_a_valid_type",
       variable_info = var_info,
-      model_type = "fa",
-      provider = "ollama"  # Provide provider to get past that validation
+      analysis_type = "fa",
+      llm_provider = "ollama"  # Provide llm_provider to get past that validation
     ),
     "Cannot interpret"
   )

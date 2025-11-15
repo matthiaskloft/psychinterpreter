@@ -4,7 +4,7 @@
 \alias{extract_by_pattern.default}
 \title{Default method for extract_by_pattern}
 \usage{
-\method{extract_by_pattern}{default}(response, model_type, ...)
+\method{extract_by_pattern}{default}(response, analysis_type, ...)
 }
 \description{
 Default method for extract_by_pattern

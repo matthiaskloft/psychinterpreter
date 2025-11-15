@@ -115,7 +115,7 @@ export_interpretation.fa_interpretation <- function(interpretation_results,
     interpretation_results,
     n_factors = length(interpretation_results$component_summaries),
     output_format = output_format,
-    cutoff = interpretation_results$model_data$cutoff,
+    cutoff = interpretation_results$analysis_data$cutoff,
     suppress_heading = FALSE,
     heading_level = 1
   )

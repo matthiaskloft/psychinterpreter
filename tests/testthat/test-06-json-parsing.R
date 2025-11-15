@@ -1,5 +1,5 @@
 # Tests for FA JSON Parsing Methods
-# Focus: validate_parsed_result(), extract_by_pattern(), create_default_result() with model_type = "fa"
+# Focus: validate_parsed_result(), extract_by_pattern(), create_default_result() with analysis_type = "fa"
 
 # ==============================================================================
 # SETUP: Create Mock Model Data
@@ -427,10 +427,10 @@ test_that("JSON parsing methods work with real fixture data", {
   var_info <- minimal_variable_info()
 
   # Build model data using the actual function
-  model_data <- psychinterpreter:::build_model_data.fa(
+  model_data <- psychinterpreter:::build_analysis_data.fa(
     fa_model,
-    model_type = "fa",
-    interpretation_args = interpretation_args(model_type = "fa"),
+    analysis_type = "fa",
+    interpretation_args = interpretation_args(analysis_type = "fa"),
     variable_info = var_info
   )
 
@@ -458,10 +458,10 @@ test_that("create_default_result (FA)works with real model data structure", {
   fa_model <- minimal_fa_model()
   var_info <- minimal_variable_info()
 
-  model_data <- psychinterpreter:::build_model_data.fa(
+  model_data <- psychinterpreter:::build_analysis_data.fa(
     fa_model,
-    model_type = "fa",
-    interpretation_args = interpretation_args(model_type = "fa"),
+    analysis_type = "fa",
+    interpretation_args = interpretation_args(analysis_type = "fa"),
     variable_info = var_info
   )
 

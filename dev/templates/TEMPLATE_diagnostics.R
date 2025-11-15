@@ -6,7 +6,7 @@
 #' Performs model-specific diagnostic checks and generates warnings for potential
 #' issues in the {MODEL} results. Checks for common problems like {ISSUE1}, {ISSUE2}, etc.
 #'
-#' @param model_data Model data from build_model_data.{CLASS}()
+#' @param analysis_data Analysis data from build_analysis_data.{CLASS}()
 #' @param interpretation Interpretation result from LLM (list of {COMPONENT_LOWER} interpretations)
 #' @param ... Additional arguments (ignored)
 #'
@@ -20,14 +20,14 @@
 #' @examples
 #' \dontrun{
 #' # Create diagnostics
-#' diagnostics <- create_diagnostics(model_data, interpretation, model_type = "{model}")
+#' diagnostics <- create_diagnostics(analysis_data, interpretation, analysis_type = "{model}")
 #'
 #' # Check for warnings
 #' if (diagnostics$has_warnings) {
 #'   cat(paste(diagnostics$warnings, collapse = "\n"))
 #' }
 #' }
-create_diagnostics.{model} <- function(model_data, interpretation, ...) {
+create_diagnostics.{model} <- function(analysis_data, interpretation, ...) {
 
   # Pattern from fa_diagnostics.R:12-178
 
@@ -145,7 +145,7 @@ create_diagnostics.{model} <- function(model_data, interpretation, ...) {
 # Example helper 1: Detect specific issue
 # #' Detect {ISSUE1} in {MODEL} results
 # #'
-# #' @param model_data Model data from build_model_data.{CLASS}()
+# #' @param analysis_data Analysis data from build_analysis_data.{CLASS}()
 # #'
 # #' @return List with:
 # #'   \item{has_issue}{Logical - TRUE if issue detected}
@@ -239,7 +239,7 @@ create_diagnostics.{model} <- function(model_data, interpretation, ...) {
 # #' Public helper to identify {COMPONENTS} with {PROBLEMATIC_PATTERN}.
 # #' Useful for pre-interpretation diagnostics.
 # #'
-# #' @param model_data Model data from build_model_data.{CLASS}(), OR
+# #' @param analysis_data Analysis data from build_analysis_data.{CLASS}(), OR
 # #' @param data_field1 {DATA_FIELD1 description} (matrix or data frame)
 # #' @param threshold Threshold for {CRITERION} (default: {DEFAULT_VALUE})
 # #'
@@ -252,7 +252,7 @@ create_diagnostics.{model} <- function(model_data, interpretation, ...) {
 # #'
 # #' @examples
 # #' \dontrun{
-# #' model_data <- build_model_data(fit, var_info, model_type = "{model}")
+# #' analysis_data <- build_analysis_data(fit, var_info, analysis_type = "{model}")
 # #' issues <- find_{problematic_pattern}(model_data)
 # #' print(issues)
 # #' }

@@ -17,7 +17,7 @@ All providers supported by the `ellmer` package, including OpenAI, Anthropic, Ol
 
 ## Technical Highlights
 
-- S3 generic architecture: `interpret()` → `interpret_core()` → `build_model_data.fa()`
+- S3 generic architecture: `interpret()` → `interpret_core()` → `build_analysis_data.fa()`
 - Dual-tier token tracking (per-run and cumulative)
 - Environment-based session storage for proper reference semantics
 - Multi-tier JSON parsing with automatic fallback handling

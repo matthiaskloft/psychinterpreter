@@ -127,10 +127,10 @@ Set up persistent chat session. If you use Ollama, make sure to start the server
 # optionally pull the model from ollama
 #ollamar::pull("gpt-oss:20b-cloud")
 
-chat <- chat_session(model_type = "fa",
-  provider = "ollama",
-  model = "qwen3-vl:235b-instruct-cloud",
-  #model = "gpt-oss:20b-cloud",
+chat <- chat_session(analysis_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "qwen3-vl:235b-instruct-cloud",
+  #llm_model = "gpt-oss:20b-cloud",
   # set temperature and seed for reproducibility
   params = params(temperature = 0, seed = 42)
 )

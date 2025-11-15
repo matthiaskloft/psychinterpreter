@@ -4,7 +4,7 @@
 \alias{build_system_prompt.default}
 \title{Default method for build_system_prompt}
 \usage{
-\method{build_system_prompt}{default}(model_type, word_limit, ...)
+\method{build_system_prompt}{default}(analysis_type, word_limit, ...)
 }
 \description{
 Default method for build_system_prompt

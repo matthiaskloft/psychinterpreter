@@ -69,14 +69,14 @@ export_interpretation.default <- function(interpretation_results,
     )
   }
 
-  # Try to extract model_type
-  model_type <- interpretation_results$model_type %||% "unknown"
+  # Try to extract analysis_type
+  analysis_type <- interpretation_results$analysis_type %||% "unknown"
 
   cli::cli_abort(
     c(
-      "No export method for model type: {.val {model_type}}",
+      "No export method for model type: {.val {analysis_type}}",
       "i" = "Available types: fa",
-      "i" = "Implement export_interpretation.{model_type}_interpretation() in R/models/{model_type}/"
+      "i" = "Implement export_interpretation.{analysis_type}_interpretation() in R/models/{analysis_type}/"
     )
   )
 }

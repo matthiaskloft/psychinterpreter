@@ -15,11 +15,11 @@ New model type not recognized by validation functions
 
 ### Solution
 ```r
-# Update this constant when adding a new model type
-IMPLEMENTED_MODEL_TYPES <- c("fa", "gm")  # Add "gm" here
+# Update this constant when adding a new analysis type
+IMPLEMENTED_ANALYSIS_TYPES <- c("fa", "gm")  # Add "gm" here
 ```
 
-**Remember**: Just adding to `VALID_MODEL_TYPES` is not enough - must also add to `IMPLEMENTED_MODEL_TYPES`
+**Remember**: Just adding to `VALID_ANALYSIS_TYPES` is not enough - must also add to `IMPLEMENTED_ANALYSIS_TYPES`
 
 ---
 
@@ -35,7 +35,7 @@ Each model-specific file (e.g., `R/gm_model_data.R`)
 Ensure all 8 required methods have proper roxygen tags:
 ```r
 #' @export
-build_model_data.Mclust <- function(...) {
+build_analysis_data.Mclust <- function(...) {
   # implementation
 }
 ```
@@ -50,7 +50,7 @@ build_model_data.Mclust <- function(...) {
 Parameters not correctly extracted from various input formats
 
 ### Location
-`build_model_data.{class}()` methods
+`build_analysis_data.{class}()` methods
 
 ### Solution
 Each model type has unique parameter structures. Example for GM:
@@ -108,12 +108,12 @@ Various functions
 ### Solution
 ```r
 # ❌ BAD
-if (model_type == "fa" || model_type == "gm" || model_type == "irt") {
+if (analysis_type == "fa" || analysis_type == "gm" || analysis_type == "irt") {
   # ...
 }
 
 # ✅ GOOD
-if (model_type %in% IMPLEMENTED_MODEL_TYPES) {
+if (analysis_type %in% IMPLEMENTED_ANALYSIS_TYPES) {
   # ...
 }
 ```
@@ -207,9 +207,9 @@ Add roxygen documentation for ALL exported functions:
 #' \dontrun{
 #' library(mclust)
 #' fit <- Mclust(data, G = 3)
-#' model_data <- build_model_data(fit, var_info)
+#' model_data <- build_analysis_data(fit, var_info)
 #' }
-build_model_data.Mclust <- function(fit_results, variable_info, ...) {
+build_analysis_data.Mclust <- function(fit_results, variable_info, ...) {
   # implementation
 }
 ```
@@ -222,7 +222,7 @@ build_model_data.Mclust <- function(fit_results, variable_info, ...) {
 Model type works for one package but not others (e.g., mclust vs. flexmix for GM)
 
 ### Location
-Multiple `build_model_data.{class}()` methods needed
+Multiple `build_analysis_data.{class}()` methods needed
 
 ### Solution
 Create separate methods for each package class:
@@ -230,13 +230,13 @@ Create separate methods for each package class:
 ```r
 # For mclust package
 #' @export
-build_model_data.Mclust <- function(...) {
+build_analysis_data.Mclust <- function(...) {
   build_gm_model_data_internal(...)
 }
 
 # For flexmix package
 #' @export
-build_model_data.flexmix <- function(...) {
+build_analysis_data.flexmix <- function(...) {
   build_gm_model_data_internal(...)
 }
 

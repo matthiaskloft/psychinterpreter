@@ -12,16 +12,16 @@ NULL
 #' Checks that parsed JSON contains required fields and factor names.
 #'
 #' @param parsed List. Parsed JSON object
-#' @param model_type Character. "fa"
-#' @param model_data List. Contains factor_cols (factor names) and factor_summaries
+#' @param analysis_type Character. "fa"
+#' @param analysis_data List. Contains factor_cols (factor names) and factor_summaries
 #' @param ... Additional arguments (unused)
 #'
 #' @return List with component_summaries and suggested_names, or NULL if invalid
 #' @export
 #' @keywords internal
-validate_parsed_result.fa <- function(parsed, model_type, model_data, ...) {
-  factor_cols <- model_data$factor_cols
-  factor_summaries <- model_data$factor_summaries
+validate_parsed_result.fa <- function(parsed, analysis_type, analysis_data, ...) {
+  factor_cols <- analysis_data$factor_cols
+  factor_summaries <- analysis_data$factor_summaries
 
   # Check if parsed is a list and has factor names as keys
   if (!is.list(parsed) || length(parsed) == 0) {
@@ -99,16 +99,16 @@ validate_parsed_result.fa <- function(parsed, model_type, model_data, ...) {
 #' extract factor names and interpretations from raw LLM response.
 #'
 #' @param response Character. Raw LLM response
-#' @param model_type Character. "fa"
-#' @param model_data List. Contains factor_cols and factor_summaries
+#' @param analysis_type Character. "fa"
+#' @param analysis_data List. Contains factor_cols and factor_summaries
 #' @param ... Additional arguments (unused)
 #'
 #' @return List with component_summaries and suggested_names, or NULL if extraction failed
 #' @export
 #' @keywords internal
-extract_by_pattern.fa <- function(response, model_type, model_data, ...) {
-  factor_cols <- model_data$factor_cols
-  factor_summaries <- model_data$factor_summaries
+extract_by_pattern.fa <- function(response, analysis_type, analysis_data, ...) {
+  factor_cols <- analysis_data$factor_cols
+  factor_summaries <- analysis_data$factor_summaries
 
   suggested_names <- list()
   extraction_successful <- FALSE
@@ -190,16 +190,16 @@ extract_by_pattern.fa <- function(response, model_type, model_data, ...) {
 #'
 #' Creates default values when all parsing methods fail.
 #'
-#' @param model_type Character. "fa"
-#' @param model_data List. Contains factor_cols and factor_summaries
+#' @param analysis_type Character. "fa"
+#' @param analysis_data List. Contains factor_cols and factor_summaries
 #' @param ... Additional arguments (unused)
 #'
 #' @return List with component_summaries and suggested_names
 #' @export
 #' @keywords internal
-create_default_result.fa <- function(model_type, model_data, ...) {
-  factor_cols <- model_data$factor_cols
-  factor_summaries <- model_data$factor_summaries
+create_default_result.fa <- function(analysis_type, analysis_data, ...) {
+  factor_cols <- analysis_data$factor_cols
+  factor_summaries <- analysis_data$factor_summaries
 
   suggested_names <- list()
 

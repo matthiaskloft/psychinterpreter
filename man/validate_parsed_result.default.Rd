@@ -4,7 +4,7 @@
 \alias{validate_parsed_result.default}
 \title{Default method for validate_parsed_result}
 \usage{
-\method{validate_parsed_result}{default}(parsed, model_type, ...)
+\method{validate_parsed_result}{default}(parsed, analysis_type, ...)
 }
 \description{
 Default method for validate_parsed_result

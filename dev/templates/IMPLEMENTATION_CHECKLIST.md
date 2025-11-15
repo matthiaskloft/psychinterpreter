@@ -45,7 +45,7 @@
 
 - [ ] Copy `TEMPLATE_model_data.R` to `R/{model}_model_data.R`
 - [ ] Replace all placeholders
-- [ ] Implement `build_model_data.{CLASS}()` S3 method
+- [ ] Implement `build_analysis_data.{CLASS}()` S3 method
 - [ ] Implement `build_{model}_model_data_internal()` helper
 - [ ] Add data extraction logic from fitted model (lines ~120-150)
 - [ ] Add parameter validation (lines ~180-220)
@@ -213,9 +213,9 @@
 ### 7.0 Uncomment Extensibility Placeholders
 
 - [ ] **Modify `R/core_constants.R`** (line ~6)
-  - [ ] Uncomment "{model}" in VALID_MODEL_TYPES array
+  - [ ] Uncomment "{model}" in VALID_ANALYSIS_TYPES array
   - [ ] Verify array: `c("fa", "gm", "irt", "cdm")` (or subset based on what's implemented)
-  - [ ] Test validation accepts new model type
+  - [ ] Test validation accepts new analysis type
 
 - [ ] **Modify `R/core_interpret_dispatch.R`**
   - [ ] Uncomment {model}_args parameter in interpret() signature (line ~175)
@@ -235,14 +235,14 @@
 
 - [ ] **Optional: Add class-specific methods to `R/core_interpret_dispatch.R`**
   - [ ] Add `interpret_model.{CLASS}()` method (only if needed for special routing)
-  - [ ] Most model types don't need this - build_model_data.{CLASS}() is usually sufficient
+  - [ ] Most model types don't need this - build_analysis_data.{CLASS}() is usually sufficient
   - [ ] Test class-based routing if implemented
 
 ### 7.2 Verification
 
 - [ ] Run `devtools::document()` to update all documentation
 - [ ] Run `devtools::check()` - resolve any warnings/errors
-- [ ] Verify new model type is recognized by validation
+- [ ] Verify new analysis type is recognized by validation
 - [ ] All integration tests passing
 
 **Estimated Time**: 2-3 hours

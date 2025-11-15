@@ -4,10 +4,10 @@
 \alias{build_system_prompt.fa}
 \title{Build System Prompt for Factor Analysis}
 \usage{
-\method{build_system_prompt}{fa}(model_type, word_limit = 100, ...)
+\method{build_system_prompt}{fa}(analysis_type, word_limit = 100, ...)
 }
 \arguments{
-\item{model_type}{Object with class "fa"}
+\item{analysis_type}{Object with class "fa"}
 
 \item{word_limit}{Integer. Word limit for interpretations}
 

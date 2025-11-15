@@ -7,7 +7,7 @@
 #' interpretation, including expected {COMPONENT_LOWER} identifiers and value types.
 #'
 #' @param parsed_result Parsed JSON object (list)
-#' @param model_data Model data from build_model_data.{CLASS}()
+#' @param analysis_data Analysis data from build_analysis_data.{CLASS}()
 #' @param ... Additional arguments (ignored)
 #'
 #' @return Logical - TRUE if valid structure, FALSE otherwise
@@ -20,15 +20,15 @@
 #'   {COMPONENT}_1 = "Interpretation 1",
 #'   {COMPONENT}_2 = "Interpretation 2"
 #' )
-#' validate_parsed_result(result, model_data, model_type = "{model}")
+#' validate_parsed_result(result, analysis_data, analysis_type = "{model}")
 #' # Returns: TRUE
 #'
 #' # Invalid structure (missing keys)
 #' result <- list(foo = "bar")
-#' validate_parsed_result(result, model_data, model_type = "{model}")
+#' validate_parsed_result(result, analysis_data, analysis_type = "{model}")
 #' # Returns: FALSE
 #' }
-validate_parsed_result.{model} <- function(parsed_result, model_data, ...) {
+validate_parsed_result.{model} <- function(parsed_result, analysis_data, ...) {
 
   # Pattern from fa_json.R:22-94
 
@@ -64,8 +64,8 @@ validate_parsed_result.{model} <- function(parsed_result, model_data, ...) {
   # Check 4: Are keys valid {COMPONENT} identifiers?
   # ============================================================================
 
-  # Generate expected keys from model_data
-  n_components <- model_data$n_components
+  # Generate expected keys from analysis_data
+  n_components <- analysis_data$n_components
   expected_keys <- paste0("{COMPONENT}_", seq_len(n_components))
 
   # All actual keys should be in expected keys
@@ -126,7 +126,7 @@ validate_parsed_result.{model} <- function(parsed_result, model_data, ...) {
 #' fails. Uses regex patterns to find "{COMPONENT}_X": "interpretation" pairs.
 #'
 #' @param response Raw LLM response string
-#' @param model_data Model data from build_model_data.{CLASS}()
+#' @param analysis_data Analysis data from build_analysis_data.{CLASS}()
 #' @param ... Additional arguments (ignored)
 #'
 #' @return List with extracted interpretations, or NULL if extraction failed
@@ -138,10 +138,10 @@ validate_parsed_result.{model} <- function(parsed_result, model_data, ...) {
 #' response <- 'Here are results: {"{COMPONENT}_1": "Interp 1", "{COMPONENT}_2": "Interp 2"'
 #'
 #' # Extract using patterns
-#' result <- extract_by_pattern(response, model_data, model_type = "{model}")
+#' result <- extract_by_pattern(response, analysis_data, analysis_type = "{model}")
 #' # Returns: list({COMPONENT}_1 = "Interp 1", {COMPONENT}_2 = "Interp 2")
 #' }
-extract_by_pattern.{model} <- function(response, model_data, ...) {
+extract_by_pattern.{model} <- function(response, analysis_data, ...) {
 
   # Pattern from fa_json.R:130-208
 
@@ -149,7 +149,7 @@ extract_by_pattern.{model} <- function(response, model_data, ...) {
   # Get expected component identifiers
   # ============================================================================
 
-  n_components <- model_data$n_components
+  n_components <- analysis_data$n_components
   expected_keys <- paste0("{COMPONENT}_", seq_len(n_components))
 
   # ============================================================================
@@ -234,7 +234,7 @@ extract_by_pattern.{model} <- function(response, model_data, ...) {
 #' Generates default "Unable to interpret" messages when all parsing methods fail.
 #' Used as last resort to ensure the function returns a valid structure.
 #'
-#' @param model_data Model data from build_model_data.{CLASS}()
+#' @param analysis_data Analysis data from build_analysis_data.{CLASS}()
 #' @param ... Additional arguments (ignored)
 #'
 #' @return List with default interpretations for all {COMPONENT_LOWER}s
@@ -243,7 +243,7 @@ extract_by_pattern.{model} <- function(response, model_data, ...) {
 #' @examples
 #' \dontrun{
 #' # Create default result
-#' result <- create_default_result(model_data, model_type = "{model}")
+#' result <- create_default_result(analysis_data, analysis_type = "{model}")
 #'
 #' # Returns:
 #' # list(
@@ -252,7 +252,7 @@ extract_by_pattern.{model} <- function(response, model_data, ...) {
 #' #   ...
 #' # )
 #' }
-create_default_result.{model} <- function(model_data, ...) {
+create_default_result.{model} <- function(analysis_data, ...) {
 
   # Pattern from fa_json.R:210-226
 
@@ -260,7 +260,7 @@ create_default_result.{model} <- function(model_data, ...) {
   # Get component identifiers
   # ============================================================================
 
-  n_components <- model_data$n_components
+  n_components <- analysis_data$n_components
   component_ids <- paste0("{COMPONENT}_", seq_len(n_components))
 
   # ============================================================================

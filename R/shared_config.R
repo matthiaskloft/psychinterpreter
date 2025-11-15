@@ -8,9 +8,9 @@
 #' Create Model-Specific Interpretation Configuration
 #'
 #' Creates a configuration object for interpretation settings. The available
-#' parameters depend on the model_type.
+#' parameters depend on the analysis_type.
 #'
-#' @param model_type Character. Type of analysis: "fa" (factor analysis),
+#' @param analysis_type Character. Type of analysis: "fa" (factor analysis),
 #'   "gm" (gaussian mixture), "irt" (item response theory), or "cdm"
 #'   (cognitive diagnosis model)
 #' @param ... Model-specific parameters. For FA: cutoff, n_emergency,
@@ -19,7 +19,7 @@
 #' @return A list with class "interpretation_args" containing validated settings
 #'
 #' @details
-#' **Factor Analysis (model_type = "fa"):**
+#' **Factor Analysis (analysis_type = "fa"):**
 #' - `cutoff`: Numeric. Minimum loading value to consider significant (default = 0.3)
 #' - `n_emergency`: Integer. When a factor has no loadings above cutoff, use top N
 #'   highest loadings. If 0, factors with no significant loadings are labeled
@@ -37,40 +37,40 @@
 #'
 #' @examples
 #' # Factor analysis with default settings
-#' cfg <- interpretation_args(model_type = "fa")
+#' cfg <- interpretation_args(analysis_type = "fa")
 #'
 #' # Factor analysis with custom settings
 #' cfg <- interpretation_args(
-#'   model_type = "fa",
+#'   analysis_type = "fa",
 #'   cutoff = 0.4,
 #'   n_emergency = 3,
 #'   hide_low_loadings = TRUE
 #' )
-interpretation_args <- function(model_type, ...) {
-  # Validate model_type (also checks if implemented)
-  validate_model_type(model_type)
+interpretation_args <- function(analysis_type, ...) {
+  # Validate analysis_type (also checks if implemented)
+  validate_analysis_type(analysis_type)
 
   # Delegate to model-specific constructor
-  # validate_model_type ensures only implemented types reach here
-  if (model_type == "fa") {
+  # validate_analysis_type ensures only implemented types reach here
+  if (analysis_type == "fa") {
     return(interpretation_args_fa(...))
-  } else if (model_type == "gm") {
+  } else if (analysis_type == "gm") {
     # Placeholder for Gaussian Mixture implementation
     cli::cli_abort(c(
-      "x" = "interpretation_args for model_type '{model_type}' not yet implemented",
-      "i" = "Add interpretation_args_{model_type}() function and routing logic"
+      "x" = "interpretation_args for analysis_type '{analysis_type}' not yet implemented",
+      "i" = "Add interpretation_args_{analysis_type}() function and routing logic"
     ))
-  } else if (model_type %in% c("irt", "cdm")) {
+  } else if (analysis_type %in% c("irt", "cdm")) {
     # Placeholders for future model types
     cli::cli_abort(c(
-      "x" = "interpretation_args for model_type '{model_type}' not yet implemented",
-      "i" = "Add interpretation_args_{model_type}() function and routing logic"
+      "x" = "interpretation_args for analysis_type '{analysis_type}' not yet implemented",
+      "i" = "Add interpretation_args_{analysis_type}() function and routing logic"
     ))
   } else {
-    # Should never reach here due to validate_model_type() check
+    # Should never reach here due to validate_analysis_type() check
     cli::cli_abort(c(
-      "x" = "Unknown model_type: '{model_type}'",
-      "i" = "This should have been caught by validate_model_type()"
+      "x" = "Unknown analysis_type: '{analysis_type}'",
+      "i" = "This should have been caught by validate_analysis_type()"
     ))
   }
 }
@@ -111,7 +111,7 @@ interpretation_args_fa <- function(cutoff = 0.3,
 
   structure(
     list(
-      model_type = "fa",
+      analysis_type = "fa",
       cutoff = cutoff,
       n_emergency = as.integer(n_emergency),
       hide_low_loadings = hide_low_loadings,
@@ -127,8 +127,8 @@ interpretation_args_fa <- function(cutoff = 0.3,
 #' Creates a configuration object for LLM interaction settings. Groups all
 #' LLM-related parameters together.
 #'
-#' @param provider Character. LLM provider (e.g., "anthropic", "openai", "ollama")
-#' @param model Character or NULL. Model name (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022")
+#' @param llm_provider Character. LLM provider (e.g., "anthropic", "openai", "ollama")
+#' @param llm_model Character or NULL. LLM model name (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022")
 #' @param system_prompt Character or NULL. Custom system prompt to override default (default = NULL)
 #' @param params List or NULL. ellmer params object (created via ellmer::params()) (default = NULL)
 #' @param word_limit Integer. Maximum words for LLM interpretations (default = 150)
@@ -142,17 +142,17 @@ interpretation_args_fa <- function(cutoff = 0.3,
 #'
 #' @examples
 #' # Basic config
-#' cfg <- llm_args(provider = "ollama", model = "gpt-oss:20b-cloud")
+#' cfg <- llm_args(llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 #'
 #' # Advanced config
 #' cfg <- llm_args(
-#'   provider = "anthropic",
-#'   model = "claude-3-5-sonnet-20241022",
+#'   llm_provider = "anthropic",
+#'   llm_model = "claude-3-5-sonnet-20241022",
 #'   word_limit = 200,
 #'   params = ellmer::params(temperature = 0.7, seed = 42)
 #' )
-llm_args <- function(provider,
-                       model = NULL,
+llm_args <- function(llm_provider,
+                       llm_model = NULL,
                        system_prompt = NULL,
                        params = NULL,
                        word_limit = 150,
@@ -160,17 +160,17 @@ llm_args <- function(provider,
                        additional_info = NULL,
                        echo = "none") {
 
-  # Validate provider (required)
-  if (missing(provider) || is.null(provider)) {
-    cli::cli_abort("{.arg provider} is required (e.g., 'ollama', 'anthropic', 'openai')")
+  # Validate llm_provider (required)
+  if (missing(llm_provider) || is.null(llm_provider)) {
+    cli::cli_abort("{.arg llm_provider} is required (e.g., 'ollama', 'anthropic', 'openai')")
   }
-  if (!is.character(provider) || length(provider) != 1) {
-    cli::cli_abort("{.arg provider} must be a single character string")
+  if (!is.character(llm_provider) || length(llm_provider) != 1) {
+    cli::cli_abort("{.arg llm_provider} must be a single character string")
   }
 
-  # Validate model (optional but recommended)
-  if (!is.null(model) && (!is.character(model) || length(model) != 1)) {
-    cli::cli_abort("{.arg model} must be a single character string or NULL")
+  # Validate llm_model (optional but recommended)
+  if (!is.null(llm_model) && (!is.character(llm_model) || length(llm_model) != 1)) {
+    cli::cli_abort("{.arg llm_model} must be a single character string or NULL")
   }
 
   # Validate system_prompt
@@ -218,8 +218,8 @@ llm_args <- function(provider,
 
   structure(
     list(
-      provider = provider,
-      model = model,
+      llm_provider = llm_provider,
+      llm_model = llm_model,
       system_prompt = system_prompt,
       params = params,
       word_limit = as.integer(word_limit),
@@ -419,30 +419,30 @@ default_output_args <- function() {
 #' @keywords internal
 print.interpretation_args <- function(x, ...) {
   # Get model type name
-  model_type_names <- c(
+  analysis_type_names <- c(
     fa = "Factor Analysis",
     gm = "Gaussian Mixture",
     irt = "Item Response Theory",
     cdm = "Cognitive Diagnosis"
   )
-  model_name <- model_type_names[x$model_type] %||% x$model_type
+  model_name <- analysis_type_names[x$analysis_type] %||% x$analysis_type
 
   cli::cli_h2("{model_name} Interpretation Configuration")
 
   # Print model-specific parameters
-  if (x$model_type == "fa") {
+  if (x$analysis_type == "fa") {
     cli::cli_ul()
     cli::cli_li("Cutoff: {.val {x$cutoff}}")
     cli::cli_li("Emergency rule: Use top {.val {x$n_emergency}} loadings")
     cli::cli_li("Hide low loadings: {.val {x$hide_low_loadings}}")
     cli::cli_li("Sort loadings: {.val {x$sort_loadings}}")
     cli::cli_end()
-  } else if (x$model_type %in% c("gm", "irt", "cdm")) {
+  } else if (x$analysis_type %in% c("gm", "irt", "cdm")) {
     # Future model types - show generic configuration
-    cli::cli_alert_info("Configuration parameters: {.val {setdiff(names(x), 'model_type')}}")
+    cli::cli_alert_info("Configuration parameters: {.val {setdiff(names(x), 'analysis_type')}}")
   } else {
-    # Unknown model type
-    cli::cli_alert_warning("Unknown model_type: {.val {x$model_type}}")
+    # Unknown analysis type
+    cli::cli_alert_warning("Unknown analysis_type: {.val {x$analysis_type}}")
     cli::cli_alert_info("Configuration: {.val {names(x)}}")
   }
 
@@ -455,8 +455,8 @@ print.interpretation_args <- function(x, ...) {
 print.llm_args <- function(x, ...) {
   cli::cli_h2("LLM Configuration")
   cli::cli_ul()
-  cli::cli_li("Provider: {.val {x$provider}}")
-  cli::cli_li("Model: {.val {x$model %||% '(provider default)'}}")
+  cli::cli_li("Provider: {.val {x$llm_provider}}")
+  cli::cli_li("Model: {.val {x$llm_model %||% '(provider default)'}}")
   cli::cli_li("Word limit: {.val {x$word_limit}}")
   cli::cli_li("System prompt: {.val {if(is.null(x$system_prompt)) '(default)' else 'custom'}}")
   cli::cli_li("Echo: {.val {x$echo}}")
@@ -485,18 +485,18 @@ print.output_args <- function(x, ...) {
 
 #' Build LLM Arguments from Multiple Sources
 #'
-#' Internal helper that merges direct arguments (provider, model) with
+#' Internal helper that merges direct arguments (llm_provider, llm_model) with
 #' llm_args config object. Implements dual interface pattern.
 #'
 #' @param llm_args llm_args object, list, or NULL
-#' @param provider Character or NULL
-#' @param model Character or NULL
+#' @param llm_provider Character or NULL
+#' @param llm_model Character or NULL
 #' @param ... Additional arguments to merge
 #'
 #' @return llm_args object
 #' @keywords internal
 #' @noRd
-build_llm_args <- function(llm_args = NULL, provider = NULL, model = NULL, ...) {
+build_llm_args <- function(llm_args = NULL, llm_provider = NULL, llm_model = NULL, ...) {
   # If llm_args provided, validate and use it
   if (!is.null(llm_args)) {
     # Convert list to llm_args if needed
@@ -504,20 +504,20 @@ build_llm_args <- function(llm_args = NULL, provider = NULL, model = NULL, ...) 
       llm_args <- do.call("llm_args", llm_args)
     }
     # Merge with direct args if provided
-    if (!is.null(provider)) llm_args$provider <- provider
-    if (!is.null(model)) llm_args$model <- model
+    if (!is.null(llm_provider)) llm_args$llm_provider <- llm_provider
+    if (!is.null(llm_model)) llm_args$llm_model <- llm_model
     return(llm_args)
   }
 
   # Otherwise build from direct args
-  if (!is.null(provider)) {
+  if (!is.null(llm_provider)) {
     # Filter ... to only include valid llm_args parameters
     dots <- list(...)
     valid_llm_params <- c("system_prompt", "params", "word_limit",
                           "interpretation_guidelines", "additional_info", "echo")
     llm_dots <- dots[names(dots) %in% valid_llm_params]
 
-    return(do.call("llm_args", c(list(provider = provider, model = model), llm_dots)))
+    return(do.call("llm_args", c(list(llm_provider = llm_provider, llm_model = llm_model), llm_dots)))
   }
 
   # Nothing provided
@@ -531,51 +531,51 @@ build_llm_args <- function(llm_args = NULL, provider = NULL, model = NULL, ...) 
 #' for any model type.
 #'
 #' @param interpretation_args interpretation_args object, list, or NULL
-#' @param model_type Character or NULL. Model type to infer parameters
+#' @param analysis_type Character or NULL. Analysis type to infer parameters
 #' @param ... Additional arguments (filtered to valid interpretation_args parameters)
 #'
 #' @return interpretation_args object or NULL
 #' @keywords internal
 #' @noRd
-build_interpretation_args <- function(interpretation_args = NULL, model_type = NULL, ...) {
+build_interpretation_args <- function(interpretation_args = NULL, analysis_type = NULL, ...) {
   # If interpretation_args provided, validate and use it
   if (!is.null(interpretation_args)) {
     # Convert list to interpretation_args if needed
     if (is.list(interpretation_args) && !inherits(interpretation_args, "interpretation_args")) {
-      # Need model_type to build
-      if (is.null(interpretation_args$model_type) && is.null(model_type)) {
+      # Need analysis_type to build
+      if (is.null(interpretation_args$analysis_type) && is.null(analysis_type)) {
         cli::cli_abort(
           c(
-            "Cannot build interpretation_args without model_type",
-            "i" = "Provide model_type in the list or as a parameter"
+            "Cannot build interpretation_args without analysis_type",
+            "i" = "Provide analysis_type in the list or as a parameter"
           )
         )
       }
-      mt <- interpretation_args$model_type %||% model_type
-      interpretation_args <- do.call("interpretation_args", c(list(model_type = mt), interpretation_args))
+      mt <- interpretation_args$analysis_type %||% analysis_type
+      interpretation_args <- do.call("interpretation_args", c(list(analysis_type = mt), interpretation_args))
     }
     return(interpretation_args)
   }
 
-  # Check if any valid parameters in ... based on model_type
-  if (!is.null(model_type)) {
+  # Check if any valid parameters in ... based on analysis_type
+  if (!is.null(analysis_type)) {
     dots <- list(...)
 
-    # Define valid params per model type
-    valid_params <- if (model_type == "fa") {
+    # Define valid params per analysis type
+    valid_params <- if (analysis_type == "fa") {
       c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings")
-    } else if (model_type %in% c("gm", "irt", "cdm")) {
+    } else if (analysis_type %in% c("gm", "irt", "cdm")) {
       # Future model types - no parameters defined yet
       character(0)
     } else {
-      character(0)  # Unknown model types
+      character(0)  # Unknown analysis types
     }
 
     model_dots <- dots[names(dots) %in% valid_params]
 
     # If we have model-specific parameters, build interpretation_args
     if (length(model_dots) > 0) {
-      return(do.call("interpretation_args", c(list(model_type = model_type), model_dots)))
+      return(do.call("interpretation_args", c(list(analysis_type = analysis_type), model_dots)))
     }
   }
 

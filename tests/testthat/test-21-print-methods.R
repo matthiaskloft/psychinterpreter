@@ -200,11 +200,11 @@ test_that("print.fa_interpretation respects suppress_heading parameter", {
 test_that("print.chat_session displays session information", {
   skip_if_no_llm()
 
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
+  llm_provider <- "ollama"
+  llm_model <- "gpt-oss:20b-cloud"
 
   # Use modern API
-  chat <- chat_session(model_type = "fa", provider = provider, model = model)
+  chat <- chat_session(analysis_type = "fa", llm_provider = llm_provider, llm_model = llm_model)
 
   # Capture both stdout and stderr since cli may output to either
   output <- capture.output(print(chat), type = "output")
@@ -220,11 +220,11 @@ test_that("print.chat_session displays session information", {
 test_that("print.chat_session shows token usage when available", {
   skip_if_no_llm()
 
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
+  llm_provider <- "ollama"
+  llm_model <- "gpt-oss:20b-cloud"
 
   # Use modern API
-  chat <- chat_session(model_type = "fa", provider = provider, model = model)
+  chat <- chat_session(analysis_type = "fa", llm_provider = llm_provider, llm_model = llm_model)
 
   # Simulate token usage without making actual LLM call
   chat$total_input_tokens <- 100
@@ -243,11 +243,11 @@ test_that("print.chat_session shows token usage when available", {
 test_that("print.chat_session shows interpretation count", {
   skip_if_no_llm()
 
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
+  llm_provider <- "ollama"
+  llm_model <- "gpt-oss:20b-cloud"
 
   # Use modern API
-  chat <- chat_session(model_type = "fa", provider = provider, model = model)
+  chat <- chat_session(analysis_type = "fa", llm_provider = llm_provider, llm_model = llm_model)
 
   # Initial count should be 0
   output0 <- capture.output(print(chat))
@@ -266,11 +266,11 @@ test_that("print.chat_session shows interpretation count", {
 test_that("print.chat_session displays creation timestamp", {
   skip_if_no_llm()
 
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
+  llm_provider <- "ollama"
+  llm_model <- "gpt-oss:20b-cloud"
 
   # Use modern API
-  chat <- chat_session(model_type = "fa", provider = provider, model = model)
+  chat <- chat_session(analysis_type = "fa", llm_provider = llm_provider, llm_model = llm_model)
 
   # Capture both stdout and stderr since cli may output to either
   output <- capture.output(print(chat), type = "output")

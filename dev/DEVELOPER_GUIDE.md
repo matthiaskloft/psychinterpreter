@@ -1,6 +1,6 @@
 # psychinterpreter Developer Guide
 
-**Last Updated**: 2025-11-13
+**Last Updated**: 2025-11-15
 **Version**: 0.0.0.9000
 **Purpose**: Technical reference for package maintainers and contributors
 
@@ -22,25 +22,25 @@
 
 ### Key Terminology
 
-**Model Type**
+**Analysis Type**
 - String identifier used internally to route to appropriate S3 methods
 - Valid values: `"fa"`, `"gm"`, `"irt"`, `"cdm"`
-- Examples: `model_type = "fa"`, `interpretation_args(model_type = "fa")`
+- Examples: `analysis_type = "fa"`, `interpretation_args(analysis_type = "fa")`
 - Used in: Function parameters, configuration objects, S3 method dispatch
 
 **Model Class**
 - R object class of fitted model objects from external packages
 - Examples: `"fa"` (psych), `"psych"` (psych), `"principal"` (psych), `"lavaan"` (lavaan), `"SingleGroupClass"` (mirt), `"Mclust"` (mclust)
-- Used in: S3 method dispatch for `build_model_data.{class}()`
-- Note: Multiple model classes can map to the same model type (e.g., psych, lavaan, mirt all map to "fa")
+- Used in: S3 method dispatch for `build_analysis_data.{class}()`
+- Note: Multiple model classes can map to the same analysis type (e.g., psych, lavaan, mirt all map to "fa")
 
 **Interpretation Args**
-- Configuration object created by `interpretation_args(model_type, ...)`
-- Contains model-specific settings (e.g., cutoff, n_emergency for FA)
+- Configuration object created by `interpretation_args(analysis_type, ...)`
+- Contains analysis-specific settings (e.g., cutoff, n_emergency for FA)
 - Replaces deprecated `fa_args()` from Phase 3 refactoring
 
 **Core Methods**
-- The 8 required S3 methods that every model type must implement
+- The 8 required S3 methods that every analysis type must implement
 - Essential for interpretation workflow to function
 - See section 1.3 for complete list
 
@@ -55,21 +55,17 @@
 
 ## 1.1 Design Principles
 
-1. **Generic Core + Model-Specific Implementations**
-   - Core interpretation logic is model-agnostic
-   - Model-specific behavior via S3 methods
+1. **Generic Core + Analysis-Specific Implementations**
+   - Core interpretation logic is analysis-agnostic
+   - Analysis-specific behavior via S3 methods
 
 2. **Extensibility**
-   - Adding new model types requires 8 S3 methods
+   - Adding new analysis types requires 8 S3 methods
    - No changes to core infrastructure needed
 
 3. **Token Efficiency**
    - Persistent chat sessions reuse system prompts (~40-60% savings)
    - Conditional token tracking accounts for system prompt caching
-
-4. **Backward Compatibility**
-   - Legacy APIs maintained via deprecation wrappers
-   - Boolean silent converted to integer (FALSE→0, TRUE→2)
 
 ## 1.2 File Structure
 
@@ -79,7 +75,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 - `core_*` = Core infrastructure
 - `s3_*` = S3 generic definitions (interfaces)
 - `class_*` = S3 class definitions
-- `{model}_*` = Model-specific implementations (e.g., `fa_*`)
+- `{analysis}_*` = Analysis-specific implementations (e.g., `fa_*`)
 - `shared_*` = Shared utilities (regular functions, not S3)
 
 **See section 4.1 "Naming Conventions"** for detailed explanation of prefix meanings and distinctions.
@@ -90,18 +86,18 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `core_constants.R` | ~30 | Package constants (`VALID_MODEL_TYPES`) and `validate_model_type()` |
-| `core_interpret_dispatch.R` | ~760 | Main `interpret()` generic + routing to model-specific methods |
-| `core_interpret.R` | ~550 | Universal `interpret_core()` orchestrator (all model types) |
+| `core_constants.R` | ~30 | Package constants (`VALID_ANALYSIS_TYPES`) and `validate_analysis_type()` |
+| `core_interpret_dispatch.R` | ~760 | Main `interpret()` generic + routing to analysis-specific methods |
+| `core_interpret.R` | ~550 | Universal `interpret_core()` orchestrator (all analysis types) |
 | *(archive/)* | - | Legacy files (deprecated code) |
 
 ### S3 Generic Definitions (5 files)
 
-**Purpose**: Define the interface that model-specific methods must implement
+**Purpose**: Define the interface that analysis-specific methods must implement
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `s3_model_data.R` | ~60 | Generic: `build_model_data()` for extracting model data |
+| `s3_model_data.R` | ~60 | Generic: `build_analysis_data()` for extracting analysis data |
 | `s3_list_validation.R` | ~147 | Generic: `validate_list_structure()` for structured list input validation |
 | `s3_prompt_builder.R` | ~83 | Generics: `build_system_prompt()`, `build_main_prompt()` |
 | `s3_json_parser.R` | ~200 | Generics: `validate_parsed_result()`, `extract_by_pattern()`, `create_default_result()` |
@@ -116,7 +112,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 
 ### Shared Utilities (4 files)
 
-**Purpose**: Regular utility functions used by all model types (not S3 methods)
+**Purpose**: Regular utility functions used by all analysis types (not S3 methods)
 
 | File | Lines | Purpose |
 |------|-------|---------|
@@ -132,7 +128,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 **Core Methods (8 required)**:
 | File | Lines | Purpose |
 |------|-------|---------|
-| `fa_model_data.R` | ~627 | S3 methods: `build_model_data.{fa,psych,principal,lavaan,SingleGroupClass}` |
+| `fa_model_data.R` | ~627 | S3 methods: `build_analysis_data.{fa,psych,principal,lavaan,SingleGroupClass}` |
 | `fa_prompt_builder.R` | ~356 | S3 methods: `build_system_prompt.fa()`, `build_main_prompt.fa()` |
 | `fa_json.R` | ~225 | S3 methods: `validate_parsed_result.fa()`, `extract_by_pattern.fa()`, `create_default_result.fa()` |
 | `fa_diagnostics.R` | ~197 | S3 method: `create_diagnostics.fa()` with `find_cross_loadings()`, `find_no_loadings()` |
@@ -144,7 +140,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 | `fa_export.R` | ~136 | S3 method: `export_interpretation.fa_interpretation()` with format conversion |
 | `fa_visualization.R` | ~266 | S3 method: `plot.fa_interpretation()`, `create_factor_plot()` wrapper |
 
-### Future Model Types (Planned)
+### Future Analysis Types (Planned)
 
 **Gaussian Mixture (GM)**: Not implemented
 - `gm_model_data.R`, `gm_prompts.R`, `gm_json.R`, `gm_diagnostics.R`, `gm_report.R`, `gm_visualization.R`
@@ -161,18 +157,18 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 
 Each S3 generic is exported with `#' @export`, and individual S3 methods are also exported with `#' @export` following standard R package practices.
 
-### Required S3 Methods per Model Type
+### Required S3 Methods per Analysis Type
 
-Each model type (FA, GM, IRT, CDM) must implement these 8 methods:
+Each analysis type (FA, GM, IRT, CDM) must implement these 8 methods:
 
-1. **`build_model_data.{class}()`** - Extract & validate model data from fitted objects
-2. **`build_system_prompt.{model}()`** - Constructs expert system prompt
-3. **`build_main_prompt.{model}()`** - Constructs user prompt with data
-4. **`validate_parsed_result.{model}()`** - Validates LLM JSON response
-5. **`extract_by_pattern.{model}()`** - Pattern-based extraction fallback
-6. **`create_default_result.{model}()`** - Default results if parsing fails
-7. **`create_diagnostics.{model}()`** - Model-specific diagnostics
-8. **`build_report.{model}_interpretation()`** - Report generation
+1. **`build_analysis_data.{class}()`** - Extract & validate analysis data from fitted objects
+2. **`build_system_prompt.{analysis}()`** - Constructs expert system prompt
+3. **`build_main_prompt.{analysis}()`** - Constructs user prompt with data
+4. **`validate_parsed_result.{analysis}()`** - Validates LLM JSON response
+5. **`extract_by_pattern.{analysis}()`** - Pattern-based extraction fallback
+6. **`create_default_result.{analysis}()`** - Default results if parsing fails
+7. **`create_diagnostics.{analysis}()`** - Analysis-specific diagnostics
+8. **`build_report.{analysis}_interpretation()`** - Report generation
 
 ### Current Implementations
 
@@ -198,53 +194,53 @@ User calls interpret(fit_results, variable_info, ...)
         ↓
 3. interpret_core(fit_results, ...) [universal orchestrator]
         ↓
-   STEP 0: build_model_data.{class}(fit_results, ...) → Extract & validate model data
+   STEP 0: build_analysis_data.{class}(fit_results, ...) → Extract & validate analysis data
         ↓
    STEP 1: Validate inputs
         ↓
-   STEP 2: build_system_prompt.{model}() → System prompt (S3 dispatch)
+   STEP 2: build_system_prompt.{analysis}() → System prompt (S3 dispatch)
         ↓
    STEP 3: Initialize or use existing chat session
         ↓
-   STEP 4: build_main_prompt.{model}() → User prompt with data (S3 dispatch)
+   STEP 4: build_main_prompt.{analysis}() → User prompt with data (S3 dispatch)
         ↓
    STEP 5: LLM API call (via ellmer) → Get JSON response
         ↓
-   STEP 6: parse_llm_response.{model}() → Parse JSON (S3 dispatch)
-      - validate_parsed_result.{model}()
-      - extract_by_pattern.{model}() [if JSON parsing fails]
-      - create_default_result.{model}() [ultimate fallback]
+   STEP 6: parse_llm_response.{analysis}() → Parse JSON (S3 dispatch)
+      - validate_parsed_result.{analysis}()
+      - extract_by_pattern.{analysis}() [if JSON parsing fails]
+      - create_default_result.{analysis}() [ultimate fallback]
         ↓
    STEP 7: Update token tracking
         ↓
-   STEP 8: create_diagnostics.{model}() → Cross-loadings, etc. (S3 dispatch)
+   STEP 8: create_diagnostics.{analysis}() → Cross-loadings, etc. (S3 dispatch)
         ↓
    STEP 9: Assemble interpretation object
         ↓
-   STEP 10: build_report.{model}_interpretation() → Generate report (S3 dispatch)
+   STEP 10: build_report.{analysis}_interpretation() → Generate report (S3 dispatch)
         ↓
    STEP 11: Print report (unless silent)
         ↓
 4. Return interpretation object with token tracking
 ```
 
-## 1.5 Adding a New Model Type
+## 1.5 Adding a New Analysis Type
 
 Complete templates and implementation guide are available:
 - **📖 Implementation Guide**: `dev/MODEL_IMPLEMENTATION_GUIDE.md` - Comprehensive step-by-step guide
 - **📝 Code Templates**: `dev/templates/` - Ready-to-use templates for all 8 required S3 methods
 - **✅ Implementation Checklist**: `dev/templates/IMPLEMENTATION_CHECKLIST.md` - Track your progress
 
-**Quick Start**: Copy templates from `dev/templates/`, replace placeholders, implement model-specific logic. See templates README for details.
+**Quick Start**: Copy templates from `dev/templates/`, replace placeholders, implement analysis-specific logic. See templates README for details.
 
 ---
 
 Example: Adding Gaussian Mixture (GM) support
 
-### Step 1: Create Model-Specific Files
+### Step 1: Create Analysis-Specific Files
 
 ```
-R/gm_model_data.R       - S3 method: build_model_data.gm() for extracting GM data
+R/gm_model_data.R       - S3 method: build_analysis_data.gm() for extracting GM data
 R/gm_prompt_builder.R   - S3 methods: build_system_prompt.gm(), build_main_prompt.gm()
 R/gm_json.R             - S3 methods: validate_parsed_result.gm(), extract_by_pattern.gm(), create_default_result.gm()
 R/gm_diagnostics.R      - S3 method: create_diagnostics.gm()
@@ -253,11 +249,11 @@ R/gm_report.R           - S3 method: build_report.gm_interpretation()
 
 **Note**: No need for `gm_interpret.R` - all interpretations route through `interpret_core()`
 
-### Step 2: Implement build_model_data.gm() S3 Method
+### Step 2: Implement build_analysis_data.gm() S3 Method
 
 ```r
 #' @export
-build_model_data.gm <- function(fit_results, variable_info, model_type = NULL,
+build_analysis_data.gm <- function(fit_results, variable_info, analysis_type = NULL,
                                  gm_args = NULL, ...) {
   # Extract GM-specific parameters
   dots <- list(...)
@@ -267,13 +263,13 @@ build_model_data.gm <- function(fit_results, variable_info, model_type = NULL,
   covariances <- extract_covariances(fit_results)
   probabilities <- extract_probabilities(fit_results)
 
-  # Build and return standardized model_data structure
+  # Build and return standardized analysis_data structure
   list(
     means = means,
     covariances = covariances,
     probabilities = probabilities,
     n_clusters = ncol(means),
-    model_type = "gm",
+    analysis_type = "gm",
     # ... other GM-specific fields
   )
 }
@@ -283,33 +279,33 @@ build_model_data.gm <- function(fit_results, variable_info, model_type = NULL,
 
 ```r
 #' @export
-build_system_prompt.gm <- function(model_type, model_data, variable_info, ...) {
+build_system_prompt.gm <- function(analysis_type, analysis_data, variable_info, ...) {
   "You are an expert in Gaussian Mixture modeling..."
 }
 
 #' @export
-build_main_prompt.gm <- function(model_type, model_data, variable_info, ...) {
+build_main_prompt.gm <- function(analysis_type, analysis_data, variable_info, ...) {
   # Format cluster parameters, covariance matrices, etc.
-  # Use model_data$means, model_data$covariances, etc.
+  # Use analysis_data$means, analysis_data$covariances, etc.
 }
 
 #' @export
-validate_parsed_result.gm <- function(parsed_result, model_data, ...) {
+validate_parsed_result.gm <- function(parsed_result, analysis_data, ...) {
   # Validate GM-specific response structure
 }
 
 #' @export
-extract_by_pattern.gm <- function(response, model_data, ...) {
+extract_by_pattern.gm <- function(response, analysis_data, ...) {
   # Pattern-based extraction fallback for GM
 }
 
 #' @export
-create_default_result.gm <- function(model_data, ...) {
+create_default_result.gm <- function(analysis_data, ...) {
   # Default result structure for GM
 }
 
 #' @export
-create_diagnostics.gm <- function(model_type, model_data, variable_info, ...) {
+create_diagnostics.gm <- function(analysis_type, analysis_data, variable_info, ...) {
   # GM-specific diagnostics (cluster overlap, separation, etc.)
 }
 
@@ -323,15 +319,15 @@ build_report.gm_interpretation <- function(interpretation, ...) {
 
 ```r
 # In utils_interpret.R
-handle_raw_data_interpret <- function(x, variable_info, model_type, chat_session,
+handle_raw_data_interpret <- function(x, variable_info, analysis_type, chat_session,
                                       llm_args = NULL, gm_args = NULL, ...) {
-  effective_model_type <- if (!is.null(chat_session)) {
-    chat_session$model_type
+  effective_analysis_type <- if (!is.null(chat_session)) {
+    chat_session$analysis_type
   } else {
-    model_type
+    analysis_type
   }
 
-  switch(effective_model_type,
+  switch(effective_analysis_type,
     fa = {
       # ... existing FA code
     },
@@ -343,7 +339,7 @@ handle_raw_data_interpret <- function(x, variable_info, model_type, chat_session
           ...
         ),
         variable_info = variable_info,
-        model_type = "gm",
+        analysis_type = "gm",
         chat_session = chat_session,
         llm_args = llm_args,
         gm_args = gm_args,  # Note: create gm_args() config function
@@ -384,12 +380,12 @@ If your model type has specific fitted model classes (like mclust for GM):
 # In R/core_interpret_dispatch.R
 #' @export
 interpret_model.Mclust <- function(model, variable_info, ...) {
-  validate_chat_session_for_model_type(chat_session, "gm")
+  validate_chat_session_for_analysis_type(chat_session, "gm")
 
   result <- interpret_core(
     fit_results = model,
     variable_info = variable_info,
-    model_type = "gm",
+    analysis_type = "gm",
     ...
   )
 
@@ -400,11 +396,11 @@ interpret_model.Mclust <- function(model, variable_info, ...) {
 
 ### Step 7: Done!
 
-Core infrastructure (`interpret_core()`, JSON parsing, token tracking) requires no changes. The S3 dispatch system automatically handles your new model type through the generic methods you implemented.
+Core infrastructure (`interpret_core()`, JSON parsing, token tracking) requires no changes. The S3 dispatch system automatically handles your new analysis type through the generic methods you implemented.
 
 **For detailed implementation**: See `dev/MODEL_IMPLEMENTATION_GUIDE.md` for:
 - Complete code templates with placeholders
-- Model-specific customization points
+- Analysis-specific customization points
 - Testing strategies and fixture patterns
 - Common pitfalls and troubleshooting
 - Estimated time: 32-50 hours for full implementation
@@ -570,21 +566,17 @@ If a factor has zero loadings above cutoff:
 
 | Format | Headings | Emphasis | Line Wrapping |
 |--------|----------|----------|---------------|
-| **text** | `==== SECTION ====` | Plain text | Yes (via `wrap_text()`) |
+| **cli** | `==== SECTION ====` | Plain text | Yes (via `wrap_text()`) |
 | **markdown** | `# Section` | `**bold**`, `*italic*` | No (preserves formatting) |
 
 ### Implementation Locations
 
 - **R/shared_config.R**: Validation in `output_args()` constructor
 - **R/core_interpret.R**: Stored in params, passed to `build_report()`
-- **R/fa_report.R** (lines 38-639): Conditional logic branching on format
-  - Markdown-specific logic
-  - Text-specific logic
+- **R/fa_report.R**: Conditional logic branching on format
+  - Markdown-specific logic (headings with `#`, bold/italic)
+  - CLI-specific logic (text with `====` separators, plain text)
 - **R/s3_export.R**: Converts export format to output_format
-
-### Future Enhancement: CLI Format
-
-A "cli" format could be added using R's `cli` package features. This would require updating validation logic, adding format-specific rendering in `R/report_fa.R`, and corresponding tests and documentation.
 
 ## 3.5 Word Limit Enforcement
 
@@ -602,10 +594,6 @@ The silent parameter uses integer values for granular control:
 | **0** (or FALSE) | Show report + messages |
 | **1** | Show messages only, suppress report |
 | **2** (or TRUE) | Completely silent (no report, no messages) |
-
-**Backward Compatibility**:
-- `silent = FALSE` → converted to 0
-- `silent = TRUE` → converted to 2
 
 **Implementation**: 3 core files (core_interpret.R, core_interpret_dispatch.R, s3_export.R)
 
@@ -637,22 +625,22 @@ All R files in the package follow a **prefix-first naming convention** to clearl
 | `core_` | Core infrastructure | Package orchestration, dispatch, constants | `core_interpret.R`, `core_interpret_dispatch.R`, `core_constants.R` |
 | `s3_` | S3 generic definitions | Generic function declarations (define the interface) | `s3_model_data.R`, `s3_prompt_builder.R`, `s3_json_parser.R` |
 | `class_` | S3 class definitions | Constructors, validators, print methods | `class_chat_session.R`, `class_interpretation.R` |
-| `{model}_` | Model-specific implementations | S3 methods for specific model types | `fa_model_data.R`, `fa_prompt_builder.R`, `fa_json.R` |
-| `shared_` | Shared utilities | Utility functions used across all models (NO S3) | `shared_config.R`, `shared_visualization.R`, `shared_utils.R` |
+| `{analysis}_` | Analysis-specific implementations | S3 methods for specific analysis types | `fa_model_data.R`, `fa_prompt_builder.R`, `fa_json.R` |
+| `shared_` | Shared utilities | Utility functions used across all analysis types (NO S3) | `shared_config.R`, `shared_visualization.R`, `shared_utils.R` |
 
 **Important Distinctions**:
 
 - **`s3_*.R`** files contain S3 **generic** function declarations
   - Example: `s3_prompt_builder.R` defines `build_system_prompt()` generic
-  - These define the **interface** that model-specific methods must implement
+  - These define the **interface** that analysis-specific methods must implement
 
-- **`{model}_*.R`** files contain S3 **method** implementations
+- **`{analysis}_*.R`** files contain S3 **method** implementations
   - Example: `fa_prompt_builder.R` implements `build_system_prompt.fa()`
-  - These provide **model-specific behavior** for the generics
+  - These provide **analysis-specific behavior** for the generics
 
 - **`shared_*.R`** files contain regular **utility** functions (NOT S3)
   - Example: `shared_visualization.R` provides `psychinterpreter_colors()`, `theme_psychinterpreter()`
-  - These are plain functions used by all model types, NOT S3 methods
+  - These are plain functions used by all analysis types, NOT S3 methods
   - Do not confuse with `s3_*` files which define generics
 
 **Examples**:
@@ -675,15 +663,15 @@ helpers.R                     # Too vague - use appropriate prefix
 
 **Rationale**:
 - Consistent prefixing improves scanability when navigating `R/` directory
-- Clear abstraction levels (core vs model-specific vs shared vs S3 definitions)
-- Scales well for multiple model types (GM, IRT, CDM)
+- Clear abstraction levels (core vs analysis-specific vs shared vs S3 definitions)
+- Scales well for multiple analysis types (GM, IRT, CDM)
 - Follows established R package patterns while maintaining clarity
 
 **For detailed implementation plan**: See `dev/FILE_NAMING_ANALYSIS.md` and `dev/RENAME_IMPLEMENTATION_PLAN.md`
 
 #### Function and Variable Naming
 
-- **Functions**: snake_case (e.g., `build_model_data()`, `psychinterpreter_colors()`)
+- **Functions**: snake_case (e.g., `build_analysis_data()`, `psychinterpreter_colors()`)
 - **S3 methods**: `method.class()` format (e.g., `build_system_prompt.fa()`, `plot.fa_interpretation()`)
 - **S3 generics**: snake_case (e.g., `build_system_prompt()`, `create_diagnostics()`)
 - **Internal functions**: Prefix with `.` (e.g., `.internal_helper()`, `.validate_structure()`)
@@ -923,23 +911,26 @@ if (dir.exists("../psychinterpreter_archive")) {
 
 ### Current Extensibility Infrastructure
 
-**✅ Ready for New Model Types**:
+**✅ Ready for New Analysis Types**:
 - Generic infrastructure fully operational
 - Templates provided for all required files
 - Clear implementation guide with examples
 - Consistent patterns established with FA
 
-**📝 To Implement New Model Type**:
+**📝 To Implement New Analysis Type**:
 1. Copy templates from `dev/templates/`
 2. Replace placeholders ({MODEL}, {model}, etc.)
 3. Implement 8 required S3 methods
 4. Add tests following FA pattern
 5. Update NAMESPACE via roxygen2
 
-**Planned Model Types**:
+**Planned Analysis Types**:
 - **Gaussian Mixture (GM)**: For clustering analyses
 - **Item Response Theory (IRT)**: For item analysis
 - **Cognitive Diagnosis Models (CDM)**: For diagnostic assessment
+  - Q-Matrix interpretation: 
+    - packages: GDINA, CDM, cdmTools
+    
 
 ## 5.5 Quality Metrics
 
@@ -985,7 +976,7 @@ if (dir.exists("../psychinterpreter_archive")) {
 
 ### Known Technical Debt
 
-1. **Limited Model Coverage**: Only FA implemented
+1. **Limited Analysis Type Coverage**: Only FA implemented
 2. **Provider-Specific Token Counting**: Needs normalization improvements
 3. **Test Fixture Management**: Could benefit from systematic organization
 4. **Edge Case Coverage**: Some error conditions not fully tested
@@ -1039,5 +1030,5 @@ cli::cli_abort(c(
 
 ---
 
-**Last Updated**: 2025-11-12
+**Last Updated**: 2025-11-15
 **Maintainer**: Update when making architectural changes

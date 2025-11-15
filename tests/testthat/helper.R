@@ -69,6 +69,50 @@ sample_interpretation <- function() {
   .test_cache[[cache_key]]
 }
 
+#' Load sample interpretation with emergency rule
+#'
+#' @return A complete fa_interpretation object where emergency rule was applied (n_emergency = 2)
+sample_interpretation_emergency <- function() {
+  cache_key <- "sample_interpretation_emergency"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_interpretation_emergency.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load sample interpretation with undefined factor
+#'
+#' @return A complete fa_interpretation object with undefined factor (n_emergency = 0)
+sample_interpretation_undefined <- function() {
+  cache_key <- "sample_interpretation_undefined"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_interpretation_undefined.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load sample interpretation with markdown formatting
+#'
+#' @return A complete fa_interpretation object with markdown output format
+sample_interpretation_markdown <- function() {
+  cache_key <- "sample_interpretation_markdown"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_interpretation_markdown.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load sample interpretation with cross-loadings
+#'
+#' @return A complete fa_interpretation object with cross-loading variables
+sample_interpretation_cross_loading <- function() {
+  cache_key <- "sample_interpretation_cross_loading"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "fa", "sample_interpretation_cross_loading.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
 # Minimal Fixtures (Token-Efficient) ----
 # These fixtures use fewer variables and shorter descriptions for LLM tests
 # Estimated token savings: ~60-70% compared to standard fixtures

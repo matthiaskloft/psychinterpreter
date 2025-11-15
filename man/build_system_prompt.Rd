@@ -4,10 +4,10 @@
 \alias{build_system_prompt}
 \title{Build System Prompt (S3 Generic)}
 \usage{
-build_system_prompt(model_type, word_limit, ...)
+build_system_prompt(analysis_type, word_limit, ...)
 }
 \arguments{
-\item{model_type}{An object with class corresponding to the model type ("fa", "gm", "irt", "cdm")}
+\item{analysis_type}{An object with class corresponding to the model type ("fa", "gm", "irt", "cdm")}
 
 \item{word_limit}{Integer. Word limit for interpretations to include in prompt}
 

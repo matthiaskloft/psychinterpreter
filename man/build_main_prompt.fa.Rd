@@ -5,17 +5,17 @@
 \title{Build User Prompt for Factor Analysis}
 \usage{
 \method{build_main_prompt}{fa}(
-  model_type,
-  model_data,
+  analysis_type,
+  analysis_data,
   word_limit,
   additional_info = NULL,
   ...
 )
 }
 \arguments{
-\item{model_type}{Object with class "fa"}
+\item{analysis_type}{Object with class "fa"}
 
-\item{model_data}{List containing:
+\item{analysis_data}{List containing:
 \itemize{
 \item loadings_df: Data frame with variables and factor loadings
 \item factor_summaries: List of factor summary information
@@ -41,6 +41,6 @@ Character. User prompt text
 \description{
 Constructs the complete user prompt containing factor loadings, variable
 descriptions, and interpretation instructions. All FA-specific parameters
-are extracted from model_data.
+are extracted from analysis_data.
 }
 \keyword{internal}

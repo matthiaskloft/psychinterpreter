@@ -4,12 +4,12 @@
 \alias{create_default_result.fa}
 \title{Create Default Result for Factor Analysis}
 \usage{
-\method{create_default_result}{fa}(model_type, model_data, ...)
+\method{create_default_result}{fa}(analysis_type, analysis_data, ...)
 }
 \arguments{
-\item{model_type}{Character. "fa"}
+\item{analysis_type}{Character. "fa"}
 
-\item{model_data}{List. Contains factor_cols and factor_summaries}
+\item{analysis_data}{List. Contains factor_cols and factor_summaries}
 
 \item{...}{Additional arguments (unused)}
 }

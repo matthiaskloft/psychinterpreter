@@ -6,7 +6,7 @@
 
 test_that("interpretation_args() creates valid fa config object", {
   config <- interpretation_args(
-    model_type = "fa",
+    analysis_type = "fa",
     cutoff = 0.4,
     n_emergency = 2,
     hide_low_loadings = TRUE
@@ -15,55 +15,55 @@ test_that("interpretation_args() creates valid fa config object", {
   expect_s3_class(config, "interpretation_args")
   expect_s3_class(config, "model_config")
   expect_type(config, "list")
-  expect_equal(config$model_type, "fa")
+  expect_equal(config$analysis_type, "fa")
   expect_equal(config$cutoff, 0.4)
   expect_equal(config$n_emergency, 2L)
   expect_equal(config$hide_low_loadings, TRUE)
 })
 
-test_that("interpretation_args() validates model_type parameter", {
+test_that("interpretation_args() validates analysis_type parameter", {
   expect_error(
-    interpretation_args(model_type = "invalid"),
-    "Invalid model_type"
+    interpretation_args(analysis_type = "invalid"),
+    "Invalid analysis_type"
   )
 })
 
 test_that("interpretation_args() validates cutoff parameter", {
   expect_error(
-    interpretation_args(model_type = "fa", cutoff = -0.1),
+    interpretation_args(analysis_type = "fa", cutoff = -0.1),
     "must be between 0 and 1"
   )
 
   expect_error(
-    interpretation_args(model_type = "fa", cutoff = 1.5),
+    interpretation_args(analysis_type = "fa", cutoff = 1.5),
     "must be between 0 and 1"
   )
 
   expect_error(
-    interpretation_args(model_type = "fa", cutoff = "high"),
+    interpretation_args(analysis_type = "fa", cutoff = "high"),
     "must be.*numeric"
   )
 })
 
 test_that("interpretation_args() validates n_emergency parameter", {
   expect_error(
-    interpretation_args(model_type = "fa", n_emergency = -1),
+    interpretation_args(analysis_type = "fa", n_emergency = -1),
     "must be.*non-negative integer"
   )
 
   expect_error(
-    interpretation_args(model_type = "fa", n_emergency = 3.5),
+    interpretation_args(analysis_type = "fa", n_emergency = 3.5),
     "must be.*integer"
   )
 
   expect_error(
-    interpretation_args(model_type = "fa", n_emergency = "many"),
+    interpretation_args(analysis_type = "fa", n_emergency = "many"),
     "must be.*integer"
   )
 })
 
 test_that("interpretation_args() uses default values when not specified", {
-  config <- interpretation_args(model_type = "fa")
+  config <- interpretation_args(analysis_type = "fa")
 
   expect_equal(config$cutoff, 0.3)
   expect_equal(config$n_emergency, 2L)
@@ -71,19 +71,19 @@ test_that("interpretation_args() uses default values when not specified", {
   expect_equal(config$sort_loadings, TRUE)
 })
 
-test_that("interpretation_args() errors for unimplemented model types", {
+test_that("interpretation_args() errors for unimplemented analysis types", {
   expect_error(
-    interpretation_args(model_type = "gm"),
+    interpretation_args(analysis_type = "gm"),
     "not yet implemented"
   )
 
   expect_error(
-    interpretation_args(model_type = "irt"),
+    interpretation_args(analysis_type = "irt"),
     "not yet implemented"
   )
 
   expect_error(
-    interpretation_args(model_type = "cdm"),
+    interpretation_args(analysis_type = "cdm"),
     "not yet implemented"
   )
 })
@@ -94,65 +94,65 @@ test_that("interpretation_args() errors for unimplemented model types", {
 
 test_that("llm_args() creates valid config object", {
   config <- llm_args(
-    provider = "ollama",
-    model = "gpt-oss:20b-cloud",
+    llm_provider = "ollama",
+    llm_model = "gpt-oss:20b-cloud",
     word_limit = 100,
     additional_info = "Test context"
   )
 
   expect_s3_class(config, "llm_args")
   expect_type(config, "list")
-  expect_equal(config$provider, "ollama")
-  expect_equal(config$model, "gpt-oss:20b-cloud")
+  expect_equal(config$llm_provider, "ollama")
+  expect_equal(config$llm_model, "gpt-oss:20b-cloud")
   expect_equal(config$word_limit, 100L)
   expect_equal(config$additional_info, "Test context")
 })
 
 test_that("llm_args() validates word_limit parameter", {
   expect_error(
-    llm_args(provider = "ollama", word_limit = 10),
+    llm_args(llm_provider = "ollama", word_limit = 10),
     "must be between 20 and 500"
   )
 
   expect_error(
-    llm_args(provider = "ollama", word_limit = 1000),
+    llm_args(llm_provider = "ollama", word_limit = 1000),
     "must be between 20 and 500"
   )
 })
 
 test_that("llm_args() validates additional_info parameter", {
   expect_error(
-    llm_args(provider = "ollama", additional_info = 123),
+    llm_args(llm_provider = "ollama", additional_info = 123),
     "must be.*character.*or NULL"
   )
 })
 
 test_that("llm_args() uses default values when not specified", {
-  config <- llm_args(provider = "ollama")
+  config <- llm_args(llm_provider = "ollama")
 
   expect_equal(config$word_limit, 150L)
   expect_null(config$additional_info)
-  expect_null(config$model)
+  expect_null(config$llm_model)
 })
 
-test_that("llm_args() requires provider parameter", {
+test_that("llm_args() requires llm_provider parameter", {
   expect_error(
     llm_args(word_limit = 100),
-    "provider.*required"
+    "llm_provider.*required"
   )
 })
 
 test_that("llm_args() accepts edge case values", {
   # Minimum word_limit
-  config_min <- llm_args(provider = "ollama", word_limit = 20)
+  config_min <- llm_args(llm_provider = "ollama", word_limit = 20)
   expect_equal(config_min$word_limit, 20L)
 
   # Maximum word_limit
-  config_max <- llm_args(provider = "ollama", word_limit = 500)
+  config_max <- llm_args(llm_provider = "ollama", word_limit = 500)
   expect_equal(config_max$word_limit, 500L)
 
   # NULL additional_info (should be acceptable)
-  config_null <- llm_args(provider = "ollama", additional_info = NULL)
+  config_null <- llm_args(llm_provider = "ollama", additional_info = NULL)
   expect_null(config_null$additional_info)
 })
 
@@ -238,7 +238,7 @@ test_that("interpret() works with interpretation_args config object", {
   var_info <- sample_variable_info()
 
   config <- interpretation_args(
-    model_type = "fa",
+    analysis_type = "fa",
     cutoff = 0.4,
     n_emergency = 2
   )
@@ -246,10 +246,10 @@ test_that("interpret() works with interpretation_args config object", {
   result <- interpret(
     fit_results = list(loadings = loadings),
     variable_info = var_info,
-    model_type = "fa",  # Required when using structured list
+    analysis_type = "fa",  # Required when using structured list
     interpretation_args = config,
-    provider = "ollama",
-    model = "gpt-oss:20b-cloud",
+    llm_provider = "ollama",
+    llm_model = "gpt-oss:20b-cloud",
     word_limit = 20
   )
 
@@ -263,8 +263,8 @@ test_that("interpret() works with llm_args config object", {
   var_info <- sample_variable_info()
 
   llm_config <- llm_args(
-    provider = "ollama",
-    model = "gpt-oss:20b-cloud",
+    llm_provider = "ollama",
+    llm_model = "gpt-oss:20b-cloud",
     word_limit = 20,
     additional_info = "Test study context"
   )
@@ -272,7 +272,7 @@ test_that("interpret() works with llm_args config object", {
   result <- interpret(
     fit_results = list(loadings = loadings),
     variable_info = var_info,
-    model_type = "fa",
+    analysis_type = "fa",
     llm_args = llm_config
   )
 
@@ -293,10 +293,10 @@ test_that("interpret() works with output_args config object", {
   result <- interpret(
     fit_results = list(loadings = loadings),
     variable_info = var_info,
-    model_type = "fa",
+    analysis_type = "fa",
     output_args = out_config,
-    provider = "ollama",
-    model = "gpt-oss:20b-cloud",
+    llm_provider = "ollama",
+    llm_model = "gpt-oss:20b-cloud",
     word_limit = 20
   )
 
@@ -309,14 +309,14 @@ test_that("interpret() works with all three config objects together", {
   loadings <- sample_loadings()
   var_info <- sample_variable_info()
 
-  interp_config <- interpretation_args(model_type = "fa", cutoff = 0.35)
-  llm_config <- llm_args(provider = "ollama", model = "gpt-oss:20b-cloud", word_limit = 20)
+  interp_config <- interpretation_args(analysis_type = "fa", cutoff = 0.35)
+  llm_config <- llm_args(llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud", word_limit = 20)
   out_config <- output_args(format = "cli", silent = 1)
 
   result <- interpret(
     fit_results = list(loadings = loadings),
     variable_info = var_info,
-    model_type = "fa",  # Required when using structured list
+    analysis_type = "fa",  # Required when using structured list
     interpretation_args = interp_config,
     llm_args = llm_config,
     output_args = out_config
@@ -332,13 +332,13 @@ test_that("direct parameters override config object parameters", {
   var_info <- sample_variable_info()
 
   # Create config with word_limit = 100
-  llm_config <- llm_args(provider = "ollama", model = "gpt-oss:20b-cloud", word_limit = 100)
+  llm_config <- llm_args(llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud", word_limit = 100)
 
   # But pass word_limit = 20 directly (should override)
   result <- interpret(
     fit_results = list(loadings = loadings),
     variable_info = var_info,
-    model_type = "fa",
+    analysis_type = "fa",
     llm_args = llm_config,
     word_limit = 20  # This should override the config
   )

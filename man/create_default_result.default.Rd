@@ -4,7 +4,7 @@
 \alias{create_default_result.default}
 \title{Default method for create_default_result}
 \usage{
-\method{create_default_result}{default}(model_type, ...)
+\method{create_default_result}{default}(analysis_type, ...)
 }
 \description{
 Default method for create_default_result

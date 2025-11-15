@@ -4,14 +4,14 @@
 \alias{validate_parsed_result.fa}
 \title{Validate Parsed JSON Result for Factor Analysis}
 \usage{
-\method{validate_parsed_result}{fa}(parsed, model_type, model_data, ...)
+\method{validate_parsed_result}{fa}(parsed, analysis_type, analysis_data, ...)
 }
 \arguments{
 \item{parsed}{List. Parsed JSON object}
 
-\item{model_type}{Character. "fa"}
+\item{analysis_type}{Character. "fa"}
 
-\item{model_data}{List. Contains factor_cols (factor names) and factor_summaries}
+\item{analysis_data}{List. Contains factor_cols (factor names) and factor_summaries}
 
 \item{...}{Additional arguments (unused)}
 }

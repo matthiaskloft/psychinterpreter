@@ -7,9 +7,9 @@
 interpret(
   fit_results = NULL,
   chat_session = NULL,
-  model_type = NULL,
-  provider = NULL,
-  model = NULL,
+  analysis_type = NULL,
+  llm_provider = NULL,
+  llm_model = NULL,
   llm_args = NULL,
   interpretation_args = NULL,
   output_args = NULL,
@@ -38,18 +38,18 @@ interpret(
 \item{chat_session}{Optional. A chat_session object created with \code{\link{chat_session}}
 for token-efficient multi-analysis workflows (default = NULL).}
 
-\item{model_type}{Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
+\item{analysis_type}{Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
 structured list without chat_session. Automatically inferred from chat_session if provided (default = NULL).}
 
-\item{provider}{Character. LLM provider (e.g., "openai", "anthropic", "ollama", "gemini").
+\item{llm_provider}{Character. LLM provider (e.g., "openai", "anthropic", "ollama", "gemini").
 Required when chat_session is NULL. Top-level convenience parameter (default = NULL).}
 
-\item{model}{Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b").
+\item{llm_model}{Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b").
 If NULL, uses provider default. Top-level convenience parameter (default = NULL).}
 
 \item{llm_args}{List or llm_args object. LLM configuration settings. Can be created with
 \code{\link{llm_args}} or passed as a plain list. Contains: system_prompt, params, word_limit,
-interpretation_guidelines, additional_info, echo. If provider/model are provided at top-level,
+interpretation_guidelines, additional_info, echo. If llm_provider/llm_model are provided at top-level,
 they override values in llm_args (default = NULL).}
 
 \item{interpretation_args}{List or interpretation_args object. Model-specific interpretation configuration.
@@ -90,8 +90,8 @@ Automatically extracts model components from fitted objects.
 interpret(
   fit_results = fa_model,
   variable_info = var_info,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 }
 
@@ -108,7 +108,7 @@ interpret(
     factor_cor_mat = factor_cor_mat
   ),
   variable_info = var_info,
-  model_type = "fa"
+  analysis_type = "fa"
 )
 }
 
@@ -117,7 +117,7 @@ interpret(
 Reuse chat session across analyses to save tokens.
 
 \preformatted{
-chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+chat <- chat_session(analysis_type = "fa", llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 result1 <- interpret(chat_session = chat, fit_results = model1, variable_info = var_info1)
 result2 <- interpret(chat_session = chat, fit_results = model2, variable_info = var_info2)
 }
@@ -128,9 +128,9 @@ Use configuration objects for reusable settings and cleaner code.
 
 \preformatted{
 # Create configuration objects
-interp_config <- interpretation_args(model_type = "fa", cutoff = 0.4, n_emergency = 2)
+interp_config <- interpretation_args(analysis_type = "fa", cutoff = 0.4, n_emergency = 2)
 llm_config <- llm_args(word_limit = 100, additional_info = "Study context")
-output_config <- output_args(output_format = "markdown", silent = 1)
+output_config <- output_args(format = "markdown", silent = 1)
 
 # Use in interpret() call
 interpret(
@@ -139,8 +139,8 @@ interpret(
   interpretation_args = interp_config,
   llm_args = llm_config,
   output_args = output_config,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 
 # Or mix config objects with direct parameters (direct parameters override)
@@ -148,8 +148,8 @@ interpret(
   fit_results = fa_model,
   variable_info = var_info,
   interpretation_args = interp_config,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
   word_limit = 150  # Overrides llm_config if it were provided
 )
 }
@@ -165,7 +165,7 @@ interpret(
 }
 }
 \note{
-While only \code{provider} and \code{model} are exposed as top-level parameters for convenience,
+While only \code{llm_provider} and \code{llm_model} are exposed as top-level parameters for convenience,
 the dual interface pattern allows any argument to be passed either directly or through the respective
 configuration object (\code{llm_args}, \code{interpretation_args}, \code{output_args}). This keeps the primary
 signature clean while maintaining flexibility
@@ -184,8 +184,8 @@ var_info <- data.frame(
 result1 <- interpret(
   fit_results = fa_model,
   variable_info = var_info,
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 
 # Pattern 2: Structured list
@@ -196,9 +196,9 @@ loadings <- as.data.frame(unclass(fa_model$loadings))
 result2a <- interpret(
   fit_results = list(loadings = loadings),
   variable_info = var_info,
-  model_type = "fa",
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  analysis_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 
 # Option B: Loadings + factor correlations (oblique rotation)
@@ -208,13 +208,13 @@ result2b <- interpret(
     factor_cor_mat = fa_model$Phi
   ),
   variable_info = var_info,
-  model_type = "fa",
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  analysis_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 
 # Pattern 3: Chat session (token-efficient for multiple analyses)
-chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+chat <- chat_session(analysis_type = "fa", llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 result3a <- interpret(chat_session = chat, fit_results = fa_model, variable_info = var_info)
 result3b <- interpret(chat_session = chat, fit_results = fa_model2, variable_info = var_info2)
 print(chat)  # Check token usage

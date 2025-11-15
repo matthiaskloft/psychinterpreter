@@ -8,13 +8,13 @@
 #' All model-specific interpretation classes should inherit from this base class.
 #' Common fields across all interpretation types:
 #' \itemize{
-#'   \item model_type: Character. Type of analysis ("fa", "gm", "irt", "cdm")
+#'   \item analysis_type: Character. Type of analysis ("fa", "gm", "irt", "cdm")
 #'   \item component_summaries: List. Summaries of factors/clusters/items/attributes
 #'   \item suggested_names: List. LLM-generated names for components
 #'   \item interpretations: List. LLM-generated interpretations
 #'   \item llm_info: List. Provider, model, and token information
 #'   \item chat: Chat session object
-#'   \item diagnostics: List. Model-specific diagnostic information
+#'   \item fit_summary: List. Fit-specific summary information
 #'   \item report: Character. Formatted text report
 #'   \item elapsed_time: Numeric. Processing time in seconds
 #'   \item params: List. Analysis parameters
@@ -47,17 +47,17 @@ print.interpretation <- function(x, ...) {
     cat(x$report, "\n")
   } else {
     # Fallback if no report
-    model_type_names <- c(
+    analysis_type_names <- c(
       fa = "Factor Analysis",
       gm = "Gaussian Mixture",
       irt = "Item Response Theory",
       cdm = "Cognitive Diagnosis"
     )
-    model_name <- model_type_names[x$model_type] %||% x$model_type
+    model_name <- analysis_type_names[x$analysis_type] %||% x$analysis_type
 
     cat(model_name, "Interpretation\n")
     cat("Components:", length(x$suggested_names), "\n")
-    cat("LLM:", x$llm_info$provider %||% "unknown", "/", x$llm_info$model %||% "unknown", "\n")
+    cat("LLM:", x$llm_info$llm_provider %||% "unknown", "/", x$llm_info$llm_model %||% "unknown", "\n")
   }
 
   invisible(x)
@@ -74,12 +74,12 @@ print.interpretation <- function(x, ...) {
 plot.interpretation <- function(x, ...) {
   # Check if there's a specific method for this interpretation type
   # If not, provide informative error
-  model_type <- x$model_type
+  analysis_type <- x$analysis_type
 
   cli::cli_abort(
     c(
-      "No plot method for model type: {.val {model_type}}",
-      "i" = "Implement plot.{model_type}_interpretation()"
+      "No plot method for analysis type: {.val {analysis_type}}",
+      "i" = "Implement plot.{analysis_type}_interpretation()"
     )
   )
 }

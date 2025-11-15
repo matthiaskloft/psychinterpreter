@@ -12,13 +12,13 @@ inherit from this base class.
 All model-specific interpretation classes should inherit from this base class.
 Common fields across all interpretation types:
 \itemize{
-\item model_type: Character. Type of analysis ("fa", "gm", "irt", "cdm")
+\item analysis_type: Character. Type of analysis ("fa", "gm", "irt", "cdm")
 \item component_summaries: List. Summaries of factors/clusters/items/attributes
 \item suggested_names: List. LLM-generated names for components
 \item interpretations: List. LLM-generated interpretations
 \item llm_info: List. Provider, model, and token information
 \item chat: Chat session object
-\item diagnostics: List. Model-specific diagnostic information
+\item fit_summary: List. Fit-specific summary information
 \item report: Character. Formatted text report
 \item elapsed_time: Numeric. Processing time in seconds
 \item params: List. Analysis parameters

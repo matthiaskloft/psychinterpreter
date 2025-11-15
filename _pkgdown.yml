@@ -79,7 +79,7 @@ reference:
       Internal S3 generic functions for extending the package with new model types. These functions
       are exported for developers implementing new model classes but are not intended for end users.
     contents:
-      - build_model_data
+      - build_analysis_data
       - build_system_prompt
       - build_main_prompt
       - build_report

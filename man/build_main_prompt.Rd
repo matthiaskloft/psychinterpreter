@@ -4,12 +4,12 @@
 \alias{build_main_prompt}
 \title{Build User Prompt (S3 Generic)}
 \usage{
-build_main_prompt(model_type, model_data, ...)
+build_main_prompt(analysis_type, analysis_data, ...)
 }
 \arguments{
-\item{model_type}{An object with class corresponding to the model type ("fa", "gm", "irt", "cdm")}
+\item{analysis_type}{An object with class corresponding to the model type ("fa", "gm", "irt", "cdm")}
 
-\item{model_data}{List. Model-specific data (loadings, parameters, etc.)}
+\item{analysis_data}{List. Model-specific data (loadings, parameters, etc.)}
 
 \item{...}{Additional arguments passed to model-specific methods, including variable_info
 (data frame with 'variable' and 'description' columns, required for FA)}

@@ -1,5 +1,5 @@
 # Tests for FA Prompt Builder Methods
-# Focus: build_system_prompt() and build_main_prompt() with model_type = "fa"
+# Focus: build_system_prompt() and build_main_prompt() with analysis_type = "fa"
 
 # ==============================================================================
 # SETUP: Create Mock Data
@@ -376,10 +376,10 @@ test_that("Prompt builders work with real FA model data", {
   var_info <- minimal_variable_info()
 
   # Build real model data
-  model_data <- psychinterpreter:::build_model_data.fa(
+  model_data <- psychinterpreter:::build_analysis_data.fa(
     fa_model,
-    model_type = "fa",
-    interpretation_args = interpretation_args(model_type = "fa"),
+    analysis_type = "fa",
+    interpretation_args = interpretation_args(analysis_type = "fa"),
     variable_info = var_info
   )
 
@@ -407,10 +407,10 @@ test_that("Prompts include all required information for LLM", {
   fa_model <- minimal_fa_model()
   var_info <- minimal_variable_info()
 
-  model_data <- psychinterpreter:::build_model_data.fa(
+  model_data <- psychinterpreter:::build_analysis_data.fa(
     fa_model,
-    model_type = "fa",
-    interpretation_args = interpretation_args(model_type = "fa"),
+    analysis_type = "fa",
+    interpretation_args = interpretation_args(analysis_type = "fa"),
     variable_info = var_info
   )
 

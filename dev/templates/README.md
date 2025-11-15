@@ -192,8 +192,8 @@ After creating files from templates:
      description = paste("Description for", colnames(iris[, 1:4]))
    )
 
-   model_data <- build_model_data(fit, var_info, model_type = "gm")
-   str(model_data)
+   analysis_data <- build_analysis_data(fit, var_info, analysis_type = "gm")
+   str(analysis_data)
    ```
 
 2. **Test prompt building** (no LLM required):
@@ -201,7 +201,7 @@ After creating files from templates:
    system_prompt <- build_system_prompt("gm")
    cat(system_prompt)
 
-   user_prompt <- build_main_prompt(model_data, var_info, word_limit = 50)
+   user_prompt <- build_main_prompt(analysis_data, var_info, word_limit = 50)
    cat(user_prompt)
    ```
 
@@ -210,8 +210,8 @@ After creating files from templates:
    interpretation <- interpret(
      fit_results = fit,
      variable_info = var_info,
-     provider = "ollama",
-     model = "gpt-oss:20b-cloud",
+     llm_provider = "ollama",
+     llm_model = "gpt-oss:20b-cloud",
      word_limit = 20  # Minimum for testing
    )
 

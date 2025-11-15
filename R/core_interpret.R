@@ -3,10 +3,10 @@
 #' Generic interpretation engine that coordinates LLM-based analysis interpretation
 #' for any model type. Delegates model-specific logic to S3 methods.
 #'
-#' @param model_data List. Model-specific data structure (loadings, parameters, etc.)
-#' @param model_type Character. Type of analysis ("fa", "gm", "irt", "cdm")
-#' @param provider Character. LLM provider (e.g., "anthropic", "openai", "ollama"). Required when chat_session is NULL (default = NULL)
-#' @param model Character or NULL. Model name
+#' @param analysis_data List. Model-specific data structure (loadings, parameters, etc.)
+#' @param analysis_type Character. Type of analysis ("fa", "gm", "irt", "cdm")
+#' @param llm_provider Character. LLM provider (e.g., "anthropic", "openai", "ollama"). Required when chat_session is NULL (default = NULL)
+#' @param llm_model Character or NULL. Model name
 #' @param chat_session Chat session object or NULL. If NULL, creates temporary session
 #' @param system_prompt Character or NULL. Optional custom system prompt to override the package default.
 #'   If NULL, uses model-specific default system prompt. Ignored if chat_session is provided (default = NULL)
@@ -26,7 +26,7 @@
 #' @param ... Additional arguments passed to model-specific methods, including variable_info
 #'   (data frame with 'variable' and 'description' columns, required for FA)
 #'
-#' @return Interpretation object with class c("\{model_type\}_interpretation", "interpretation", "list")
+#' @return Interpretation object with class c("\{analysis_type\}_interpretation", "interpretation", "list")
 #'
 #' @details
 #' This function orchestrates the interpretation workflow:
@@ -35,17 +35,17 @@
 #' 3. Build user prompt (model-specific via S3)
 #' 4. Send to LLM and get response
 #' 5. Parse JSON response (generic with model-specific validation)
-#' 6. Create diagnostics (model-specific via S3)
+#' 6. Create fit summary (model-specific via S3)
 #' 7. Build report (model-specific via S3)
 #' 8. Return interpretation object
 #'
 #' @keywords internal
 #' @noRd
-interpret_core <- function(model_data = NULL,
+interpret_core <- function(analysis_data = NULL,
                           fit_results = NULL,
-                          model_type = NULL,
-                          provider = NULL,
-                          model = NULL,
+                          analysis_type = NULL,
+                          llm_provider = NULL,
+                          llm_model = NULL,
                           chat_session = NULL,
                           system_prompt = NULL,
                           word_limit = 100,
@@ -73,30 +73,30 @@ interpret_core <- function(model_data = NULL,
   # STEP 0: BUILD MODEL DATA (NEW PATH)
   # ==========================================================================
 
-  # If fit_results provided, build model_data using build_model_data()
+  # If fit_results provided, build analysis_data using build_analysis_data()
   if (!is.null(fit_results)) {
-    if (!is.null(model_data)) {
-      cli::cli_warn("Both fit_results and model_data provided; using fit_results")
+    if (!is.null(analysis_data)) {
+      cli::cli_warn("Both fit_results and analysis_data provided; using fit_results")
     }
 
-    # Call build_model_data() to extract and validate
+    # Call build_analysis_data() to extract and validate
     # variable_info passed through ... (model-specific)
-    model_data <- build_model_data(
+    analysis_data <- build_analysis_data(
       fit_results = fit_results,
-      model_type = model_type,
+      analysis_type = analysis_type,
       interpretation_args = interpretation_args,
       ...  # Includes variable_info
     )
 
   }
 
-  # Validate that we have model_data (either from fit_results or passed directly)
-  if (is.null(model_data)) {
+  # Validate that we have analysis_data (either from fit_results or passed directly)
+  if (is.null(analysis_data)) {
     cli::cli_abort(
       c(
-        "Either {.arg fit_results} or {.arg model_data} must be provided",
+        "Either {.arg fit_results} or {.arg analysis_data} must be provided",
         "i" = "New path: provide fit_results (fitted model object, matrix, or list)",
-        "i" = "Legacy path: provide model_data (pre-built data structure)"
+        "i" = "Legacy path: provide analysis_data (pre-built data structure)"
       )
     )
   }
@@ -112,8 +112,8 @@ interpret_core <- function(model_data = NULL,
 
   # Extract parameters from config objects if provided
   if (!is.null(llm_args)) {
-    if (is.null(provider)) provider <- llm_args$provider
-    if (is.null(model)) model <- llm_args$model
+    if (is.null(llm_provider)) llm_provider <- llm_args$llm_provider
+    if (is.null(llm_model)) llm_model <- llm_args$llm_model
   }
   if (!is.null(output_args)) {
     if (is.null(output_format)) output_format <- output_args$output_format
@@ -132,53 +132,53 @@ interpret_core <- function(model_data = NULL,
     )
   }
 
-  # Validate and inherit model_type from chat_session
+  # Validate and inherit analysis_type from chat_session
   if (!is.null(chat_session)) {
-    # Early validation: Abort if there's a model_type mismatch
+    # Early validation: Abort if there's an analysis_type mismatch
     # This prevents confusing errors later and provides clear guidance
-    if (!is.null(model_type) && model_type != chat_session$model_type) {
+    if (!is.null(analysis_type) && analysis_type != chat_session$analysis_type) {
       cli::cli_abort(
         c(
-          "chat_session model_type mismatch",
+          "chat_session analysis_type mismatch",
           "x" = paste0(
-            "chat_session has model_type '", chat_session$model_type, "' ",
-            "but you requested interpretation for model_type '", model_type, "'"
+            "chat_session has analysis_type '", chat_session$analysis_type, "' ",
+            "but you requested interpretation for analysis_type '", analysis_type, "'"
           ),
-          "i" = "Create a new chat_session with model_type = '{model_type}'",
+          "i" = "Create a new chat_session with analysis_type = '{analysis_type}'",
           "i" = "Or use interpret() generic to let it route automatically"
         )
       )
     }
-    model_type <- chat_session$model_type
+    analysis_type <- chat_session$analysis_type
   }
 
-  # Error if both chat_session and model_type are NULL
-  if (is.null(chat_session) && is.null(model_type)){
+  # Error if both chat_session and analysis_type are NULL
+  if (is.null(chat_session) && is.null(analysis_type)){
     cli::cli_abort(
       c(
-        "{.var model_type} must be provided if {.var chat_session} is NULL",
-        "i" = "Either provide a chat_session or specify the model_type"
+        "{.var analysis_type} must be provided if {.var chat_session} is NULL",
+        "i" = "Either provide a chat_session or specify the analysis_type"
       )
     )
   }
 
-  # Validate provider when chat_session is NULL
-  if (is.null(chat_session) && is.null(provider)) {
+  # Validate llm_provider when chat_session is NULL
+  if (is.null(chat_session) && is.null(llm_provider)) {
     cli::cli_abort(
       c(
-        "{.var provider} is required when {.var chat_session} is NULL",
-        "i" = "Specify provider (e.g., 'anthropic', 'openai', 'ollama', 'gemini')",
+        "{.var llm_provider} is required when {.var chat_session} is NULL",
+        "i" = "Specify llm_provider (e.g., 'anthropic', 'openai', 'ollama', 'gemini')",
         "i" = "Or provide a chat_session created with chat_session()"
       )
     )
   }
 
   if (silent < 2) {
-    cli::cli_alert_info("Starting {model_type} interpretation...")
+    cli::cli_alert_info("Starting {analysis_type} interpretation...")
   }
 
-  # Validate model_type
-  validate_model_type(model_type)
+  # Validate analysis_type
+  validate_analysis_type(analysis_type)
 
   # Note: variable_info validation removed - now handled by model-specific methods
   # Models that require variable_info will validate it in their interpret_model.X() methods
@@ -260,8 +260,8 @@ interpret_core <- function(model_data = NULL,
   # ==========================================================================
   # STEP 2: BUILD SYSTEM PROMPT
   # ==========================================================================
-  # Create dummy object with model_type class for S3 dispatch
-  model_type_obj <- structure(list(), class = model_type)
+  # Create dummy object with analysis_type class for S3 dispatch
+  analysis_type_obj <- structure(list(), class = analysis_type)
 
   # Use custom system_prompt if provided, otherwise build model-specific default
   final_system_prompt <- if (!is.null(system_prompt)) {
@@ -269,7 +269,7 @@ interpret_core <- function(model_data = NULL,
   } else {
     do.call(build_system_prompt, c(
       list(
-        model_type = model_type_obj,
+        analysis_type = analysis_type_obj,
         word_limit = word_limit
       ),
       dots
@@ -289,9 +289,9 @@ interpret_core <- function(model_data = NULL,
     }
 
     chat_session <- chat_session(
-      model_type = model_type,
-      provider = provider,
-      model = model,
+      analysis_type = analysis_type,
+      llm_provider = llm_provider,
+      llm_model = llm_model,
       system_prompt = final_system_prompt,
       params = params,
       echo = echo
@@ -314,11 +314,11 @@ interpret_core <- function(model_data = NULL,
     cli::cli_alert_info("Building prompt...")
   }
 
-  # Build prompt args (model_data contains all model-specific parameters)
+  # Build prompt args (analysis_data contains all model-specific parameters)
   prompt_args <- c(
     list(
-      model_type = model_type_obj,
-      model_data = model_data,
+      analysis_type = analysis_type_obj,
+      analysis_data = analysis_data,
       variable_info = variable_info,
       word_limit = word_limit,
       additional_info = additional_info
@@ -357,8 +357,8 @@ interpret_core <- function(model_data = NULL,
   parsed_result <- do.call(parse_llm_response, c(
     list(
       response = response,
-      model_type = model_type,
-      model_data = model_data
+      analysis_type = analysis_type,
+      analysis_data = analysis_data
     ),
     dots
   ))
@@ -403,13 +403,13 @@ interpret_core <- function(model_data = NULL,
   # STEP 8: CREATE DIAGNOSTICS
   # ==========================================================================
   if (silent < 2) {
-    cli::cli_alert_info("Creating diagnostics...")
+    cli::cli_alert_info("Creating fit summary...")
   }
 
-  diagnostics <- do.call(create_diagnostics, c(
+  fit_summary <- do.call(create_fit_summary, c(
     list(
-      model_type = model_type_obj,
-      model_data = model_data,
+      analysis_type = analysis_type_obj,
+      analysis_data = analysis_data,
       variable_info = variable_info
     ),
     dots
@@ -421,8 +421,8 @@ interpret_core <- function(model_data = NULL,
   elapsed_time <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
 
   interpretation <- list(
-    model_type = model_type,
-    model_data = model_data,
+    analysis_type = analysis_type,
+    analysis_data = analysis_data,
     component_summaries = parsed_result$component_summaries,
     suggested_names = parsed_result$suggested_names,
     timestamp = start_time,
@@ -430,7 +430,7 @@ interpret_core <- function(model_data = NULL,
     output_tokens = output_tokens,
     total_tokens = input_tokens + output_tokens,
     llm_info = list(
-      provider = chat_local$get_provider()@name,
+      llm_provider = chat_local$get_provider()@name,
       model = chat_local$get_model(),
       input_tokens = input_tokens,
       output_tokens = output_tokens,
@@ -438,7 +438,7 @@ interpret_core <- function(model_data = NULL,
       main_prompt = main_prompt
     ),
     chat = chat_session,
-    diagnostics = diagnostics,
+    fit_summary = fit_summary,
     elapsed_time = elapsed_time,
     params = c(
       list(
@@ -460,7 +460,7 @@ interpret_core <- function(model_data = NULL,
 
   # Set class: model-specific first, then base, then list
   class(interpretation) <- c(
-    paste0(model_type, "_interpretation"),
+    paste0(analysis_type, "_interpretation"),
     "interpretation",
     "list"
   )
@@ -497,37 +497,37 @@ interpret_core <- function(model_data = NULL,
   return(interpretation)
 }
 
-#' Create Diagnostics (S3 Generic)
+#' Create Fit Summary (S3 Generic)
 #'
-#' Model-specific diagnostic analysis (cross-loadings, misfit items, cluster overlap, etc.)
+#' Model-specific summary analysis (cross-loadings, misfit items, cluster overlap, etc.)
 #'
-#' @param model_type Object with model type class
-#' @param model_data List. Model-specific data
-#' @param ... Additional arguments for model-specific diagnostics
+#' @param analysis_type Object with analysis type class
+#' @param analysis_data List. Model-specific data
+#' @param ... Additional arguments for model-specific summaries
 #'
-#' @return List of diagnostic results
+#' @return List of summary results
 #' @export
 #' @keywords internal
-create_diagnostics <- function(model_type, model_data, ...) {
-  UseMethod("create_diagnostics")
+create_fit_summary <- function(analysis_type, analysis_data, ...) {
+  UseMethod("create_fit_summary")
 }
 
-#' Default method for create_diagnostics
+#' Default method for create_fit_summary
 #' @export
 #' @keywords internal
-create_diagnostics.default <- function(model_type, model_data, ...) {
+create_fit_summary.default <- function(analysis_type, analysis_data, ...) {
   # Get the class name
-  model_class <- if (is.character(model_type)) {
-    model_type
+  analysis_class <- if (is.character(analysis_type)) {
+    analysis_type
   } else {
-    class(model_type)[1]
+    class(analysis_type)[1]
   }
 
   cli::cli_abort(
     c(
-      "No diagnostics method for model type: {.val {model_class}}",
+      "No fit summary method for analysis type: {.val {analysis_class}}",
       "i" = "Available types: fa, gm, irt, cdm",
-      "i" = "Implement create_diagnostics.{model_class}() in R/models/{model_class}/"
+      "i" = "Implement create_fit_summary.{analysis_class}() in R/models/{analysis_class}/"
     )
   )
 }
@@ -561,13 +561,13 @@ build_report.default <- function(interpretation,
                                  heading_level = 1,
                                  suppress_heading = FALSE,
                                  ...) {
-  model_type <- interpretation$model_type
+  analysis_type <- interpretation$analysis_type
 
   cli::cli_abort(
     c(
-      "No report builder for model type: {.val {model_type}}",
+      "No report builder for analysis type: {.val {analysis_type}}",
       "i" = "Available types: fa, gm, irt, cdm",
-      "i" = "Implement build_report.\\{model_type\\}_interpretation() in R/models/\\{model_type\\}/"
+      "i" = "Implement build_report.\\{analysis_type\\}_interpretation() in R/models/\\{analysis_type\\}/"
     )
   )
 }

@@ -9,7 +9,12 @@ This directory contains test fixture data used by the psychinterpreter test suit
 - **`sample_variable_info.rds`**: Variable descriptions (full-length)
 - **`sample_factor_cor.rds`**: Factor correlation matrix 3×3 (for oblique rotations)
 - **`sample_interpretation.rds`**: Complete `fa_interpretation` object (avoids LLM calls)
+- **`sample_interpretation_emergency.rds`**: Interpretation with emergency rule applied (n_emergency = 2)
+- **`sample_interpretation_undefined.rds`**: Interpretation with undefined factor (n_emergency = 0)
+- **`sample_interpretation_markdown.rds`**: Interpretation with markdown output format
+- **`sample_interpretation_cross_loading.rds`**: Interpretation with cross-loading variables
 - **`make-fixtures.R`**: Script to regenerate standard fixtures
+- **`make-additional-fixtures.R`**: Script to regenerate cached interpretation fixtures
 
 **Minimal Fixtures** (for token-efficient LLM testing):
 - **`minimal_loadings.rds`**: Factor loadings matrix (3 variables × 2 factors)
@@ -51,6 +56,44 @@ Correlational fixtures provide realistic data with proper factor structure for t
 **Why not use random data?**
 Random uncorrelated data (e.g., `matrix(rnorm(100), ncol=5)`) violates FA assumptions and produces warnings like "The estimated weights for the factor scores are probably incorrect." Correlational fixtures have proper covariance structure that FA expects.
 
+## Cached Interpretation Fixtures
+
+Cached interpretation fixtures are pre-generated complete `fa_interpretation` objects that allow testing specific scenarios without making LLM calls. These fixtures significantly reduce test runtime.
+
+**Available cached interpretation fixtures:**
+
+1. **`sample_interpretation.rds`** - Standard interpretation (baseline)
+   - 3 factors with clear loadings
+   - All factors have loadings above default cutoff (0.3)
+   - Use for: General interpretation testing, output formatting, export functions
+
+2. **`sample_interpretation_emergency.rds`** - Emergency rule applied
+   - Scenario: One weak factor with no loadings above cutoff
+   - n_emergency = 2 (uses top 2 loadings)
+   - Use for: Testing emergency rule behavior, weak factor handling
+
+3. **`sample_interpretation_undefined.rds`** - Undefined factor
+   - Scenario: Weak factor with no loadings above cutoff
+   - n_emergency = 0 (factor marked as "undefined")
+   - Use for: Testing undefined factor handling, edge case validation
+
+4. **`sample_interpretation_markdown.rds`** - Markdown formatting
+   - Scenario: Same as standard interpretation but with markdown output format
+   - Use for: Testing markdown formatting, export to .md files
+
+5. **`sample_interpretation_cross_loading.rds`** - Cross-loadings present
+   - Scenario: Variables loading on multiple factors above cutoff
+   - Use for: Testing cross-loading detection, complex factor structures
+
+**When to use cached interpretation fixtures:**
+- ✅ Testing print methods (avoid LLM calls)
+- ✅ Testing export functions (avoid LLM calls)
+- ✅ Testing visualization functions (avoid LLM calls)
+- ✅ Testing output formatting (avoid LLM calls)
+- ✅ Testing specific edge cases (emergency rule, undefined factors, cross-loadings)
+- ❌ Integration tests that validate end-to-end LLM workflow (use real LLM)
+- ❌ Performance benchmarks (use real LLM to measure actual performance)
+
 ## Usage
 
 Fixtures are loaded via helper functions in `tests/testthat/helper.R`:
@@ -61,6 +104,12 @@ loadings <- sample_loadings()
 var_info <- sample_variable_info()
 factor_cor <- sample_factor_cor()
 interpretation <- sample_interpretation()
+
+# Cached interpretation fixtures (for specific test scenarios):
+interp_emergency <- sample_interpretation_emergency()
+interp_undefined <- sample_interpretation_undefined()
+interp_markdown <- sample_interpretation_markdown()
+interp_cross <- sample_interpretation_cross_loading()
 
 # Minimal fixtures (for LLM tests):
 loadings <- minimal_loadings()
@@ -96,7 +145,15 @@ setwd("tests/testthat/fixtures")
 source("make-correlational-data.R")
 ```
 
+**Cached interpretation fixtures** (requires Ollama running):
+```r
+setwd("tests/testthat/fixtures/fa")
+source("make-additional-fixtures.R")
+```
+
 This will regenerate the corresponding `.rds` files with the updated data.
+
+**Note:** Regenerating cached interpretation fixtures requires a running Ollama instance with the `gpt-oss:20b-cloud` model. Each fixture generation makes 4 LLM calls with `word_limit = 20` for token efficiency.
 
 ## Design Rationale
 

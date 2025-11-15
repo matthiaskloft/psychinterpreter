@@ -13,14 +13,14 @@ NULL
 #' This is the single source of truth for the FA system prompt, used by both
 #' interpret_fa() and chat_session() to eliminate duplication.
 #'
-#' @param model_type Object with class "fa"
+#' @param analysis_type Object with class "fa"
 #' @param word_limit Integer. Word limit for interpretations
 #' @param ... Additional arguments (unused)
 #'
 #' @return Character. System prompt text
 #' @export
 #' @keywords internal
-build_system_prompt.fa <- function(model_type, word_limit = 100, ...) {
+build_system_prompt.fa <- function(analysis_type, word_limit = 100, ...) {
   paste0(
     "# ROLE\n",
     "You are an expert psychometrician specializing in exploratory factor analysis.\n\n",
@@ -44,10 +44,10 @@ build_system_prompt.fa <- function(model_type, word_limit = 100, ...) {
 #'
 #' Constructs the complete user prompt containing factor loadings, variable
 #' descriptions, and interpretation instructions. All FA-specific parameters
-#' are extracted from model_data.
+#' are extracted from analysis_data.
 #'
-#' @param model_type Object with class "fa"
-#' @param model_data List containing:
+#' @param analysis_type Object with class "fa"
+#' @param analysis_data List containing:
 #'   - loadings_df: Data frame with variables and factor loadings
 #'   - factor_summaries: List of factor summary information
 #'   - factor_cols: Character vector of factor column names
@@ -65,8 +65,8 @@ build_system_prompt.fa <- function(model_type, word_limit = 100, ...) {
 #' @return Character. User prompt text
 #' @export
 #' @keywords internal
-build_main_prompt.fa <- function(model_type,
-                                 model_data,
+build_main_prompt.fa <- function(analysis_type,
+                                 analysis_data,
                                  word_limit,
                                  additional_info = NULL,
                                  ...) {
@@ -84,16 +84,16 @@ build_main_prompt.fa <- function(model_type,
     )
   }
 
-  # Extract FA-specific parameters from model_data
-  loadings_df <- model_data$loadings_df
-  cutoff <- model_data$cutoff
-  n_emergency <- model_data$n_emergency
-  hide_low_loadings <- model_data$hide_low_loadings
-  factor_cor_mat <- model_data$factor_cor_mat
-  factor_summaries <- model_data$factor_summaries
-  factor_cols <- model_data$factor_cols
-  n_factors <- model_data$n_factors
-  n_variables <- model_data$n_variables
+  # Extract FA-specific parameters from analysis_data
+  loadings_df <- analysis_data$loadings_df
+  cutoff <- analysis_data$cutoff
+  n_emergency <- analysis_data$n_emergency
+  hide_low_loadings <- analysis_data$hide_low_loadings
+  factor_cor_mat <- analysis_data$factor_cor_mat
+  factor_summaries <- analysis_data$factor_summaries
+  factor_cols <- analysis_data$factor_cols
+  n_factors <- analysis_data$n_factors
+  n_variables <- analysis_data$n_variables
 
   # Extract optional parameters from ...
   interpretation_guidelines <- dots$interpretation_guidelines

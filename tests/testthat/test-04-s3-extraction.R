@@ -1,29 +1,8 @@
-# Tests for S3 interpret methods for various FA packages
-# Focus: Data extraction and adaptation, not LLM interpretation
-
 # ==============================================================================
-# GENERIC FUNCTION TESTS
+# S3 DATA EXTRACTION TESTS
+# Extracted from test-interpret_methods.R as part of Phase 2 Test Reorganization
+# Focus: Testing data extraction from psych, lavaan, and mirt model objects
 # ==============================================================================
-
-test_that("interpret generic function exists and dispatches correctly", {
-  expect_true(is.function(interpret))
-})
-
-test_that("interpret throws informative error for unsupported types", {
-  # Test with unsupported object type (not a fitted model, not list, not matrix/df)
-  unsupported <- "not_a_valid_model"
-  class(unsupported) <- "unsupported_class"
-
-  expect_error(
-    interpret(
-      fit_results = unsupported,
-      variable_info = data.frame(variable = "test", description = "test"),
-      provider = "ollama",  # Provide to get past validation
-      model_type = "fa"  # Provide to get past validation
-    ),
-    "Cannot interpret"
-  )
-})
 
 # ==============================================================================
 # PSYCH PACKAGE - DATA EXTRACTION TESTS (NO LLM)
@@ -72,28 +51,6 @@ test_that("interpret.fa handles orthogonal rotation (no Phi)", {
 
   # Varimax is orthogonal - Phi should be NULL
   expect_true(is.null(fa_model$Phi))
-})
-
-test_that("interpret validates input model for psych::fa", {
-  skip_if_not_installed("psych")
-
-  # Test with mismatched variable names in loadings and variable_info
-  bad_model <- list(loadings = matrix(1:4, nrow = 2))
-
-  var_info <- data.frame(
-    variable = c("var1", "var2"),
-    description = c("Var 1", "Var 2")
-  )
-
-  expect_error(
-    interpret(
-      fit_results = bad_model,
-      variable_info = var_info,
-      model_type = "fa",
-      provider = "ollama"  # Provide to get past validation
-    ),
-    "No variables.*found in.*variable_info"
-  )
 })
 
 test_that("interpret.principal correctly extracts component loadings", {
@@ -165,30 +122,6 @@ test_that("interpret.lavaan extracts factor correlations when present", {
   expect_true(nrow(cor_rows) > 0)
 })
 
-test_that("interpret.lavaan validates input model", {
-  skip_if_not_installed("lavaan")
-
-  # Test with list structure (will be treated as structured list, not lavaan object)
-  # Since creating a fake S4 lavaan object is complex, just test that a list
-  # without proper structure errors appropriately
-  bad_model <- list(data = matrix(1:4, nrow = 2))
-
-  var_info <- data.frame(
-    variable = c("x1", "x2"),
-    description = c("Var 1", "Var 2")
-  )
-
-  expect_error(
-    interpret(
-      fit_results = bad_model,
-      variable_info = var_info,
-      model_type = "fa",
-      provider = "ollama"  # Provide to get past validation
-    ),
-    "must contain.*loadings"
-  )
-})
-
 # ==============================================================================
 # MIRT PACKAGE - DATA EXTRACTION TESTS (NO LLM)
 # ==============================================================================
@@ -214,30 +147,9 @@ test_that("interpret.SingleGroupClass correctly extracts factor loadings from mi
   expect_true(is.matrix(items))
 })
 
-test_that("interpret validates input model for mirt", {
-  skip_if_not_installed("mirt")
-
-  # Test with wrong list structure (missing loadings)
-  bad_model <- list(data = "test")
-
-  var_info <- data.frame(
-    variable = c("item1", "item2"),
-    description = c("Item 1", "Item 2")
-  )
-
-  expect_error(
-    interpret(
-      fit_results = bad_model,
-      variable_info = var_info,
-      model_type = "fa",
-      provider = "ollama"  # Provide to get past validation
-    ),
-    "must contain.*loadings"
-  )
-})
-
 # ==============================================================================
-# INTEGRATION TESTS (ONE PER PACKAGE, MINIMAL LLM CALLS)
+# INTEGRATION TESTS (ONE PER PACKAGE, WITH LLM)
+# These tests verify end-to-end extraction and interpretation
 # ==============================================================================
 
 test_that("interpret.fa end-to-end integration with psych::fa", {
@@ -251,15 +163,15 @@ test_that("interpret.fa end-to-end integration with psych::fa", {
   fa_model <- sample_fa_oblimin()
   var_info <- correlational_var_info()
 
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
+  llm_provider <- "ollama"
+  llm_model <- "gpt-oss:20b-cloud"
 
   # Single integration test to verify end-to-end works
   result <- interpret(
     fit_results = fa_model,
     variable_info = var_info,
-    provider = provider,
-    model = model,
+    llm_provider = llm_provider,
+    llm_model = llm_model,
     word_limit = 20,  # Minimal for speed
     silent = TRUE
   )
@@ -269,8 +181,8 @@ test_that("interpret.fa end-to-end integration with psych::fa", {
   expect_true("suggested_names" %in% names(result))
   expect_true("component_summaries" %in% names(result))
 
-  # Verify factor correlations were passed through (now in model_data)
-  expect_true(!is.null(result$model_data$factor_cor_mat))
+  # Verify factor correlations were passed through (now in analysis_data)
+  expect_true(!is.null(result$analysis_data$factor_cor_mat))
 })
 
 test_that("interpret.principal end-to-end integration with psych::principal", {
@@ -284,14 +196,14 @@ test_that("interpret.principal end-to-end integration with psych::principal", {
   pca_model <- sample_pca_varimax()
   var_info <- correlational_var_info()
 
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
+  llm_provider <- "ollama"
+  llm_model <- "gpt-oss:20b-cloud"
 
   result <- interpret(
     fit_results = pca_model,
     variable_info = var_info,
-    provider = provider,
-    model = model,
+    llm_provider = llm_provider,
+    llm_model = llm_model,
     word_limit = 20,
     silent = TRUE
   )
@@ -300,7 +212,7 @@ test_that("interpret.principal end-to-end integration with psych::principal", {
   expect_s3_class(result, "fa_interpretation")
 
   # PCA should have NULL factor correlations (orthogonal)
-  expect_true(is.null(result$factor_cor_mat))
+  expect_true(is.null(result$analysis_data$factor_cor_mat))
 })
 
 test_that("interpret.lavaan end-to-end integration with CFA", {
@@ -318,14 +230,14 @@ test_that("interpret.lavaan end-to-end integration with CFA", {
     description = paste("Indicator", 1:6)
   )
 
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
+  llm_provider <- "ollama"
+  llm_model <- "gpt-oss:20b-cloud"
 
   result <- interpret(
     fit_results = fit,
     variable_info = var_info,
-    provider = provider,
-    model = model,
+    llm_provider = llm_provider,
+    llm_model = llm_model,
     word_limit = 20,
     silent = TRUE
   )
@@ -352,14 +264,14 @@ test_that("interpret.SingleGroupClass end-to-end integration with mirt", {
     description = paste("LSAT item", 1:5)
   )
 
-  provider <- "ollama"
-  model <- "gpt-oss:20b-cloud"
+  llm_provider <- "ollama"
+  llm_model <- "gpt-oss:20b-cloud"
 
   result <- interpret(
     fit_results = mirt_model,
     variable_info = var_info,
-    provider = provider,
-    model = model,
+    llm_provider = llm_provider,
+    llm_model = llm_model,
     word_limit = 20,
     silent = TRUE
   )

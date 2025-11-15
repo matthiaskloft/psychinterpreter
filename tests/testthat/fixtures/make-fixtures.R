@@ -33,7 +33,7 @@ sample_factor_cor <- matrix(
 
 # Sample interpretation result (fixture to avoid LLM calls in tests)
 sample_interpretation <- list(
-  model_type = "fa",
+  analysis_type = "fa",
   suggested_names = list(
     ML1 = "Cognitive Ability",
     ML2 = "Numerical Skills",
@@ -92,7 +92,7 @@ sample_interpretation <- list(
       llm_interpretation = "This factor reflects memory performance and recall ability, with a dominant loading from variable 5 (0.85)."
     )
   ),
-  model_data = list(
+  analysis_data = list(
     loadings_df = sample_loadings,
     factor_cor_mat = sample_factor_cor,
     cutoff = 0.3,
@@ -119,8 +119,8 @@ sample_interpretation <- list(
     output = 180
   ),
   llm_info = list(
-    provider = "ollama",
-    model = "gpt-oss:20b-cloud"
+    llm_provider = "ollama",
+    llm_model = "gpt-oss:20b-cloud"
   ),
   elapsed_time = as.difftime(2.5, units = "secs"),
   report = "FACTOR ANALYSIS INTERPRETATION\n\n3 factors identified\nLoading cutoff: 0.3\n\n=== SUMMARY ===\n\nML1: Cognitive Ability\nML2: Numerical Skills\nML3: Memory Performance\n\n=== FACTOR DETAILS ===\n\n--- ML1: Cognitive Ability ---\n\nThis factor captures cognitive ability and reasoning skills, with strong loadings from variables 1 and 2 (0.80, 0.70).\n\nVariables with significant loadings:\n- var1: First variable description (0.80)\n- var2: Second variable description (0.70)\n\n--- ML2: Numerical Skills ---\n\nThis factor represents numerical skills and quantitative reasoning, with strong loadings from variables 3 and 4 (0.75, 0.82).\n\nVariables with significant loadings:\n- var3: Third variable description (0.75)\n- var4: Fourth variable description (0.82)\n\n--- ML3: Memory Performance ---\n\nThis factor reflects memory performance and recall ability, with a dominant loading from variable 5 (0.85).\n\nVariables with significant loadings:\n- var5: Fifth variable description (0.85)\n\n=== FACTOR CORRELATIONS ===\n\n       ML1   ML2   ML3\nML1   1.00  0.25 -0.15\nML2   0.25  1.00  0.30\nML3  -0.15  0.30  1.00\n"

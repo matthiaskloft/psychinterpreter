@@ -45,7 +45,7 @@
 #'
 #' @param fit_results Fitted {MODEL} object from {PACKAGE}::{CLASS}()
 #' @param variable_info Data frame with columns 'variable' and 'description'
-#' @param model_type Model type identifier (should be "{model}")
+#' @param analysis_type Analysis type identifier (should be "{model}")
 #' @param interpretation_args Optional configuration object from interpretation_args(model_type = "{model}", ...)
 #' @param ... Additional arguments (for parameter extraction)
 #'
@@ -54,7 +54,7 @@
 #'   \item{DATA_FIELD2}{Description of second data field}
 #'   \item{n_components}{Number of {COMPONENTS} (e.g., clusters, factors, items)}
 #'   \item{n_variables}{Number of variables}
-#'   \item{model_type}{Model type identifier ("{model}")}
+#'   \item{analysis_type}{Analysis type identifier ("{model}")}
 #'   \item{{PARAM1}}{First model-specific parameter}
 #'   \item{{PARAM2}}{Second model-specific parameter}
 #'
@@ -73,20 +73,20 @@
 #'   description = c("Description 1", "Description 2", ...)
 #' )
 #'
-#' # Extract model data
-#' model_data <- build_model_data(fit, var_info, model_type = "{model}")
+#' # Extract analysis data
+#' analysis_data <- build_analysis_data(fit, var_info, analysis_type = "{model}")
 #' }
-build_model_data.{CLASS} <- function(fit_results,
+build_analysis_data.{CLASS} <- function(fit_results,
                                       variable_info,
-                                      model_type = "{model}",
+                                      analysis_type = "{model}",
                                       interpretation_args = NULL,
                                       ...) {
 
   # Call internal helper to avoid S3 method naming conflicts
-  build_{model}_model_data_internal(
+  build_{model}_analysis_data_internal(
     fit_results = fit_results,
     variable_info = variable_info,
-    model_type = model_type,
+    analysis_type = analysis_type,
     interpretation_args = interpretation_args,
     ...
   )
@@ -97,9 +97,9 @@ build_model_data.{CLASS} <- function(fit_results,
 #'
 #' @keywords internal
 #' @noRd
-build_{model}_model_data_internal <- function(fit_results,
+build_{model}_analysis_data_internal <- function(fit_results,
                                                variable_info,
-                                               model_type = "{model}",
+                                               analysis_type = "{model}",
                                                interpretation_args = NULL,
                                                ...) {
 
@@ -271,14 +271,14 @@ build_{model}_model_data_internal <- function(fit_results,
       # ---- Metadata ----
       n_components = n_components,  # Number of clusters/factors/items
       n_variables = n_variables,
-      model_type = model_type,
+      analysis_type = analysis_type,
 
       # ---- Model-specific parameters (used later in prompts) ----
       {PARAM1} = {PARAM1},
       {PARAM2} = {PARAM2}
       # TODO: Add additional parameters as needed
     ),
-    class = c("{model}_model_data", "model_data", "list")
+    class = c("{model}_analysis_data", "analysis_data", "list")
   )
 }
 
@@ -291,7 +291,7 @@ build_{model}_model_data_internal <- function(fit_results,
 
 # Example: If there's another class that produces {MODEL} results
 # #' @export
-# build_model_data.{OTHER_CLASS} <- function(fit_results,
+# build_analysis_data.{OTHER_CLASS} <- function(fit_results,
 #                                            variable_info,
 #                                            model_type = "{model}",
 #                                            {model}_args = NULL,

@@ -65,8 +65,8 @@ var_info <- data.frame(
 # Interpret directly from model object
 results <- interpret(fa_result,
                      variable_info = var_info,
-                     provider = "ollama",
-                     model = "gpt-oss:20b-cloud")
+                     llm_provider = "ollama",
+                     llm_model = "gpt-oss:20b-cloud")
 ```
 
 ### Manual Approach
@@ -77,13 +77,13 @@ For more control or custom loadings matrices:
 # Extract loadings manually
 loadings <- fa_result$loadings
 
-# Use structured list with model_type
+# Use structured list with analysis_type
 results <- interpret(
   fit_results = list(loadings = loadings),
   variable_info = var_info,
-  model_type = "fa",
-  provider = "ollama",
-  model = "gpt-oss:20b-cloud"
+  analysis_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
 )
 ```
 
@@ -94,7 +94,7 @@ datasets:
 
 ``` r
 # Create reusable chat session
-chat <- chat_session(model_type = "fa", provider = "ollama", model = "gpt-oss:20b-cloud")
+chat <- chat_session(analysis_type = "fa", llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 
 # Run multiple interpretations (saves ~40-60% tokens)
 result1 <- interpret(chat_session = chat, fit_results = fa_result1, variable_info = var_info1, silent = 2)

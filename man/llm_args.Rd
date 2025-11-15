@@ -5,8 +5,8 @@
 \title{Create LLM Configuration}
 \usage{
 llm_args(
-  provider,
-  model = NULL,
+  llm_provider,
+  llm_model = NULL,
   system_prompt = NULL,
   params = NULL,
   word_limit = 150,
@@ -16,9 +16,9 @@ llm_args(
 )
 }
 \arguments{
-\item{provider}{Character. LLM provider (e.g., "anthropic", "openai", "ollama")}
+\item{llm_provider}{Character. LLM provider (e.g., "anthropic", "openai", "ollama")}
 
-\item{model}{Character or NULL. Model name (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022")}
+\item{llm_model}{Character or NULL. LLM model name (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022")}
 
 \item{system_prompt}{Character or NULL. Custom system prompt to override default (default = NULL)}
 
@@ -41,12 +41,12 @@ LLM-related parameters together.
 }
 \examples{
 # Basic config
-cfg <- llm_args(provider = "ollama", model = "gpt-oss:20b-cloud")
+cfg <- llm_args(llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 
 # Advanced config
 cfg <- llm_args(
-  provider = "anthropic",
-  model = "claude-3-5-sonnet-20241022",
+  llm_provider = "anthropic",
+  llm_model = "claude-3-5-sonnet-20241022",
   word_limit = 200,
   params = ellmer::params(temperature = 0.7, seed = 42)
 )

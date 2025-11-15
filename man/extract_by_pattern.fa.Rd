@@ -4,14 +4,14 @@
 \alias{extract_by_pattern.fa}
 \title{Extract Factor Analysis Results by Pattern}
 \usage{
-\method{extract_by_pattern}{fa}(response, model_type, model_data, ...)
+\method{extract_by_pattern}{fa}(response, analysis_type, analysis_data, ...)
 }
 \arguments{
 \item{response}{Character. Raw LLM response}
 
-\item{model_type}{Character. "fa"}
+\item{analysis_type}{Character. "fa"}
 
-\item{model_data}{List. Contains factor_cols and factor_summaries}
+\item{analysis_data}{List. Contains factor_cols and factor_summaries}
 
 \item{...}{Additional arguments (unused)}
 }

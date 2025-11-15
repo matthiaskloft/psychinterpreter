@@ -4,12 +4,12 @@
 \alias{parse_llm_response}
 \title{Parse LLM JSON Response with Multi-Tier Fallback}
 \usage{
-parse_llm_response(response, model_type, ...)
+parse_llm_response(response, analysis_type, ...)
 }
 \arguments{
 \item{response}{Character. Raw LLM response}
 
-\item{model_type}{Character. Model type ("fa", "gm", "irt", "cdm")}
+\item{analysis_type}{Character. Model type ("fa", "gm", "irt", "cdm")}
 
 \item{...}{Additional arguments passed to model-specific methods}
 }

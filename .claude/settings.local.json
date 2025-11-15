@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "Read(/mnt/c/Users/Matze/Documents/GitHub/psychinterpreter/**)",
+      "Bash(cd:*)",
       "Bash(npm:*)",
       "Bash(yarn:*)",
       "Bash(node:*)",
@@ -69,7 +71,13 @@
       "Bash(for:*)",
       "Bash(tee:*)",
       "Bash(jobs)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(while read f)",
+      "Bash(do if grep -q analysis_data $f)",
+      "Bash(then echo $f)",
+      "Bash(cat:*)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(do awk '/^#.*@export/{e=NR} /^#.*@keywords internal/{if(e && NR-e<20) print FILENAME\"\"\"\":\"\"\"\"e\"\"\"\"-\"\"\"\"NR}' \"$file\")"
     ],
     "deny": [
       "Read(./.env*)",
@@ -79,5 +87,49 @@
     ],
     "ask": []
   },
-  "description": "Comprehensive permissions for active development. Allows most development tools and operations while maintaining security boundaries. Ideal for trusted development environments where productivity is prioritized. Extended for R package development."
+  "description": "Comprehensive permissions for active development. Allows most development tools and operations while maintaining security boundaries. Ideal for trusted development environments where productivity is prioritized. Extended for R package development.",
+  "autonomous_testing": {
+    "enabled": true,
+    "permissions": {
+      "test_execution": {
+        "auto_approve": true,
+        "commands": [
+          "R CMD check --no-manual --no-build-vignettes .",
+          "Rscript -e 'testthat::test_*'"
+        ]
+      },
+      "package_rebuild": {
+        "auto_approve": true,
+        "commands": [
+          "R CMD INSTALL .",
+          "Rscript -e 'roxygen2::roxygenise()'"
+        ]
+      },
+      "test_file_edits": {
+        "auto_approve": true,
+        "paths": [
+          "tests/testthat/**/*.R"
+        ]
+      },
+      "source_file_edits": {
+        "auto_approve": "conditional",
+        "paths": [
+          "R/**/*.R"
+        ],
+        "conditions": [
+          "test_failure_present"
+        ]
+      }
+    },
+    "limits": {
+      "max_iterations": 5,
+      "max_files_per_iteration": 10,
+      "timeout_seconds": 600
+    },
+    "safety": {
+      "stop_if_no_progress": 2,
+      "stop_if_failures_increase": true,
+      "require_test_evidence": true
+    }
+  }
 }

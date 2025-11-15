@@ -4,12 +4,12 @@
 \alias{validate_parsed_result}
 \title{Validate Parsed Result (S3 Generic)}
 \usage{
-validate_parsed_result(parsed, model_type, ...)
+validate_parsed_result(parsed, analysis_type, ...)
 }
 \arguments{
 \item{parsed}{List. Parsed JSON object}
 
-\item{model_type}{Character. Model type}
+\item{analysis_type}{Character. Model type}
 
 \item{...}{Additional arguments for model-specific validation}
 }

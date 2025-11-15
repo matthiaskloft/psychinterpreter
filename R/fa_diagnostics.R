@@ -165,32 +165,32 @@ find_no_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
   return(no_loadings)
 }
 
-#' Create Diagnostics for Factor Analysis
+#' Create Fit Summary for Factor Analysis
 #'
-#' S3 method that implements diagnostic analysis for FA. Integrates with
+#' S3 method that implements fit summary analysis for FA. Integrates with
 #' the core interpret_core() workflow.
 #'
-#' @param model_type Object with class "fa"
-#' @param model_data List. Contains loadings_df, factor_cols
+#' @param analysis_type Object with class "fa"
+#' @param analysis_data List. Contains loadings_df, factor_cols
 #' @param cutoff Numeric. Loading cutoff threshold
 #' @param ... Additional arguments (unused)
 #'
 #' @return List with cross_loadings and no_loadings data frames
 #' @export
 #' @keywords internal
-create_diagnostics.fa <- function(model_type,
-                                   model_data,
+create_fit_summary.fa <- function(analysis_type,
+                                   analysis_data,
                                    cutoff = 0.3,
                                    ...) {
   list(
     cross_loadings = find_cross_loadings(
-      loadings_df = model_data$loadings_df,
-      factor_cols = model_data$factor_cols,
+      loadings_df = analysis_data$loadings_df,
+      factor_cols = analysis_data$factor_cols,
       cutoff = cutoff
     ),
     no_loadings = find_no_loadings(
-      loadings_df = model_data$loadings_df,
-      factor_cols = model_data$factor_cols,
+      loadings_df = analysis_data$loadings_df,
+      factor_cols = analysis_data$factor_cols,
       cutoff = cutoff
     )
   )
