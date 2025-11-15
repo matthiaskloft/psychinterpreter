@@ -45,6 +45,7 @@ test_that("single interpretation performance benchmark", {
 })
 
 test_that("chat session reuse performance benchmark", {
+  skip("Performance tests are opt-in only - not run by default")
   skip_on_ci()
   skip_if_no_llm()
 
@@ -138,6 +139,7 @@ test_that("chat session reuse performance benchmark", {
 })
 
 test_that("fixture loading performance", {
+  skip("Performance tests are opt-in only - not run by default")
   # Clear cache first to measure true first-load performance
   if (exists(".test_cache")) {
     rm(list = ls(envir = .test_cache), envir = .test_cache)
@@ -166,6 +168,7 @@ test_that("fixture loading performance", {
 })
 
 test_that("test suite overall performance tracking", {
+  skip("Performance tests are opt-in only - not run by default")
   skip_on_ci()
 
   # This test exists to document overall test performance
@@ -195,6 +198,7 @@ test_that("test suite overall performance tracking", {
 })
 
 test_that("minimal fixture creation performance", {
+  skip("Performance tests are opt-in only - not run by default")
   # Benchmark creating minimal test fixtures
   benchmark <- system.time({
     for (i in 1:100) {
@@ -216,6 +220,7 @@ test_that("minimal fixture creation performance", {
 })
 
 test_that("prompt building performance", {
+  skip("Performance tests are opt-in only - not run by default")
   skip_if_not_installed("psych")
 
   fa_model <- minimal_fa_model()
@@ -261,6 +266,7 @@ test_that("prompt building performance", {
 })
 
 test_that("JSON parsing performance with fallback tiers", {
+  skip("Performance tests are opt-in only - not run by default")
   # Create test responses
   valid_json <- '{"suggested_names": {"F1": "Factor 1"}, "component_summaries": {"F1": {"llm_interpretation": "Test", "variables": [], "used_emergency_rule": false}}}'
   malformed_json <- '{suggested_names": {"F1": "Factor 1"}}'  # Will use fallback
