@@ -68,7 +68,7 @@ test_that("interpret_core validates all parameters without LLM", {
       llm_provider = "ollama",
       llm_model = "gpt-oss:20b-cloud"
     ),
-    "No model data builder"
+    "Invalid analysis_type"
   )
 
   # Missing variable_info for FA

@@ -210,8 +210,10 @@ The output shows:
 View suggested factor names:
 
 ```{r show-names}
-interpretation$suggested_names |>
-  unlist() |>  data.frame(Suggested_Factor_Name = _) |>
+suggested_names <- interpretation$suggested_names |>
+  unlist()
+
+data.frame(Suggested_Factor_Name = suggested_names) |>
   DT::datatable(options = list(scrollX = TRUE), colnames = "Suggested Factor Name")
 ```
 

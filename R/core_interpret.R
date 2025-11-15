@@ -70,40 +70,9 @@ interpret_core <- function(analysis_data = NULL,
   variable_info <- dots$variable_info  # May be NULL for models that don't need it
 
   # ==========================================================================
-  # STEP 0: BUILD MODEL DATA (NEW PATH)
+  # STEP 0A: EXTRACT PARAMETERS FROM CONFIG OBJECTS (EARLY)
   # ==========================================================================
-
-  # If fit_results provided, build analysis_data using build_analysis_data()
-  if (!is.null(fit_results)) {
-    if (!is.null(analysis_data)) {
-      cli::cli_warn("Both fit_results and analysis_data provided; using fit_results")
-    }
-
-    # Call build_analysis_data() to extract and validate
-    # variable_info passed through ... (model-specific)
-    analysis_data <- build_analysis_data(
-      fit_results = fit_results,
-      analysis_type = analysis_type,
-      interpretation_args = interpretation_args,
-      ...  # Includes variable_info
-    )
-
-  }
-
-  # Validate that we have analysis_data (either from fit_results or passed directly)
-  if (is.null(analysis_data)) {
-    cli::cli_abort(
-      c(
-        "Either {.arg fit_results} or {.arg analysis_data} must be provided",
-        "i" = "New path: provide fit_results (fitted model object, matrix, or list)",
-        "i" = "Legacy path: provide analysis_data (pre-built data structure)"
-      )
-    )
-  }
-
-  # ==========================================================================
-  # STEP 1: VALIDATE INPUTS
-  # ==========================================================================
+  # Do this before building analysis_data so we have analysis_type validated early
 
   # Handle backward compatibility: Convert logical to integer
   if (is.logical(silent)) {
@@ -121,6 +90,31 @@ interpret_core <- function(analysis_data = NULL,
     if (is.null(suppress_heading)) suppress_heading <- output_args$suppress_heading
     if (is.null(max_line_length)) max_line_length <- output_args$max_line_length
   }
+
+  # Extract analysis_type from interpretation_args if not provided directly
+  if (is.null(analysis_type) && !is.null(interpretation_args)) {
+    if (is.list(interpretation_args) && "analysis_type" %in% names(interpretation_args)) {
+      analysis_type <- interpretation_args$analysis_type
+    }
+  }
+
+  # ==========================================================================
+  # STEP 0B: VALIDATE FIT_RESULTS/ANALYSIS_DATA (EARLY)
+  # ==========================================================================
+  # Check this first so we can give a clear error if neither is provided
+  if (is.null(fit_results) && is.null(analysis_data)) {
+    cli::cli_abort(
+      c(
+        "Either {.arg fit_results} or {.arg analysis_data} must be provided",
+        "i" = "New path: provide fit_results (fitted model object, matrix, or list)",
+        "i" = "Legacy path: provide analysis_data (pre-built data structure)"
+      )
+    )
+  }
+
+  # ==========================================================================
+  # STEP 0C: VALIDATE CHAT SESSION AND ANALYSIS_TYPE (EARLY)
+  # ==========================================================================
 
   # Validate existing chat session
   if (!is.null(chat_session) && !is.chat_session(chat_session)) {
@@ -253,6 +247,37 @@ interpret_core <- function(analysis_data = NULL,
       c(
         "{.var suppress_heading} must be a single logical value (TRUE or FALSE)",
         "x" = "You supplied: {.val {suppress_heading}}"
+      )
+    )
+  }
+
+  # ==========================================================================
+  # STEP 1: BUILD MODEL DATA (AFTER VALIDATION)
+  # ==========================================================================
+
+  # If fit_results provided, build analysis_data using build_analysis_data()
+  if (!is.null(fit_results)) {
+    if (!is.null(analysis_data)) {
+      cli::cli_warn("Both fit_results and analysis_data provided; using fit_results")
+    }
+
+    # Call build_analysis_data() to extract and validate
+    # variable_info passed through ... (model-specific)
+    analysis_data <- build_analysis_data(
+      fit_results = fit_results,
+      analysis_type = analysis_type,
+      interpretation_args = interpretation_args,
+      ...  # Includes variable_info
+    )
+
+  }
+
+  # Double-check that we have analysis_data (should have been guaranteed by earlier validation)
+  if (is.null(analysis_data)) {
+    cli::cli_abort(
+      c(
+        "Internal error: analysis_data is NULL after build_analysis_data()",
+        "i" = "This should never happen. Please file a bug report with reproduction steps."
       )
     )
   }

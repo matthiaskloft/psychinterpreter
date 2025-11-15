@@ -48,23 +48,20 @@ pacman::p_load(char = packages)
 
 ### LLM Setup
 
-We use Ollama, so we need to make sure to start the server before running this.
-```{bash start-ollama-server}
-#!/bin/bash
+We use Ollama, so we need to make sure the Ollama server is running before executing this document.
 
-# Check if port 11434 (default Ollama port) is in use
-if netstat -ano | grep 11434 > /dev/null; then
-    echo "Ollama is already running."
-else
-    echo "Starting Ollama..."
-    ollama serve
-fi
+::: {.callout-note}
+**Starting Ollama**
+
+Make sure Ollama is running before rendering this document. You can start it with:
+```bash
+ollama serve
 ```
+:::
 
 Test the connection:
 ```{r test-connection}
-system2("ollama serve", wait = FALSE)
-# test the connection to the Ollama server
+# Test the connection to the Ollama server
 ollamar::test_connection()
 ```
 
@@ -156,7 +153,7 @@ print(chat)
 
 
 # Session Info
-```{r seeion-info}
+```{r session-info}
 pander::pander(sessionInfo())
 ```
 

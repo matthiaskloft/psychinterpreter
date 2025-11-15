@@ -79,7 +79,8 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(do awk '/^#.*@export/{e=NR} /^#.*@keywords internal/{if(e && NR-e<20) print FILENAME\"\"\"\":\"\"\"\"e\"\"\"\"-\"\"\"\"NR}' \"$file\")",
       "Bash(do Rscript -e \"parse(''''$file'''')\")",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(if grep -q \"export($func)\" NAMESPACE)"
     ],
     "deny": [
       "Read(./.env*)",

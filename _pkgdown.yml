@@ -84,6 +84,8 @@ reference:
       - build_main_prompt
       - build_report
       - create_default_result
-      - create_diagnostics
+      - create_fit_summary
       - extract_by_pattern
       - validate_parsed_result
+      - validate_list_structure
+      - interpret_model

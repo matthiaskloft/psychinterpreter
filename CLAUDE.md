@@ -594,5 +594,5 @@ Update the developer guide when making **architectural or implementation changes
 **Last Updated**: 2025-11-15
 **Maintainer**: Update when making significant user-facing changes
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
-- use kable() and kable_styling() for .Qmd articles
+- use DT::datatable() for .Qmd articles
 - when adding or editing functions, remember to update the references in the pkgdown.yml

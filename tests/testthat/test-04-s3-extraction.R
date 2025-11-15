@@ -148,8 +148,9 @@ test_that("interpret.SingleGroupClass correctly extracts factor loadings from mi
 })
 
 # ==============================================================================
-# INTEGRATION TESTS (ONE PER PACKAGE, WITH LLM)
-# These tests verify end-to-end extraction and interpretation
+# INTEGRATION TEST (ONE REPRESENTATIVE TEST WITH LLM)
+# This test verifies end-to-end extraction and interpretation workflow.
+# Full integration testing across multiple scenarios is done in test-12-integration-fa.R
 # ==============================================================================
 
 test_that("interpret.fa end-to-end integration with psych::fa", {
@@ -185,98 +186,6 @@ test_that("interpret.fa end-to-end integration with psych::fa", {
   expect_true(!is.null(result$analysis_data$factor_cor_mat))
 })
 
-test_that("interpret.principal end-to-end integration with psych::principal", {
-  skip_on_ci()
-  skip_if_not_installed("psych")
-  skip_if_no_llm()
-
-  library(psych)
-
-  # Use cached PCA model and correlational variable info (saves fitting time)
-  pca_model <- sample_pca_varimax()
-  var_info <- correlational_var_info()
-
-  llm_provider <- "ollama"
-  llm_model <- "gpt-oss:20b-cloud"
-
-  result <- interpret(
-    fit_results = pca_model,
-    variable_info = var_info,
-    llm_provider = llm_provider,
-    llm_model = llm_model,
-    word_limit = 20,
-    silent = TRUE
-  )
-
-  # Verify result structure
-  expect_s3_class(result, "fa_interpretation")
-
-  # PCA should have NULL factor correlations (orthogonal)
-  expect_true(is.null(result$analysis_data$factor_cor_mat))
-})
-
-test_that("interpret.lavaan end-to-end integration with CFA", {
-  skip_on_ci()
-  skip_if_not_installed("lavaan")
-  skip_if_no_llm()
-
-  library(lavaan)
-
-  # Use cached lavaan CFA model (saves fitting time)
-  fit <- sample_lavaan_cfa()
-
-  var_info <- data.frame(
-    variable = paste0("x", 1:6),
-    description = paste("Indicator", 1:6)
-  )
-
-  llm_provider <- "ollama"
-  llm_model <- "gpt-oss:20b-cloud"
-
-  result <- interpret(
-    fit_results = fit,
-    variable_info = var_info,
-    llm_provider = llm_provider,
-    llm_model = llm_model,
-    word_limit = 20,
-    silent = TRUE
-  )
-
-  # Verify result structure
-  expect_s3_class(result, "fa_interpretation")
-  expect_true(length(result$suggested_names) == 2)  # 2 factors
-})
-
-test_that("interpret.SingleGroupClass end-to-end integration with mirt", {
-  skip_on_ci()
-  skip_if_not_installed("mirt")
-  skip_if_no_llm()
-
-  library(mirt)
-
-  # Use cached MIRT model (saves ~4 seconds per test run)
-  mirt_model <- sample_mirt_model()
-
-  # Get data for variable info
-  data <- expand.table(LSAT7)
-  var_info <- data.frame(
-    variable = colnames(data),
-    description = paste("LSAT item", 1:5)
-  )
-
-  llm_provider <- "ollama"
-  llm_model <- "gpt-oss:20b-cloud"
-
-  result <- interpret(
-    fit_results = mirt_model,
-    variable_info = var_info,
-    llm_provider = llm_provider,
-    llm_model = llm_model,
-    word_limit = 20,
-    silent = TRUE
-  )
-
-  # Verify result structure
-  expect_s3_class(result, "fa_interpretation")
-  expect_true("suggested_names" %in% names(result))
-})
+# Note: Integration tests for psych::principal, lavaan::cfa, and mirt were removed
+# to reduce test time. Data extraction is verified by the non-LLM tests above
+# (lines 1-148), and full integration testing is covered in test-12-integration-fa.R

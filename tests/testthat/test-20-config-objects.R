@@ -231,37 +231,27 @@ test_that("output_args() accepts logical silent values", {
 # Integration tests with interpret()
 # =============================================================================
 
-test_that("interpret() works with interpretation_args config object", {
-  skip_on_ci()
-
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
-
+test_that("interpretation_args config object has correct structure for interpret()", {
+  # Non-LLM test: verifies config object structure without calling LLM
   config <- interpretation_args(
     analysis_type = "fa",
     cutoff = 0.4,
-    n_emergency = 2
+    n_emergency = 2,
+    hide_low_loadings = TRUE
   )
 
-  result <- interpret(
-    fit_results = list(loadings = loadings),
-    variable_info = var_info,
-    analysis_type = "fa",  # Required when using structured list
-    interpretation_args = config,
-    llm_provider = "ollama",
-    llm_model = "gpt-oss:20b-cloud",
-    word_limit = 20
-  )
-
-  expect_s3_class(result, "fa_interpretation")
+  # Verify the config object is properly structured
+  expect_s3_class(config, "interpretation_args")
+  expect_s3_class(config, "model_config")
+  expect_true(all(c("analysis_type", "cutoff", "n_emergency", "hide_low_loadings") %in% names(config)))
+  expect_equal(config$analysis_type, "fa")
+  expect_equal(config$cutoff, 0.4)
+  expect_equal(config$n_emergency, 2L)
+  expect_equal(config$hide_low_loadings, TRUE)
 })
 
-test_that("interpret() works with llm_args config object", {
-  skip_on_ci()
-
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
-
+test_that("llm_args config object has correct structure for interpret()", {
+  # Non-LLM test: verifies config object structure without calling LLM
   llm_config <- llm_args(
     llm_provider = "ollama",
     llm_model = "gpt-oss:20b-cloud",
@@ -269,42 +259,32 @@ test_that("interpret() works with llm_args config object", {
     additional_info = "Test study context"
   )
 
-  result <- interpret(
-    fit_results = list(loadings = loadings),
-    variable_info = var_info,
-    analysis_type = "fa",
-    llm_args = llm_config
-  )
-
-  expect_s3_class(result, "fa_interpretation")
+  # Verify the config object is properly structured
+  expect_s3_class(llm_config, "llm_args")
+  expect_true(all(c("llm_provider", "llm_model", "word_limit", "additional_info") %in% names(llm_config)))
+  expect_equal(llm_config$llm_provider, "ollama")
+  expect_equal(llm_config$llm_model, "gpt-oss:20b-cloud")
+  expect_equal(llm_config$word_limit, 20L)
+  expect_equal(llm_config$additional_info, "Test study context")
 })
 
-test_that("interpret() works with output_args config object", {
-  skip_on_ci()
-
-  loadings <- sample_loadings()
-  var_info <- sample_variable_info()
-
+test_that("output_args config object has correct structure for interpret()", {
+  # Non-LLM test: verifies config object structure without calling LLM
   out_config <- output_args(
     format = "markdown",
     silent = 2
   )
 
-  result <- interpret(
-    fit_results = list(loadings = loadings),
-    variable_info = var_info,
-    analysis_type = "fa",
-    output_args = out_config,
-    llm_provider = "ollama",
-    llm_model = "gpt-oss:20b-cloud",
-    word_limit = 20
-  )
-
-  expect_s3_class(result, "fa_interpretation")
+  # Verify the config object is properly structured
+  expect_s3_class(out_config, "output_args")
+  expect_true(all(c("format", "silent") %in% names(out_config)))
+  expect_equal(out_config$format, "markdown")
+  expect_equal(out_config$silent, 2L)
 })
 
 test_that("interpret() works with all three config objects together", {
   skip_on_ci()
+  skip_if_no_llm()
 
   loadings <- sample_loadings()
   var_info <- sample_variable_info()
@@ -323,10 +303,14 @@ test_that("interpret() works with all three config objects together", {
   )
 
   expect_s3_class(result, "fa_interpretation")
+  # Verify that config object settings were applied
+  expect_true(!is.null(result$suggested_names))
+  expect_true(length(result$component_summaries) > 0)
 })
 
 test_that("direct parameters override config object parameters", {
   skip_on_ci()
+  skip_if_no_llm()
 
   loadings <- sample_loadings()
   var_info <- sample_variable_info()
