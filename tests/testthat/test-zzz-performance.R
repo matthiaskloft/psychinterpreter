@@ -228,16 +228,19 @@ test_that("prompt building performance", {
     variable_info = var_info
   )
 
+  # Create model type object for S3 dispatch
+  model_type <- structure("fa", class = "fa")
+
   # Benchmark prompt building
   benchmark_system <- system.time({
     for (i in 1:50) {
-      system_prompt <- psychinterpreter:::build_system_prompt(analysis_data)
+      system_prompt <- psychinterpreter:::build_system_prompt(model_type, word_limit = 100)
     }
   })
 
   benchmark_main <- system.time({
     for (i in 1:50) {
-      main_prompt <- psychinterpreter:::build_main_prompt(analysis_data)
+      main_prompt <- psychinterpreter:::build_main_prompt(model_type, analysis_data)
     }
   })
 
@@ -261,7 +264,20 @@ test_that("JSON parsing performance with fallback tiers", {
   malformed_json <- '{suggested_names": {"F1": "Factor 1"}}'  # Will use fallback
   partial_json <- '{"suggested_names": {"F1": "Factor 1"}}'  # Missing component_summaries
 
-  factor_names <- c("F1", "F2")
+  # Create minimal analysis_data for parsing
+  analysis_data <- list(
+    factor_cols = c("F1", "F2"),
+    factor_summaries = list(
+      F1 = list(
+        variables = data.frame(variable = character(0), loading = numeric(0)),
+        used_emergency_rule = FALSE
+      ),
+      F2 = list(
+        variables = data.frame(variable = character(0), loading = numeric(0)),
+        used_emergency_rule = FALSE
+      )
+    )
+  )
 
   # Benchmark valid JSON (tier 1)
   benchmark_valid <- system.time({
@@ -269,7 +285,7 @@ test_that("JSON parsing performance with fallback tiers", {
       result <- psychinterpreter:::parse_llm_response(
         response = list(content = valid_json),
         analysis_type = "fa",
-        factor_names = factor_names
+        analysis_data = analysis_data
       )
     }
   })
@@ -280,7 +296,7 @@ test_that("JSON parsing performance with fallback tiers", {
       result <- psychinterpreter:::parse_llm_response(
         response = list(content = malformed_json),
         analysis_type = "fa",
-        factor_names = factor_names
+        analysis_data = analysis_data
       )
     }
   })
@@ -291,7 +307,7 @@ test_that("JSON parsing performance with fallback tiers", {
       result <- psychinterpreter:::parse_llm_response(
         response = list(content = partial_json),
         analysis_type = "fa",
-        factor_names = factor_names
+        analysis_data = analysis_data
       )
     }
   })
