@@ -424,7 +424,6 @@ interpret <- function(fit_results = NULL,
 #' @return Interpretation object
 #' @export
 #' @keywords internal
-#' @noRd
 interpret_model <- function(model, ...) {
   UseMethod("interpret_model")
 }

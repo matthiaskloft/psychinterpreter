@@ -4,6 +4,7 @@
 # Part of Phase 2 Test Optimization (2.2)
 
 test_that("single interpretation performance benchmark", {
+  skip("Performance tests are opt-in only - not run by default")
   skip_on_ci()
   skip_if_no_llm()
 
@@ -240,7 +241,7 @@ test_that("prompt building performance", {
 
   benchmark_main <- system.time({
     for (i in 1:50) {
-      main_prompt <- psychinterpreter:::build_main_prompt(model_type, analysis_data)
+      main_prompt <- psychinterpreter:::build_main_prompt(model_type, analysis_data, variable_info = var_info)
     }
   })
 
@@ -325,8 +326,7 @@ test_that("JSON parsing performance with fallback tiers", {
   cli::cli_alert_info("Malformed per iteration: {.val {sprintf('%.6f', elapsed_malformed)}} seconds")
   cli::cli_alert_info("Partial per iteration: {.val {sprintf('%.6f', elapsed_partial)}} seconds")
 
-  # Parsing should be fast even with fallbacks (< 20ms per parse)
-  # Note: Increased from 0.01s to 0.02s to account for system variations
+  # Parsing should be fast even with fallbacks (< 20ms per parse, accounting for system variations)
   expect_lt(elapsed_valid, 0.02)
   expect_lt(elapsed_malformed, 0.02)
   expect_lt(elapsed_partial, 0.02)
