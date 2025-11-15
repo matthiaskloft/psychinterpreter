@@ -1,134 +1,73 @@
-# Open Issues and Decisions
+# Open Issues and Future Work
 
 **Last Updated**: 2025-11-15
 
-This document tracks refactoring decisions and remaining open issues for the psychinterpreter package.
+This document tracks open issues and planned enhancements for the psychinterpreter package.
 
-
-## Remaining Open Issues
-
-### 1. ⏳ Increase Mock LLM Test Coverage
-
-**Priority**: MAJOR (should be done this week)
-**Effort**: ~4 hours
-
-**Issue**: Currently only ~20% of tests use mock LLM responses, meaning 39 tests require an actual LLM to run. This slows down testing and creates CI dependencies.
-
-**Goal**: Add 20+ mock-based tests to reduce LLM dependency by 50%.
-
-**Action Items**:
-- Create comprehensive mock response scenarios in `helper-mock-llm.R`
-- Add mock tests for malformed JSON, missing fields, extra fields
-- Test Unicode characters and very long responses
-- Cover edge cases without requiring actual LLM
-
-**Status**: TODO
-
-### 2. ⚠️ Test Coverage Gaps
-
-**Priority**: ENHANCEMENT (next sprint)
-**Effort**: ~21 hours total
-
-**Low Coverage Areas**:
-- **Chat Sessions**: Only 5 tests (needs ~10 more)
-- **Export Functions**: Only 9 tests (needs error scenarios)
-- **Error Handling**: Only 2 tests for malformed responses
-
-**Missing Test Scenarios**:
-- Empty/NULL variable_info handling
-- Very large matrices (>100 variables)
-- Provider-specific behavior (OpenAI, Anthropic)
-- Token limit handling
-- Rate limiting and timeouts
-- File I/O errors in export
-- Concurrent chat sessions
-- Memory profiling for large datasets
-
-**Status**: TODO
+**For completed work history**: See `DEVELOPER_GUIDE.md` Section 7 (Maintenance History)
 
 ---
 
-## Future Considerations
+## Active Issues
 
-### 1. Analysis Type Implementations
+### 1. Increase Mock LLM Test Coverage
 
-The following analysis types are planned but not yet implemented:
+**Priority**: HIGH
+**Effort**: ~4 hours
+**Status**: TODO
 
-**Priority**: ENHANCEMENT (future work)
-**Effort**: 112-140 hours total
+**Goal**: Add 20+ mock-based tests to reduce LLM dependency
 
+**Current**: 14 LLM tests (~4% of 347+ total), all skip on CI
+
+**Action Items**:
+- Expand `helper-mock-llm.R` with more scenarios
+- Test malformed JSON, missing/extra fields
+- Test Unicode and long responses
+- Test provider-specific response formats
+
+---
+
+## Future Enhancements
+
+### New Analysis Types
+
+**Priority**: LOW (future work)
+**Effort**: 32-50 hours each
+
+Planned implementations (templates ready in `dev/templates/`):
 1. **Gaussian Mixture Models (GM)** - 32-40 hours
-   - 8 S3 methods (build_analysis_data, build_system_prompt, etc.)
-   - Configuration object (`interpretation_args_gm()`)
-   - Documentation and tests
-   - Status: 0% complete, templates ready
-
 2. **Item Response Theory (IRT)** - 40-50 hours
-   - Same requirements as GM
-   - Status: 0% complete, templates ready
-
 3. **Cognitive Diagnosis Models (CDM)** - 40-50 hours
-   - Same requirements as GM
-   - Status: 0% complete, templates ready
 
-See `dev/templates/` for implementation templates and `dev/MODEL_IMPLEMENTATION_GUIDE.md` for guidance.
+Each requires 8 S3 methods, config object, docs, and tests.
+See `dev/MODEL_IMPLEMENTATION_GUIDE.md` for guidance.
 
-### 2. Performance & Benchmarking
+### Test Improvements
 
-**Priority**: ENHANCEMENT (next sprint)
-**Effort**: ~10 hours
+**Priority**: MEDIUM
+**Effort**: ~18 hours
 
-**Missing Infrastructure**:
-- Performance regression tests (6 hours)
-- Memory profiling for large datasets (4 hours)
-- Benchmark suite to prevent degradation
+**Needed**:
+- Provider-specific tests (OpenAI, Anthropic, Gemini) - 8 hours
+- Performance regression suite - 6 hours
+- Memory profiling for large datasets - 4 hours
 
-**Action Items**:
-- Add `test-99-benchmarks.R` with baseline timings
-- Create `dev/scripts/memory_profiling.R`
-- Document performance expectations
+### Technical Debt
 
-### 3. Provider-Specific Testing
-
-**Priority**: ENHANCEMENT (next sprint)
-**Effort**: ~8 hours
-
-**Issue**: Currently only tests with Ollama. Need coverage for:
-- OpenAI API behavior and token counting
-- Anthropic Claude API behavior and caching
-- Google Gemini API behavior
-
-**Action Items**:
-- Add provider-specific test files
-- Test token tracking differences
-- Document provider quirks
-
-### 4. Technical Debt
-
-**Priority**: TECH DEBT (future)
+**Priority**: LOW
 **Effort**: ~24 hours
 
 **Items**:
-1. **FA code in shared files** (4 hours) - Move FA-specific code from shared utilities to fa_*.R
-2. **Parameter registry** (8 hours) - Centralize parameter metadata instead of manual filtering
-3. **Dispatch tables** (6 hours) - Replace switch statements with dispatch tables
-4. **Test fixture generator** (6 hours) - Automate fixture creation for new model types
-
-### 5. Documentation Improvements
-
-**Priority**: ENHANCEMENT (next sprint)
-**Effort**: ~6 hours
-
-**Missing/Incomplete**:
-- Circular references in return value documentation
-- Missing parameter descriptions (interpretation_guidelines, params)
-- No documentation for interpretation class structure
-- No documentation for analysis_data structure
+1. Move FA-specific code from shared utilities to `fa_*.R` (4 hours)
+2. Centralize parameter metadata (8 hours)
+3. Replace switch statements with dispatch tables (6 hours)
+4. Automate fixture generation (6 hours)
 
 ---
 
 ## Notes
 
-- As the package is in version 0.0.0.9000, backwards-compatibility can be ignored during development since the package is not officially released
-- Major refactoring should be documented here before implementation
-- Cross-reference with CLAUDE.md and DEVELOPER_GUIDE.md when making architectural changes
+- Package version 0.0.0.9000 - backwards-compatibility not required
+- Document major refactorings before implementation
+- Update CLAUDE.md and DEVELOPER_GUIDE.md for architectural changes
