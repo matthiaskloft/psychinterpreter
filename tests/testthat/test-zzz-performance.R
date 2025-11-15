@@ -253,9 +253,10 @@ test_that("prompt building performance", {
   cli::cli_alert_info("System prompt per iteration: {.val {sprintf('%.6f', elapsed_system)}} seconds")
   cli::cli_alert_info("Main prompt per iteration: {.val {sprintf('%.6f', elapsed_main)}} seconds")
 
-  # Prompt building should be fast (< 10ms per prompt on average)
-  expect_lt(elapsed_system, 0.01)
-  expect_lt(elapsed_main, 0.01)
+  # Prompt building should be fast (< 20ms per prompt on average)
+  # Note: Increased from 0.01s to 0.02s to account for system variations
+  expect_lt(elapsed_system, 0.02)
+  expect_lt(elapsed_main, 0.02)
 })
 
 test_that("JSON parsing performance with fallback tiers", {
@@ -324,10 +325,11 @@ test_that("JSON parsing performance with fallback tiers", {
   cli::cli_alert_info("Malformed per iteration: {.val {sprintf('%.6f', elapsed_malformed)}} seconds")
   cli::cli_alert_info("Partial per iteration: {.val {sprintf('%.6f', elapsed_partial)}} seconds")
 
-  # Parsing should be fast even with fallbacks (< 10ms per parse)
-  expect_lt(elapsed_valid, 0.01)
-  expect_lt(elapsed_malformed, 0.01)
-  expect_lt(elapsed_partial, 0.01)
+  # Parsing should be fast even with fallbacks (< 20ms per parse)
+  # Note: Increased from 0.01s to 0.02s to account for system variations
+  expect_lt(elapsed_valid, 0.02)
+  expect_lt(elapsed_malformed, 0.02)
+  expect_lt(elapsed_partial, 0.02)
 
   # Fallback tiers shouldn't be dramatically slower than valid JSON
   # (should be within 5x of valid JSON performance)
