@@ -54,19 +54,19 @@ library(psychinterpreter)
 library(psych)
 
 # Run factor analysis
-fa_result <- fa(bfi[,1:25], nfactors = 5, rotate = "oblimin")
+fa_result <- fa(bfi[, 1:25], nfactors = 5, rotate = "oblimin")
 
 # Create variable information
-var_info <- data.frame(
-  variable = rownames(bfi.dictionary[1:25,]),
-  description = bfi.dictionary$Item[1:25]
-)
+var_info <- data.frame(variable = rownames(bfi.dictionary[1:25, ]),
+                       description = bfi.dictionary$Item[1:25])
 
 # Interpret directly from model object
-results <- interpret(fa_result,
-                     variable_info = var_info,
-                     llm_provider = "ollama",
-                     llm_model = "gpt-oss:20b-cloud")
+results <- interpret(
+  fa_result,
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
 ```
 
 ### Manual Approach
@@ -94,14 +94,29 @@ datasets:
 
 ``` r
 # Create reusable chat session
-chat <- chat_session(analysis_type = "fa", 
-                     llm_provider = "ollama", 
-                     llm_model = "gpt-oss:20b-cloud")
+chat <- chat_session(
+  analysis_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
 
 # Run multiple interpretations (saves ~40-60% tokens)
-result1 <- interpret(chat_session = chat, fit_results = fa_result1, variable_info = var_info1, silent = 2)
-result2 <- interpret(chat_session = chat, fit_results = fa_result2, variable_info = var_info2)
-result3 <- interpret(chat_session = chat, fit_results = fa_result3, variable_info = var_info3)
+result1 <- interpret(
+  chat_session = chat,
+  fit_results = fa_result1,
+  variable_info = var_info1,
+  silent = 2
+)
+result2 <- interpret(
+  chat_session = chat,
+  fit_results = fa_result2,
+  variable_info = var_info2
+)
+result3 <- interpret(
+  chat_session = chat,
+  fit_results = fa_result3,
+  variable_info = var_info3
+)
 
 # Check cumulative token usage
 print(chat)
