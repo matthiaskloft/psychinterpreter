@@ -12,8 +12,8 @@
 #'   \item{interpretation}{LLM interpretation results (list)}
 #'   \item{diagnostics}{Diagnostic information}
 #'   \item{output_format}{Output format ("text" or "markdown")}
-#'   \item{provider}{LLM provider used}
-#'   \item{model}{LLM model used}
+#'   \item{llm_provider}{LLM provider used}
+#'   \item{llm_model}{LLM model used}
 #' @param ... Additional arguments (ignored)
 #'
 #' @return Character string with formatted report
@@ -22,7 +22,7 @@
 #' @examples
 #' \dontrun{
 #' # Generate interpretation
-#' result <- interpret(fit, var_info, provider = "ollama", model = "gpt-oss:20b-cloud")
+#' result <- interpret(fit, var_info, llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
 #'
 #' # Build report (called automatically by print())
 #' report <- build_report(result)
@@ -42,8 +42,8 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
   output_format <- interpretation$output_format
 
   # Optional fields
-  provider <- interpretation$provider %||% "unknown"
-  model <- interpretation$model %||% "unknown"
+  llm_provider <- interpretation$llm_provider %||% "unknown"
+  llm_model <- interpretation$llm_model %||% "unknown"
   word_limit <- interpretation$word_limit %||% 150
 
 
@@ -369,7 +369,7 @@ build_additional_data_section_{model} <- function(analysis_data, output_format) 
 #'
 #' Formats diagnostic warnings and recommendations. Returns NULL if no warnings.
 #'
-#' @param diagnostics Diagnostics list from create_diagnostics.{model}()
+#' @param fit_summary Fit summary list from create_fit_summary.{model}()
 #' @param output_format Output format ("text" or "markdown")
 #'
 #' @return Character string with formatted diagnostics, or NULL if no warnings

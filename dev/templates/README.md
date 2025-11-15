@@ -46,11 +46,13 @@ Create a replacement mapping for your model type:
 | `{PACKAGE}` | Package name | mclust |
 | `{COMPONENT}` | Component name (singular) | Cluster |
 | `{COMPONENT_LOWER}` | Component name (lowercase) | cluster |
-| `{PARAM1}` | First parameter name | covariance_type |
-| `{PARAM2}` | Second parameter name | n_clusters |
+| `{PARAM1}` | First analysis parameter name | covariance_type |
+| `{PARAM2}` | Second analysis parameter name | n_clusters |
 | `{DATA_TYPE}` | What the model analyzes | cluster statistics |
 | `{DATA_FIELD1}` | First data field name | means |
 | `{DATA_FIELD2}` | Second data field name | covariances |
+
+**Note**: Parameters (`{PARAM1}`, `{PARAM2}`) are for **analysis configuration** (e.g., cutoff, n_emergency for FA), NOT for LLM settings (llm_provider, llm_model) which are handled separately.
 
 ### Step 2: Copy and Replace
 
@@ -122,6 +124,7 @@ Follow this order for implementation:
 ```r
 # scripts/create_gm_files.R
 
+# Define replacements for your model type
 replacements <- list(
   "\\{MODEL\\}" = "Gaussian Mixture",
   "\\{MODEL_FULL_NAME\\}" = "Gaussian mixture modeling",
@@ -130,8 +133,8 @@ replacements <- list(
   "\\{PACKAGE\\}" = "mclust",
   "\\{COMPONENT\\}" = "Cluster",
   "\\{COMPONENT_LOWER\\}" = "cluster",
-  "\\{PARAM1\\}" = "covariance_type",
-  "\\{PARAM2\\}" = "n_clusters",
+  "\\{PARAM1\\}" = "covariance_type",  # Analysis parameter, not LLM parameter
+  "\\{PARAM2\\}" = "n_clusters",        # Analysis parameter, not LLM parameter
   "\\{DATA_TYPE\\}" = "cluster statistics",
   "\\{DATA_FIELD1\\}" = "means",
   "\\{DATA_FIELD2\\}" = "covariances"
@@ -201,7 +204,7 @@ After creating files from templates:
    system_prompt <- build_system_prompt("gm")
    cat(system_prompt)
 
-   user_prompt <- build_main_prompt(analysis_data, var_info, word_limit = 50)
+   user_prompt <- build_main_prompt("gm", analysis_data, word_limit = 50, variable_info = var_info)
    cat(user_prompt)
    ```
 
@@ -290,8 +293,8 @@ if (min_cluster_separation < 0.1) {
 ```r
 # Example: Format cluster statistics
 formatted_stats <- format_cluster_stats(
-  cluster_sizes = model_data$cluster_sizes,
-  cluster_probs = model_data$cluster_probs
+  cluster_sizes = analysis_data$cluster_sizes,
+  cluster_probs = analysis_data$cluster_probs
 )
 ```
 

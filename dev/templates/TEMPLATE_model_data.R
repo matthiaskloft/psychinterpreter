@@ -46,7 +46,7 @@
 #' @param fit_results Fitted {MODEL} object from {PACKAGE}::{CLASS}()
 #' @param variable_info Data frame with columns 'variable' and 'description'
 #' @param analysis_type Analysis type identifier (should be "{model}")
-#' @param interpretation_args Optional configuration object from interpretation_args(model_type = "{model}", ...)
+#' @param interpretation_args Optional configuration object from interpretation_args(analysis_type = "{model}", ...)
 #' @param ... Additional arguments (for parameter extraction)
 #'
 #' @return List with standardized {MODEL} data structure containing:
@@ -110,9 +110,9 @@ build_{model}_analysis_data_internal <- function(fit_results,
   # Pattern from fa_model_data.R:26-48
   dots <- list(...)
 
-  # Build config from multiple sources (precedence: {model}_args > ... > defaults)
-  config <- build_{model}_args(
-    {model}_args = {model}_args,
+  # Build config from multiple sources (precedence: interpretation_args > ... > defaults)
+  config <- build_interpretation_args_{model}(
+    interpretation_args = interpretation_args,
     dots = dots
   )
 
@@ -293,8 +293,8 @@ build_{model}_analysis_data_internal <- function(fit_results,
 # #' @export
 # build_analysis_data.{OTHER_CLASS} <- function(fit_results,
 #                                            variable_info,
-#                                            model_type = "{model}",
-#                                            {model}_args = NULL,
+#                                            analysis_type = "{model}",
+#                                            interpretation_args = NULL,
 #                                            ...) {
 #
 #   # Convert {OTHER_CLASS} object to standard format
@@ -302,11 +302,11 @@ build_{model}_analysis_data_internal <- function(fit_results,
 #   converted_data <- ...
 #
 #   # Call internal helper with converted data
-#   build_{model}_model_data_internal(
+#   build_{model}_analysis_data_internal(
 #     fit_results = converted_data,
 #     variable_info = variable_info,
-#     model_type = model_type,
-#     {model}_args = {model}_args,
+#     analysis_type = analysis_type,
+#     interpretation_args = interpretation_args,
 #     ...
 #   )
 # }

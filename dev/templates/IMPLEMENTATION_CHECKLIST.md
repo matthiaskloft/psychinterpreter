@@ -16,7 +16,7 @@
 
 - [ ] **Define model abbreviation** and ensure it's unique
 - [ ] **Identify fitted model classes** from relevant R packages
-- [ ] **Document expected model_data structure** (list fields and types)
+- [ ] **Document expected analysis_data structure** (list fields and types)
 - [ ] **List model-specific parameters** (e.g., covariance_type, cutoff)
 - [ ] **Define component terminology** (e.g., "Cluster", "Item", "Factor")
 - [ ] **Review FA implementation** files (`R/fa_*.R`) for patterns
@@ -31,8 +31,10 @@
 
 - [ ] Copy `TEMPLATE_config_additions.R` content
 - [ ] Replace all placeholders (`{MODEL}`, `{model}`, `{PARAM1}`, etc.)
-- [ ] Implement `{model}_args()` constructor with validation
-- [ ] Implement `build_{model}_args()` merger function
+- [ ] Implement `interpretation_args_{model}()` constructor with validation
+- [ ] Implement `build_interpretation_args_{model}()` merger function
+- [ ] Add to `R/shared_config.R` (not a separate file)
+- [ ] Add routing case in main `interpretation_args()` function
 - [ ] Add roxygen2 documentation with examples
 - [ ] Run `devtools::document()` to update docs
 - [ ] Test parameter validation manually
@@ -46,11 +48,11 @@
 - [ ] Copy `TEMPLATE_model_data.R` to `R/{model}_model_data.R`
 - [ ] Replace all placeholders
 - [ ] Implement `build_analysis_data.{CLASS}()` S3 method
-- [ ] Implement `build_{model}_model_data_internal()` helper
+- [ ] Implement `build_{model}_analysis_data_internal()` helper
 - [ ] Add data extraction logic from fitted model (lines ~120-150)
 - [ ] Add parameter validation (lines ~180-220)
 - [ ] Add variable_info validation
-- [ ] Define standardized `model_data` structure
+- [ ] Define standardized `analysis_data` structure
 - [ ] Add roxygen2 documentation
 - [ ] Create unit tests: `tests/testthat/test-{model}_model_data.R`
   - [ ] Test data extraction from fitted model
@@ -145,15 +147,15 @@
 
 ---
 
-## Phase 5: Diagnostics
+## Phase 5: Fit Summary & Diagnostics
 
-### 5.1 Diagnostics
+### 5.1 Fit Summary & Diagnostics
 
 **File**: `R/{model}_diagnostics.R`
 
 - [ ] Copy `TEMPLATE_diagnostics.R` to `R/{model}_diagnostics.R`
 - [ ] Replace all placeholders
-- [ ] Implement `create_diagnostics.{model}()`
+- [ ] Implement `create_fit_summary.{model}()`
   - [ ] Add diagnostic check 1 (define: _____________)
   - [ ] Add diagnostic check 2 (define: _____________)
   - [ ] Add diagnostic check 3 (optional)
@@ -162,7 +164,7 @@
 - [ ] Add helper functions for each check
 - [ ] Consider exported helpers (like FA's `find_cross_loadings()`)
 - [ ] Add roxygen2 documentation
-- [ ] Create tests: `tests/testthat/test-{model}_diagnostics.R`
+- [ ] Create tests: `tests/testthat/test-{model}_fit_summary.R`
   - [ ] Test each diagnostic check independently
   - [ ] Test with data that triggers warnings
   - [ ] Test with clean data (no warnings)
@@ -210,42 +212,27 @@
 
 ## Phase 7: Integration
 
-### 7.0 Uncomment Extensibility Placeholders
+### 7.0 Add to Constants and Routing
 
-- [ ] **Modify `R/core_constants.R`** (line ~6)
-  - [ ] Uncomment "{model}" in VALID_ANALYSIS_TYPES array
-  - [ ] Verify array: `c("fa", "gm", "irt", "cdm")` (or subset based on what's implemented)
-  - [ ] Test validation accepts new analysis type
-
-- [ ] **Modify `R/core_interpret_dispatch.R`**
-  - [ ] Uncomment {model}_args parameter in interpret() signature (line ~175)
-  - [ ] Uncomment build_{model}_args() call (lines ~200-202)
-  - [ ] Uncomment {model}_args in interpret_model() call (lines ~328-330)
-  - [ ] Uncomment {model}_args in handle_raw_data_interpret() call (lines ~366-368)
-
-- [ ] **Modify `R/shared_utils.R`**
-  - [ ] Uncomment {model}_args parameter in handle_raw_data_interpret() (lines ~25-27)
-  - [ ] Uncomment {model} case in switch statement (lines ~61-78)
+- [ ] **Modify `R/core_constants.R`**
+  - [ ] Add "{model}" to VALID_ANALYSIS_TYPES constant
+  - [ ] Verify constant includes your model type
+  - [ ] Test validation accepts new analysis_type
 
 - [ ] **Modify `R/shared_config.R`**
-  - [ ] Uncomment {model}_args() constructor (lines ~307-381)
-  - [ ] Uncomment build_{model}_args() builder function (lines ~549-621)
+  - [ ] Add routing case in `interpretation_args()` function for "{model}"
+  - [ ] Ensure `interpretation_args_{model}()` is called correctly
+  - [ ] Ensure `build_interpretation_args_{model}()` is available
 
-### 7.1 Optional: Additional Methods
-
-- [ ] **Optional: Add class-specific methods to `R/core_interpret_dispatch.R`**
-  - [ ] Add `interpret_model.{CLASS}()` method (only if needed for special routing)
-  - [ ] Most model types don't need this - build_analysis_data.{CLASS}() is usually sufficient
-  - [ ] Test class-based routing if implemented
-
-### 7.2 Verification
+### 7.1 Verification
 
 - [ ] Run `devtools::document()` to update all documentation
 - [ ] Run `devtools::check()` - resolve any warnings/errors
-- [ ] Verify new analysis type is recognized by validation
+- [ ] Verify new analysis_type is recognized by validation
+- [ ] Test basic interpretation with your model type
 - [ ] All integration tests passing
 
-**Estimated Time**: 2-3 hours
+**Estimated Time**: 1-2 hours
 
 ---
 
@@ -261,7 +248,7 @@
   - [ ] Create variable_info
   - [ ] Generate ONE interpretation with `word_limit = 20`
   - [ ] Save interpretation as `{model}_interpretation.rds`
-  - [ ] Save model_data as `sample_{model}_data.rds`
+  - [ ] Save analysis_data as `sample_{model}_data.rds`
 - [ ] Run fixture generation script
 - [ ] Verify fixtures load correctly
 
@@ -276,7 +263,7 @@
   - [ ] Test with fitted model object
   - [ ] Test with structured list
   - [ ] Test with chat_session
-  - [ ] Test with {model}_args config object
+  - [ ] Test with interpretation_args config object
   - [ ] Verify interpretation structure
   - [ ] Verify report generation
   - [ ] Use `word_limit = 20` for all LLM tests

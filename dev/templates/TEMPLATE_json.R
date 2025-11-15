@@ -20,12 +20,12 @@
 #'   {COMPONENT}_1 = "Interpretation 1",
 #'   {COMPONENT}_2 = "Interpretation 2"
 #' )
-#' validate_parsed_result(result, analysis_data, analysis_type = "{model}")
+#' validate_parsed_result(result, analysis_data)
 #' # Returns: TRUE
 #'
 #' # Invalid structure (missing keys)
 #' result <- list(foo = "bar")
-#' validate_parsed_result(result, analysis_data, analysis_type = "{model}")
+#' validate_parsed_result(result, analysis_data)
 #' # Returns: FALSE
 #' }
 validate_parsed_result.{model} <- function(parsed_result, analysis_data, ...) {
@@ -138,7 +138,7 @@ validate_parsed_result.{model} <- function(parsed_result, analysis_data, ...) {
 #' response <- 'Here are results: {"{COMPONENT}_1": "Interp 1", "{COMPONENT}_2": "Interp 2"'
 #'
 #' # Extract using patterns
-#' result <- extract_by_pattern(response, analysis_data, analysis_type = "{model}")
+#' result <- extract_by_pattern(response, analysis_data)
 #' # Returns: list({COMPONENT}_1 = "Interp 1", {COMPONENT}_2 = "Interp 2")
 #' }
 extract_by_pattern.{model} <- function(response, analysis_data, ...) {
@@ -243,7 +243,7 @@ extract_by_pattern.{model} <- function(response, analysis_data, ...) {
 #' @examples
 #' \dontrun{
 #' # Create default result
-#' result <- create_default_result(analysis_data, analysis_type = "{model}")
+#' result <- create_default_result(analysis_data)
 #'
 #' # Returns:
 #' # list(

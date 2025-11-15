@@ -56,7 +56,7 @@ validate_parsed_result.{analysis}() [STEP 8: Validate JSON]
 extract_by_pattern.{analysis}() [STEP 8: Fallback extraction]
 create_default_result.{analysis}() [STEP 8: Last resort]
     ↓
-create_diagnostics.{analysis}() [STEP 10: Analysis diagnostics]
+create_fit_summary.{analysis}() [STEP 10: Fit summary & diagnostics]
     ↓
 build_report.{analysis}_interpretation() [STEP 11: Format report]
 ```
@@ -73,7 +73,7 @@ build_report.{analysis}_interpretation() [STEP 11: Format report]
 | `validate_parsed_result.{analysis}()` | Validate JSON structure | `{analysis}_json.R` |
 | `extract_by_pattern.{analysis}()` | Pattern-based extraction fallback | `{analysis}_json.R` |
 | `create_default_result.{analysis}()` | Default values if parsing fails | `{analysis}_json.R` |
-| `create_diagnostics.{analysis}()` | Analysis-specific diagnostics | `{analysis}_diagnostics.R` |
+| `create_fit_summary.{analysis}()` | Analysis-specific fit summary and diagnostics | `{analysis}_diagnostics.R` |
 | `build_report.{analysis}_interpretation()` | Format user-facing report | `{analysis}_report.R` |
 
 **3 Additional S3 Methods (Optional but Recommended)**:
@@ -201,7 +201,7 @@ Use this checklist when implementing a new analysis type (replace `{analysis}` w
 ### Phase 5: Diagnostics
 
 - [ ] **`R/{analysis}_diagnostics.R`**
-  - [ ] `create_diagnostics.{analysis}()` - main function
+  - [ ] `create_fit_summary.{analysis}()` - main function
   - [ ] Analysis-specific diagnostic checks
   - [ ] Message formatting
   - [ ] Unit tests
@@ -893,7 +893,7 @@ create_default_result.{analysis} <- function(analysis_data, ...) {
 #'
 #' @return List with diagnostic information
 #' @export
-create_diagnostics.{analysis} <- function(analysis_data, interpretation, ...) {
+create_fit_summary.{analysis} <- function(analysis_type, analysis_data, ...) {
 
   # Pattern from fa_diagnostics.R:12-178
 
@@ -949,7 +949,7 @@ detect_{issue}_{analysis} <- function(analysis_data) {
 ```
 
 **Pattern from FA**: See `fa_diagnostics.R`:
-- `create_diagnostics.fa()` - line 12
+- `create_fit_summary.fa()` - line 181
 - `find_cross_loadings()` - line 40 (exported helper)
 - `find_no_loadings()` - line 118 (exported helper)
 
@@ -1397,13 +1397,13 @@ list(
 
 ---
 
-### create_diagnostics.{analysis}()
+### create_fit_summary.{analysis}()
 
-**Purpose**: Perform analysis-specific diagnostic checks.
+**Purpose**: Generate analysis-specific fit summary and perform diagnostic checks.
 
 **Inputs**:
+- `analysis_type`: String identifier
 - `analysis_data`: Analysis data
-- `interpretation`: LLM interpretation result
 - `...`: Additional arguments (ignored)
 
 **Outputs**: List with structure:
@@ -1421,7 +1421,7 @@ list(
 3. Add warnings and info as issues detected
 4. Return diagnostics
 
-**FA Example**: `fa_diagnostics.R:12-178`
+**FA Example**: `fa_diagnostics.R:181-282`
 
 ---
 
@@ -1566,10 +1566,10 @@ test_that("build_system_prompt.gm creates valid prompt", {
 
 test_that("build_main_prompt.gm includes cluster data", {
 
-  model_data <- readRDS("fixtures/gm/sample_gm_data.rds")
+  analysis_data <- readRDS("fixtures/gm/sample_gm_data.rds")
   var_info <- data.frame(variable = "var1", description = "Desc 1")
 
-  prompt <- build_main_prompt(model_data, var_info, word_limit = 20)
+  prompt <- build_main_prompt(analysis_data, var_info, word_limit = 20)
 
   expect_type(prompt, "character")
   expect_true(grepl("Cluster", prompt))

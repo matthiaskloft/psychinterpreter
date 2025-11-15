@@ -11,15 +11,15 @@
 New model type not recognized by validation functions
 
 ### Location
-`R/core_constants.R:22`
+`R/core_constants.R`
 
 ### Solution
 ```r
 # Update this constant when adding a new analysis type
-IMPLEMENTED_ANALYSIS_TYPES <- c("fa", "gm")  # Add "gm" here
+VALID_ANALYSIS_TYPES <- c("fa", "gm", "irt", "cdm")  # Add your type here
 ```
 
-**Remember**: Just adding to `VALID_ANALYSIS_TYPES` is not enough - must also add to `IMPLEMENTED_ANALYSIS_TYPES`
+**Remember**: You must add your model type to `VALID_ANALYSIS_TYPES` for the package to recognize it
 
 ---
 
@@ -113,7 +113,7 @@ if (analysis_type == "fa" || analysis_type == "gm" || analysis_type == "irt") {
 }
 
 # ✅ GOOD
-if (analysis_type %in% IMPLEMENTED_ANALYSIS_TYPES) {
+if (analysis_type %in% VALID_ANALYSIS_TYPES) {
   # ...
 }
 ```
@@ -231,17 +231,17 @@ Create separate methods for each package class:
 # For mclust package
 #' @export
 build_analysis_data.Mclust <- function(...) {
-  build_gm_model_data_internal(...)
+  build_gm_analysis_data_internal(...)
 }
 
 # For flexmix package
 #' @export
 build_analysis_data.flexmix <- function(...) {
-  build_gm_model_data_internal(...)
+  build_gm_analysis_data_internal(...)
 }
 
 # Shared internal logic
-build_gm_model_data_internal <- function(fit_results, ...) {
+build_gm_analysis_data_internal <- function(fit_results, ...) {
   # Extract data regardless of source package
 }
 ```
@@ -251,7 +251,8 @@ build_gm_model_data_internal <- function(fit_results, ...) {
 ## Checklist Before Submitting
 
 - [ ] All 8 required S3 methods implemented
-- [ ] `IMPLEMENTED_MODEL_TYPES` updated
+- [ ] `VALID_ANALYSIS_TYPES` constant updated in `R/core_constants.R`
+- [ ] Routing added to `interpretation_args()` in `R/shared_config.R`
 - [ ] All methods have roxygen documentation
 - [ ] All methods have `#' @export` tags
 - [ ] Tests created for all new methods
@@ -261,7 +262,7 @@ build_gm_model_data_internal <- function(fit_results, ...) {
 - [ ] Variable validation implemented
 - [ ] Multiple package classes handled (if applicable)
 - [ ] `devtools::check()` passes with 0 errors, 0 warnings
-- [ ] Templates updated in `dev/templates/`
+- [ ] User documentation updated (CLAUDE.md, README.md if applicable)
 
 ---
 

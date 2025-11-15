@@ -1,41 +1,50 @@
-# Template for additions to R/config.R
-# Add these functions to the existing config.R file
+# Template for additions to R/shared_config.R
+# Add these functions to the existing shared_config.R file
 # Replace all instances of {MODEL}, {model}, {PARAM1}, etc. with your values
-
+#
 # ==============================================================================
-# {MODEL} Configuration Object
+# IMPORTANT IMPLEMENTATION NOTES
+# ==============================================================================
+#
+# This template creates an INTERNAL helper function interpretation_args_{model}()
+# that gets called from the main interpretation_args() dispatcher.
+#
+# You need to:
+# 1. Add interpretation_args_{model}() function below (internal, not exported)
+# 2. Add routing case in main interpretation_args() function:
+#
+#    interpretation_args <- function(analysis_type, ...) {
+#      validate_analysis_type(analysis_type)
+#      if (analysis_type == "fa") {
+#        return(interpretation_args_fa(...))
+#      } else if (analysis_type == "{model}") {  # ADD THIS
+#        return(interpretation_args_{model}(...))  # ADD THIS
+#      } else if ...
+#    }
+#
+# 3. Add build_interpretation_args_{model}() helper (internal, not exported)
+#
+# See shared_config.R lines 49-122 for the FA example.
+#
+# ==============================================================================
+# {MODEL} Configuration Object (INTERNAL)
 # ==============================================================================
 
-#' Create {MODEL} configuration object
+#' Create {MODEL}-Specific Interpretation Args (Internal)
 #'
-#' Creates a configuration object for {MODEL}-specific parameters used during
-#' interpretation. This allows grouping related parameters together for cleaner
-#' function calls.
+#' Internal helper called by interpretation_args(analysis_type = "{model}", ...).
+#' Creates configuration object for {MODEL}-specific analysis parameters.
 #'
 #' @param {PARAM1} {Description of parameter 1}. Options: {list options}. Default: {default value}
 #' @param {PARAM2} {Description of parameter 2}. Default: {default value}
 #' @param ... Additional parameters (reserved for future use)
 #'
-#' @return {MODEL} configuration object (list with class "{model}_args")
+#' @return interpretation_args object for {MODEL} analysis
 #'
-#' @export
+#' @keywords internal
+#' @noRd
 #'
-#' @examples
-#' # Create {MODEL} configuration
-#' config <- {model}_args(
-#'   {PARAM1} = "{option1}",
-#'   {PARAM2} = 5
-#' )
-#'
-#' # Use in interpret() call
-#' interpretation <- interpret(
-#'   fit_results = fit,
-#'   variable_info = var_info,
-#'   {model}_args = config,
-#'   llm_provider = "ollama",
-#'   llm_model = "gpt-oss:20b-cloud"
-#' )
-{model}_args <- function({PARAM1} = NULL,
+interpretation_args_{model} <- function({PARAM1} = NULL,
                           {PARAM2} = NULL,
                           ...) {
 
@@ -87,28 +96,30 @@
     # TODO: Add additional parameters
   )
 
-  # Add class attributes
+  # Add class attributes - use "interpretation_args" as main class
   structure(
     config,
-    class = c("{model}_args", "model_config", "list")
+    class = c("interpretation_args", "model_config", "list")
   )
 }
 
 
-#' Build {MODEL} arguments from multiple sources
+#' Build {MODEL} Interpretation Args from Multiple Sources (Internal)
 #'
 #' Internal helper that merges {MODEL} parameters from multiple sources with
-#' proper precedence: {model}_args object > dots (...) > defaults.
+#' proper precedence: interpretation_args object > dots (...) > defaults.
 #'
-#' @param {model}_args Configuration object from {model}_args()
+#' NOTE: This is called internally by build_analysis_data.{CLASS}() methods.
+#'
+#' @param interpretation_args Configuration object from interpretation_args()
 #' @param dots List of additional arguments (from ...)
 #'
-#' @return Merged {MODEL} configuration object
+#' @return Merged interpretation_args configuration object
 #' @keywords internal
 #' @noRd
-build_{model}_args <- function({model}_args = NULL, dots = list()) {
+build_interpretation_args_{model} <- function(interpretation_args = NULL, dots = list()) {
 
-  # Pattern from shared_config.R - build_interpretation_args()
+  # Pattern from shared_config.R - build_interpretation_args_fa()
 
   # ============================================================================
   # Define default values
@@ -122,11 +133,11 @@ build_{model}_args <- function({model}_args = NULL, dots = list()) {
 
 
   # ============================================================================
-  # Extract from {model}_args if provided
+  # Extract from interpretation_args if provided
   # ============================================================================
 
-  if (!is.null({model}_args) && inherits({model}_args, "{model}_args")) {
-    args_list <- as.list({model}_args)
+  if (!is.null(interpretation_args) && inherits(interpretation_args, "interpretation_args")) {
+    args_list <- as.list(interpretation_args)
   } else {
     args_list <- list()
   }
@@ -148,7 +159,7 @@ build_{model}_args <- function({model}_args = NULL, dots = list()) {
 
 
   # ============================================================================
-  # Merge with precedence: {model}_args > dots > defaults
+  # Merge with precedence: interpretation_args > dots > defaults
   # ============================================================================
 
   # Start with defaults
@@ -157,7 +168,7 @@ build_{model}_args <- function({model}_args = NULL, dots = list()) {
   # Override with dots parameters
   merged[names(dots_params)] <- dots_params
 
-  # Override with {model}_args parameters (highest precedence)
+  # Override with interpretation_args parameters (highest precedence)
   merged[names(args_list)] <- args_list
 
 
@@ -167,7 +178,7 @@ build_{model}_args <- function({model}_args = NULL, dots = list()) {
 
   # Use do.call to pass merged list to constructor
   # This ensures validation is applied
-  do.call({model}_args, merged)
+  do.call(interpretation_args_{model}, merged)
 }
 
 
@@ -178,7 +189,7 @@ build_{model}_args <- function({model}_args = NULL, dots = list()) {
 # After adding these functions to R/config.R, you also need to:
 #
 # 1. Update R/constants.R:
-#    - Uncomment "{model}" in VALID_MODEL_TYPES constant
+#    - Uncomment "{model}" in VALID_ANALYSIS_TYPES constant
 #    - This enables validation across the package
 #
 # 2. Update R/utils_interpret.R:

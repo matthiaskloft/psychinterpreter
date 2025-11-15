@@ -1,16 +1,17 @@
 # Template for {MODEL}_diagnostics.R
 # Replace all instances of {MODEL}, {model}, {COMPONENT}, etc. with your values
 
-#' Create diagnostics for {MODEL} interpretation
+#' Create fit summary for {MODEL} interpretation
 #'
-#' Performs model-specific diagnostic checks and generates warnings for potential
-#' issues in the {MODEL} results. Checks for common problems like {ISSUE1}, {ISSUE2}, etc.
+#' Generates fit summary and performs model-specific diagnostic checks, generating
+#' warnings for potential issues in the {MODEL} results. Checks for common problems
+#' like {ISSUE1}, {ISSUE2}, etc.
 #'
+#' @param analysis_type Analysis type identifier (should be "{model}")
 #' @param analysis_data Analysis data from build_analysis_data.{CLASS}()
-#' @param interpretation Interpretation result from LLM (list of {COMPONENT_LOWER} interpretations)
 #' @param ... Additional arguments (ignored)
 #'
-#' @return List with diagnostic information:
+#' @return List with fit summary and diagnostic information:
 #'   \item{has_warnings}{Logical - TRUE if any warnings generated}
 #'   \item{warnings}{Character vector of warning messages}
 #'   \item{info}{List with additional diagnostic details}
@@ -19,17 +20,18 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Create diagnostics
-#' diagnostics <- create_diagnostics(analysis_data, interpretation, analysis_type = "{model}")
+#' # Create fit summary
+#' analysis_data <- build_analysis_data(fit, var_info, analysis_type = "{model}")
+#' fit_summary <- create_fit_summary("{model}", analysis_data)
 #'
 #' # Check for warnings
-#' if (diagnostics$has_warnings) {
-#'   cat(paste(diagnostics$warnings, collapse = "\n"))
+#' if (fit_summary$has_warnings) {
+#'   cat(paste(fit_summary$warnings, collapse = "\n"))
 #' }
 #' }
-create_diagnostics.{model} <- function(analysis_data, interpretation, ...) {
+create_fit_summary.{model} <- function(analysis_type, analysis_data, ...) {
 
-  # Pattern from fa_diagnostics.R:12-178
+  # Pattern from fa_diagnostics.R:181-282
 
   # ============================================================================
   # Initialize diagnostics

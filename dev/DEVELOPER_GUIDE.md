@@ -15,6 +15,7 @@
 3. [Implementation Details](#3-implementation-details)
 4. [Development Reference](#4-development-reference)
 5. [Current Package Analysis (2025-11-12)](#5-current-package-analysis-2025-11-12)
+6. [Maintenance History](#6-maintenance-history)
 
 ---
 
@@ -37,7 +38,7 @@
 **Interpretation Args**
 - Configuration object created by `interpretation_args(analysis_type, ...)`
 - Contains analysis-specific settings (e.g., cutoff, n_emergency for FA)
-- Replaces deprecated `fa_args()` from Phase 3 refactoring
+- Used to configure interpretation behavior for different analysis types
 
 **Core Methods**
 - The 8 required S3 methods that every analysis type must implement
@@ -121,6 +122,8 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 | `shared_utils.R` | ~156 | Validation, routing, helper functions |
 | `shared_text.R` | ~107 | Text wrapping, word counting utilities |
 
+**Note**: The S3 generic `create_fit_summary()` is defined in `core_interpret.R` (lines 511-532) rather than in a separate `s3_*.R` file, as it's tightly coupled with the core interpretation workflow.
+
 ### Factor Analysis Implementation (7 files, 10 methods)
 
 **Purpose**: FA-specific S3 method implementations
@@ -131,7 +134,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 | `fa_model_data.R` | ~627 | S3 methods: `build_analysis_data.{fa,psych,principal,lavaan,SingleGroupClass}` |
 | `fa_prompt_builder.R` | ~356 | S3 methods: `build_system_prompt.fa()`, `build_main_prompt.fa()` |
 | `fa_json.R` | ~225 | S3 methods: `validate_parsed_result.fa()`, `extract_by_pattern.fa()`, `create_default_result.fa()` |
-| `fa_diagnostics.R` | ~197 | S3 method: `create_diagnostics.fa()` with `find_cross_loadings()`, `find_no_loadings()` |
+| `fa_diagnostics.R` | ~197 | S3 method: `create_fit_summary.fa()` with `find_cross_loadings()`, `find_no_loadings()` |
 | `fa_report.R` | ~1084 | S3 method: `build_report.fa_interpretation()` with modular section builders |
 
 **Additional Methods (2 optional but recommended)**:
@@ -167,7 +170,7 @@ Each analysis type (FA, GM, IRT, CDM) must implement these 8 methods:
 4. **`validate_parsed_result.{analysis}()`** - Validates LLM JSON response
 5. **`extract_by_pattern.{analysis}()`** - Pattern-based extraction fallback
 6. **`create_default_result.{analysis}()`** - Default results if parsing fails
-7. **`create_diagnostics.{analysis}()`** - Analysis-specific diagnostics
+7. **`create_fit_summary.{analysis}()`** - Analysis-specific fit summary and diagnostics
 8. **`build_report.{analysis}_interpretation()`** - Report generation
 
 ### Current Implementations
@@ -213,7 +216,7 @@ User calls interpret(fit_results, variable_info, ...)
         ↓
    STEP 7: Update token tracking
         ↓
-   STEP 8: create_diagnostics.{analysis}() → Cross-loadings, etc. (S3 dispatch)
+   STEP 8: create_fit_summary.{analysis}() → Fit summary & diagnostics (S3 dispatch)
         ↓
    STEP 9: Assemble interpretation object
         ↓
@@ -243,7 +246,7 @@ Example: Adding Gaussian Mixture (GM) support
 R/gm_model_data.R       - S3 method: build_analysis_data.gm() for extracting GM data
 R/gm_prompt_builder.R   - S3 methods: build_system_prompt.gm(), build_main_prompt.gm()
 R/gm_json.R             - S3 methods: validate_parsed_result.gm(), extract_by_pattern.gm(), create_default_result.gm()
-R/gm_diagnostics.R      - S3 method: create_diagnostics.gm()
+R/gm_diagnostics.R      - S3 method: create_fit_summary.gm()
 R/gm_report.R           - S3 method: build_report.gm_interpretation()
 ```
 
@@ -305,8 +308,8 @@ create_default_result.gm <- function(analysis_data, ...) {
 }
 
 #' @export
-create_diagnostics.gm <- function(analysis_type, analysis_data, variable_info, ...) {
-  # GM-specific diagnostics (cluster overlap, separation, etc.)
+create_fit_summary.gm <- function(analysis_type, analysis_data, variable_info, ...) {
+  # GM-specific fit summary and diagnostics (cluster overlap, separation, etc.)
 }
 
 #' @export
@@ -647,7 +650,7 @@ All R files in the package follow a **prefix-first naming convention** to clearl
 
 ```r
 ✅ CORRECT:
-core_constants.R              # Package constants (VALID_MODEL_TYPES)
+core_constants.R              # Package constants (VALID_ANALYSIS_TYPES)
 s3_prompt_builder.R           # Defines build_system_prompt() generic
 fa_prompt_builder.R           # Implements build_system_prompt.fa()
 shared_visualization.R        # psychinterpreter_colors() utility function
@@ -673,9 +676,9 @@ helpers.R                     # Too vague - use appropriate prefix
 
 - **Functions**: snake_case (e.g., `build_analysis_data()`, `psychinterpreter_colors()`)
 - **S3 methods**: `method.class()` format (e.g., `build_system_prompt.fa()`, `plot.fa_interpretation()`)
-- **S3 generics**: snake_case (e.g., `build_system_prompt()`, `create_diagnostics()`)
+- **S3 generics**: snake_case (e.g., `build_system_prompt()`, `create_fit_summary()`)
 - **Internal functions**: Prefix with `.` (e.g., `.internal_helper()`, `.validate_structure()`)
-- **Variables**: snake_case (e.g., `model_data`, `factor_summaries`, `n_factors`)
+- **Variables**: snake_case (e.g., `analysis_data`, `factor_summaries`, `n_factors`)
 
 ## 4.2 Test Development Guidelines
 
@@ -1027,6 +1030,202 @@ cli::cli_abort(c(
   "v" = "What should be done instead"
 ))
 ```
+
+---
+
+# 6. Maintenance History
+
+## 6.1 Package Consistency Fixes (2025-11-15)
+
+This section documents the implementation of critical consistency fixes identified through comprehensive package analysis.
+
+### Summary
+
+**Completion Status**: Phase 1 & Phase 2 Complete
+**Total Time**: ~2.5 hours (estimated 8 hours)
+**Files Modified**: 6 files (R source, documentation, tests)
+**Breaking Changes**: None (all fixes restore intended behavior)
+
+### Phase 1: Critical Fixes
+
+#### Fix 1.1: Function Name Mismatch
+
+**Issue**: Function defined as `validate_chat_session_for_analysis_type()` but called as `validate_chat_session_for_model_type()` in 5 locations.
+
+**Resolution**: Updated all call sites in `R/core_interpret_dispatch.R` to use correct function name.
+
+**Verification**: `grep -r "validate_chat_session_for_model_type" R/` returns no matches.
+
+#### Fix 1.2: Parameter Example Errors
+
+**Issue**: Documentation examples used `output_format` parameter but actual parameter in `output_args()` is `format`.
+
+**Files Modified**:
+- `R/core_interpret_dispatch.R` line 106
+- `man/interpret.Rd` line 133
+
+**Resolution**: Changed examples to use `format = "markdown"` instead of `output_format = "markdown"`.
+
+#### Fix 1.3: Test Field Access Bugs
+
+**Issue**: Tests accessed `result$model_data` but refactoring changed it to `result$analysis_data`.
+
+**Files Modified**: `tests/testthat/test-04-s3-extraction.R` (2 occurrences at lines 185, 215)
+
+**Resolution**: Updated field access to `result$analysis_data$factor_cor_mat`.
+
+### Phase 2: Major Fixes
+
+#### Fix 2.1: Add Missing S3 Method Registrations
+
+**Issue**: `interpret_model` generic and its 5 methods not registered in NAMESPACE.
+
+**Files Modified**: `R/core_interpret_dispatch.R` (added `@export` to 6 functions)
+
+**Methods Registered**:
+1. `interpret_model()` - Generic (line 425)
+2. `interpret_model.fa()` - FA method (line 454)
+3. `interpret_model.principal()` - PCA method (line 518)
+4. `interpret_model.lavaan()` - lavaan CFA/SEM method (line 608)
+5. `interpret_model.efaList()` - lavaan EFA method (line 745)
+6. `interpret_model.SingleGroupClass()` - mirt method (line 851)
+
+**Pattern Used**: Added `@export` before existing `@keywords internal @noRd` tags:
+```r
+#' @export
+#' @keywords internal
+#' @noRd
+interpret_model.fa <- function(model, ...) {
+```
+
+**NAMESPACE Additions**:
+```r
+S3method(interpret_model,SingleGroupClass)
+S3method(interpret_model,efaList)
+S3method(interpret_model,fa)
+S3method(interpret_model,lavaan)
+S3method(interpret_model,principal)
+export(interpret_model)
+```
+
+#### Fix 2.2: Document Internal Functions
+
+**Status**: Verified - all critical internal functions already have proper roxygen documentation with `@keywords internal @noRd`.
+
+**No changes required**.
+
+#### Fix 2.3: Standardize Roxygen Tags
+
+**Finding**: The combination of `@export` and `@keywords internal` is **intentional and valid**.
+
+**Rationale**:
+- S3 generics need to be exported for extensibility
+- `@keywords internal` affects pkgdown documentation grouping only
+- Does not prevent export or cause conflicts
+- Follows R package best practices for extension APIs
+
+**No changes required**.
+
+#### Fix 2.4: Add Configuration Precedence Tests
+
+**File Created**: `tests/testthat/test-22-config-precedence.R`
+
+**Tests Added** (6 total):
+1. Direct interpretation parameters override interpretation_args config
+2. Direct llm parameters override llm_args config
+3. Direct output parameters override output_args config
+4. Config objects work when no direct parameters provided
+5. Mixed config and direct parameters work together
+6. NULL config objects use package defaults
+
+**Coverage**: Direct parameter precedence, config object fallback, mixed usage patterns, NULL handling.
+
+### Verification Results
+
+**Critical Fixes**:
+| Fix | Verification Command | Status |
+|-----|---------------------|--------|
+| Function name | `grep -r "validate_chat_session_for_model_type" R/` | ✅ No matches |
+| Parameter examples | `grep "output_format" R/core_interpret_dispatch.R man/interpret.Rd` | ✅ Fixed in examples |
+| Test field access | `grep "result\$model_data" tests/` | ✅ No matches |
+
+**S3 Registration**:
+| Method | NAMESPACE Entry | Status |
+|--------|----------------|--------|
+| interpret_model (generic) | `export(interpret_model)` | ✅ Present |
+| interpret_model.fa | `S3method(interpret_model,fa)` | ✅ Present |
+| interpret_model.principal | `S3method(interpret_model,principal)` | ✅ Present |
+| interpret_model.lavaan | `S3method(interpret_model,lavaan)` | ✅ Present |
+| interpret_model.efaList | `S3method(interpret_model,efaList)` | ✅ Present |
+| interpret_model.SingleGroupClass | `S3method(interpret_model,SingleGroupClass)` | ✅ Present |
+
+### Files Modified Summary
+
+**R Source Files** (2 files):
+1. `R/core_interpret_dispatch.R` - Fixed function calls (5), parameter example (1), added @export tags (6)
+2. `R/shared_config.R` - No changes required (already correct)
+
+**Documentation Files** (1 file):
+1. `man/interpret.Rd` - Fixed parameter example (1)
+
+**Test Files** (2 files):
+1. `tests/testthat/test-04-s3-extraction.R` - Fixed field access (2)
+2. `tests/testthat/test-22-config-precedence.R` - New file (6 tests)
+
+**Generated Files** (1 file):
+1. `NAMESPACE` - Auto-regenerated by roxygen2 (6 new entries)
+
+### Impact Analysis
+
+**Breaking Changes**: None - All fixes are backward compatible
+
+**Behavioral Changes**: None - Fixes restore intended behavior, no new behavior introduced
+
+**API Changes**:
+- `interpret_model()` and methods now properly exported for S3 dispatch
+- No user-facing API changes (function was internal)
+
+**Test Changes**:
+- 2 test assertions fixed
+- 6 new tests added
+- Test suite more robust for configuration handling
+
+### Lessons Learned
+
+1. **Function Renaming**: Refactoring from `model_type` to `analysis_type` was thorough in most places but missed some call sites. **Lesson**: Use find-replace with verification.
+
+2. **Parameter Names**: Internal parameters (`output_format`) vs config object parameters (`format`) caused confusion. **Lesson**: Keep parameter names consistent across all interfaces.
+
+3. **Test Field Access**: Refactoring from `model_data` to `analysis_data` updated implementation but not all tests. **Lesson**: Include test updates in refactoring checklist.
+
+4. **S3 Method Registration**: Methods with `@keywords internal @noRd` but no `@export` weren't registered. **Lesson**: S3 methods need `@export` even if marked internal.
+
+### Best Practices Established
+
+1. **Always run verification commands** after refactoring:
+   ```r
+   devtools::document()  # Update NAMESPACE
+   devtools::test()      # Run tests
+   devtools::check()     # Full R CMD check
+   ```
+
+2. **Use grep to verify complete refactoring**:
+   ```bash
+   grep -r "old_pattern" R/     # Should return no matches
+   grep -r "new_pattern" R/     # Should return expected matches
+   ```
+
+3. **Update tests immediately** when refactoring internal data structures
+
+4. **Add configuration precedence tests** when implementing dual interface patterns
+
+5. **Document S3 methods properly**:
+   ```r
+   #' @export
+   #' @keywords internal
+   #' @noRd
+   method_name.class_name <- function(...) { }
+   ```
 
 ---
 
