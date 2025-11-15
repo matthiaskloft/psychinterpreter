@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   articles/01-Getting_Started: 01-Getting_Started.html
   articles/02-Usage_Patterns: 02-Usage_Patterns.html
-last_built: 2025-11-11T17:04Z
+last_built: 2025-11-15T23:09Z
 urls:
   reference: https://github.com/matthiaskloft/psychinterpreter/reference
   article: https://github.com/matthiaskloft/psychinterpreter/articles

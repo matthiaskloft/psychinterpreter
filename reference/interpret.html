@@ -65,9 +65,9 @@ for efficient multi-analysis workflows.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">interpret</span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  chat_session <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  model_type <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  provider <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  model <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  analysis_type <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  llm_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interpretation_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -98,17 +98,17 @@ for efficient multi-analysis workflows.</p>
 for token-efficient multi-analysis workflows (default = NULL).</p></dd>
 
 
-<dt id="arg-model-type">model_type<a class="anchor" aria-label="anchor" href="#arg-model-type"></a></dt>
+<dt id="arg-analysis-type">analysis_type<a class="anchor" aria-label="anchor" href="#arg-analysis-type"></a></dt>
 <dd><p>Character. Type of analysis ("fa", "gm", "irt", "cdm"). Required when using
 structured list without chat_session. Automatically inferred from chat_session if provided (default = NULL).</p></dd>
 
 
-<dt id="arg-provider">provider<a class="anchor" aria-label="anchor" href="#arg-provider"></a></dt>
+<dt id="arg-llm-provider">llm_provider<a class="anchor" aria-label="anchor" href="#arg-llm-provider"></a></dt>
 <dd><p>Character. LLM provider (e.g., "openai", "anthropic", "ollama", "gemini").
 Required when chat_session is NULL. Top-level convenience parameter (default = NULL).</p></dd>
 
 
-<dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
+<dt id="arg-llm-model">llm_model<a class="anchor" aria-label="anchor" href="#arg-llm-model"></a></dt>
 <dd><p>Character. Specific model to use (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemma2:9b").
 If NULL, uses provider default. Top-level convenience parameter (default = NULL).</p></dd>
 
@@ -116,7 +116,7 @@ If NULL, uses provider default. Top-level convenience parameter (default = NULL)
 <dt id="arg-llm-args">llm_args<a class="anchor" aria-label="anchor" href="#arg-llm-args"></a></dt>
 <dd><p>List or llm_args object. LLM configuration settings. Can be created with
 <code><a href="llm_args.html">llm_args</a></code> or passed as a plain list. Contains: system_prompt, params, word_limit,
-interpretation_guidelines, additional_info, echo. If provider/model are provided at top-level,
+interpretation_guidelines, additional_info, echo. If llm_provider/llm_model are provided at top-level,
 they override values in llm_args (default = NULL).</p></dd>
 
 
@@ -155,8 +155,8 @@ you're using based on which arguments are provided.</p><div class="section">
 <span><span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="va">fa_model</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
-<span>  provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 
 <p><strong>Pattern 2: Structured List</strong></p>
@@ -169,13 +169,13 @@ you're using based on which arguments are provided.</p><div class="section">
 <span>    factor_cor_mat <span class="op">=</span> <span class="va">factor_cor_mat</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
-<span>  model_type <span class="op">=</span> <span class="st">"fa"</span></span>
+<span>  analysis_type <span class="op">=</span> <span class="st">"fa"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 
 <p><strong>Pattern 3: Chat Session (Token-Efficient)</strong></p>
 <p>Reuse chat session across analyses to save tokens.</p>
 <div class="sourceCode"><pre><code><span></span>
-<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/chat_session.html">chat_session</a></span><span class="op">(</span>model_type <span class="op">=</span> <span class="st">"fa"</span>, provider <span class="op">=</span> <span class="st">"ollama"</span>, model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
+<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/chat_session.html">chat_session</a></span><span class="op">(</span>analysis_type <span class="op">=</span> <span class="st">"fa"</span>, llm_provider <span class="op">=</span> <span class="st">"ollama"</span>, llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
 <span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span>chat_session <span class="op">=</span> <span class="va">chat</span>, fit_results <span class="op">=</span> <span class="va">model1</span>, variable_info <span class="op">=</span> <span class="va">var_info1</span><span class="op">)</span></span>
 <span><span class="va">result2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span>chat_session <span class="op">=</span> <span class="va">chat</span>, fit_results <span class="op">=</span> <span class="va">model2</span>, variable_info <span class="op">=</span> <span class="va">var_info2</span><span class="op">)</span></span></code></pre></div>
 
@@ -183,9 +183,9 @@ you're using based on which arguments are provided.</p><div class="section">
 <p>Use configuration objects for reusable settings and cleaner code.</p>
 <div class="sourceCode"><pre><code><span></span>
 <span><span class="co"># Create configuration objects</span></span>
-<span><span class="va">interp_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpretation_args.html">interpretation_args</a></span><span class="op">(</span>model_type <span class="op">=</span> <span class="st">"fa"</span>, cutoff <span class="op">=</span> <span class="fl">0.4</span>, n_emergency <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">interp_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpretation_args.html">interpretation_args</a></span><span class="op">(</span>analysis_type <span class="op">=</span> <span class="st">"fa"</span>, cutoff <span class="op">=</span> <span class="fl">0.4</span>, n_emergency <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">llm_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/llm_args.html">llm_args</a></span><span class="op">(</span>word_limit <span class="op">=</span> <span class="fl">100</span>, additional_info <span class="op">=</span> <span class="st">"Study context"</span><span class="op">)</span></span>
-<span><span class="va">output_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/output_args.html">output_args</a></span><span class="op">(</span>output_format <span class="op">=</span> <span class="st">"markdown"</span>, silent <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">output_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/output_args.html">output_args</a></span><span class="op">(</span>format <span class="op">=</span> <span class="st">"markdown"</span>, silent <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Use in interpret() call</span></span>
 <span><span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
@@ -194,8 +194,8 @@ you're using based on which arguments are provided.</p><div class="section">
 <span>  interpretation_args <span class="op">=</span> <span class="va">interp_config</span>,</span>
 <span>  llm_args <span class="op">=</span> <span class="va">llm_config</span>,</span>
 <span>  output_args <span class="op">=</span> <span class="va">output_config</span>,</span>
-<span>  provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Or mix config objects with direct parameters (direct parameters override)</span></span>
@@ -203,8 +203,8 @@ you're using based on which arguments are provided.</p><div class="section">
 <span>  fit_results <span class="op">=</span> <span class="va">fa_model</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
 <span>  interpretation_args <span class="op">=</span> <span class="va">interp_config</span>,</span>
-<span>  provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">150</span>  <span class="co"># Overrides llm_config if it were provided</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 
@@ -222,7 +222,7 @@ you're using based on which arguments are provided.</p><div class="section">
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>While only <code>provider</code> and <code>model</code> are exposed as top-level parameters for convenience,
+    <p>While only <code>llm_provider</code> and <code>llm_model</code> are exposed as top-level parameters for convenience,
 the dual interface pattern allows any argument to be passed either directly or through the respective
 configuration object (<code>llm_args</code>, <code>interpretation_args</code>, <code>output_args</code>). This keeps the primary
 signature clean while maintaining flexibility</p>
@@ -247,8 +247,8 @@ signature clean while maintaining flexibility</p>
 <span class="r-in"><span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu">interpret</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  fit_results <span class="op">=</span> <span class="va">fa_model</span>,</span></span>
 <span class="r-in"><span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span></span>
-<span class="r-in"><span>  provider <span class="op">=</span> <span class="st">"ollama"</span>,</span></span>
-<span class="r-in"><span>  model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span></span>
+<span class="r-in"><span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span></span>
+<span class="r-in"><span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Pattern 2: Structured list</span></span></span>
@@ -259,9 +259,9 @@ signature clean while maintaining flexibility</p>
 <span class="r-in"><span><span class="va">result2a</span> <span class="op">&lt;-</span> <span class="fu">interpret</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span></span>
-<span class="r-in"><span>  model_type <span class="op">=</span> <span class="st">"fa"</span>,</span></span>
-<span class="r-in"><span>  provider <span class="op">=</span> <span class="st">"ollama"</span>,</span></span>
-<span class="r-in"><span>  model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span></span>
+<span class="r-in"><span>  analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span></span>
+<span class="r-in"><span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span></span>
+<span class="r-in"><span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Option B: Loadings + factor correlations (oblique rotation)</span></span></span>
@@ -271,13 +271,13 @@ signature clean while maintaining flexibility</p>
 <span class="r-in"><span>    factor_cor_mat <span class="op">=</span> <span class="va">fa_model</span><span class="op">$</span><span class="va">Phi</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span>,</span></span>
 <span class="r-in"><span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span></span>
-<span class="r-in"><span>  model_type <span class="op">=</span> <span class="st">"fa"</span>,</span></span>
-<span class="r-in"><span>  provider <span class="op">=</span> <span class="st">"ollama"</span>,</span></span>
-<span class="r-in"><span>  model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span></span>
+<span class="r-in"><span>  analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span></span>
+<span class="r-in"><span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span></span>
+<span class="r-in"><span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Pattern 3: Chat session (token-efficient for multiple analyses)</span></span></span>
-<span class="r-in"><span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="chat_session.html">chat_session</a></span><span class="op">(</span>model_type <span class="op">=</span> <span class="st">"fa"</span>, provider <span class="op">=</span> <span class="st">"ollama"</span>, model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="chat_session.html">chat_session</a></span><span class="op">(</span>analysis_type <span class="op">=</span> <span class="st">"fa"</span>, llm_provider <span class="op">=</span> <span class="st">"ollama"</span>, llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">result3a</span> <span class="op">&lt;-</span> <span class="fu">interpret</span><span class="op">(</span>chat_session <span class="op">=</span> <span class="va">chat</span>, fit_results <span class="op">=</span> <span class="va">fa_model</span>, variable_info <span class="op">=</span> <span class="va">var_info</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">result3b</span> <span class="op">&lt;-</span> <span class="fu">interpret</span><span class="op">(</span>chat_session <span class="op">=</span> <span class="va">chat</span>, fit_results <span class="op">=</span> <span class="va">fa_model2</span>, variable_info <span class="op">=</span> <span class="va">var_info2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span>  <span class="co"># Check token usage</span></span></span>

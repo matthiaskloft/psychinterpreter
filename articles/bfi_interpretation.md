@@ -3,15 +3,18 @@
 **Number of factors:** 5  
 **Loading cutoff:** 0.3  
 **LLM used:** ollama - gpt-oss:20b-cloud  
-**Elapsed time:** 27.8  
+**Tokens:**  
+  Input: 1780  
+  Output: 5281  
+**Elapsed time:** 25.8  
 
 ## Suggested Factor Names
 
-- **Factor 1 (9.6%):** *Emotional Instability*
-- **Factor 2 (7.7%):** *Empathetic Leadership*
-- **Factor 3 (7.4%):** *Introverted Reluctance*
-- **Factor 4 (7.7%):** *Conscientious Organization*
-- **Factor 5 (6.3%):** *Cognitive Openness*
+- **Factor 1 (9.6%):** *Neurotic Tendencies*
+- **Factor 2 (7.7%):** *Prosocial Orientation*
+- **Factor 3 (7.4%):** *Low Extraversion*
+- **Factor 4 (7.7%):** *Conscientiousness*
+- **Factor 5 (6.3%):** *Openness*
 
 **Total variance explained by all factors: 38.7%**
 
@@ -30,7 +33,7 @@
 
 ## Detailed Factor Interpretations
 
-### Factor 1 (ML2): Emotional Instability
+### Factor 1 (ML2): Neurotic Tendencies
 
 **Number of significant loadings:** 5  
 **Variance explained:** 9.65%  
@@ -47,9 +50,9 @@ ML4 = -.01
   5. N4, Often feel blue. (, , .413)
 
 **LLM Interpretation:**  
-Factor ML2 is labeled Emotional Instability. It is defined by strong positive loadings on all five Neuroticism items (N1–N5), all exceeding the 0.3 threshold. The pattern indicates a cohesive construct reflecting frequent negative affect—anger, irritability, mood swings, sadness, and panic. Cross‑loadings are negligible, supporting convergent validity. The factor shows modest positive correlation with ML1 (0.23) and weak negative correlation with ML5 (–0.31), suggesting it is distinct from social reticence and empathic traits. It captures a spectrum of reactive, unstable emotions.
+ML2 represents neurotic tendencies, with high loadings on N1–N5 (0.41–0.85). These items capture irritability, mood swings, and anxiety, supporting convergent validity. The factor shows a modest positive correlation with Introverted Social Tendencies (ML1, r=.23) and near-zero relationship with Openness (ML4, r≈0). Its negative correlation with Conscientiousness (ML3, r=–.21) suggests that higher neuroticism is linked to lower orderliness. These patterns differentiate ML2 from other factors while underscoring its role in emotional instability. This core emotional volatility factor shapes behavior across situations.
 
-### Factor 2 (ML5): Empathetic Leadership
+### Factor 2 (ML5): Prosocial Orientation
 
 **Number of significant loadings:** 7  
 **Variance explained:** 7.69%  
@@ -68,9 +71,9 @@ ML4 = .23
   7. E3, Know how to captivate people. (, , .303)
 
 **LLM Interpretation:**  
-Factor ML5, named Empathetic Leadership, is characterized by sizable loadings on the Agreeableness cluster (A2 0.603, A3 0.668, A4 0.456, A5 0.577) and moderate loadings on Extraversion items (E3 0.303, E4 0.362). The high coefficients on caring and comfort‑oriented variables indicate strong empathic concern, while the social‑skill loadings reflect the ability to attract and influence others. Convergent validity is strong among the A‑items. Cross‑loadings to other factors are minimal, and correlation with ML2 is negative (–0.31), signalling that this empathic construct is distinct from emotional instability regard.
+ML5 captures prosocial orientation, evidenced by strong loadings on A2–A5 (0.45–0.67) reflecting concern for others, comforting, and fostering ease. The factor’s negative loading on A1 indicates that indifference detracts from the construct. Low correlations with the other factors (e.g., r≈–.31 with Introverted Social Tendencies) suggest a distinct social warmth dimension. Its moderate association with Openness (r=.20) and low relation to Neurotic Tendencies reflects its unique, adaptive social engagement profile for behavior regulation. This construct aligns with Agreeableness traits from the Big Five.
 
-### Factor 3 (ML1): Introverted Reluctance
+### Factor 3 (ML1): Low Extraversion
 
 **Number of significant loadings:** 7  
 **Variance explained:** 7.36%  
@@ -89,9 +92,9 @@ ML4 = -.17
   7. E3, Know how to captivate people. (, , -.341)
 
 **LLM Interpretation:**  
-Factor ML1, named Introverted Reluctance, shows high loadings on E1 0.565 and E2 0.667, capturing a tendency to avoid social contact. Negative loadings on E3 (–0.341), E4 (–0.527) and E5 (–0.394) further indicate reduced social initiative and influence. This pattern aligns with a low‑extraversion construct. The factor has a weak positive correlation with ML2 (0.23) yet negligible connections to ML5 and ML4, underscoring its distinctiveness from empathic and cognitive openness traits. Overall, ML1 quantifies social introversion and reticence and helps in understanding personality profiles for research analysis.
+ML1 represents low extraversion or introversion, strongly loading on E1 (talk‑less, 0.57) and E2 (social approach difficulty, 0.67). Negative loadings on E3 (captivate people), E4 (make friends), and E5 (take charge) further characterize reduced outward energy. The factor also captures modest internalizing aspects with positive loadings on O4 (reflecting introverted cognition, 0.36) and mild neurotic items (N4, N5). Its positive correlation with Neurotic Tendencies (r=.23) and negative link with Conscientiousness (r≈–.22) illustrate its role particularly for others in guarded social interaction.
 
-### Factor 4 (ML3): Conscientious Organization
+### Factor 4 (ML3): Conscientiousness
 
 **Number of significant loadings:** 5  
 **Variance explained:** 7.71%  
@@ -108,9 +111,9 @@ ML4 = .20
   5. C1, Am exacting in my work. (, , .532)
 
 **LLM Interpretation:**  
-Factor ML3, termed Conscientious Organization, is defined by strong positive loadings on C1 0.532, C2 0.638, and C3 0.564, and substantial negative loadings on C4 (–0.643) and C5 (–0.570). These coefficients capture a spectrum from orderly, planned behavior to indecisive or half‑hearted action. The factor shows modest negative correlation with ML1 (–0.22), indicating that conscientiousness is slightly inversely related to social reticence, but remains largely distinct from emotional and empathic factors. ML3 thus assesses the degree of dutiful organization versus disorganized execution within the personality structure.
+ML3 signifies conscientiousness, driven by high positive loadings on C1–C3 (0.53–0.64) that capture exactness, perseverance, and planning. Negative loadings on C4 (half‑way approach) and C5 (time wasting) emphasize low procrastination and sloppiness. The factor exhibits a weak negative correlation with Introverted Social Tendencies (r≈–.22) and a small positive link to Openness (r=.20). ML3 therefore denotes a structured, diligent mindset that contrasts with impulsivity and emotional reactivity, mirroring the Big Five’s conscientiousness dimension, providing a foundation for goal attainment and reliable self‑regulation.
 
-### Factor 5 (ML4): Cognitive Openness
+### Factor 5 (ML4): Openness
 
 **Number of significant loadings:** 6  
 **Variance explained:** 6.25%  
@@ -128,7 +131,7 @@ ML3 = .20
   6. E3, Know how to captivate people. (, , .315)
 
 **LLM Interpretation:**  
-Factor ML4, titled Cognitive Openness, boasts large positive loadings on O1 0.534, O3 0.633, and O4 0.379, while O2 (–0.441) and O5 (–0.522) load negatively. This pattern differentiates individuals who generate ideas, deepen conversations, and reflect from those who avoid challenging material or probe deeply. Moderate E3 and E5 loadings link subtle social skill aspects. Correlations with ML5 (0.23) and ML2 (–0.01) confirm that cognitive openness is distinct yet moderately related to empathy and emotional stability. ML4 captures intellectual curiosity and openness to experience and perception within personality landscape.
+ML4 captures openness to experience, with strong positive loadings on O1 (ideas, .53) and O3 (conversation depth, .63) and moderate positive on O4 (.38). Negative loadings on O2 (avoiding reading) and O5 (non‑probe) reflect a preference for intellectual challenge over routine. The factor is weakly correlated with Introverted Social Tendencies (.20) and positively linked to Prosocial Orientation (.23). ML4 therefore reflects intellectual curiosity and imaginative engagement, aligning with the Openness dimension of the Big Five, supporting creative problem‑solving in varied contexts.
 
 ## Cross-Loading Variables
 

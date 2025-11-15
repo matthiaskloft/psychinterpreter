@@ -74,7 +74,7 @@
 <code>interpret()</code> Usage Patterns</h1>
 
       <p class="author">Matthias Kloft</p>
-      <p class="date">2025-11-11</p>
+      <p class="date">2025-11-16</p>
 
       <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/vignettes/articles/02-Usage_Patterns.qmd"><code>vignettes/articles/02-Usage_Patterns.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -117,30 +117,19 @@
 </div>
 </section><section class="level3"><h4 id="llm-setup">LLM Setup<a class="anchor" aria-label="anchor" href="#llm-setup"></a>
 </h4>
-<p>We use Ollama, so we need to make sure to start the server before running this.</p>
-<div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if port 11434 (default Ollama port) is in use</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="fu">grep</span> 11434 <span class="op">&gt;</span> /dev/null<span class="kw">;</span> <span class="cf">then</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">"Ollama is already running."</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">"Starting Ollama..."</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="ex">ollama</span> serve</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>Ollama is already running.</code></pre>
-</div>
+<p>We use Ollama, so we need to make sure the Ollama server is running before executing this document.</p>
+<div>
+<blockquote>
+<p><strong>Note</strong></p>
+<p><strong>Starting Ollama</strong></p>
+<p>Make sure Ollama is running before rendering this document. You can start it with:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> serve</span></code></pre></div>
+</blockquote>
 </div>
 <p>Test the connection:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system2.html" class="external-link">system2</a></span><span class="op">(</span><span class="st">"ollama serve"</span>, wait <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-</details><div class="cell-output cell-output-stderr">
-<pre><code>Warning in system2("ollama serve", wait = FALSE): '"ollama serve"' not found</code></pre>
-</div>
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># test the connection to the Ollama server</span></span>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Test the connection to the Ollama server</span></span>
 <span><span class="fu">ollamar</span><span class="fu">::</span><span class="fu"><a href="https://hauselin.github.io/ollama-r/reference/test_connection.html" class="external-link">test_connection</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stderr">
 <pre><code>Ollama local server running</code></pre>
@@ -155,7 +144,7 @@ Body: In memory (17 bytes)</code></pre>
 </div>
 <p>We will use the model “gpt-oss:20b-cloud”, which needs to be installed. Since this is a cloud-powered model, you need an account with Ollama and be logged in to run this model.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># pull the model from ollama if it is not already installed</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="st">"gpt-oss:20b-cloud"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu">ollamar</span><span class="fu">::</span><span class="fu"><a href="https://hauselin.github.io/ollama-r/reference/list_models.html" class="external-link">list_models</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">name</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu">ollamar</span><span class="fu">::</span><span class="fu"><a href="https://hauselin.github.io/ollama-r/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
@@ -165,7 +154,7 @@ Body: In memory (17 bytes)</code></pre>
 </section></section><section class="section level3"><h3 id="run-factor-analysis">Run Factor Analysis<a class="anchor" aria-label="anchor" href="#run-factor-analysis"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fa_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">fa</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, nfactors <span class="op">=</span> <span class="fl">2</span>, rotate <span class="op">=</span> <span class="st">"oblimin"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">var_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -180,12 +169,12 @@ Body: In memory (17 bytes)</code></pre>
 </h4>
 <p>Automatically extracts model components from fitted objects.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="va">fa_model</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
-<span>  provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">50</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stderr">
@@ -204,7 +193,7 @@ Body: In memory (17 bytes)</code></pre>
 <pre><code>ℹ Parsing LLM response...</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>ℹ Creating diagnostics...</code></pre>
+<pre><code>ℹ Creating fit summary...</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>ℹ Building report...</code></pre>
@@ -220,13 +209,16 @@ FACTOR ANALYSIS INTERPRETATION
 Number of factors: 2
 Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
-Elapsed time: 7.67
+Tokens:
+  Input: 826
+  Output: 1739
+Elapsed time: 8.84
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Fuel Efficiency vs Power
-• Factor 2 (1.7%): Residual Noise (n.s.)
+• Factor 1 (84%): Engine Power Capacity
+• Factor 2 (1.7%): Power‑Displacement Ratio (n.s.)
 
 Total variance explained: 85.7%
 
@@ -239,7 +231,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Fuel Efficiency vs Power
+Factor 1 (MR1) - Engine Power Capacity
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -251,13 +243,13 @@ Variables:
   4. hp, Horsepower (, , .862)
 
 LLM Interpretation:
-MR1 captures the core technical trade‑off in automobiles: larger displacement, more cylinders, and higher horsepower
-strengthen power, while higher miles‑per‑gallon inversely represents fuel efficiency. The dominant negative loading on
-mpg and strong positive loadings on power‑related variables illustrate the classic power‑versus‑economy dilemma.
+The factor consolidates engine size and output, loading strongly on cylinders (0.95), displacement (0.96), and
+horsepower (0.86), while negatively loading on fuel efficiency (mpg –0.89). It captures an overall power‑capacity
+construct, explaining 84 % of variance, largely independent of MR2 in the dataset.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Noise (n.s.)
+Factor 2 (MR2) - Power‑Displacement Ratio (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 Factor Correlations: MR1 = .03
@@ -270,9 +262,9 @@ Variables:
   2. disp, Displacement (, , -.172)
 
 LLM Interpretation:
-MR2 explains only 1.7% of variance and shows negligible loadings on all measures; it represents residual noise or an
-unstructured factor. Its near‑zero correlation with MR1 confirms it captures a construct that is essentially unrelated
-to power or fuel efficiency.
+MR2 loads mainly on horsepower (0.20) and displacement (–0.17), lacking significant associations with mpg or cylinders.
+This weak, marginal factor suggests a nebulous relationship between power output and engine volume independent of fuel
+efficiency. The factor explains only 1.7 % of total variance within the overall automotive performance context.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -283,13 +275,16 @@ to power or fuel efficiency.
 Number of factors: 2
 Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
-Elapsed time: 7.67
+Tokens:
+  Input: 826
+  Output: 1739
+Elapsed time: 8.84
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Fuel Efficiency vs Power
-• Factor 2 (1.7%): Residual Noise (n.s.)
+• Factor 1 (84%): Engine Power Capacity
+• Factor 2 (1.7%): Power‑Displacement Ratio (n.s.)
 
 Total variance explained: 85.7%
 
@@ -302,7 +297,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Fuel Efficiency vs Power
+Factor 1 (MR1) - Engine Power Capacity
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -314,15 +309,14 @@ Variables:
   4. hp, Horsepower (, , .862)
 
 LLM Interpretation:
-MR1 captures the core technical trade‑off in automobiles: larger displacement,
-more cylinders, and higher horsepower strengthen power, while higher
-miles‑per‑gallon inversely represents fuel efficiency. The dominant negative
-loading on mpg and strong positive loadings on power‑related variables
-illustrate the classic power‑versus‑economy dilemma.
+The factor consolidates engine size and output, loading strongly on cylinders
+(0.95), displacement (0.96), and horsepower (0.86), while negatively loading on
+fuel efficiency (mpg –0.89). It captures an overall power‑capacity construct,
+explaining 84 % of variance, largely independent of MR2 in the dataset.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Noise (n.s.)
+Factor 2 (MR2) - Power‑Displacement Ratio (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 Factor Correlations: MR1 = .03
@@ -335,10 +329,11 @@ Variables:
   2. disp, Displacement (, , -.172)
 
 LLM Interpretation:
-MR2 explains only 1.7% of variance and shows negligible loadings on all
-measures; it represents residual noise or an unstructured factor. Its near‑zero
-correlation with MR1 confirms it captures a construct that is essentially
-unrelated to power or fuel efficiency.
+MR2 loads mainly on horsepower (0.20) and displacement (–0.17), lacking
+significant associations with mpg or cylinders. This weak, marginal factor
+suggests a nebulous relationship between power output and engine volume
+independent of fuel efficiency. The factor explains only 1.7 % of total variance
+within the overall automotive performance context.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -348,16 +343,16 @@ unrelated to power or fuel efficiency.
 <p>For custom data structures or manual extraction.</p>
 <p>For FA, provide loadings (required) and optionally factor_cor_mat:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb24"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loadings_matrix</span> <span class="op">&lt;-</span> <span class="va">fa_model</span><span class="op">$</span><span class="va">loadings</span></span>
 <span><span class="va">factor_cor_mat</span> <span class="op">&lt;-</span> <span class="va">fa_model</span><span class="op">$</span><span class="va">Phi</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings_matrix</span>, factor_cor_mat <span class="op">=</span> <span class="va">factor_cor_mat</span><span class="op">)</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
-<span>  model_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
-<span>  provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">50</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stderr">
@@ -376,7 +371,7 @@ unrelated to power or fuel efficiency.
 <pre><code>ℹ Parsing LLM response...</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>ℹ Creating diagnostics...</code></pre>
+<pre><code>ℹ Creating fit summary...</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>ℹ Building report...</code></pre>
@@ -392,12 +387,15 @@ FACTOR ANALYSIS INTERPRETATION
 Number of factors: 2
 Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
-Elapsed time: 8.96
+Tokens:
+  Input: 826
+  Output: 1125
+Elapsed time: 5.66
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Performance
+• Factor 1 (84%): Powerful Engine
 • Factor 2 (1.7%): Residual Variation (n.s.)
 
 Total variance explained: 85.7%
@@ -411,7 +409,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Performance
+Factor 1 (MR1) - Powerful Engine
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -423,9 +421,9 @@ Variables:
   4. hp, Horsepower (, , .862)
 
 LLM Interpretation:
-This factor represents engine performance, capturing key power attributes such as cylinders, displacement, and
-horsepower, while inversely related to fuel efficiency (mpg). The high positive loadings on power variables and negative
-mpg loading indicate a trade‑off between power output and fuel economy. It explains 84 % of variance.
+MR1 reflects dominant engine attributes—numerous cylinders, larger displacement, and higher horsepower—which
+collectively reduce fuel economy. The factor explains 84% of variance, underscoring engine power as the primary driver
+of car performance and fuel consumption across global markets, regardless of size and model.
 
 ════════════════════════════════════════════════════════════════════════════════
 
@@ -442,9 +440,9 @@ Variables:
   2. disp, Displacement (, , -.172)
 
 LLM Interpretation:
-Despite low loadings, the factor captures a very weak association between horsepower and displacement, reflecting
-residual variance not explained by MR1. Its correlations with MR1 are negligible (.03), indicating it represents
-distinct, minor variation. It explains only 1.7 % of variance.
+MR2 exhibits only minimal loadings on horsepower (0.195) and displacement (−0.172), contributing merely 1.7% of
+variance. It likely represents residual measurement variation or small, non‑engine related differences, weakly
+correlated (0.03) with the primary power factor, and should be interpreted cautiously.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -455,12 +453,15 @@ distinct, minor variation. It explains only 1.7 % of variance.
 Number of factors: 2
 Loading cutoff: 0.3
 LLM used: ollama - gpt-oss:20b-cloud
-Elapsed time: 8.96
+Tokens:
+  Input: 826
+  Output: 1125
+Elapsed time: 5.66
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Performance
+• Factor 1 (84%): Powerful Engine
 • Factor 2 (1.7%): Residual Variation (n.s.)
 
 Total variance explained: 85.7%
@@ -474,7 +475,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Performance
+Factor 1 (MR1) - Powerful Engine
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -486,11 +487,11 @@ Variables:
   4. hp, Horsepower (, , .862)
 
 LLM Interpretation:
-This factor represents engine performance, capturing key power attributes such
-as cylinders, displacement, and horsepower, while inversely related to fuel
-efficiency (mpg). The high positive loadings on power variables and negative mpg
-loading indicate a trade‑off between power output and fuel economy. It explains
-84 % of variance.
+MR1 reflects dominant engine attributes—numerous cylinders, larger displacement,
+and higher horsepower—which collectively reduce fuel economy. The factor
+explains 84% of variance, underscoring engine power as the primary driver of car
+performance and fuel consumption across global markets, regardless of size and
+model.
 
 ════════════════════════════════════════════════════════════════════════════════
 
@@ -507,10 +508,11 @@ Variables:
   2. disp, Displacement (, , -.172)
 
 LLM Interpretation:
-Despite low loadings, the factor captures a very weak association between
-horsepower and displacement, reflecting residual variance not explained by MR1.
-Its correlations with MR1 are negligible (.03), indicating it represents
-distinct, minor variation. It explains only 1.7 % of variance.
+MR2 exhibits only minimal loadings on horsepower (0.195) and displacement
+(−0.172), contributing merely 1.7% of variance. It likely represents residual
+measurement variation or small, non‑engine related differences, weakly
+correlated (0.03) with the primary power factor, and should be interpreted
+cautiously.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -519,10 +521,10 @@ distinct, minor variation. It explains only 1.7 % of variance.
 </h4>
 <p>Reuse chat session across analyses to save tokens.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/chat_session.html">chat_session</a></span><span class="op">(</span>model_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
-<span>                     provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>                     model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/chat_session.html">chat_session</a></span><span class="op">(</span>analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
+<span>                     llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>                     llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
 <span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  chat_session <span class="op">=</span> <span class="va">chat</span>,</span>
 <span>  fit_results <span class="op">=</span> <span class="va">fa_model</span>,</span>
@@ -543,7 +545,7 @@ distinct, minor variation. It explains only 1.7 % of variance.
 <pre><code>ℹ Parsing LLM response...</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>ℹ Creating diagnostics...</code></pre>
+<pre><code>ℹ Creating fit summary...</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>ℹ Building report...</code></pre>
@@ -551,7 +553,7 @@ distinct, minor variation. It explains only 1.7 % of variance.
 <div class="cell-output cell-output-stderr">
 <pre><code>✔ Interpretation complete!</code></pre>
 </div>
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb43"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  chat_session <span class="op">=</span> <span class="va">chat</span>,</span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings_matrix</span>, factor_cor_mat <span class="op">=</span> <span class="va">factor_cor_mat</span><span class="op">)</span>,</span>
@@ -572,7 +574,7 @@ distinct, minor variation. It explains only 1.7 % of variance.
 <pre><code>ℹ Parsing LLM response...</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>ℹ Creating diagnostics...</code></pre>
+<pre><code>ℹ Creating fit summary...</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>ℹ Building report...</code></pre>
@@ -583,21 +585,21 @@ distinct, minor variation. It explains only 1.7 % of variance.
 </div>
 <p>We can check the total global token usage:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb51"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>Factor Analysis Chat Session
 Provider: ollama
 Model: gpt-oss:20b-cloud
-Created: 2025-11-11 18:06:41.801799
+Created: 2025-11-16 00:10:49.473197
 Interpretations run: 2
-Total tokens - Input: 1652 , Output: 1900 </code></pre>
+Total tokens - Input: 1652 , Output: 2308 </code></pre>
 </div>
 </div>
 </section></section><section class="section level2"><h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb53"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pander</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pander/man/pander.html" class="external-link">pander</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
 <p><strong>R version 4.5.2 (2025-10-31 ucrt)</strong></p>

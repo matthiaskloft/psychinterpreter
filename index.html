@@ -128,8 +128,8 @@
 <span><span class="co"># Interpret directly from model object</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">fa_result</span>,</span>
 <span>                     variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
-<span>                     provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>                     model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span></code></pre></div>
+<span>                     llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>                     llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="manual-approach">Manual Approach<a class="anchor" aria-label="anchor" href="#manual-approach"></a>
@@ -139,13 +139,13 @@
 <code class="sourceCode R"><span><span class="co"># Extract loadings manually</span></span>
 <span><span class="va">loadings</span> <span class="op">&lt;-</span> <span class="va">fa_result</span><span class="op">$</span><span class="va">loadings</span></span>
 <span></span>
-<span><span class="co"># Use structured list with model_type</span></span>
+<span><span class="co"># Use structured list with analysis_type</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings</span><span class="op">)</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
-<span>  model_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
-<span>  provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
+<span>  analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -154,7 +154,7 @@
 <p>Use persistent chat sessions to save tokens when analyzing multiple datasets:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create reusable chat session</span></span>
-<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_session.html">chat_session</a></span><span class="op">(</span>model_type <span class="op">=</span> <span class="st">"fa"</span>, provider <span class="op">=</span> <span class="st">"ollama"</span>, model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
+<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_session.html">chat_session</a></span><span class="op">(</span>analysis_type <span class="op">=</span> <span class="st">"fa"</span>, llm_provider <span class="op">=</span> <span class="st">"ollama"</span>, llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Run multiple interpretations (saves ~40-60% tokens)</span></span>
 <span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span>chat_session <span class="op">=</span> <span class="va">chat</span>, fit_results <span class="op">=</span> <span class="va">fa_result1</span>, variable_info <span class="op">=</span> <span class="va">var_info1</span>, silent <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -173,8 +173,8 @@
 <li>
 <p><strong>Articles:</strong></p>
 <ul>
-<li><a href="https://matthiaskloft.github.io/psychinterpreter/articles/01-Getting-Started.html" class="external-link">Getting Started Guide</a></li>
-<li><a href="https://matthiaskloft.github.io/psychinterpreter/articles/02-Usage-Patterns.html" class="external-link">Usage Patterns for <code>interpret()</code></a></li>
+<li><a href="https://matthiaskloft.github.io/psychinterpreter/articles/01-Getting_Started.html" class="external-link">Getting Started Guide</a></li>
+<li><a href="https://matthiaskloft.github.io/psychinterpreter/articles/02-Usage_Patterns.html" class="external-link">Usage Patterns for <code>interpret()</code></a></li>
 </ul>
 </li>
 </ul>

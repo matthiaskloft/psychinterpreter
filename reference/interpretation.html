@@ -64,13 +64,13 @@ inherit from this base class.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>All model-specific interpretation classes should inherit from this base class.
-Common fields across all interpretation types:</p><ul><li><p>model_type: Character. Type of analysis ("fa", "gm", "irt", "cdm")</p></li>
+Common fields across all interpretation types:</p><ul><li><p>analysis_type: Character. Type of analysis ("fa", "gm", "irt", "cdm")</p></li>
 <li><p>component_summaries: List. Summaries of factors/clusters/items/attributes</p></li>
 <li><p>suggested_names: List. LLM-generated names for components</p></li>
 <li><p>interpretations: List. LLM-generated interpretations</p></li>
 <li><p>llm_info: List. Provider, model, and token information</p></li>
 <li><p>chat: Chat session object</p></li>
-<li><p>diagnostics: List. Model-specific diagnostic information</p></li>
+<li><p>fit_summary: List. Fit-specific summary information</p></li>
 <li><p>report: Character. Formatted text report</p></li>
 <li><p>elapsed_time: Numeric. Processing time in seconds</p></li>
 <li><p>params: List. Analysis parameters</p></li>
