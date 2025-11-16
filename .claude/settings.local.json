@@ -86,7 +86,8 @@
       "Bash(paste:*)",
       "Bash(do wc -l \"$f\")",
       "Bash(do grep -l \"$func\" /mnt/c/Users/Matze/Documents/GitHub/psychinterpreter/tests/testthat/*.R)",
-      "Bash(sort:*)"
+      "Bash(sort:*)",
+      "Bash(jobs:*)"
     ],
     "deny": [
       "Read(./.env*)",

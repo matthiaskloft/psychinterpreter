@@ -7,7 +7,7 @@
 create_fit_summary(analysis_type, analysis_data, ...)
 }
 \arguments{
-\item{analysis_type}{Object with analysis type class}
+\item{analysis_type}{Character. Analysis type ("fa", "gm", "irt", "cdm")}
 
 \item{analysis_data}{List. Model-specific data}
 
