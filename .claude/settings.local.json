@@ -90,7 +90,8 @@
       "Bash(jobs:*)",
       "Bash(.Rbuildignore:*)",
       "Bash(1)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "WebFetch(domain:cli.r-lib.org)"
     ],
     "deny": [
       "Read(./.env*)",

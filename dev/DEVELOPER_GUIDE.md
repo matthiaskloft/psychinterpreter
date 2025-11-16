@@ -1193,6 +1193,57 @@ All completed refactorings establish patterns for planned extensions:
 - `OPEN_ISSUES.md`: Technical debt status
 - `CLAUDE.md`: Dispatch pattern references
 
+### 5.3 Critical Bug Fixes and Lessons Learned
+
+#### CLI Error Message Handling in Parameter Validation (2025-11-16)
+
+**Problem**: When `validate_params()` threw validation errors, CLI was unable to evaluate expressions in error messages, causing:
+```
+Error: Could not evaluate cli `{}` expression: `value`.
+```
+
+**Root Cause**:
+- Validation functions return messages with CLI formatting expressions (e.g., `{.arg heading_level}`)
+- These messages were passed directly to `cli::cli_abort()`
+- CLI tried to evaluate these expressions in a scope where referenced variables didn't exist
+- This caused test failures when `expect_error()` tried to match error message patterns
+
+**Solution** (in `R/core_parameter_registry.R:572-588`):
+```r
+if (!result$valid) {
+  all_valid <- FALSE
+  if (throw_error) {
+    # Pre-format the validation message to resolve any CLI expressions
+    # This prevents issues when result$message contains expressions like {.arg x}
+    # that reference variables not in the current scope
+    formatted_message <- cli::format_inline(result$message)
+
+    # Combine messages into single string so tests can find the full error text
+    # We keep the CLI formatting for nice display but ensure e$message contains
+    # all the information needed for test assertions
+    cli::cli_abort(
+      "Validation failed for parameter: {.arg {param_name}}. {formatted_message}",
+      .envir = environment()
+    )
+  }
+}
+```
+
+**Key Lessons**:
+1. **Pre-format messages with variable references**: Use `cli::format_inline()` to resolve CLI expressions before passing to `cli_abort()`
+2. **Combine error parts for testability**: When using `cli_abort()`, only the first element goes into `e$message`. Combine parts if tests need to match patterns
+3. **Explicit environment specification**: Use `.envir = environment()` to ensure variables are evaluated in the correct scope
+4. **Test both display and content**: Ensure error messages both display correctly AND contain expected text in `e$message` for test assertions
+
+**Testing Impact**:
+- Fixed failing tests in `test-01-validation.R`
+- Ensured `expect_error(..., "pattern")` can match validation details
+- Maintained nice CLI formatting in error displays
+
+**Related Documentation**:
+- [cli documentation on error handling](https://cli.r-lib.org/reference/cli_abort.html)
+- [cli documentation on testing](https://cli.r-lib.org/reference/test_that_cli.html)
+
 ---
 
 **Last Updated**: 2025-11-16

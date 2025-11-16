@@ -230,7 +230,7 @@ build_{model}_analysis_data_internal <- function(fit_results,
   # - validate_params(param_list) - Validate multiple parameters at once
   # - interpretation_args() - Auto-populated from registry defaults
   #
-  # See R/aaa_param_registry.R for parameter registration
+  # See R/core_parameter_registry.R for parameter registration
   # See R/shared_config.R for configuration object builders
   #
   # Pattern from fa_model_data.R:26-48
@@ -265,7 +265,7 @@ build_{model}_analysis_data_internal <- function(fit_results,
   #
   # Option A: Registry-based validation (RECOMMENDED)
   # --------------------------------------------------
-  # If you registered your parameters in R/aaa_param_registry.R, use validate_params():
+  # If you registered your parameters in R/core_parameter_registry.R, use validate_params():
   #
   # param_list <- list(
   #   {PARAM1} = {PARAM1},
@@ -275,7 +275,7 @@ build_{model}_analysis_data_internal <- function(fit_results,
   # {PARAM1} <- validated${PARAM1}
   # {PARAM2} <- validated${PARAM2}
   #
-  # See R/aaa_param_registry.R for parameter registration pattern
+  # See R/core_parameter_registry.R for parameter registration pattern
   #
   # Option B: Manual validation (if registry not used)
   # ---------------------------------------------------

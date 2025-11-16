@@ -52,7 +52,30 @@ Create a replacement mapping for your model type:
 | `{DATA_FIELD1}` | First data field name | means |
 | `{DATA_FIELD2}` | Second data field name | covariances |
 
-**Note**: Parameters (`{PARAM1}`, `{PARAM2}`) are for **analysis configuration** (e.g., cutoff, n_emergency for FA), NOT for LLM settings (llm_provider, llm_model) which are handled separately.
+---
+
+⚠️ **IMPORTANT: Parameter Types**
+
+There are THREE types of parameters in psychinterpreter:
+
+1. **Analysis-specific parameters** (go in `interpretation_args`) - Examples:
+   - FA: `cutoff`, `n_emergency`, `hide_low_loadings`, `sort_loadings`
+   - GM: `covariance_type`, `n_components` (when user-specified)
+   - IRT: `model_spec`, `n_factors`
+   - **These are what `{PARAM1}` and `{PARAM2}` represent in templates**
+
+2. **LLM settings** (go in `llm_args`) - Always the same:
+   - `word_limit`, `llm_provider`, `llm_model`, `additional_info`, `echo`
+   - **Do NOT add these to your analysis-specific parameters**
+
+3. **Output settings** (go in `output_args`) - Always the same:
+   - `format`, `silent`
+   - **Do NOT add these to your analysis-specific parameters**
+
+When using templates, `{PARAM1}` and `{PARAM2}` represent ANALYSIS-SPECIFIC parameters ONLY.
+The LLM and output settings are handled separately by the package infrastructure and should not be duplicated in your model implementation.
+
+---
 
 ### Step 2: Copy and Replace
 

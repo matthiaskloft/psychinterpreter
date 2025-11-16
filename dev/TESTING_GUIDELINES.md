@@ -310,6 +310,42 @@ When adding new test files:
 
 ---
 
+## CLI Error Message Testing Considerations
+
+When testing functions that use `cli::cli_abort()` for error messages:
+
+### Key Issue
+CLI error messages with variable interpolation can cause test failures if not handled correctly. When `cli_abort()` receives messages with CLI expressions (e.g., `{.arg param_name}`), it evaluates them in the current scope.
+
+### Best Practices
+
+1. **Pre-format messages with external variables**:
+   ```r
+   # If validation message contains CLI expressions
+   formatted_message <- cli::format_inline(validation_message)
+   cli::cli_abort("Error: {formatted_message}")
+   ```
+
+2. **Test error message content**:
+   ```r
+   # Note: cli_abort only puts first element in e$message
+   # Combine parts if tests need to match patterns
+   expect_error(function_call(), "expected pattern")
+   ```
+
+3. **Ensure complete error messages for tests**:
+   ```r
+   # Bad: Multi-part messages won't match in tests
+   cli::cli_abort(c("Main error", "x" = "Details"))
+
+   # Good: Combined message for testability
+   cli::cli_abort("Main error. Details")
+   ```
+
+See `dev/DEVELOPER_GUIDE.md` Section 5.3 for detailed CLI error handling documentation.
+
+---
+
 ## Summary
 
 The test suite has been optimized for speed and maintainability:
@@ -339,4 +375,4 @@ Run fast tests during development (`devtools::test(filter = "^test-0")`), integr
 
 ---
 
-**Last Updated**: 2025-11-15 (Phases 1 & 2 Complete)
+**Last Updated**: 2025-11-16 (CLI error handling documentation added)

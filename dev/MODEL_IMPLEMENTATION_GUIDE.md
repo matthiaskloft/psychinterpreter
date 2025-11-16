@@ -1031,6 +1031,20 @@ build_main_prompt.{analysis} <- function(analysis_data,
 
 **Purpose**: Validate, extract, and provide defaults for LLM responses.
 
+#### How S3 Dispatch Works for JSON Parsing
+
+When `parse_llm_response()` is called, `core_interpret.R` creates an S3 class object from your analysis_type for dispatch:
+
+```r
+# In core_interpret.R (line ~290)
+analysis_type_obj <- structure(
+  analysis_type_value,  # e.g., "gm"
+  class = c(analysis_type_value, "character")  # e.g., c("gm", "character")
+)
+```
+
+This allows the S3 system to find your `validate_parsed_result.gm()` method automatically. The dispatch happens internally - you just need to implement the S3 method with the correct name pattern.
+
 #### 5.1 Validate Parsed Result
 
 ```r
@@ -1421,19 +1435,20 @@ build_diagnostics_section_{analysis} <- function(diagnostics, output_format) {
 The package has extensibility infrastructure with commented placeholders for new analysis
 types. Instead of adding new code, you **uncomment existing code**.
 
-#### 8.1 Uncomment in `R/core_constants.R`
+#### 8.1 VALID_ANALYSIS_TYPES Already Registered
 
-**Location**: Line ~6
+**Location**: Line ~19 in `R/core_constants.R`
 
-**Change**: Uncomment "{analysis}" in VALID_ANALYSIS_TYPES constant
+**Status**: The VALID_ANALYSIS_TYPES constant already includes placeholders for all analysis types:
 
 ```r
-# Before:
-VALID_ANALYSIS_TYPES <- c("fa") # , "gm", "irt", "cdm")
-
-# After (for GM):
-VALID_ANALYSIS_TYPES <- c("fa", "gm") # , "irt", "cdm")
+# Current state (no changes needed):
+VALID_ANALYSIS_TYPES <- c("fa", "gm", "irt", "cdm")
 ```
+
+**No changes needed** - The validation will automatically accept your new analysis type once you:
+1. Register it in the dispatch tables (Step 7)
+2. Implement the required S3 methods (Steps 1-6)
 
 This enables validation across the entire package.
 

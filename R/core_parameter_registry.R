@@ -572,11 +572,17 @@ validate_params <- function(param_list, throw_error = TRUE) {
     if (!result$valid) {
       all_valid <- FALSE
       if (throw_error) {
+        # Pre-format the validation message to resolve any CLI expressions
+        # This prevents issues when result$message contains expressions like {.arg x}
+        # that reference variables not in the current scope
+        formatted_message <- cli::format_inline(result$message)
+
+        # Combine messages into single string so tests can find the full error text
+        # We keep the CLI formatting for nice display but ensure e$message contains
+        # all the information needed for test assertions
         cli::cli_abort(
-          c(
-            "Validation failed for parameter: {.arg {param_name}}",
-            "x" = result$message
-          )
+          "Validation failed for parameter: {.arg {param_name}}. {formatted_message}",
+          .envir = environment()
         )
       }
     }
