@@ -35,7 +35,7 @@
 #'   they override values in llm_args (default = NULL).
 #' @param interpretation_args List or interpretation_args object. Model-specific interpretation configuration.
 #'   Can be created with \code{\link{interpretation_args}} or passed as a plain list. Contents vary by model type.
-#'   For FA: cutoff, n_emergency, hide_low_loadings, sort_loadings, factor_cor_mat (default = NULL).
+#'   For FA: cutoff, n_emergency, hide_low_loadings, sort_loadings (default = NULL).
 #' @param output_args List or output_args object. Output configuration settings. Can be created with
 #'   \code{\link{output_args}} or passed as a plain list. Contains: format, heading_level,
 #'   suppress_heading, max_line_length, silent (default = NULL).

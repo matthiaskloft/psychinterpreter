@@ -85,10 +85,11 @@ interpret_core <- function(analysis_data = NULL,
     if (is.null(llm_model)) llm_model <- llm_args$llm_model
   }
   if (!is.null(output_args)) {
-    if (is.null(output_format)) output_format <- output_args$output_format
+    if (is.null(output_format)) output_format <- output_args$format
     if (is.null(heading_level)) heading_level <- output_args$heading_level
     if (is.null(suppress_heading)) suppress_heading <- output_args$suppress_heading
     if (is.null(max_line_length)) max_line_length <- output_args$max_line_length
+    if (is.null(silent)) silent <- output_args$silent
   }
 
   # Extract analysis_type from interpretation_args if not provided directly
@@ -175,7 +176,7 @@ interpret_core <- function(analysis_data = NULL,
   validate_analysis_type(analysis_type)
 
   # Note: variable_info validation removed - now handled by model-specific methods
-  # Models that require variable_info will validate it in their interpret_model.X() methods
+  # Models that require variable_info will validate it in their validate_model_requirements() methods
 
   # ========================================================================
   # Common Parameter Validation (Sprint 2: moved from model-specific functions)
@@ -283,10 +284,30 @@ interpret_core <- function(analysis_data = NULL,
   }
 
   # ==========================================================================
-  # STEP 2: BUILD SYSTEM PROMPT
+  # STEP 1B: VALIDATE MODEL-SPECIFIC REQUIREMENTS
   # ==========================================================================
   # Create dummy object with analysis_type class for S3 dispatch
   analysis_type_obj <- structure(list(), class = analysis_type)
+
+  # Validate model-specific requirements (e.g., variable_info for FA)
+  # This uses the new S3 generic to keep core model-agnostic
+  validate_model_requirements(analysis_type_obj, variable_info = variable_info, ...)
+
+  # ==========================================================================
+  # STEP 1C: EXTRACT MODEL-SPECIFIC PARAMETERS
+  # ==========================================================================
+  # Extract model-specific parameters using S3 generic
+  # This replaces the hardcoded FA parameter extraction
+  model_params <- extract_model_parameters(analysis_type_obj, interpretation_args)
+
+  # Add model parameters to analysis_data for downstream use
+  if (length(model_params) > 0) {
+    analysis_data <- c(analysis_data, model_params)
+  }
+
+  # ==========================================================================
+  # STEP 2: BUILD SYSTEM PROMPT
+  # =========================================================================
 
   # Use custom system_prompt if provided, otherwise build model-specific default
   final_system_prompt <- if (!is.null(system_prompt)) {
@@ -526,7 +547,7 @@ interpret_core <- function(analysis_data = NULL,
 #'
 #' Model-specific summary analysis (cross-loadings, misfit items, cluster overlap, etc.)
 #'
-#' @param analysis_type Object with analysis type class
+#' @param analysis_type Character. Analysis type ("fa", "gm", "irt", "cdm")
 #' @param analysis_data List. Model-specific data
 #' @param ... Additional arguments for model-specific summaries
 #'
@@ -534,7 +555,13 @@ interpret_core <- function(analysis_data = NULL,
 #' @export
 #' @keywords internal
 create_fit_summary <- function(analysis_type, analysis_data, ...) {
-  UseMethod("create_fit_summary")
+  # Create dispatch object with analysis_type class
+  dispatch_obj <- structure(
+    list(),
+    class = c(analysis_type, "fit_summary_dispatcher")
+  )
+
+  UseMethod("create_fit_summary", dispatch_obj)
 }
 
 #' Default method for create_fit_summary
@@ -586,13 +613,13 @@ build_report.default <- function(interpretation,
                                  heading_level = 1,
                                  suppress_heading = FALSE,
                                  ...) {
-  analysis_type <- interpretation$analysis_type
+  analysis_type <- interpretation$analysis_type %||% "unknown"
 
   cli::cli_abort(
     c(
       "No report builder for analysis type: {.val {analysis_type}}",
       "i" = "Available types: fa, gm, irt, cdm",
-      "i" = "Implement build_report.\\{analysis_type\\}_interpretation() in R/models/\\{analysis_type\\}/"
+      "i" = "Implement build_report.{analysis_type}_interpretation() method"
     )
   )
 }

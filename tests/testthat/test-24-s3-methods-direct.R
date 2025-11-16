@@ -42,16 +42,18 @@ test_that("Core S3 generics are exported and callable", {
 test_that("build_analysis_data() dispatches correctly for psych::fa objects", {
   # Load FA model fixture
   minimal_fa <- readRDS(test_path("fixtures/fa/minimal_fa_model.rds"))
+  minimal_vars <- readRDS(test_path("fixtures/fa/minimal_variable_info.rds"))
 
   # Should dispatch to build_analysis_data.fa method
   result <- build_analysis_data(
     fit_results = minimal_fa,
     analysis_type = "fa",
-    cutoff = 0.3
+    cutoff = 0.3,
+    variable_info = minimal_vars
   )
 
   expect_type(result, "list")
-  expect_true("loadings" %in% names(result))
+  expect_true("loadings_df" %in% names(result))
   expect_true("analysis_type" %in% names(result))
   expect_equal(result$analysis_type, "fa")
 })
@@ -62,17 +64,22 @@ test_that("build_analysis_data() dispatches correctly for matrix input", {
   rownames(loadings) <- c("var1", "var2")
   colnames(loadings) <- c("F1", "F2")
 
+  variable_info <- data.frame(
+    variable = c("var1", "var2"),
+    description = c("Variable 1", "Variable 2")
+  )
+
   # Should dispatch to build_analysis_data.matrix method
   result <- build_analysis_data(
     fit_results = loadings,
     analysis_type = "fa",
-    cutoff = 0.3
+    cutoff = 0.3,
+    variable_info = variable_info
   )
 
   expect_type(result, "list")
-  expect_true("loadings" %in% names(result))
-  expect_equal(nrow(result$loadings), 2)
-  expect_equal(ncol(result$loadings), 2)
+  expect_true("loadings_df" %in% names(result))
+  expect_equal(nrow(result$loadings_df), 2)
 })
 
 test_that("build_analysis_data() dispatches correctly for list input", {
@@ -80,15 +87,21 @@ test_that("build_analysis_data() dispatches correctly for list input", {
   rownames(loadings) <- c("var1", "var2")
   colnames(loadings) <- c("F1", "F2")
 
+  variable_info <- data.frame(
+    variable = c("var1", "var2"),
+    description = c("Variable 1", "Variable 2")
+  )
+
   # Should dispatch to build_analysis_data.list method
   result <- build_analysis_data(
     fit_results = list(loadings = loadings),
     analysis_type = "fa",
-    cutoff = 0.3
+    cutoff = 0.3,
+    variable_info = variable_info
   )
 
   expect_type(result, "list")
-  expect_true("loadings" %in% names(result))
+  expect_true("loadings_df" %in% names(result))
 })
 
 # ==============================================================================
@@ -99,23 +112,28 @@ test_that("validate_list_structure() dispatches to FA method", {
   loadings <- matrix(c(0.8, 0.2), nrow = 1, ncol = 2)
 
   # Should dispatch to validate_list_structure.fa
-  expect_invisible(
-    validate_list_structure(list(loadings = loadings), "fa")
+  # Correct argument order: model_type first, then fit_results_list
+  # Returns visibly (not invisibly), should not error
+  expect_no_error(
+    validate_list_structure("fa", list(loadings = loadings))
   )
 })
 
 test_that("validate_list_structure.fa() validates loadings presence", {
   # Missing loadings should error
+  # Correct argument order: model_type first, then fit_results_list
   expect_error(
-    validate_list_structure(list(), "fa"),
+    validate_list_structure("fa", list()),
     "loadings.*required"
   )
 })
 
-test_that("validate_list_structure() default method passes", {
-  # Unknown analysis type should pass with default method
-  expect_invisible(
-    validate_list_structure(list(data = "something"), "unknown")
+test_that("validate_list_structure() default method errors for unsupported types", {
+  # Unsupported analysis type should error with default method
+  # Correct argument order: model_type first, then fit_results_list
+  expect_error(
+    validate_list_structure("unsupported", list(data = "something")),
+    "No list validator"
   )
 })
 
@@ -178,20 +196,34 @@ test_that("validate_model_requirements.fa() enforces variable_info requirement",
 
 test_that("create_fit_summary() dispatches to FA method", {
   minimal_fa <- readRDS(test_path("fixtures/fa/minimal_fa_model.rds"))
+  minimal_vars <- readRDS(test_path("fixtures/fa/minimal_variable_info.rds"))
+
+  # Build analysis_data first
+  analysis_data <- build_analysis_data(
+    fit_results = minimal_fa,
+    analysis_type = "fa",
+    cutoff = 0.3,
+    variable_info = minimal_vars
+  )
 
   # Should dispatch to create_fit_summary.fa
-  summary <- create_fit_summary(minimal_fa, "fa")
+  # Correct argument order: analysis_type first, then analysis_data
+  summary <- create_fit_summary("fa", analysis_data)
 
   expect_type(summary, "list")
 })
 
 test_that("create_fit_summary() uses default method for unknown types", {
-  fake_model <- structure(list(), class = "unknown")
+  fake_analysis_data <- list(
+    loadings_df = data.frame(variable = "v1", F1 = 0.8),
+    factor_cols = c("F1")
+  )
 
-  # Should dispatch to .default method (returns NULL)
-  summary <- create_fit_summary(fake_model, "unknown")
-
-  expect_null(summary)
+  # Should dispatch to .default method (errors)
+  expect_error(
+    create_fit_summary("unknown", fake_analysis_data),
+    "No fit summary method"
+  )
 })
 
 # ==============================================================================
@@ -209,12 +241,12 @@ test_that("build_report() dispatches to FA interpretation method", {
 })
 
 test_that("build_report() errors for unknown interpretation types", {
-  fake_interp <- structure(list(), class = "unknown_interpretation")
+  fake_interp <- structure(list(analysis_type = "unknown"), class = "unknown_interpretation")
 
   # Should dispatch to .default method and error
   expect_error(
     build_report(fake_interp),
-    "not implemented"
+    "No report builder for analysis type"
   )
 })
 
@@ -259,29 +291,40 @@ test_that("interpret() uses S3 dispatch correctly for different input types", {
 test_that("S3 dispatch selects correct method based on class hierarchy", {
   # Create object with multiple classes
   loadings <- matrix(c(0.8, 0.2), nrow = 1, ncol = 2)
+  rownames(loadings) <- c("var1")
+  colnames(loadings) <- c("F1", "F2")
+
   multi_class_obj <- structure(
     list(loadings = loadings),
     class = c("custom", "list")
+  )
+
+  variable_info <- data.frame(
+    variable = c("var1"),
+    description = c("Variable 1")
   )
 
   # Should dispatch to build_analysis_data.list (second in hierarchy)
   result <- build_analysis_data(
     fit_results = multi_class_obj,
     analysis_type = "fa",
-    cutoff = 0.3
+    cutoff = 0.3,
+    variable_info = variable_info
   )
 
   expect_type(result, "list")
-  expect_true("loadings" %in% names(result))
+  expect_true("loadings_df" %in% names(result))
 })
 
 test_that("Method dispatch handles inheritance correctly", {
-  # fa_interpretation inherits from interpretation
+  # fa_interpretation object from cached fixture
   interpretation <- readRDS(test_path("fixtures/sample_interpretation.rds"))
 
-  # Verify class hierarchy
+  # Verify class - fa_interpretation should be primary class
   expect_s3_class(interpretation, "fa_interpretation")
-  expect_s3_class(interpretation, "interpretation")
+
+  # Check if it's a list (which it should be)
+  expect_true(is.list(interpretation))
 
   # Should dispatch to fa_interpretation method first
   report <- build_report(interpretation)

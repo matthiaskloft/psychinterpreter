@@ -144,3 +144,60 @@ validate_list_structure.fa <- function(model_type, fit_results_list) {
     factor_cor_mat = factor_cor_mat
   )
 }
+
+
+#' Validate List Structure for Gaussian Mixture (GM) - Not Yet Implemented
+#'
+#' @param model_type Dispatch object with gm class
+#' @param fit_results_list List. Structured list with GM components
+#'
+#' @return Never returns - always errors with "not yet implemented" message
+#' @export
+#' @keywords internal
+validate_list_structure.gm <- function(model_type, fit_results_list) {
+  cli::cli_abort(
+    c(
+      "Gaussian Mixture (GM) model interpretation is not yet implemented",
+      "i" = "This feature is planned for a future release",
+      "i" = "Currently supported: Factor Analysis (FA) models"
+    )
+  )
+}
+
+
+#' Validate List Structure for Item Response Theory (IRT) - Not Yet Implemented
+#'
+#' @param model_type Dispatch object with irt class
+#' @param fit_results_list List. Structured list with IRT components
+#'
+#' @return Never returns - always errors with "not yet implemented" message
+#' @export
+#' @keywords internal
+validate_list_structure.irt <- function(model_type, fit_results_list) {
+  cli::cli_abort(
+    c(
+      "Item Response Theory (IRT) model interpretation is not yet implemented",
+      "i" = "This feature is planned for a future release",
+      "i" = "Currently supported: Factor Analysis (FA) models"
+    )
+  )
+}
+
+
+#' Validate List Structure for Cognitive Diagnostic Models (CDM) - Not Yet Implemented
+#'
+#' @param model_type Dispatch object with cdm class
+#' @param fit_results_list List. Structured list with CDM components
+#'
+#' @return Never returns - always errors with "not yet implemented" message
+#' @export
+#' @keywords internal
+validate_list_structure.cdm <- function(model_type, fit_results_list) {
+  cli::cli_abort(
+    c(
+      "Cognitive Diagnostic Model (CDM) interpretation is not yet implemented",
+      "i" = "This feature is planned for a future release",
+      "i" = "Currently supported: Factor Analysis (FA) models"
+    )
+  )
+}

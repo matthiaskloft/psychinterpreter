@@ -81,7 +81,12 @@
       "Bash(do Rscript -e \"parse(''''$file'''')\")",
       "Bash(sed:*)",
       "Bash(if grep -q \"export($func)\" NAMESPACE)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(do echo \"=== $func ===\" grep -l \"$func\" /mnt/c/Users/Matze/Documents/GitHub/psychinterpreter/tests/testthat/test-*.R)",
+      "Bash(paste:*)",
+      "Bash(do wc -l \"$f\")",
+      "Bash(do grep -l \"$func\" /mnt/c/Users/Matze/Documents/GitHub/psychinterpreter/tests/testthat/*.R)",
+      "Bash(sort:*)"
     ],
     "deny": [
       "Read(./.env*)",
