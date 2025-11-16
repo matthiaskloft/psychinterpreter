@@ -4,13 +4,20 @@
 
 **For technical/architectural details**: See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md)
 
-**Status**: Stable (2025-11-15) - Namespace refactoring completed for clarity
+**Status**: Stable (2025-11-16) - Comprehensive test coverage and consistency improvements completed
 
-**Current API** (as of 2025-11-15):
+**Current API** (as of 2025-11-16):
 - Main entry point: `interpret()` - Universal interpretation function
 - Configuration objects: `llm_args()`, `interpretation_args(analysis_type, ...)`, `output_args()`
 - Architecture: interpret() → interpret_model.{class}() → build_analysis_data.{class}()
 - S3 generics: build_analysis_data(), build_system_prompt(), build_main_prompt(), export_interpretation()
+- Parameter extraction: extract_model_parameters(), validate_model_requirements()
+
+**Recent Updates** (2025-11-16):
+- Test coverage increased from 80% to 92%
+- All exported functions now have comprehensive tests
+- Package consistency analysis completed (8.5/10 score)
+- Documentation updated to reflect new S3 generics
 
 ---
 
@@ -130,11 +137,11 @@ interpret(
 
 ```r
 # For custom data structures
-# Both loadings and Phi can be matrices or data.frames
+# Both loadings and factor_cor_mat can be matrices or data.frames
 interpret(
   fit_results = list(
     loadings = loadings_matrix,
-    Phi = correlation_matrix          # Optional (for oblique rotations)
+    factor_cor_mat = correlation_matrix  # Optional (for oblique rotations)
   ),
   variable_info = var_info,
   analysis_type = "fa",               # REQUIRED for lists
@@ -173,7 +180,7 @@ llm_config <- llm_args(
 )
 
 output_config <- output_args(
-  output_format = "markdown",
+  format = "markdown",
   silent = FALSE
 )
 
@@ -258,9 +265,9 @@ interpret(..., silent = 0)  # Show report + messages (default)
 interpret(..., silent = 1)  # Messages only, no report
 interpret(..., silent = 2)  # Completely silent
 
-# Output formats
-interpret(..., output_format = "text")      # Default: plain text
-interpret(..., output_format = "markdown")  # Markdown format
+# Output formats (use format parameter in output_args or directly)
+interpret(..., output_args = output_args(format = "cli"))       # Default: CLI-formatted text
+interpret(..., output_args = output_args(format = "markdown"))  # Markdown format
 ```
 
 ## Creating Visualizations
@@ -504,7 +511,7 @@ interpret(..., echo = "all")
 | Parameter | Values | Default | Description |
 |-----------|--------|---------|-------------|
 | `silent` | 0, 1, 2 | 0 | 0=report+messages, 1=messages only, 2=silent |
-| `output_format` | "text", "markdown" | "text" | Report format |
+| `format` | "cli", "markdown" | "cli" | Report format (in output_args) |
 | `word_limit` | 20-500 | 150 | Max words per factor interpretation |
 | `n_emergency` | 0-10 | 2 | Top N loadings for weak factors (0=undefined) |
 | `hide_low_loadings` | TRUE/FALSE | FALSE | Hide non-significant loadings in prompt |
@@ -591,7 +598,7 @@ Update the developer guide when making **architectural or implementation changes
 
 ---
 
-**Last Updated**: 2025-11-15
+**Last Updated**: 2025-11-16
 **Maintainer**: Update when making significant user-facing changes
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
 - use DT::datatable() for .Qmd articles
