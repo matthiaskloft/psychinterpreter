@@ -15,18 +15,23 @@
 #' Creates the LLM system prompt that defines the expert persona and interpretation
 #' guidelines for {MODEL} analysis.
 #'
-#' @param analysis_type Analysis type identifier (should be "{model}")
+#' This is an S3 method that dispatches based on analysis_type class. The analysis_type
+#' parameter is used as a dispatch key (see R/shared_config.R for ANALYSIS_TYPE_DISPLAY_NAMES).
+#' See core_interpret.R for S3 dispatch pattern.
+#'
+#' @param analysis_type Analysis type object with class "{model}" (dispatch key via S3)
 #' @param ... Additional arguments (ignored)
 #'
 #' @return Character string with system prompt
 #' @export
 #'
 #' @examples
-#' prompt <- build_system_prompt("{model}")
+#' prompt <- build_system_prompt(structure(list(), class = "{model}"))
 #' cat(prompt)
 build_system_prompt.{model} <- function(analysis_type, ...) {
 
-  # Pattern from fa_prompt_builder.R:23-41
+  # Pattern from fa_prompt_builder.R:23-41 (system prompt design)
+  # For valid analysis_type values, see R/shared_config.R lines 31-36 (.ANALYSIS_TYPE_DISPLAY_NAMES)
 
   # Define expert persona and guidelines
   paste0(

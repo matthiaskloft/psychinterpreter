@@ -57,16 +57,23 @@ See `dev/MODEL_IMPLEMENTATION_GUIDE.md` for guidance.
 
 **Priority**: LOW
 **Effort**: ~12 hours remaining
-**Status**: 3 of 5 items completed (see DEVELOPER_GUIDE.md Section 5.3)
+**Status**: ✅ 5 of 5 major items completed (2025-11-16)
 
-**Remaining Items**:
-1. **Replace other switch statements with dispatch tables** (6 hours)
-   - Identify remaining switch statements in codebase
-   - Convert to more maintainable dispatch mechanisms
+**Completed Items** (see DEVELOPER_GUIDE.md Section 5.3):
+1. ✅ FA-specific functions moved to fa_utils.R
+2. ✅ Switch statements refactored to S3 dispatch
+3. ✅ Parameter metadata centralized (PARAMETER_REGISTRY)
+4. ✅ Model type dispatch tables implemented
+5. ✅ Analysis type routing dispatch tables implemented
 
-2. **Automate fixture generation** (6 hours)
+**Optional Future Work** (not blockers):
+1. **Automate fixture generation** (6 hours)
    - Create tools to auto-generate test fixtures
    - Reduce manual maintenance of test data
+
+2. **Additional dispatch table opportunities** (4 hours)
+   - Review codebase for remaining optimization opportunities
+   - Convert any remaining conditional chains
 
 ---
 

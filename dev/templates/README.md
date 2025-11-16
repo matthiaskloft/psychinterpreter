@@ -326,6 +326,38 @@ After creating files from templates, verify:
 
 ---
 
+## Dispatch Table Integration
+
+As of 2025-11-16, the psychinterpreter package uses a **centralized dispatch table system** for routing analysis types, output formats, and export formats. When implementing a new model type, you'll need to integrate with these dispatch tables:
+
+### Key Dispatch Tables (in `R/shared_config.R`):
+
+1. **`.ANALYSIS_TYPE_DISPLAY_NAMES`**: Maps model abbreviations to human-readable names
+   - Example: `fa = "Factor Analysis"`, `gm = "Gaussian Mixture"`
+
+2. **`.VALID_INTERPRETATION_PARAMS`**: Maps analysis types to their valid parameter names
+   - Example: `fa = c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings")`
+
+3. **`.INTERPRETATION_ARGS_DISPATCH`**: Maps analysis types to handler functions
+   - Example: `fa = interpretation_args_fa`
+
+### Model Type Dispatch (in `R/aaa_model_type_dispatch.R`):
+
+The `get_model_dispatch_table()` function provides:
+- Model class mappings (e.g., `Mclust` for GM)
+- Validators (e.g., `validate_psych_model()`)
+- Extractors (e.g., `extract_psych_loadings()`)
+
+### When Implementing a New Model Type:
+
+1. **Register in dispatch tables** (Phase 7 in IMPLEMENTATION_CHECKLIST.md)
+2. **Add parameter registry entries** for your model's configuration object
+3. **Reference dispatch table documentation** (see `dev/archive/DISPATCH_TABLE_SUMMARY.md`)
+
+This dispatch-driven architecture makes adding new model types straightforward—just register the handler function and the dispatch system handles the routing.
+
+---
+
 ## Questions or Issues?
 
 If you encounter issues with the templates:
@@ -337,5 +369,5 @@ If you encounter issues with the templates:
 
 ---
 
-**Last Updated**: 2025-11-10
+**Last Updated**: 2025-11-16
 **Maintainer**: Update when templates are modified or improved

@@ -4,7 +4,7 @@
 
 **Last Updated**: 2025-11-16
 
-**Status**: Template ready for GM, IRT, and CDM implementations. Core bugs fixed, package production-ready.
+**Status**: Template ready for GM, IRT, and CDM implementations. Dispatch table refactoring completed. Production-ready.
 
 ---
 
@@ -36,7 +36,7 @@
 
 ### Architecture Summary
 
-The package uses an S3 generic dispatch system with a universal orchestrator:
+The package uses a **centralized dispatch table system** with S3 generics for extensibility:
 
 ```
 interpret() [user-facing API]
@@ -60,6 +60,26 @@ create_fit_summary.{analysis}() [STEP 10: Fit summary & diagnostics]
     ↓
 build_report.{analysis}_interpretation() [STEP 11: Format report]
 ```
+
+### Dispatch Table System (New in 2025-11-16)
+
+The package now uses **centralized dispatch tables** instead of if/else chains, making it easier to add new analysis types:
+
+**Key Dispatch Tables** (all in `R/shared_config.R`):
+
+1. **`.ANALYSIS_TYPE_DISPLAY_NAMES`** (lines 31-36): Maps analysis type codes to human-readable names
+2. **`.VALID_INTERPRETATION_PARAMS`** (lines 45-50): Maps analysis types to their valid parameters
+3. **`.INTERPRETATION_ARGS_DISPATCH`** (lines 217-219): Maps analysis types to handler functions
+
+**Parameter Registry** (`R/core_parameter_registry.R`):
+- Single source of truth for all parameter metadata (defaults, validation, types)
+- Eliminates duplicate parameter definitions
+- Provides `get_param_default()` and `validate_params()` helpers
+
+**Model Type Dispatch** (`R/aaa_model_type_dispatch.R`):
+- Maps model object classes (e.g., `psych`, `lavaan`) to analysis types
+- Provides validators and extractors for each model class
+- Supports adding new model packages without modifying core code
 
 ### What You Need to Implement
 
@@ -86,7 +106,144 @@ build_report.{analysis}_interpretation() [STEP 11: Format report]
 
 **Note**: `validate_list_structure.{analysis}()` enables users to pass structured lists (e.g., `list(loadings = ...)` for FA) directly to `interpret()`. See `validate_list_structure.fa()` in `R/s3_list_validation.R` for reference implementation.
 
-**Plus**: Configuration object constructor (`interpretation_args_{analysis}()`) in `shared_config.R`
+**Plus**: Configuration object registration in dispatch tables and parameter registry
+
+**Key Architecture Files** (read these first):
+- `R/shared_config.R` (713 lines): Configuration system with dispatch tables
+- `R/core_parameter_registry.R` (625 lines): Parameter metadata and validation
+- `R/aaa_model_type_dispatch.R` (383 lines): Model type dispatch system
+
+---
+
+## Dispatch Table System Overview
+
+The dispatch table refactoring (completed 2025-11-16) replaced scattered if/else chains with centralized lookup tables. This makes the codebase more maintainable and extensible.
+
+### Key Dispatch Tables
+
+**1. Analysis Type Display Names** (`R/shared_config.R:31-36`)
+
+Maps analysis type codes to human-readable names:
+
+```r
+.ANALYSIS_TYPE_DISPLAY_NAMES <- c(
+  fa = "Factor Analysis",
+  gm = "Gaussian Mixture",
+  irt = "Item Response Theory",
+  cdm = "Cognitive Diagnosis"
+)
+```
+
+**Usage**: `print.interpretation_args()`, user-facing messages
+
+**2. Valid Interpretation Parameters** (`R/shared_config.R:45-50`)
+
+Maps analysis types to their valid parameters for filtering:
+
+```r
+.VALID_INTERPRETATION_PARAMS <- list(
+  fa = c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings"),
+  gm = character(0),  # Placeholder
+  irt = character(0), # Placeholder
+  cdm = character(0)  # Placeholder
+)
+```
+
+**Usage**: `build_interpretation_args()` parameter filtering
+
+**3. Interpretation Args Dispatch** (`R/shared_config.R:217-219`)
+
+Maps analysis types to handler functions:
+
+```r
+.INTERPRETATION_ARGS_DISPATCH <- list(
+  fa = interpretation_args_fa
+)
+```
+
+**Usage**: `interpretation_args()` dispatcher calls handler based on analysis_type
+
+**4. Model Type Dispatch** (`R/aaa_model_type_dispatch.R:21-65`)
+
+Maps model object classes to analysis types and handlers:
+
+```r
+get_model_dispatch_table <- function() {
+  list(
+    psych = list(
+      analysis_type = "fa",
+      package = "psych",
+      validator_name = "validate_psych_model",
+      extractor_name = "extract_psych_loadings"
+    ),
+    lavaan = list(
+      analysis_type = "fa",
+      package = "lavaan",
+      validator_name = "validate_lavaan_model",
+      extractor_name = "extract_lavaan_loadings"
+    )
+  )
+}
+```
+
+**Usage**: `build_analysis_data.{class}()` methods
+
+**5. Parameter Registry** (`R/core_parameter_registry.R:35-384`)
+
+Central registry for all parameter metadata:
+
+```r
+PARAMETER_REGISTRY <- list(
+  cutoff = list(
+    default = 0.3,
+    type = "numeric",
+    range = c(0, 1),
+    config_group = "interpretation_args",
+    model_specific = "fa",
+    validation_fn = function(value) { ... }
+  )
+)
+```
+
+**Usage**: `get_param_default()`, `validate_params()` throughout package
+
+### How Dispatch Works
+
+**Example: User creates configuration**
+
+```r
+config <- interpretation_args(analysis_type = "fa", cutoff = 0.4)
+```
+
+**Flow**:
+
+1. `interpretation_args()` receives `analysis_type = "fa"` and `cutoff = 0.4`
+2. Validates `analysis_type` using `VALID_ANALYSIS_TYPES` (from `core_constants.R`)
+3. Looks up handler in `.INTERPRETATION_ARGS_DISPATCH["fa"]` → `interpretation_args_fa`
+4. Calls `interpretation_args_fa(cutoff = 0.4)`
+5. Handler uses `get_param_default("cutoff")` for missing params
+6. Handler calls `validate_params(list(cutoff = 0.4), throw_error = TRUE)`
+7. Registry validates using `PARAMETER_REGISTRY$cutoff$validation_fn`
+8. Returns validated configuration object
+
+**Benefits**:
+
+- **No if/else chains**: Table lookup instead of `if (type == "fa") ...`
+- **Easy to extend**: Add entry to table, done
+- **Type-safe**: Registry enforces validation before values reach core functions
+- **Single source of truth**: One place to define each parameter
+- **Testable**: Each component can be tested in isolation
+
+**When Implementing New Analysis Type**:
+
+You'll register in **4 places**:
+1. `PARAMETER_REGISTRY` - parameter metadata (R/core_parameter_registry.R)
+2. `.ANALYSIS_TYPE_DISPLAY_NAMES` - display name (R/shared_config.R)
+3. `.VALID_INTERPRETATION_PARAMS` - valid parameters (R/shared_config.R)
+4. `.INTERPRETATION_ARGS_DISPATCH` - handler function (R/shared_config.R)
+
+Optionally:
+5. `get_model_dispatch_table()` - if supporting fitted model objects (R/aaa_model_type_dispatch.R)
 
 ---
 
@@ -214,30 +371,31 @@ Use this checklist when implementing a new analysis type (replace `{analysis}` w
   - [ ] Text and Markdown formatting support
   - [ ] Test report generation
 
-### Phase 7: Integration
+### Phase 7: Integration & Dispatch Table Registration
 
-- [ ] **Modify `R/core_constants.R`**
+- [ ] **Register in `R/core_constants.R`**
   - [ ] Uncomment "{analysis}" in VALID_ANALYSIS_TYPES array (line ~6)
   - [ ] This enables validation across the package
 
-- [ ] **Modify `R/core_interpret_dispatch.R`**
-  - [ ] Uncomment {analysis}_args parameter in interpret() signature
-  - [ ] Uncomment build_{analysis}_args() call
-  - [ ] Uncomment {analysis}_args in interpret_model() and handle_raw_data_interpret() calls
+- [ ] **Register in Dispatch Tables (`R/shared_config.R`)**
+  - [ ] Add display name to `.ANALYSIS_TYPE_DISPLAY_NAMES` (lines 31-36)
+  - [ ] Add valid parameters to `.VALID_INTERPRETATION_PARAMS` (lines 45-50)
+  - [ ] Create `interpretation_args_{analysis}()` handler function (before line 217)
+  - [ ] Register handler in `.INTERPRETATION_ARGS_DISPATCH` (lines 217-219)
+  - [ ] Update `print.interpretation_args()` with custom parameter formatting (lines 443-476)
 
-- [ ] **Modify `R/shared_utils.R`**
-  - [ ] Uncomment {analysis}_args parameter in handle_raw_data_interpret()
-  - [ ] Uncomment {analysis} case in switch statement
+- [ ] **Register Parameters in Registry (`R/core_parameter_registry.R`)**
+  - [ ] Add each parameter to `PARAMETER_REGISTRY` list (after line 384)
+  - [ ] Include: default, type, range, allowed_values, config_group, model_specific, required, validation_fn, description
+  - [ ] Set `config_group = "interpretation_args"` and `model_specific = "{analysis}"`
 
-- [ ] **Modify `R/shared_config.R`**
-  - [ ] Uncomment {analysis}_args() constructor
-  - [ ] Uncomment build_{analysis}_args() builder function
+- [ ] **Optional: Register Model Classes (`R/aaa_model_type_dispatch.R`)**
+  - [ ] Add model class to `get_model_dispatch_table()` if supporting fitted objects (lines 21-65)
+  - [ ] Create validator function: `validate_{package}_model()`
+  - [ ] Create extractor function: `extract_{package}_data()`
 
-- [ ] **Optional: Modify `R/shared_utils.R`**
-  - [ ] Add {analysis} case to `handle_raw_data_interpret()` switch (lines ~45-85)
-
-- [ ] **Optional: Add to `R/core_interpret_dispatch.R`**
-  - [ ] Create `interpret_model.{class}()` method if needed
+- [ ] **Optional: Create Class-Based Router (`R/core_interpret_dispatch.R`)**
+  - [ ] Add `interpret_model.{class}()` method if fitted model needs special routing
 
 ### Phase 8: Testing
 
@@ -335,7 +493,7 @@ build_analysis_data.{PrimaryClass} <- function(fit_results,
 build_{analysis}_model_data_internal <- function(fit_results,
                                                variable_info,
                                                analysis_type = "{analysis}",
-                                               {analysis}_args = NULL,
+                                               interpretation_args = NULL,
                                                ...) {
 
   # STEP 1: Extract analysis-specific parameters
@@ -343,28 +501,30 @@ build_{analysis}_model_data_internal <- function(fit_results,
 
   dots <- list(...)
 
-  # Build config from multiple sources (precedence: {analysis}_args > ... > defaults)
-  config <- build_{analysis}_args(
-    {analysis}_args = {analysis}_args,
-    dots = dots
-  )
-
-  # Extract parameters from config
-  param1 <- config$param1  # Example: covariance_type for GM
-  param2 <- config$param2  # Example: n_clusters for GM
-
-  # STEP 2: Validate parameters
-  # Pattern from fa_model_data.R:50-72
-
-  # Validate param1
-  if (!is.null(param1)) {
-    if (!param1 %in% c("option1", "option2")) {
-      cli::cli_abort(c(
-        "x" = "Invalid param1: {param1}",
-        "i" = "Must be one of: 'option1', 'option2'"
-      ))
-    }
+  # Extract parameters from interpretation_args or use registry defaults
+  # Use %||% (null-coalescing) for graceful fallback
+  param1 <- if (!is.null(interpretation_args) && is.list(interpretation_args)) {
+    interpretation_args$param1
+  } else {
+    dots$param1
   }
+  if (is.null(param1)) param1 <- get_param_default("param1")
+
+  param2 <- if (!is.null(interpretation_args) && is.list(interpretation_args)) {
+    interpretation_args$param2
+  } else {
+    dots$param2
+  }
+  if (is.null(param2)) param2 <- get_param_default("param2")
+
+  # STEP 2: Validate parameters using registry
+  # Pattern from fa_model_data.R:50-72
+  # NO MANUAL VALIDATION - Use registry instead!
+
+  validate_params(list(
+    param1 = param1,
+    param2 = param2
+  ), throw_error = TRUE)
 
   # STEP 3: Extract data from fitted model
   # This is MODEL-SPECIFIC - extract relevant components
@@ -488,111 +648,221 @@ build_analysis_data.OtherClass <- function(fit_results,
 
 ---
 
-### Step 2: Create Configuration Object
+### Step 2: Register Parameters and Configuration
 
-**File**: `R/shared_config.R` (modify existing)
+**Files**: `R/core_parameter_registry.R` and `R/shared_config.R` (modify existing)
 
-**Purpose**: Create constructor and builder for analysis-specific parameters.
+**Purpose**: Register analysis-specific parameters in the registry and dispatch system.
 
-#### 2.1 Constructor Function
+#### 2.1 Register Parameters in Registry
 
-Add to `shared_config.R`:
+**File**: `R/core_parameter_registry.R`
+
+**Location**: Add after line 384 (after FA parameters section)
+
+**Pattern**: Copy from lines 311-383 (FA parameter definitions)
 
 ```r
-#' Create {ANALYSIS} configuration object
-#'
-#' @param param1 Description of param1
-#' @param param2 Description of param2
-#' @param ... Additional parameters
-#'
-#' @return {ANALYSIS} configuration object
-#' @export
-#'
-#' @examples
-#' # Create {ANALYSIS} configuration
-#' config <- {analysis}_args(param1 = "value1", param2 = "value2")
-{analysis}_args <- function(param1 = NULL,
-                          param2 = NULL,
-                          ...) {
+# In PARAMETER_REGISTRY list, add:
 
-  # Validate param1
-  if (!is.null(param1)) {
-    if (!param1 %in% c("option1", "option2")) {
-      cli::cli_abort(c(
-        "x" = "Invalid param1: {param1}",
-        "i" = "Must be one of: 'option1', 'option2'"
-      ))
-    }
-  }
+  # ==========================================================================
+  # {ANALYSIS} INTERPRETATION PARAMETERS
+  # ==========================================================================
 
-  # Validate param2
-  if (!is.null(param2)) {
-    if (!is.numeric(param2) || param2 < 1) {
-      cli::cli_abort(c(
-        "x" = "param2 must be a positive number",
-        "i" = "Got: {param2}"
-      ))
-    }
-  }
+  param1 = list(
+    default = default_value1,        # e.g., 2, "full", 0.3
+    type = "integer",                # or "character", "numeric", "logical"
+    range = c(1, 100),               # For numeric: valid range. NULL otherwise
+    allowed_values = NULL,           # For character: c("opt1", "opt2"). NULL otherwise
+    config_group = "interpretation_args",
+    model_specific = "{analysis}",  # e.g., "gm", "irt", "cdm"
+    required = FALSE,
+    validation_fn = function(value) {
+      # Validation logic - return list(valid = TRUE/FALSE, message = ...)
+      if (!is.numeric(value) || length(value) != 1) {
+        return(list(valid = FALSE, message = "{.arg param1} must be a single numeric value"))
+      }
+      if (value < 1 || value > 100) {
+        return(list(valid = FALSE, message = "{.arg param1} must be between 1 and 100"))
+      }
+      list(valid = TRUE, message = NULL)
+    },
+    description = "Short description of param1 purpose"
+  ),
 
-  # Create config object
-  config <- list(
-    param1 = param1,
-    param2 = param2,
-    ...
+  param2 = list(
+    default = "default_value2",
+    type = "character",
+    range = NULL,
+    allowed_values = c("option1", "option2", "option3"),
+    config_group = "interpretation_args",
+    model_specific = "{analysis}",
+    required = FALSE,
+    validation_fn = function(value) {
+      allowed <- c("option1", "option2", "option3")
+      if (!is.character(value) || length(value) != 1) {
+        return(list(valid = FALSE, message = "{.arg param2} must be a single character value"))
+      }
+      if (!value %in% allowed) {
+        return(list(valid = FALSE, message = paste0(
+          "{.arg param2} must be one of: ", paste(allowed, collapse = ", ")
+        )))
+      }
+      list(valid = TRUE, message = NULL)
+    },
+    description = "Short description of param2 purpose"
   )
-
-  structure(
-    config,
-    class = c("{analysis}_args", "analysis_config", "list")
-  )
-}
 ```
 
-**Pattern from FA**: See `shared_config.R` for `interpretation_args(analysis_type, ...)` - analysis-type-aware configuration
+**Key Points**:
+- Each parameter gets full metadata: defaults, validation, documentation
+- `model_specific = "{analysis}"` tags parameter for your analysis type
+- Validation functions return `list(valid = TRUE/FALSE, message = ...)`
+- Use `get_param_default("param1")` to retrieve defaults anywhere in code
 
-#### 2.2 Builder Function
+**FA Example**: `core_parameter_registry.R:311-383`
 
-Add to `shared_config.R`:
+#### 2.2 Register in Dispatch Tables
+
+**File**: `R/shared_config.R`
+
+**Step 2.2.1**: Add Display Name (lines 31-36)
 
 ```r
-#' Build {ANALYSIS} arguments from multiple sources
+.ANALYSIS_TYPE_DISPLAY_NAMES <- c(
+  fa = "Factor Analysis",
+  gm = "Gaussian Mixture",
+  irt = "Item Response Theory",
+  cdm = "Cognitive Diagnosis",
+  {analysis} = "{ANALYSIS FULL NAME}"  # ADD YOUR TYPE
+)
+```
+
+**Step 2.2.2**: Register Valid Parameters (lines 45-50)
+
+```r
+.VALID_INTERPRETATION_PARAMS <- list(
+  fa = c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings"),
+  gm = character(0),   # Placeholder for future
+  irt = character(0),  # Placeholder for future
+  cdm = character(0),  # Placeholder for future
+  {analysis} = c("param1", "param2")  # ADD YOUR PARAMETERS
+)
+```
+
+#### 2.3 Create Handler Function
+
+**File**: `R/shared_config.R`
+
+**Location**: Add before `.INTERPRETATION_ARGS_DISPATCH` table (before line 217)
+
+**Pattern**: Copy from lines 181-201 (`interpretation_args_fa()`)
+
+```r
+#' Create {ANALYSIS}-Specific Interpretation Args (Internal)
 #'
-#' @param {analysis}_args Configuration object from {analysis}_args()
-#' @param dots List of additional arguments (from ...)
+#' Internal handler called by interpretation_args() dispatcher.
+#' Uses parameter registry for defaults and validation.
 #'
-#' @return Merged configuration
+#' @param param1 {Description}. Default from registry.
+#' @param param2 {Description}. Default from registry.
+#'
+#' @return interpretation_args object with validated parameters
 #' @keywords internal
-build_{analysis}_args <- function({analysis}_args = NULL, dots = list()) {
+#' @noRd
+interpretation_args_{analysis} <- function(param1 = NULL,
+                                           param2 = NULL) {
 
-  # Default values
-  defaults <- list(
-    param1 = "default_value1",
-    param2 = 3  # Example default
+  # Build parameter list with registry defaults using %||% (null-coalescing)
+  param_list <- list(
+    analysis_type = "{analysis}",
+    param1 = param1 %||% get_param_default("param1"),
+    param2 = param2 %||% get_param_default("param2")
   )
 
-  # Extract from {analysis}_args if provided
-  if (!is.null({analysis}_args) && inherits({analysis}_args, "{analysis}_args")) {
-    args_list <- as.list({analysis}_args)
-  } else {
-    args_list <- list()
-  }
+  # Validate all parameters using registry
+  # throw_error = TRUE means it will stop execution on validation failure
+  validated <- validate_params(param_list, throw_error = TRUE)
 
-  # Extract from dots
-  param_names <- c("param1", "param2")
-  dots_params <- dots[names(dots) %in% param_names]
-
-  # Merge (precedence: {analysis}_args > dots > defaults)
-  merged <- defaults
-  merged[names(dots_params)] <- dots_params
-  merged[names(args_list)] <- args_list
-
-  # Create final config
-  do.call({analysis}_args, merged)
+  # Return with proper class structure
+  structure(
+    validated,
+    class = c("interpretation_args", "model_config", "list")
+  )
 }
 ```
 
-**Pattern from FA**: See `shared_config.R` for `build_interpretation_args()` - handles all analysis types
+**Key Points**:
+- Function name MUST be `interpretation_args_{analysis}` for dispatch
+- Use `%||%` (null-coalescing) to provide defaults from registry
+- Use `validate_params()` to validate all at once
+- `throw_error = TRUE` makes validation errors stop execution
+- Return proper class structure for print method dispatch
+
+**FA Example**: `shared_config.R:181-201`
+
+#### 2.4 Register Handler in Dispatch Table
+
+**File**: `R/shared_config.R`
+
+**Location**: Lines 217-219 (AFTER handler function definition)
+
+```r
+.INTERPRETATION_ARGS_DISPATCH <- list(
+  fa = interpretation_args_fa,
+  {analysis} = interpretation_args_{analysis}  # ADD YOUR HANDLER
+)
+```
+
+#### 2.5 Update Print Method (Optional but Recommended)
+
+**File**: `R/shared_config.R`
+
+**Location**: Lines 443-476 (inside `print.interpretation_args()`)
+
+Add custom formatting for your parameters:
+
+```r
+# In the parameter display loop, add:
+      } else if (param == "param1") {
+        cli::cli_li("Param1: {.val {value}}")
+      } else if (param == "param2") {
+        cli::cli_li("Param2: {.val {value}}")
+```
+
+**Why This Matters**: Custom formatting makes `print(config)` output look professional.
+
+**FA Example**: `shared_config.R:450-462`
+
+### How Parameters Flow Through the System
+
+**Old Way (deprecated)**:
+```
+User specifies param1 → Hardcoded in build_{analysis}_args()
+→ Manual validation → Passed to build_analysis_data()
+```
+
+**New Way (dispatch table system)**:
+```
+User specifies param1 → interpretation_args({analysis}, param1 = ...)
+    ↓
+Dispatch to interpretation_args_{analysis}()
+    ↓
+get_param_default("param1") for missing values
+    ↓
+validate_params() using registry validation_fn
+    ↓
+Validated parameter list returned
+    ↓
+Used in build_analysis_data.{class}()
+```
+
+**Benefits**:
+- **Single source of truth**: Registry defines defaults and validation once
+- **No duplication**: Don't repeat validation logic in multiple places
+- **Easier to extend**: Add new parameter by editing registry only
+- **Type-safe**: Validation enforced before values reach core functions
+- **Dispatch-driven**: No if/else chains, just table lookups
 
 ---
 
@@ -1280,14 +1550,49 @@ list(
 ```
 
 **Key Responsibilities**:
-1. Extract parameters from `{analysis}_args` or `...`
-2. Validate parameters
-3. Extract data from fitted model
+1. Extract parameters from `interpretation_args` or `...` (with registry fallback)
+2. Validate parameters using `validate_params()` (registry validation)
+3. Extract data from fitted model (or structured list)
 4. Validate variable_info structure and alignment
 5. Format data into standardized structure
 6. Return list with class `c("{analysis}_model_data", "analysis_data", "list")`
 
+**Parameter Extraction Pattern** (replaces manual extraction):
+
+```r
+# Extract with fallback to registry defaults
+param1 <- interpretation_args$param1 %||% dots$param1 %||% get_param_default("param1")
+param2 <- interpretation_args$param2 %||% dots$param2 %||% get_param_default("param2")
+
+# Validate using registry (replaces manual if/else validation)
+validate_params(list(param1 = param1, param2 = param2), throw_error = TRUE)
+```
+
+**Model Extraction Pattern** (using model dispatch table):
+
+```r
+# Check if fitted model object is supported
+if (is_supported_model(fit_results)) {
+  # Get model type info from dispatch table
+  model_info <- get_model_info(fit_results)
+
+  # Validate model structure
+  validate_model_structure(fit_results)
+
+  # Extract data using registered extractor
+  extractor <- get(model_info$extractor_name, mode = "function")
+  extracted <- extractor(fit_results)
+} else if (is.list(fit_results)) {
+  # Handle structured list input
+  extracted <- fit_results
+} else {
+  cli::cli_abort("fit_results must be a supported model object or structured list")
+}
+```
+
 **FA Example**: `fa_model_data.R:24-265`
+
+**Model Dispatch Example**: `aaa_model_type_dispatch.R:77-144`
 
 ---
 
@@ -1845,6 +2150,169 @@ create_default_result(analysis_data, analysis_type)
 
 ---
 
+### Pattern 7: Dispatch Table Registration
+
+**Location**: `R/shared_config.R` (multiple dispatch tables)
+
+**Code**:
+```r
+# Display names dispatch
+.ANALYSIS_TYPE_DISPLAY_NAMES <- c(
+  fa = "Factor Analysis",
+  gm = "Gaussian Mixture",
+  {analysis} = "{FULL NAME}"
+)
+
+# Valid parameters dispatch
+.VALID_INTERPRETATION_PARAMS <- list(
+  fa = c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings"),
+  {analysis} = c("param1", "param2")
+)
+
+# Handler function dispatch (defined AFTER handler functions)
+.INTERPRETATION_ARGS_DISPATCH <- list(
+  fa = interpretation_args_fa,
+  {analysis} = interpretation_args_{analysis}
+)
+```
+
+**Why**: Centralized registration enables data-driven dispatch without if/else chains.
+
+**Reference**: `shared_config.R:31-36, 45-50, 217-219`
+
+---
+
+### Pattern 8: Dispatch Table Lookup
+
+**Location**: Helper functions throughout package
+
+**Code**:
+```r
+# Generic lookup with fallback
+.dispatch_lookup <- function(dispatch_table, key, default = NULL, error_message = NULL) {
+  if (key %in% names(dispatch_table)) {
+    return(dispatch_table[[key]])
+  }
+
+  if (!is.null(default)) {
+    return(default)
+  }
+
+  if (!is.null(error_message)) {
+    cli::cli_abort(error_message)
+  }
+
+  NULL
+}
+
+# Usage example
+display_name <- .dispatch_lookup(
+  .ANALYSIS_TYPE_DISPLAY_NAMES,
+  analysis_type,
+  default = analysis_type
+)
+```
+
+**Why**: Consistent lookup pattern with error handling across all dispatch tables.
+
+**Reference**: `shared_config.R:64-78`
+
+---
+
+### Pattern 9: Model Type Dispatch
+
+**Location**: `R/aaa_model_type_dispatch.R`
+
+**Code**:
+```r
+# Check if object is supported
+if (is_supported_model(fit_results)) {
+  # Get model info
+  model_info <- get_model_info(fit_results)
+
+  # Call validator
+  validate_model_structure(fit_results)
+
+  # Call extractor
+  extractor <- get(model_info$extractor_name, mode = "function")
+  extracted <- extractor(fit_results)
+}
+```
+
+**Why**: Unified model handling across different packages (psych, lavaan, mirt).
+
+**Reference**: `aaa_model_type_dispatch.R:77-144`
+
+---
+
+### Pattern 10: Format Dispatch
+
+**Location**: Report builders (`R/{analysis}_report.R`)
+
+**Code**:
+```r
+# Format dispatch table (usually internal to report file)
+.format_dispatch <- list(
+  cli = list(
+    heading = function(text) paste0(toupper(text), "\n", paste(rep("=", 40), collapse = ""), "\n"),
+    subheading = function(text) paste0("\n", text, ":\n"),
+    bold = function(text) text
+  ),
+  markdown = list(
+    heading = function(text, level = 1) paste0(paste(rep("#", level), collapse = ""), " ", text, "\n"),
+    subheading = function(text, level = 2) paste0(paste(rep("#", level), collapse = ""), " ", text, "\n"),
+    bold = function(text) paste0("**", text, "**")
+  )
+)
+
+# Usage
+formatter <- .format_dispatch[[output_format]]
+report <- paste0(
+  formatter$heading("Report Title"),
+  formatter$subheading("Section"),
+  "Content here"
+)
+```
+
+**Why**: DRY principle - format once, output in multiple styles.
+
+**Reference**: `fa_report.R:31-56` (similar pattern)
+
+---
+
+### Pattern 11: Parameter Registry Integration
+
+**Location**: Configuration constructors and data extractors
+
+**Code**:
+```r
+# In configuration constructor (interpretation_args_{analysis})
+param_list <- list(
+  analysis_type = "{analysis}",
+  param1 = param1 %||% get_param_default("param1"),  # Registry default
+  param2 = param2 %||% get_param_default("param2")
+)
+
+# Validate using registry
+validated <- validate_params(param_list, throw_error = TRUE)
+
+# In data extractor (build_{analysis}_model_data_internal)
+# Extract from interpretation_args or dots, fallback to registry
+param1 <- interpretation_args$param1 %||% dots$param1 %||% get_param_default("param1")
+
+# Validate using registry
+validate_params(list(param1 = param1, param2 = param2), throw_error = TRUE)
+```
+
+**Why**:
+- Single source of truth for defaults and validation
+- No hardcoded defaults scattered across files
+- Consistent validation across all entry points
+
+**Reference**: `shared_config.R:181-201, fa_model_data.R:26-72`
+
+---
+
 ## Troubleshooting
 
 ### Issue: "Error: analysis_type must be specified"
@@ -1953,40 +2421,152 @@ message("Actual keys: ", paste(names(parsed_result), collapse = ", "))
 
 ---
 
+### Issue: Dispatch Table Handler Not Found
+
+**Cause**: Handler function not registered in `.INTERPRETATION_ARGS_DISPATCH`
+
+**Solution**:
+1. Verify handler function is defined BEFORE dispatch table
+2. Add to dispatch table (lines 217-219 in `R/shared_config.R`)
+
+```r
+# Define handler first
+interpretation_args_{analysis} <- function(...) { ... }
+
+# Then register
+.INTERPRETATION_ARGS_DISPATCH <- list(
+  fa = interpretation_args_fa,
+  {analysis} = interpretation_args_{analysis}  # ADD
+)
+```
+
+---
+
+### Issue: Parameter Not in Registry
+
+**Cause**: Using parameter not registered in `PARAMETER_REGISTRY`
+
+**Solution**: Add parameter to `R/core_parameter_registry.R`:
+
+```r
+PARAMETER_REGISTRY <- list(
+  # ... existing params ...
+  your_param = list(
+    default = default_value,
+    type = "numeric",
+    # ... full metadata
+  )
+)
+```
+
+**Verify**: `get_param_default("your_param")` should return default, not error
+
+---
+
+### Issue: Validation Function Always Fails
+
+**Cause**: Validation function logic error or wrong parameter type
+
+**Debug**:
+```r
+# Test validation function directly
+param_spec <- PARAMETER_REGISTRY$param1
+result <- param_spec$validation_fn(test_value)
+print(result)  # Should show list(valid = TRUE/FALSE, message = ...)
+```
+
+**Common fixes**:
+- Check `is.numeric()` vs `is.integer()` type mismatch
+- Verify range checks use correct operators
+- Ensure validation returns `list(valid = ..., message = ...)`
+
+---
+
+### Issue: Model Class Not Recognized
+
+**Cause**: Model class not in `get_model_dispatch_table()`
+
+**Solution**: Add to dispatch table in `R/aaa_model_type_dispatch.R`:
+
+```r
+get_model_dispatch_table <- function() {
+  list(
+    # ... existing classes ...
+    YourClass = list(
+      analysis_type = "{analysis}",
+      package = "yourpackage",
+      validator_name = "validate_yourpackage_model",
+      extractor_name = "extract_yourpackage_data"
+    )
+  )
+}
+
+# Then create validator and extractor functions
+validate_yourpackage_model <- function(model) { ... }
+extract_yourpackage_data <- function(model) { ... }
+```
+
+---
+
 ## Next Steps After Implementation
 
 1. **Test thoroughly**: Run `devtools::test()` and `devtools::check()`
-2. **Create vignette**: Show usage examples
-3. **Update CLAUDE.md**: Add examples and common pitfalls
-4. **Update DEVELOPER_GUIDE.md**: Document implementation in section 4.2
-5. **Consider visualization**: Create plot method if applicable (like `plot.fa_interpretation()`)
-6. **Add to README**: Update with new model type support
+2. **Verify dispatch registration**:
+   - Parameters in `PARAMETER_REGISTRY`
+   - Display name in `.ANALYSIS_TYPE_DISPLAY_NAMES`
+   - Valid params in `.VALID_INTERPRETATION_PARAMS`
+   - Handler in `.INTERPRETATION_ARGS_DISPATCH`
+3. **Create vignette**: Show usage examples
+4. **Update CLAUDE.md**: Add examples and common pitfalls
+5. **Update DEVELOPER_GUIDE.md**: Document implementation in section 4.2
+6. **Consider visualization**: Create plot method if applicable (like `plot.fa_interpretation()`)
+7. **Add to README**: Update with new model type support
 
 ---
 
 ## Additional Resources
 
-**Developer Guide**: `dev/DEVELOPER_GUIDE.md`
-- Section 1.3: Architecture overview
-- Section 1.7: S3 method requirements
-- Section 4.2: Package history
-- Section 4.4: Phase 2 refactoring details
+### Core Architecture Files (Post-Dispatch Refactoring)
 
-**Testing Guidelines**: `dev/TESTING_GUIDELINES.md`
-- Testing patterns
-- Fixture usage
-- Token efficiency
+**Dispatch System**:
+- `R/shared_config.R` (713 lines): Dispatch tables and configuration constructors
+- `R/core_parameter_registry.R` (625 lines): Parameter metadata and validation
+- `R/aaa_model_type_dispatch.R` (383 lines): Model class dispatch system
 
-**FA Implementation** (reference):
-- `R/fa_model_data.R` - 436 lines
-- `R/fa_prompt_builder.R` - 342 lines
-- `R/fa_json.R` - 226 lines
-- `R/fa_diagnostics.R` - 178 lines
-- `R/fa_report.R` - 838 lines
+**Templates** (Updated 2025-11-16):
+- `dev/templates/TEMPLATE_config_additions.R` - Configuration and dispatch registration
+- `dev/templates/TEMPLATE_model_data.R` - Data extraction with registry integration
+- `dev/templates/TEMPLATE_prompt_builder.R` - Prompt building methods
+- `dev/templates/TEMPLATE_json.R` - JSON parsing with fallback
+- `dev/templates/TEMPLATE_diagnostics.R` - Diagnostic checks
+- `dev/templates/TEMPLATE_report.R` - Report generation with format dispatch
 
-**Code Templates**: `dev/templates/` (see next section)
+**Reference Implementation** (FA - fully updated to dispatch system):
+- `R/fa_model_data.R` (436 lines) - Uses registry defaults and validation
+- `R/fa_prompt_builder.R` (342 lines) - System and main prompts
+- `R/fa_json.R` (226 lines) - Multi-tier JSON parsing
+- `R/fa_diagnostics.R` (178 lines) - Cross-loading and orphan detection
+- `R/fa_report.R` (838 lines) - Modular report with format dispatch
+
+**Documentation**:
+- `dev/DEVELOPER_GUIDE.md` - Technical architecture details
+- `dev/TESTING_GUIDELINES.md` - Testing patterns and best practices
+- `CLAUDE.md` - User-facing usage guide
+
+**Key Patterns to Study**:
+1. **Dispatch Table Registration**: `shared_config.R:31-50, 217-219`
+2. **Parameter Registry**: `core_parameter_registry.R:35-384`
+3. **Registry Integration**: `shared_config.R:181-201, fa_model_data.R:26-72`
+4. **Model Type Dispatch**: `aaa_model_type_dispatch.R:21-144`
+5. **Multi-tier JSON Fallback**: `fa_json.R:22-226`
+6. **Modular Report Helpers**: `fa_report.R:132-838`
 
 ---
 
-**Last Updated**: 2025-11-12
-**Maintainer**: Update when adding new model types or discovering new patterns
+**Last Updated**: 2025-11-16 (Dispatch table refactoring completed)
+
+**Maintainer**: Update when:
+- Adding new model types (GM, IRT, CDM)
+- Discovering new common patterns
+- Updating dispatch system architecture
+- Changing parameter registry structure

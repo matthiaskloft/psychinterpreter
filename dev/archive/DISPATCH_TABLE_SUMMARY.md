@@ -1,3 +1,7 @@
+> **ARCHIVED**: This document describes completed refactoring work from 2025-11-16. All work documented here has been completed and integrated into the main codebase. For current architecture, see DEVELOPER_GUIDE.md Section 5.3.
+
+---
+
 # Dispatch Table Refactoring - Complete Summary
 
 **Date**: 2025-11-16

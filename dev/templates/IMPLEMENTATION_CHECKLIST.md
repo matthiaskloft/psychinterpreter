@@ -210,29 +210,102 @@
 
 ---
 
-## Phase 7: Integration
+## Phase 7: Integration - Dispatch Table Registration
 
-### 7.0 Add to Constants and Routing
+### 7.0 Dispatch Table Registration (CRITICAL)
 
-- [ ] **Modify `R/core_constants.R`**
-  - [ ] Add "{model}" to VALID_ANALYSIS_TYPES constant
-  - [ ] Verify constant includes your model type
-  - [ ] Test validation accepts new analysis_type
+The package uses centralized dispatch tables for routing. You must register your model type in THREE places:
 
-- [ ] **Modify `R/shared_config.R`**
-  - [ ] Add routing case in `interpretation_args()` function for "{model}"
-  - [ ] Ensure `interpretation_args_{model}()` is called correctly
-  - [ ] Ensure `build_interpretation_args_{model}()` is available
+**File**: `R/shared_config.R`
 
-### 7.1 Verification
+#### 7.0.1 Add to `.ANALYSIS_TYPE_DISPLAY_NAMES` dispatch table
+
+- [ ] Add entry: `{model} = "{MODEL}"` (human-readable display name)
+  - Example: `gm = "Gaussian Mixture"`
+  - This is used in help text and documentation
+
+#### 7.0.2 Add to `.VALID_INTERPRETATION_PARAMS` dispatch table
+
+- [ ] Add entry: `{model} = c("param1", "param2", ...)`
+  - Example: `gm = c("n_components", "covariance_type")`
+  - List ALL valid configuration parameters for your model type
+  - These are validated when `interpretation_args()` is called
+
+#### 7.0.3 Add to `.INTERPRETATION_ARGS_DISPATCH` dispatch table
+
+- [ ] Add entry: `{model} = interpretation_args_{model}`
+  - Example: `gm = interpretation_args_gm`
+  - This maps your analysis type to its configuration handler function
+  - Handler function must be defined in same file (shared_config.R)
+
+### 7.0.4 Parameter Registry (from TEMPLATE_config_additions.R)
+
+- [ ] Implement `interpretation_args_{model}()` constructor function
+  - [ ] Accept model-specific parameters as named arguments
+  - [ ] Provide default values
+  - [ ] Return list with `analysis_type = "{model}"` first element
+  - [ ] Add roxygen2 documentation with examples
+
+- [ ] Implement `build_interpretation_args_{model}()` merger function
+  - [ ] Accept base config and user overrides
+  - [ ] Merge configurations appropriately
+  - [ ] Return merged config
+
+- [ ] Add validation inside both functions
+  - [ ] Validate parameter types
+  - [ ] Check valid ranges/values
+  - [ ] Return helpful error messages
+
+### 7.1 Model Type Dispatch (Optional but Recommended)
+
+**File**: `R/aaa_model_type_dispatch.R`
+
+If your model type supports fitted model objects (like `psych::fa()` does):
+
+- [ ] Add model class mapping to `get_model_dispatch_table()`:
+  - [ ] `classes = c("YourClass", "fallback_class")`
+  - [ ] Include all expected fitted model classes from target package
+
+- [ ] Implement validator function (e.g., `validate_yourpackage_model()`)
+  - [ ] Check required structure elements
+  - [ ] Return TRUE if valid, error otherwise
+
+- [ ] Implement extractor function (e.g., `extract_yourpackage_loadings()`)
+  - [ ] Extract analysis data from fitted model
+  - [ ] Return standardized list format
+
+### 7.2 Add to Constants
+
+**File**: `R/core_constants.R`
+
+- [ ] Add "{model}" to `VALID_ANALYSIS_TYPES` character vector
+  - This is used for early validation of analysis_type parameter
+  - Example: `c("fa", "gm", "irt")`
+
+### 7.3 Verification
 
 - [ ] Run `devtools::document()` to update all documentation
 - [ ] Run `devtools::check()` - resolve any warnings/errors
-- [ ] Verify new analysis_type is recognized by validation
+- [ ] Verify new analysis_type is recognized by validation:
+  ```r
+  # This should work without error
+  interpretation_args(analysis_type = "{model}", param1 = value1)
+  ```
+- [ ] Test dispatch table lookups work:
+  ```r
+  # These should return valid values
+  psychinterpreter:::.get_analysis_type_display_name("{model}")
+  psychinterpreter:::.get_valid_interpretation_params("{model}")
+  ```
 - [ ] Test basic interpretation with your model type
 - [ ] All integration tests passing
 
-**Estimated Time**: 1-2 hours
+**Estimated Time**: 2-3 hours
+
+**References**:
+- See `dev/archive/DISPATCH_TABLE_SUMMARY.md` for detailed dispatch table architecture
+- See `R/shared_config.R` for FA examples of all required registrations
+- See `R/core_constants.R` for VALID_ANALYSIS_TYPES constant
 
 ---
 
@@ -327,9 +400,53 @@
 
 ---
 
-## Phase 10: Final Checks
+## Phase 10: Dispatch Table Validation
 
-### 10.1 Quality Checks
+### 10.1 Critical Dispatch Table Validation Checklist
+
+Before moving to final checks, verify dispatch table integration:
+
+**In `R/shared_config.R`**:
+- [ ] Entry added to `.ANALYSIS_TYPE_DISPLAY_NAMES` with correct model abbreviation
+- [ ] Entry added to `.VALID_INTERPRETATION_PARAMS` with complete parameter list
+- [ ] Entry added to `.INTERPRETATION_ARGS_DISPATCH` mapping to handler function
+- [ ] `interpretation_args_{model}()` function defined and exported
+- [ ] `build_interpretation_args_{model}()` function defined (internal)
+- [ ] All parameter validation implemented and tested
+
+**In `R/core_constants.R`**:
+- [ ] Model abbreviation added to `VALID_ANALYSIS_TYPES` vector
+
+**In `R/aaa_model_type_dispatch.R`** (if using fitted models):
+- [ ] Model class mapping added to `get_model_dispatch_table()`
+- [ ] Validator function implemented
+- [ ] Extractor function implemented
+
+**Manual Testing** (run in R console):
+```r
+# Test parameter registration works
+cfg <- interpretation_args(analysis_type = "{model}", param1 = value)
+print(cfg)  # Should show your model's parameters
+
+# Test dispatch table lookup
+psychinterpreter:::.get_analysis_type_display_name("{model}")  # Should return human-readable name
+psychinterpreter:::.get_valid_interpretation_params("{model}")  # Should return your params
+
+# Test with interpret() function
+result <- interpret(
+  fit_results = your_model_object,
+  variable_info = var_info,
+  analysis_type = "{model}",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+```
+
+---
+
+## Phase 11: Final Checks
+
+### 11.1 Quality Checks
 
 - [ ] Run `devtools::check()` - **ZERO errors, ZERO warnings**
 - [ ] Run `devtools::test()` - **ALL tests passing**
@@ -338,14 +455,14 @@
 - [ ] All functions have appropriate exports/internals
 - [ ] No debugging code left in (print statements, browser(), etc.)
 
-### 10.2 Git and Version Control
+### 11.2 Git and Version Control
 
 - [ ] All new files added to git
 - [ ] Meaningful commit messages
 - [ ] Code reviewed (self or peer)
 - [ ] Branch ready for merge
 
-### 10.3 User Testing
+### 11.3 User Testing
 
 - [ ] Test with real data from target package
 - [ ] Test with edge cases (small n, many components, etc.)
@@ -365,7 +482,8 @@
 - [ ] Ready for production use
 - [ ] Implementation documented in DEVELOPER_GUIDE.md
 - [ ] CLAUDE.md updated with examples
-- [ ] **Celebrate!** 🎉
+- [ ] Dispatch tables registered and validated
+- [ ] **Celebrate!**
 
 ---
 
@@ -379,13 +497,14 @@
 | Phase 4: JSON Parsing | 3-4 hours |
 | Phase 5: Diagnostics | 3-5 hours |
 | Phase 6: Report Generation | 4-6 hours |
-| Phase 7: Integration | 2-3 hours |
+| Phase 7: Dispatch Table Integration | 2-3 hours |
 | Phase 8: Testing | 5-7 hours |
 | Phase 9: Documentation | 4-7 hours |
-| Phase 10: Final Checks | 2-3 hours |
-| **Total** | **32-50 hours** |
+| Phase 10: Dispatch Table Validation | 1-2 hours |
+| Phase 11: Final Checks | 2-3 hours |
+| **Total** | **34-52 hours** |
 
-*Note: Times are estimates for a developer familiar with R and the package architecture.*
+*Note: Times are estimates for a developer familiar with R and the package architecture. Dispatch table integration time increased from Phase 7 due to additional registration and validation steps.*
 
 ---
 
@@ -399,4 +518,4 @@ Use this space to document challenges, deviations from templates, or lessons lea
 
 ---
 
-**Last Updated**: 2025-11-10
+**Last Updated**: 2025-11-16

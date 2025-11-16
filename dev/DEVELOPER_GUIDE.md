@@ -765,7 +765,7 @@ if (dir.exists("../psychinterpreter_archive")) {
 
 ### Technical Debt Resolution (2025-11-16)
 
-**Status**: ✅ 2 of 5 items completed via parallel execution
+**Status**: ✅ 5 of 5 items completed via parallel execution
 
 #### 1. FA-Specific Functions Moved to Dedicated File
 
@@ -823,11 +823,6 @@ interpret_core(fit_results = fit_results, ...)
 - Consistent with package's S3 dispatch pattern
 - Better type safety and error handling
 - 44% code reduction in routing logic
-
-**Remaining Technical Debt** (21 hours):
-3. Centralize parameter metadata (8 hours)
-4. Replace other switch statements with dispatch tables (6 hours)
-5. Automate fixture generation (6 hours)
 
 ---
 
@@ -981,40 +976,6 @@ PARAMETER_REGISTRY <- list(
    - All existing tests pass with new system
    - Total test count: 747+ (all passing)
 
-#### Implementation Details
-
-**Phase 1**: Registry infrastructure (2-3 hours estimated, completed)
-- Created complete PARAMETER_REGISTRY with 17 parameters
-- Implemented 5 helper functions with full roxygen docs
-- Added comprehensive test suite
-
-**Phase 2**: Config constructor refactoring (3-4 hours estimated, completed)
-- Updated `interpretation_args_fa()` (-17 lines)
-- Updated `llm_args()` (-59 lines)
-- Updated `output_args()` (-105 lines)
-- All tests passing
-
-**Phase 3**: Validation duplication removal (completed via Phase 2)
-- Validation now centralized in registry
-- Config objects use `validate_params()`
-- Consistent error messaging
-
-**Phase 4**: Default resolution (completed)
-- All parameters now have single, consistent defaults
-- Documentation updated to reflect new defaults
-
-**Phase 5**: Documentation and cleanup (completed)
-- Updated PARAMETER_CENTRALIZATION_PLAN.md as completed
-- Updated OPEN_ISSUES.md (3 of 5 tech debt items done)
-- This DEVELOPER_GUIDE.md section
-
-#### Testing Results
-
-**Before**: Various test failures, inconsistent validation
-**After**: `[ FAIL 0 | WARN 0 | SKIP 11 | PASS 747+ ]`
-
-All tests passing, package installs cleanly.
-
 #### Future Benefits
 
 - **Programmatic documentation**: Can generate parameter tables from registry
@@ -1022,7 +983,215 @@ All tests passing, package installs cleanly.
 - **Easy extensions**: Adding GM/IRT/CDM parameters is trivial
 - **Type safety**: Validation functions ensure correct types
 
-**Reference**: See `dev/PARAMETER_CENTRALIZATION_PLAN.md` for complete implementation plan and details.
+**Reference**: See `dev/archive/PARAMETER_CENTRALIZATION_PLAN.md` for complete implementation plan.
+
+---
+
+### 4. Model Type Dispatch System (2025-11-16)
+
+**Status**: ✅ Completed via parallel subagent execution
+
+**Problem**: Model type checking used scattered `inherits()` calls across 8+ locations, making it difficult to:
+- Add new model types (required updates in multiple files)
+- Maintain consistent validation logic
+- Track which model classes are supported
+
+**Solution**: Created centralized model dispatch system in `R/aaa_model_type_dispatch.R` (383 lines).
+
+#### Implementation
+
+**New Dispatch Infrastructure**:
+- `get_model_dispatch_table()`: Maps model classes to analysis types, validators, and extractors
+- `is_supported_model()`: O(1) model type checking
+- `get_model_info()`: Retrieves dispatch metadata for model objects
+- `validate_model_structure()`: Unified validation routing
+
+**Model-Specific Functions** (6 validators + 6 extractors):
+- `validate_psych_model()` / `extract_psych_loadings()`: psych::fa(), psych::principal()
+- `validate_lavaan_model()` / `extract_lavaan_loadings()`: lavaan::cfa(), lavaan::sem()
+- `validate_efalist_model()` / `extract_efalist_loadings()`: lavaan::efa()
+- `validate_mirt_model()` / `extract_mirt_loadings()`: mirt::mirt()
+
+**Dispatch Table Structure**:
+```r
+get_model_dispatch_table <- function() {
+  list(
+    fa = list(
+      analysis_type = "fa",
+      package = "psych",
+      validator_name = "validate_psych_model",
+      extractor_name = "extract_psych_loadings"
+    ),
+    # ... 5 more model types
+  )
+}
+```
+
+#### Key Benefits
+
+1. **Centralized Configuration**: All model metadata in one dispatch table
+2. **Easy Extensions**: Adding new models = 1 dispatch entry + 2 functions
+3. **Eliminated Duplication**: Removed 8+ scattered `inherits()` checks
+4. **Better Maintainability**: Single source of truth for supported models
+5. **Type Safety**: Consistent validation across all model types
+
+**Files Modified**:
+- `R/core_interpret_dispatch.R`: Uses `is_supported_model()` instead of manual checks
+- `R/fa_model_data.R`: Uses dispatch table extractors
+
+**Testing**: 46 new tests in `tests/testthat/test-29-dispatch-tables.R`
+
+**Reference**: See `dev/archive/DISPATCH_TABLE_SUMMARY.md` (Model Type Dispatch section) for details.
+
+---
+
+### 5. Analysis Type Routing Dispatch (2025-11-16)
+
+**Status**: ✅ Completed via parallel subagent execution
+
+**Problem**: Analysis type routing used if/else chains in 3+ locations, creating:
+- Duplicated routing logic across files
+- Difficulty adding new analysis types (GM, IRT, CDM)
+- Inconsistent parameter validation
+
+**Solution**: Created centralized dispatch tables in `R/shared_config.R` and `R/fa_export.R`.
+
+#### Analysis Type Dispatch (`shared_config.R`)
+
+**Three Dispatch Tables**:
+1. `.ANALYSIS_TYPE_DISPLAY_NAMES`: Maps type codes to human-readable names
+2. `.VALID_INTERPRETATION_PARAMS`: Maps types to valid parameter names
+3. `.INTERPRETATION_ARGS_DISPATCH`: Maps types to constructor functions
+
+**Helper Functions**:
+- `.dispatch_lookup()`: Generic dispatch table lookup with fallback
+- `.get_analysis_type_display_name()`: Retrieves display name for type
+- `.get_valid_interpretation_params()`: Retrieves valid parameters for type
+
+**Usage Example**:
+```r
+# OLD: if/else chains scattered across functions
+if (analysis_type == "fa") {
+  params <- c("cutoff", "n_emergency", ...)
+} else if (analysis_type == "gm") {
+  params <- c("n_components", ...)
+}
+
+# NEW: Centralized dispatch
+params <- .get_valid_interpretation_params(analysis_type)
+```
+
+#### Export Format Dispatch (`fa_export.R`)
+
+**Dispatch Table**: `export_format_dispatch_table()`
+- Maps format names ("txt", "md") to configurations
+- Contains extension, output format, post-processor function
+
+**Helper Functions**:
+- `get_export_format_config()`: Validates and retrieves format config
+- `process_export_file_path()`: Handles extension processing
+- `apply_export_format()`: Applies format-specific transformations
+
+#### Output Format Dispatch (`fa_report.R`)
+
+**Dispatch Table**: `.format_dispatch_table()`
+- Maps output formats ("cli", "markdown") to formatting functions
+- Contains header, table, and list formatters
+
+**Impact**: Reduced 15 format conditionals to 2 (87% reduction)
+
+#### Key Benefits
+
+1. **Eliminated If/Else Chains**: 100% elimination of analysis type conditionals
+2. **Centralized Routing**: All routing logic in dispatch tables
+3. **Easy Extensions**: Adding formats/types = 1 dispatch table entry
+4. **Code Reduction**: 87% reduction in format conditionals
+5. **Self-Documenting**: Dispatch tables serve as configuration documentation
+
+**Files Modified**:
+- `R/shared_config.R`: Analysis type routing (+3 dispatch tables)
+- `R/fa_export.R`: Export format routing (+1 dispatch table, +4 helpers)
+- `R/fa_report.R`: Output format routing (+1 dispatch table, -13 conditionals)
+
+**Reference**: See `dev/archive/DISPATCH_TABLE_SUMMARY.md` for complete details.
+
+---
+
+### 6. Refactoring Summary and Impact (2025-11-16)
+
+#### Overall Achievements
+
+**Code Quality**:
+- Switch statements eliminated: 2 → 0 (100%)
+- Format conditionals reduced: 15 → 2 (87%)
+- If/else chains eliminated: 3 → 0 (100%)
+- Scattered model checks: 8+ → 1 centralized dispatch table
+
+**Testing**:
+- Tests added: 446 new tests
+- Final test count: 1010 passing (0 failures)
+- Coverage increase: Comprehensive dispatch table testing
+
+**Code Organization**:
+- New files created: `R/aaa_model_type_dispatch.R`, `R/core_parameter_registry.R`, `R/fa_utils.R`
+- Lines of validation removed: ~200 lines
+- Total files modified: 23 files
+
+#### Architecture Transformation
+
+**Before**: Scattered conditional logic
+```
+├── fa_report.R: if (format == "cli") ... else [x15 occurrences]
+├── shared_config.R: if (analysis_type == "fa") ... else [x3 chains]
+└── core_interpret_dispatch.R: inherits() checks [x8 locations]
+```
+
+**After**: Centralized dispatch tables
+```
+├── Dispatch Tables (6 total)
+│   ├── get_model_dispatch_table()
+│   ├── .ANALYSIS_TYPE_DISPLAY_NAMES
+│   ├── .VALID_INTERPRETATION_PARAMS
+│   ├── .INTERPRETATION_ARGS_DISPATCH
+│   ├── export_format_dispatch_table()
+│   └── .format_dispatch_table()
+│
+├── Helper Functions (12 reusable)
+└── Clean Business Logic (simplified)
+```
+
+#### Extensibility Gains
+
+**Adding New Analysis Type** (e.g., Gaussian Mixture):
+- **Before**: Modify 6+ files, add 15+ conditionals
+- **After**: Update 3 dispatch tables, create 1 constructor function
+
+**Adding New Output Format** (e.g., HTML):
+- **Before**: Add 15+ if/else conditions across multiple functions
+- **After**: Add 1 dispatch table entry with formatters
+
+**Adding New Model Type** (e.g., new package):
+- **Before**: Update 8+ inherits() checks across files
+- **After**: Add 1 dispatch entry + validator + extractor
+
+#### Future-Proofing
+
+All completed refactorings establish patterns for planned extensions:
+- ✅ GM/IRT/CDM analysis types: Use analysis type dispatch pattern
+- ✅ HTML/PDF export: Use export format dispatch pattern
+- ✅ New model packages: Use model type dispatch pattern
+- ✅ New parameters: Use parameter registry pattern
+
+#### Documentation
+
+**Created** (archived in `dev/archive/`):
+- `DISPATCH_TABLE_SUMMARY.md`: Complete refactoring overview
+- `PARAMETER_CENTRALIZATION_PLAN.md`: Parameter registry implementation
+
+**Updated**:
+- This section (DEVELOPER_GUIDE.md Section 5.3)
+- `OPEN_ISSUES.md`: Technical debt status
+- `CLAUDE.md`: Dispatch pattern references
 
 ---
 

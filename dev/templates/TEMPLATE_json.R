@@ -6,6 +6,10 @@
 #' Checks if the parsed LLM response has the correct structure for {MODEL}
 #' interpretation, including expected {COMPONENT_LOWER} identifiers and value types.
 #'
+#' This is an S3 method dispatched via parse_llm_response() based on analysis_type class.
+#' Class is created in core_interpret.R as: structure(analysis_type, class = c("{model}", "character"))
+#' Dispatch and JSON parsing flow occurs in core_interpret.R around line 403-410.
+#'
 #' @param parsed_result Parsed JSON object (list)
 #' @param analysis_data Analysis data from build_analysis_data.{CLASS}()
 #' @param ... Additional arguments (ignored)
@@ -30,7 +34,8 @@
 #' }
 validate_parsed_result.{model} <- function(parsed_result, analysis_data, ...) {
 
-  # Pattern from fa_json.R:22-94
+  # Pattern from fa_json.R:22-94 (validation checks)
+  # See core_interpret.R:290 for S3 class creation pattern
 
   # ============================================================================
   # Check 1: Is it a list?

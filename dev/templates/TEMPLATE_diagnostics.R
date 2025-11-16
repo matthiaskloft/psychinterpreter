@@ -7,7 +7,12 @@
 #' warnings for potential issues in the {MODEL} results. Checks for common problems
 #' like {ISSUE1}, {ISSUE2}, etc.
 #'
-#' @param analysis_type Analysis type identifier (should be "{model}")
+#' This is an S3 method dispatched from core_interpret.R:459-466 (create_fit_summary generic).
+#' Uses a modular helper function approach: each diagnostic check is implemented as
+#' a separate detect_*() helper that returns a list with issue details (see examples
+#' in fa_diagnostics.R for patterns).
+#'
+#' @param analysis_type Analysis type object with class "{model}" (dispatch key via S3)
 #' @param analysis_data Analysis data from build_analysis_data.{CLASS}()
 #' @param ... Additional arguments (ignored)
 #'
@@ -22,7 +27,7 @@
 #' \dontrun{
 #' # Create fit summary
 #' analysis_data <- build_analysis_data(fit, var_info, analysis_type = "{model}")
-#' fit_summary <- create_fit_summary("{model}", analysis_data)
+#' fit_summary <- create_fit_summary.{model}("{model}", analysis_data)
 #'
 #' # Check for warnings
 #' if (fit_summary$has_warnings) {
@@ -31,7 +36,11 @@
 #' }
 create_fit_summary.{model} <- function(analysis_type, analysis_data, ...) {
 
-  # Pattern from fa_diagnostics.R:181-282
+  # Pattern from fa_diagnostics.R (modular diagnostic approach):
+  # - Lines 1-35: Main exported diagnostic helper (find_cross_loadings)
+  # - Helper functions return list(has_issue = ..., affected_components = ..., details = ...)
+  # - Format warnings with sprintf() for clean, aligned output
+  # - Store diagnostic details in diagnostics$info for potential post-processing
 
   # ============================================================================
   # Initialize diagnostics

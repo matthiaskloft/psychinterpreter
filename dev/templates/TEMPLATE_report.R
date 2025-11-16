@@ -33,6 +33,61 @@ build_report.{model}_interpretation <- function(interpretation, ...) {
   # Pattern from fa_report.R:28-838
 
   # ============================================================================
+  # Format Dispatch System
+  # ============================================================================
+  # Modern approach: Use dispatch tables instead of if/else chains for format handling.
+  # See fa_report.R:9-120 for complete implementation.
+  #
+  # Benefits:
+  # - 87% reduction in format conditionals (15 → 2)
+  # - Easy to add new formats (HTML, JSON, PDF)
+  # - Reusable formatting functions
+  # - Cleaner separation of concerns
+  #
+  # Define dispatch table at file level (outside this function):
+  #
+  # .{model}_format_dispatch <- list(
+  #   "markdown" = list(
+  #     heading = function(text, level) paste0(strrep("#", level), " ", text),
+  #     bold = function(x) paste0("**", x, "**"),
+  #     italic = function(x) paste0("*", x, "*"),
+  #     table_row = function(cells) paste0("| ", paste(cells, collapse = " | "), " |"),
+  #     list_item = function(x) paste0("- ", x),
+  #     section_header = function(title, level = 2) {
+  #       paste0("\n", strrep("#", level), " ", title, "\n\n")
+  #     }
+  #   ),
+  #   "cli" = list(
+  #     heading = function(text, level) cli::col_cyan(cli::style_bold(text)),
+  #     bold = function(x) cli::style_bold(x),
+  #     italic = function(x) cli::col_cyan(x),
+  #     table_row = function(cells) paste("  ", paste(cells, collapse = " | ")),
+  #     list_item = function(x) paste0(cli::symbol$bullet, " ", x),
+  #     section_header = function(title, level = 2) {
+  #       paste0("\n", cli::col_cyan(cli::style_bold(title)), "\n",
+  #              cli::rule(line = 1, line_col = "cyan"), "\n\n")
+  #     }
+  #   )
+  # )
+  #
+  # Helper function to retrieve format-specific functions:
+  #
+  # get_{model}_format_fn <- function(format, element) {
+  #   if (!format %in% names(.{model}_format_dispatch)) {
+  #     cli::cli_abort(paste0("Unknown format: ", format,
+  #                          ". Supported: 'cli', 'markdown'"))
+  #   }
+  #   if (!element %in% names(.{model}_format_dispatch[[format]])) {
+  #     cli::cli_abort(paste0("Unknown element: ", element, " for format: ", format))
+  #   }
+  #   .{model}_format_dispatch[[format]][[element]]
+  # }
+  #
+  # Usage in code:
+  #   header_fn <- get_{model}_format_fn(output_format, "heading")
+  #   formatted_header <- header_fn("My Title", level = 1)
+
+  # ============================================================================
   # Extract components from interpretation object
   # ============================================================================
 
@@ -144,58 +199,65 @@ build_report_header_{model} <- function(analysis_data,
 
 
   # ============================================================================
-  # Format header based on output_format
+  # Format header using dispatch table
   # ============================================================================
+  # MODERN APPROACH: Use get_{model}_format_fn() to avoid if/else chains
+  # Compare to OLD APPROACH (commented below) - dispatch is cleaner and extensible
 
-  if (output_format == "markdown") {
-    # Markdown format with heading and bold labels
-    header <- paste0(
-      "# {MODEL} Interpretation Results\n\n",
-      "**Number of {COMPONENTS}:** ", n_components, "\n",
-      "**Number of Variables:** ", n_variables, "\n"
-    )
+  # Get format-specific functions
+  heading_fn <- get_{model}_format_fn(output_format, "heading")
+  bold_fn <- get_{model}_format_fn(output_format, "bold")
+  section_header_fn <- get_{model}_format_fn(output_format, "section_header")
 
-    # Add model-specific parameters if present
-    if (!is.null(param1)) {
-      header <- paste0(header, "**{PARAM1}:** ", param1, "\n")
-    }
-    if (!is.null(param2)) {
-      header <- paste0(header, "**{PARAM2}:** ", param2, "\n")
-    }
+  # Build header using dispatched functions
+  header_parts <- c(
+    heading_fn("{MODEL} Interpretation Results", level = 1),
+    "",
+    paste0(bold_fn("Number of {COMPONENTS}:"), " ", n_components),
+    paste0(bold_fn("Number of Variables:"), " ", n_variables)
+  )
 
-    # Add LLM info
-    header <- paste0(
-      header,
-      "**LLM Provider:** ", llm_provider, "\n",
-      "**LLM Model:** ", llm_model, "\n"
-    )
-
-  } else {
-    # Plain text format with separator line
-    header <- paste0(
-      "{MODEL} INTERPRETATION RESULTS\n",
-      paste(rep("=", 70), collapse = ""), "\n\n",
-      "Number of {COMPONENTS}: ", n_components, "\n",
-      "Number of Variables: ", n_variables, "\n"
-    )
-
-    # Add model-specific parameters if present
-    if (!is.null(param1)) {
-      header <- paste0(header, "{PARAM1}: ", param1, "\n")
-    }
-    if (!is.null(param2)) {
-      header <- paste0(header, "{PARAM2}: ", param2, "\n")
-    }
-
-    # Add LLM info
-    header <- paste0(
-      header,
-      "LLM Provider: ", llm_provider, "\n",
-      "LLM Model: ", llm_model, "\n"
-    )
+  # Add model-specific parameters if present
+  if (!is.null(param1)) {
+    header_parts <- c(header_parts, paste0(bold_fn("{PARAM1}:"), " ", param1))
+  }
+  if (!is.null(param2)) {
+    header_parts <- c(header_parts, paste0(bold_fn("{PARAM2}:"), " ", param2))
   }
 
-  header
+  # Add LLM info
+  header_parts <- c(
+    header_parts,
+    paste0(bold_fn("LLM Provider:"), " ", llm_provider),
+    paste0(bold_fn("LLM Model:"), " ", llm_model)
+  )
+
+  # Combine with appropriate line breaks for format
+  paste(header_parts, collapse = "\n")
+
+  # ============================================================================
+  # OLD APPROACH (DO NOT USE - shown for comparison only):
+  # ============================================================================
+  # if (output_format == "markdown") {
+  #   header <- paste0(
+  #     "# {MODEL} Interpretation Results\n\n",
+  #     "**Number of {COMPONENTS}:** ", n_components, "\n",
+  #     "**Number of Variables:** ", n_variables, "\n"
+  #   )
+  #   # ... etc for 15+ if/else blocks
+  # } else {
+  #   header <- paste0(
+  #     "{MODEL} INTERPRETATION RESULTS\n",
+  #     paste(rep("=", 70), collapse = ""), "\n\n"
+  #   )
+  #   # ... etc
+  # }
+  #
+  # Problems with old approach:
+  # - Duplicates logic across 15+ locations
+  # - Hard to add new formats (must update 15+ if/else chains)
+  # - Easy to introduce inconsistencies
+  # - Higher cyclomatic complexity
 }
 
 
@@ -242,43 +304,58 @@ build_{component}_interpretations_{model} <- function(llm_result,
 
   sections <- character(length(component_ids))
 
+  # ============================================================================
+  # Format each component using dispatch table
+  # ============================================================================
+  # MODERN APPROACH: Get format functions once, reuse in loop
+
+  # Get format-specific functions
+  subheading_fn <- get_{model}_format_fn(output_format, "heading")
+  separator_fn <- get_{model}_format_fn(output_format, "section_header")
+
   for (i in seq_along(component_ids)) {
     id <- component_ids[i]
     interpretation <- llm_result[[id]]
 
-    if (output_format == "markdown") {
-      # Markdown: Use ### for component headings
-      sections[i] <- paste0(
-        "### ", id, "\n",
-        interpretation
-      )
-    } else {
-      # Plain text: Use component ID with underline
-      sections[i] <- paste0(
-        id, ":\n",
-        paste(rep("-", nchar(id) + 1), collapse = ""), "\n",
-        interpretation
-      )
-    }
+    # Format component section using dispatched function
+    sections[i] <- paste0(
+      subheading_fn(id, level = 3),
+      "\n",
+      interpretation
+    )
   }
 
 
   # ============================================================================
-  # Combine with section header
+  # Combine with section header using dispatch
   # ============================================================================
 
-  if (output_format == "markdown") {
-    paste0(
-      "## {COMPONENT} Interpretations\n\n",
-      paste(sections, collapse = "\n\n")
-    )
-  } else {
-    paste0(
-      "{COMPONENT} INTERPRETATIONS\n",
-      paste(rep("-", 70), collapse = ""), "\n\n",
-      paste(sections, collapse = "\n\n")
-    )
-  }
+  main_header <- separator_fn("{COMPONENT} Interpretations", level = 2)
+  paste0(
+    main_header,
+    paste(sections, collapse = "\n\n")
+  )
+
+  # ============================================================================
+  # OLD APPROACH (DO NOT USE - shown for comparison):
+  # ============================================================================
+  # for (i in seq_along(component_ids)) {
+  #   if (output_format == "markdown") {
+  #     sections[i] <- paste0("### ", id, "\n", interpretation)
+  #   } else {
+  #     sections[i] <- paste0(id, ":\n", paste(rep("-", nchar(id)), collapse = ""), "\n")
+  #   }
+  # }
+  # if (output_format == "markdown") {
+  #   paste0("## {COMPONENT} Interpretations\n\n", paste(sections, collapse = "\n\n"))
+  # } else {
+  #   paste0("{COMPONENT} INTERPRETATIONS\n", paste(rep("-", 70), collapse = ""), "\n\n")
+  # }
+  #
+  # Problems:
+  # - 3 separate if/else blocks for same format check
+  # - Duplicated formatting logic
+  # - Error-prone when adding new formats
 }
 
 
@@ -343,21 +420,22 @@ build_additional_data_section_{model} <- function(analysis_data, output_format) 
 
 
   # ============================================================================
-  # Add section header and return
+  # Add section header using dispatch and return
   # ============================================================================
 
-  if (output_format == "markdown") {
-    paste0(
-      "## Additional {MODEL} Information\n\n",  # TODO: Customize section title
-      formatted_data
-    )
-  } else {
-    paste0(
-      "ADDITIONAL {MODEL} INFORMATION\n",  # TODO: Customize section title
-      paste(rep("-", 70), collapse = ""), "\n\n",
-      formatted_data
-    )
-  }
+  section_header_fn <- get_{model}_format_fn(output_format, "section_header")
+
+  paste0(
+    section_header_fn("Additional {MODEL} Information", level = 2),  # TODO: Customize title
+    formatted_data
+  )
+
+  # OLD APPROACH (avoid this pattern):
+  # if (output_format == "markdown") {
+  #   paste0("## Additional {MODEL} Information\n\n", formatted_data)
+  # } else {
+  #   paste0("ADDITIONAL {MODEL} INFORMATION\n", paste(rep("-", 70), collapse = ""))
+  # }
 }
 
 
@@ -396,21 +474,128 @@ build_diagnostics_section_{model} <- function(diagnostics, output_format) {
 
 
   # ============================================================================
-  # Add section header and return
+  # Add section header using dispatch and return
   # ============================================================================
 
-  if (output_format == "markdown") {
-    paste0(
-      "## Diagnostic Warnings\n\n",
-      warnings_text
-    )
-  } else {
-    paste0(
-      "DIAGNOSTIC WARNINGS\n",
-      paste(rep("=", 70), collapse = ""), "\n\n",
-      warnings_text
-    )
+  # Use special warning header if available, fallback to section_header
+  warning_header_fn <- tryCatch(
+    get_{model}_format_fn(output_format, "warning_header"),
+    error = function(e) get_{model}_format_fn(output_format, "section_header")
+  )
+
+  paste0(
+    warning_header_fn("Diagnostic Warnings", level = 2),
+    warnings_text
+  )
+
+  # OLD APPROACH (avoid):
+  # if (output_format == "markdown") {
+  #   paste0("## Diagnostic Warnings\n\n", warnings_text)
+  # } else {
+  #   paste0("DIAGNOSTIC WARNINGS\n", paste(rep("=", 70), collapse = ""), "\n\n")
+  # }
+}
+
+
+# ==============================================================================
+# Format Dispatch Table Definition (File Level)
+# ==============================================================================
+# Define this OUTSIDE of build_report.{model}_interpretation() so it's
+# available to all helper functions in this file.
+#
+# Reference: fa_report.R:9-120 for complete example
+
+#' Format dispatch table for {MODEL} reports
+#'
+#' @keywords internal
+#' @noRd
+.{model}_format_dispatch <- list(
+  "markdown" = list(
+    # Basic formatting
+    heading = function(text, level = 1) {
+      paste0(strrep("#", level), " ", text, "\n")
+    },
+    bold = function(x) paste0("**", x, "**"),
+    italic = function(x) paste0("*", x, "*"),
+
+    # Section structures
+    section_header = function(title, level = 2) {
+      paste0("\n", strrep("#", level), " ", title, "\n\n")
+    },
+
+    # Lists and tables
+    list_item = function(x) paste0("- ", x),
+    table_header = function(cols) {
+      paste0("| ", paste(cols, collapse = " | "), " |\n",
+             "|", paste(rep("---", length(cols)), collapse = "|"), "|\n")
+    },
+    table_row = function(cells) paste0("| ", paste(cells, collapse = " | "), " |\n"),
+
+    # Special headers (optional)
+    warning_header = function(title, level = 2) {
+      paste0("\n", strrep("#", level), " ", title, "\n\n")
+    }
+  ),
+
+  "cli" = list(
+    # Basic formatting
+    heading = function(text, level = 1) {
+      if (level == 1) {
+        paste0(cli::col_cyan(cli::style_bold(text)), "\n",
+               cli::rule(line = 2, line_col = "cyan"), "\n")
+      } else {
+        cli::col_cyan(cli::style_bold(text))
+      }
+    },
+    bold = function(x) cli::style_bold(x),
+    italic = function(x) cli::col_cyan(x),
+
+    # Section structures
+    section_header = function(title, level = 2) {
+      paste0("\n", cli::col_cyan(cli::style_bold(title)), "\n",
+             cli::rule(line = 1, line_col = "cyan"), "\n\n")
+    },
+
+    # Lists and tables
+    list_item = function(x) paste0(cli::symbol$bullet, " ", x),
+    table_header = function(cols) {
+      paste0("  ", paste(cli::style_bold(cols), collapse = " | "), "\n")
+    },
+    table_row = function(cells) paste0("  ", paste(cells, collapse = " | "), "\n"),
+
+    # Special headers (optional)
+    warning_header = function(title, level = 2) {
+      paste0("\n", cli::col_yellow(cli::style_bold(title)), "\n",
+             cli::rule(line = 1, line_col = "yellow"), "\n\n")
+    }
+  )
+)
+
+
+#' Get format-specific function for {MODEL}
+#'
+#' @param format Character. "cli" or "markdown"
+#' @param element Character. Element name (e.g., "bold", "heading", "section_header")
+#'
+#' @return Function or value for the specified format and element
+#'
+#' @keywords internal
+#' @noRd
+get_{model}_format_fn <- function(format, element) {
+  # Validate format
+  if (!format %in% names(.{model}_format_dispatch)) {
+    cli::cli_abort(paste0("Unknown format: ", format,
+                         ". Supported formats: 'cli', 'markdown'"))
   }
+
+  # Validate element
+  if (!element %in% names(.{model}_format_dispatch[[format]])) {
+    cli::cli_abort(paste0("Unknown element: ", element,
+                         " for format: ", format))
+  }
+
+  # Return the function/value
+  .{model}_format_dispatch[[format]][[element]]
 }
 
 
@@ -420,11 +605,14 @@ build_diagnostics_section_{model} <- function(diagnostics, output_format) {
 
 # Add model-specific formatting helpers as needed
 # Keep each function focused on one formatting task
+#
+# IMPORTANT: Use get_{model}_format_fn() in helpers to maintain format-agnostic code
 
-# Example 1: Format a matrix/table
+# Example 1: Format a matrix/table using dispatch
 # #' Format {DATA_TYPE} as text table
 # #'
 # #' @param data Matrix or data frame to format
+# #' @param output_format Output format ("cli" or "markdown")
 # #' @param row_names Row names
 # #' @param col_names Column names
 # #' @param digits Number of decimal places
@@ -433,6 +621,7 @@ build_diagnostics_section_{model} <- function(diagnostics, output_format) {
 # #' @keywords internal
 # #' @noRd
 # format_{data_type}_table <- function(data,
+#                                      output_format,
 #                                      row_names = NULL,
 #                                      col_names = NULL,
 #                                      digits = 3) {
@@ -451,10 +640,23 @@ build_diagnostics_section_{model} <- function(diagnostics, output_format) {
 #     sprintf(paste0("%.", digits, "f"), x)
 #   })
 #
-#   # Create table string
-#   # TODO: Implement table formatting with aligned columns
+#   # Get format-specific functions using dispatch
+#   table_header_fn <- get_{model}_format_fn(output_format, "table_header")
+#   table_row_fn <- get_{model}_format_fn(output_format, "table_row")
+#
+#   # Build table
+#   table_parts <- c(
+#     table_header_fn(c("", col_names))  # Header row
+#   )
+#
+#   # Add data rows
+#   for (i in seq_len(nrow(formatted_data))) {
+#     row_data <- c(row_names[i], formatted_data[i, ])
+#     table_parts <- c(table_parts, table_row_fn(row_data))
+#   }
 #
 #   # Return formatted string
+#   paste(table_parts, collapse = "")
 # }
 
 
