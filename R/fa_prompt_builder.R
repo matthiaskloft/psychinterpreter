@@ -143,7 +143,7 @@ build_main_prompt.fa <- function(analysis_type,
   # ============================================================================
   prompt <- paste0(prompt, "# VARIABLE DESCRIPTIONS\n")
   if (nrow(variable_info) > 0) {
-    for (i in 1:min(nrow(variable_info), 1e3)) {
+    for (i in seq_len(min(nrow(variable_info), 1e3))) {
       var_desc <- ifelse(
         !is.na(variable_info$description[i]),
         variable_info$description[i],
@@ -179,7 +179,7 @@ build_main_prompt.fa <- function(analysis_type,
 
     # Build compact vector string for this factor
     loading_vector <- c()
-    for (j in 1:nrow(loadings_df)) {
+    for (j in seq_len(nrow(loadings_df))) {
       var_name <- loadings_df$variable[j]
       loading_value <- loadings_df[[factor_name]][j]
 
@@ -235,11 +235,11 @@ build_main_prompt.fa <- function(analysis_type,
       prompt,
       "Factor correlations help understand relationships between factors:\n"
     )
-    for (i in 1:length(cor_factors)) {
+    for (i in seq_along(cor_factors)) {
       factor_name <- cor_factors[i]
       if (factor_name %in% names(cor_df)) {
         cor_vector <- c()
-        for (j in 1:length(cor_factors)) {
+        for (j in seq_along(cor_factors)) {
           other_factor <- cor_factors[j]
           if (other_factor != factor_name &&
               other_factor %in% names(cor_df)) {

@@ -310,16 +310,8 @@ interpret <- function(fit_results = NULL,
   # DISPATCH TO APPROPRIATE HANDLER
   # ============================================================================
 
-  # Check if fit_results is a fitted model object (has a class that might have a method)
-  is_fitted_model <- !is.null(class(fit_results)) &&
-    (
-      inherits(fit_results, "fa") ||
-        inherits(fit_results, "principal") ||
-        inherits(fit_results, "psych") ||
-        inherits(fit_results, "lavaan") ||
-        inherits(fit_results, "efaList") ||
-        inherits(fit_results, "SingleGroupClass")
-    )
+  # Use dispatch table to check if fit_results is a supported fitted model
+  is_fitted_model <- is_supported_model(fit_results)
 
   # Check if fit_results is a list (but not a data.frame, which is also a list)
   is_structured_list <- is.list(fit_results) &&
@@ -552,21 +544,9 @@ interpret_model.principal <- function(model, ...) {
     )
   }
 
-  # Validate model structure
-  if (!inherits(model, "psych") && !inherits(model, "principal")) {
-    cli::cli_abort(
-      c("Model must be of class {.cls psych.principal}", "x" = "You supplied class: {.cls {class(model)}}")
-    )
-  }
+  # Validate model structure using dispatch table
+  validate_model_structure(model)
 
-  if (is.null(model$loadings)) {
-    cli::cli_abort("Model does not contain loadings component")
-  }
-
-  # Extract loadings and convert to data frame
-  loadings <- as.data.frame(unclass(model$loadings))
-
-  # PCA produces orthogonal components, no correlations
   # Call interpret_core with extracted model
   result <- interpret_core(
     fit_results = model,
@@ -648,19 +628,8 @@ interpret_model.lavaan <- function(model, ...) {
     )
   }
 
-  # Check if lavaan is available
-  if (!requireNamespace("lavaan", quietly = TRUE)) {
-    cli::cli_abort(
-      c("Package {.pkg lavaan} is required for this method", "i" = "Install with: install.packages(\"lavaan\")")
-    )
-  }
-
-  # Validate model
-  if (!inherits(model, "lavaan")) {
-    cli::cli_abort(
-      c("Model must be of class {.cls lavaan}", "x" = "You supplied class: {.cls {class(model)}}")
-    )
-  }
+  # Validate model structure using dispatch table
+  validate_model_structure(model)
 
   # Extract standardized solution
   std_solution <- lavaan::standardizedSolution(model)
@@ -782,19 +751,8 @@ interpret_model.efaList <- function(model, ...) {
   # Validate chat_session if provided
   validate_chat_session_for_analysis_type(chat_session, "fa")
 
-  # Check if lavaan is available
-  if (!requireNamespace("lavaan", quietly = TRUE)) {
-    cli::cli_abort(
-      c("Package {.pkg lavaan} is required for this method", "i" = "Install with: install.packages(\"lavaan\")")
-    )
-  }
-
-  # Validate model
-  if (!inherits(model, "efaList")) {
-    cli::cli_abort(
-      c("Model must be of class {.cls efaList}", "x" = "You supplied class: {.cls {class(model)}}")
-    )
-  }
+  # Validate model structure using dispatch table
+  validate_model_structure(model)
 
   # Extract loadings using stats::loadings() which works on efaList
   loadings_obj <- loadings(model)
@@ -888,19 +846,8 @@ interpret_model.SingleGroupClass <- function(model, rotate = "oblimin", ...) {
   # Validate chat_session if provided
   validate_chat_session_for_analysis_type(chat_session, "fa")
 
-  # Check if mirt is available
-  if (!requireNamespace("mirt", quietly = TRUE)) {
-    cli::cli_abort(
-      c("Package {.pkg mirt} is required for this method", "i" = "Install with: install.packages(\"mirt\")")
-    )
-  }
-
-  # Validate model
-  if (!inherits(model, "SingleGroupClass")) {
-    cli::cli_abort(
-      c("Model must be of class {.cls SingleGroupClass}", "x" = "You supplied class: {.cls {class(model)}}")
-    )
-  }
+  # Validate model structure using dispatch table
+  validate_model_structure(model)
 
   # Extract standardized loadings using summary with rotation
   sum_obj <- mirt::summary(model, rotate = rotate, verbose = FALSE)

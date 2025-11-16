@@ -133,7 +133,7 @@ extract_by_pattern.fa <- function(response, analysis_type, analysis_data, ...) {
       # Try to parse this individual factor
       parsed_factor <- tryCatch({
         # Extract just the object part (everything after the factor name)
-        object_match <- regexpr('\\{[^{}]*\\}', factor_text, perl = TRUE)
+        object_match <- regexpr("\\{[^{}]*\\}", factor_text, perl = TRUE)
         if (object_match > 0) {
           object_text <- regmatches(factor_text, object_match)
           jsonlite::fromJSON(object_text)

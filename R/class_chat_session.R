@@ -216,5 +216,5 @@ reset.chat_session <- function(chat_obj) {
   # Reset counters and token tracking
   new_chat$n_interpretations <- 0L
 
-  return(new_chat)
+  new_chat
 }

@@ -5,7 +5,109 @@
 # across the package. These objects group related parameters and provide
 # validation, making the API cleaner and more maintainable.
 
-#' Create Model-Specific Interpretation Configuration
+# ==============================================================================
+# DISPATCH TABLE SYSTEM FOR ANALYSIS TYPES
+# ==============================================================================
+#
+# The dispatch tables provide a centralized, data-driven approach to handling
+# different analysis types without if/else chains. This makes the code more
+# maintainable, scalable, and easier to extend with new analysis types.
+#
+# Tables defined:
+# 1. INTERPRETATION_ARGS_DISPATCH - Maps analysis types to handler functions
+# 2. ANALYSIS_TYPE_DISPLAY_NAMES - Maps analysis types to display names
+# 3. VALID_INTERPRETATION_PARAMS - Maps analysis types to their valid parameters
+#
+# ==============================================================================
+
+# Dispatch table defined after function definitions (see below line 200)
+
+#' Display Names for Analysis Types
+#'
+#' Maps analysis type codes to human-readable names for printing/output.
+#'
+#' @keywords internal
+#' @noRd
+.ANALYSIS_TYPE_DISPLAY_NAMES <- c(
+  fa = "Factor Analysis",
+  gm = "Gaussian Mixture",
+  irt = "Item Response Theory",
+  cdm = "Cognitive Diagnosis"
+)
+
+#' Valid Parameters for Each Analysis Type
+#'
+#' Maps analysis_type to the valid parameters that can be passed to
+#' interpretation_args() for that type. Used for parameter filtering.
+#'
+#' @keywords internal
+#' @noRd
+.VALID_INTERPRETATION_PARAMS <- list(
+  fa = c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings"),
+  gm = character(0),  # Future: placeholder for Gaussian Mixture parameters
+  irt = character(0), # Future: placeholder for IRT parameters
+  cdm = character(0)  # Future: placeholder for CDM parameters
+)
+
+#' Dispatch Table Lookup Helper
+#'
+#' Gets a handler function or value from dispatch table, with fallback.
+#'
+#' @param dispatch_table List-like dispatch table
+#' @param key Character key to look up
+#' @param default Default value if key not found
+#' @param error_message Optional error message if key not found and no default
+#'
+#' @return Value from dispatch table or default
+#' @keywords internal
+#' @noRd
+.dispatch_lookup <- function(dispatch_table, key, default = NULL, error_message = NULL) {
+  if (key %in% names(dispatch_table)) {
+    return(dispatch_table[[key]])
+  }
+
+  if (!is.null(default)) {
+    return(default)
+  }
+
+  if (!is.null(error_message)) {
+    cli::cli_abort(error_message)
+  }
+
+  NULL
+}
+
+#' Get Display Name for Analysis Type
+#'
+#' @param analysis_type Character analysis type code
+#'
+#' @return Character display name
+#' @keywords internal
+#' @noRd
+.get_analysis_type_display_name <- function(analysis_type) {
+  .dispatch_lookup(
+    .ANALYSIS_TYPE_DISPLAY_NAMES,
+    analysis_type,
+    default = analysis_type
+  )
+}
+
+#' Get Valid Parameters for Analysis Type
+#'
+#' @param analysis_type Character analysis type code
+#'
+#' @return Character vector of valid parameter names
+#' @keywords internal
+#' @noRd
+.get_valid_interpretation_params <- function(analysis_type) {
+  .dispatch_lookup(
+    .VALID_INTERPRETATION_PARAMS,
+    analysis_type,
+    default = character(0)
+  )
+}
+
+#'Create Model-Specific Interpretation Configuration
 #'
 #' Creates a configuration object for interpretation settings. The available
 #' parameters depend on the analysis_type.
@@ -50,27 +152,24 @@ interpretation_args <- function(analysis_type, ...) {
   # Validate analysis_type (also checks if implemented)
   validate_analysis_type(analysis_type)
 
-  # Delegate to model-specific constructor
-  # validate_analysis_type ensures only implemented types reach here
-  if (analysis_type == "fa") {
-    return(interpretation_args_fa(...))
-  } else if (analysis_type == "gm") {
-    # Placeholder for Gaussian Mixture implementation
-    cli::cli_abort(c(
+  # Look up handler function via dispatch table
+  handler <- .dispatch_lookup(
+    .INTERPRETATION_ARGS_DISPATCH,
+    analysis_type,
+    error_message = c(
       "x" = "interpretation_args for analysis_type '{analysis_type}' not yet implemented",
-      "i" = "Add interpretation_args_{analysis_type}() function and routing logic"
-    ))
-  } else if (analysis_type %in% c("irt", "cdm")) {
-    # Placeholders for future model types
-    cli::cli_abort(c(
-      "x" = "interpretation_args for analysis_type '{analysis_type}' not yet implemented",
-      "i" = "Add interpretation_args_{analysis_type}() function and routing logic"
-    ))
+      "i" = "Handler function interpretation_args_{analysis_type}() not found in dispatch table",
+      "i" = "Add interpretation_args_{analysis_type}() function and register in .INTERPRETATION_ARGS_DISPATCH"
+    )
+  )
+
+  # Call handler function with ... parameters
+  if (is.function(handler)) {
+    return(handler(...))
   } else {
-    # Should never reach here due to validate_analysis_type() check
     cli::cli_abort(c(
-      "x" = "Unknown analysis_type: '{analysis_type}'",
-      "i" = "This should have been caught by validate_analysis_type()"
+      "x" = "Invalid handler for analysis_type '{analysis_type}'",
+      "i" = "Dispatch table entry must be a function"
     ))
   }
 }
@@ -79,47 +178,45 @@ interpretation_args <- function(analysis_type, ...) {
 #'
 #' @keywords internal
 #' @noRd
-interpretation_args_fa <- function(cutoff = 0.3,
-                                   n_emergency = 2,
-                                   hide_low_loadings = FALSE,
-                                   sort_loadings = TRUE) {
-  # Validate cutoff
-  if (!is.numeric(cutoff) || length(cutoff) != 1) {
-    cli::cli_abort("{.arg cutoff} must be a single numeric value")
-  }
-  if (cutoff < 0 || cutoff > 1) {
-    cli::cli_abort("{.arg cutoff} must be between 0 and 1 (got {.val {cutoff}})")
-  }
+interpretation_args_fa <- function(cutoff = NULL,
+                                   n_emergency = NULL,
+                                   hide_low_loadings = NULL,
+                                   sort_loadings = NULL) {
+  # Build parameter list with defaults from registry
+  param_list <- list(
+    analysis_type = "fa",
+    cutoff = cutoff %||% get_param_default("cutoff"),
+    n_emergency = n_emergency %||% get_param_default("n_emergency"),
+    hide_low_loadings = hide_low_loadings %||% get_param_default("hide_low_loadings"),
+    sort_loadings = sort_loadings %||% get_param_default("sort_loadings")
+  )
 
-  # Validate n_emergency
-  if (!is.numeric(n_emergency) || length(n_emergency) != 1) {
-    cli::cli_abort("{.arg n_emergency} must be a single integer value")
-  }
-  if (n_emergency < 0 || n_emergency != as.integer(n_emergency)) {
-    cli::cli_abort("{.arg n_emergency} must be a non-negative integer (got {.val {n_emergency}})")
-  }
-
-  # Validate hide_low_loadings
-  if (!is.logical(hide_low_loadings) || length(hide_low_loadings) != 1 || is.na(hide_low_loadings)) {
-    cli::cli_abort("{.arg hide_low_loadings} must be TRUE or FALSE")
-  }
-
-  # Validate sort_loadings
-  if (!is.logical(sort_loadings) || length(sort_loadings) != 1 || is.na(sort_loadings)) {
-    cli::cli_abort("{.arg sort_loadings} must be TRUE or FALSE")
-  }
+  # Validate all parameters using registry
+  validated <- validate_params(param_list, throw_error = TRUE)
 
   structure(
-    list(
-      analysis_type = "fa",
-      cutoff = cutoff,
-      n_emergency = as.integer(n_emergency),
-      hide_low_loadings = hide_low_loadings,
-      sort_loadings = sort_loadings
-    ),
+    validated,
     class = c("interpretation_args", "model_config", "list")
   )
 }
+
+# ==============================================================================
+# DISPATCH TABLE (defined after function definitions to avoid forward reference)
+# ==============================================================================
+
+#' Dispatch Table for interpretation_args() Constructor Functions
+#'
+#' Maps analysis_type to handler functions that construct type-specific configs.
+#' Functions referenced here must:
+#' - Accept ... for variable parameters
+#' - Return an interpretation_args object
+#' - Validate their specific parameters
+#'
+#' @keywords internal
+#' @noRd
+.INTERPRETATION_ARGS_DISPATCH <- list(
+  fa = interpretation_args_fa
+)
 
 
 #' Create LLM Configuration
@@ -151,82 +248,32 @@ interpretation_args_fa <- function(cutoff = 0.3,
 #'   word_limit = 200,
 #'   params = ellmer::params(temperature = 0.7, seed = 42)
 #' )
-llm_args <- function(llm_provider,
+llm_args <- function(llm_provider = NULL,
                        llm_model = NULL,
                        system_prompt = NULL,
                        params = NULL,
-                       word_limit = 150,
+                       word_limit = NULL,
                        interpretation_guidelines = NULL,
                        additional_info = NULL,
-                       echo = "none") {
+                       echo = NULL) {
 
-  # Validate llm_provider (required)
-  if (missing(llm_provider) || is.null(llm_provider)) {
-    cli::cli_abort("{.arg llm_provider} is required (e.g., 'ollama', 'anthropic', 'openai')")
-  }
-  if (!is.character(llm_provider) || length(llm_provider) != 1) {
-    cli::cli_abort("{.arg llm_provider} must be a single character string")
-  }
+  # Build parameter list with defaults from registry
+  param_list <- list(
+    llm_provider = llm_provider,
+    llm_model = llm_model %||% get_param_default("llm_model"),
+    system_prompt = system_prompt %||% get_param_default("system_prompt"),
+    params = params %||% get_param_default("params"),
+    word_limit = word_limit %||% get_param_default("word_limit"),
+    interpretation_guidelines = interpretation_guidelines %||% get_param_default("interpretation_guidelines"),
+    additional_info = additional_info %||% get_param_default("additional_info"),
+    echo = echo %||% get_param_default("echo")
+  )
 
-  # Validate llm_model (optional but recommended)
-  if (!is.null(llm_model) && (!is.character(llm_model) || length(llm_model) != 1)) {
-    cli::cli_abort("{.arg llm_model} must be a single character string or NULL")
-  }
-
-  # Validate system_prompt
-  if (!is.null(system_prompt) && !is.character(system_prompt)) {
-    cli::cli_abort("{.arg system_prompt} must be a character string or NULL")
-  }
-
-  # Validate params
-  if (!is.null(params) && !is.list(params)) {
-    cli::cli_abort(
-      c(
-        "{.arg params} must be created using ellmer::params()",
-        "i" = "Example: params(temperature = 0.7, seed = 42)"
-      )
-    )
-  }
-
-  # Validate word_limit
-  if (!is.numeric(word_limit) || length(word_limit) != 1) {
-    cli::cli_abort("{.arg word_limit} must be a single numeric value")
-  }
-  if (word_limit < 20 || word_limit > 500) {
-    cli::cli_abort(
-      c(
-        "{.arg word_limit} must be between 20 and 500",
-        "i" = "Recommended range: 50-200 words"
-      )
-    )
-  }
-
-  # Validate interpretation_guidelines
-  if (!is.null(interpretation_guidelines) && !is.character(interpretation_guidelines)) {
-    cli::cli_abort("{.arg interpretation_guidelines} must be a character string or NULL")
-  }
-
-  # Validate additional_info
-  if (!is.null(additional_info) && !is.character(additional_info)) {
-    cli::cli_abort("{.arg additional_info} must be a character string or NULL")
-  }
-
-  # Validate echo
-  if (!is.character(echo) || length(echo) != 1 || !echo %in% c("none", "output", "all")) {
-    cli::cli_abort("{.arg echo} must be one of: 'none', 'output', 'all'")
-  }
+  # Validate all parameters using registry
+  validated <- validate_params(param_list, throw_error = TRUE)
 
   structure(
-    list(
-      llm_provider = llm_provider,
-      llm_model = llm_model,
-      system_prompt = system_prompt,
-      params = params,
-      word_limit = as.integer(word_limit),
-      interpretation_guidelines = interpretation_guidelines,
-      additional_info = additional_info,
-      echo = echo
-    ),
+    validated,
     class = c("llm_args", "list")
   )
 }
@@ -260,60 +307,26 @@ llm_args <- function(llm_provider,
 #'   heading_level = 2,
 #'   silent = TRUE
 #' )
-output_args <- function(format = "cli",
-                          heading_level = 1,
-                          suppress_heading = FALSE,
-                          max_line_length = 80,
-                          silent = 0) {
+output_args <- function(format = NULL,
+                          heading_level = NULL,
+                          suppress_heading = NULL,
+                          max_line_length = NULL,
+                          silent = NULL) {
 
-  # Validate format
-  if (!is.character(format) || length(format) != 1 || !format %in% c("cli", "markdown")) {
-    cli::cli_abort("{.arg format} must be either 'cli' or 'markdown'")
-  }
+  # Build parameter list with defaults from registry
+  param_list <- list(
+    format = format %||% get_param_default("format"),
+    heading_level = heading_level %||% get_param_default("heading_level"),
+    suppress_heading = suppress_heading %||% get_param_default("suppress_heading"),
+    max_line_length = max_line_length %||% get_param_default("max_line_length"),
+    silent = silent %||% get_param_default("silent")
+  )
 
-  # Validate heading_level
-  if (!is.numeric(heading_level) || length(heading_level) != 1) {
-    cli::cli_abort("{.arg heading_level} must be a single integer between 1 and 6")
-  }
-  if (heading_level < 1 || heading_level > 6 || heading_level != as.integer(heading_level)) {
-    cli::cli_abort("{.arg heading_level} must be an integer between 1 and 6 (got {.val {heading_level}})")
-  }
-
-  # Validate suppress_heading
-  if (!is.logical(suppress_heading) || length(suppress_heading) != 1 || is.na(suppress_heading)) {
-    cli::cli_abort("{.arg suppress_heading} must be TRUE or FALSE")
-  }
-
-  # Validate max_line_length
-  if (!is.numeric(max_line_length) || length(max_line_length) != 1) {
-    cli::cli_abort("{.arg max_line_length} must be a single integer")
-  }
-  if (max_line_length < 40 || max_line_length > 300) {
-    cli::cli_abort(
-      c(
-        "{.arg max_line_length} must be between 40 and 300",
-        "i" = "Recommended: 80-120 for console output"
-      )
-    )
-  }
-
-  # Validate and normalize silent
-  if (is.logical(silent)) {
-    silent <- ifelse(silent, 2L, 0L)  # Convert logical to integer
-  } else if (!is.numeric(silent) || length(silent) != 1) {
-    cli::cli_abort("{.arg silent} must be logical (TRUE/FALSE) or integer (0/1/2)")
-  } else if (!silent %in% c(0, 1, 2)) {
-    cli::cli_abort("{.arg silent} must be 0, 1, or 2 (got {.val {silent}})")
-  }
+  # Validate all parameters using registry
+  validated <- validate_params(param_list, throw_error = TRUE)
 
   structure(
-    list(
-      format = format,
-      heading_level = as.integer(heading_level),
-      suppress_heading = suppress_heading,
-      max_line_length = as.integer(max_line_length),
-      silent = as.integer(silent)
-    ),
+    validated,
     class = c("output_args", "list")
   )
 }
@@ -418,32 +431,45 @@ default_output_args <- function() {
 #' @export
 #' @keywords internal
 print.interpretation_args <- function(x, ...) {
-  # Get model type name
-  analysis_type_names <- c(
-    fa = "Factor Analysis",
-    gm = "Gaussian Mixture",
-    irt = "Item Response Theory",
-    cdm = "Cognitive Diagnosis"
-  )
-  model_name <- analysis_type_names[x$analysis_type] %||% x$analysis_type
+  # Get model type display name via dispatch
+  model_name <- .get_analysis_type_display_name(x$analysis_type)
 
   cli::cli_h2("{model_name} Interpretation Configuration")
 
+  # Get valid parameters for this analysis type
+  valid_params <- .get_valid_interpretation_params(x$analysis_type)
+
   # Print model-specific parameters
-  if (x$analysis_type == "fa") {
+  if (length(valid_params) > 0) {
+    # Analysis type with defined parameters - show them
     cli::cli_ul()
-    cli::cli_li("Cutoff: {.val {x$cutoff}}")
-    cli::cli_li("Emergency rule: Use top {.val {x$n_emergency}} loadings")
-    cli::cli_li("Hide low loadings: {.val {x$hide_low_loadings}}")
-    cli::cli_li("Sort loadings: {.val {x$sort_loadings}}")
+    for (param in valid_params) {
+      if (param %in% names(x)) {
+        value <- x[[param]]
+        # Format parameter display nicely
+        if (param == "n_emergency") {
+          cli::cli_li("Emergency rule: Use top {.val {value}} loadings")
+        } else if (param == "cutoff") {
+          cli::cli_li("Cutoff: {.val {value}}")
+        } else if (param == "hide_low_loadings") {
+          cli::cli_li("Hide low loadings: {.val {value}}")
+        } else if (param == "sort_loadings") {
+          cli::cli_li("Sort loadings: {.val {value}}")
+        } else {
+          # Generic fallback for unknown parameters
+          cli::cli_li("{param}: {.val {value}}")
+        }
+      }
+    }
     cli::cli_end()
-  } else if (x$analysis_type %in% c("gm", "irt", "cdm")) {
-    # Future model types - show generic configuration
-    cli::cli_alert_info("Configuration parameters: {.val {setdiff(names(x), 'analysis_type')}}")
   } else {
-    # Unknown analysis type
-    cli::cli_alert_warning("Unknown analysis_type: {.val {x$analysis_type}}")
-    cli::cli_alert_info("Configuration: {.val {names(x)}}")
+    # Analysis type without defined parameters yet - show generic info
+    config_params <- setdiff(names(x), "analysis_type")
+    if (length(config_params) > 0) {
+      cli::cli_alert_info("Configuration parameters: {.val {config_params}}")
+    } else {
+      cli::cli_alert_info("No configuration parameters defined yet")
+    }
   }
 
   invisible(x)
@@ -561,15 +587,8 @@ build_interpretation_args <- function(interpretation_args = NULL, analysis_type 
   if (!is.null(analysis_type)) {
     dots <- list(...)
 
-    # Define valid params per analysis type
-    valid_params <- if (analysis_type == "fa") {
-      c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings")
-    } else if (analysis_type %in% c("gm", "irt", "cdm")) {
-      # Future model types - no parameters defined yet
-      character(0)
-    } else {
-      character(0)  # Unknown analysis types
-    }
+    # Get valid params via dispatch table
+    valid_params <- .get_valid_interpretation_params(analysis_type)
 
     model_dots <- dots[names(dots) %in% valid_params]
 

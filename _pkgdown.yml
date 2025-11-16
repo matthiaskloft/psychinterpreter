@@ -86,6 +86,8 @@ reference:
       - create_default_result
       - create_fit_summary
       - extract_by_pattern
+      - extract_model_parameters
       - validate_parsed_result
       - validate_list_structure
+      - validate_model_requirements
       - interpret_model

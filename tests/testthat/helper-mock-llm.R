@@ -10,58 +10,80 @@
 #' @return List mimicking ellmer chat response structure
 #' @noRd
 mock_llm_response <- function(response_type = "success", content = NULL, ...) {
-  switch(response_type,
-    "success" = list(
-      content = content %||% '{
-        "suggested_names": {
-          "F1": "Test Factor 1",
-          "F2": "Test Factor 2"
-        },
-        "component_summaries": {
-          "F1": {
-            "llm_interpretation": "This factor represents test construct 1.",
-            "variables": [
-              {"variable": "v1", "loading": 0.85, "description": "Variable 1"},
-              {"variable": "v2", "loading": 0.75, "description": "Variable 2"}
-            ],
-            "used_emergency_rule": false
+  # Dispatch table for response generators
+  response_generators <- list(
+    "success" = function(content) {
+      list(
+        content = content %||% '{
+          "suggested_names": {
+            "F1": "Test Factor 1",
+            "F2": "Test Factor 2"
           },
-          "F2": {
-            "llm_interpretation": "This factor represents test construct 2.",
-            "variables": [
-              {"variable": "v3", "loading": 0.70, "description": "Variable 3"}
-            ],
-            "used_emergency_rule": false
+          "component_summaries": {
+            "F1": {
+              "llm_interpretation": "This factor represents test construct 1.",
+              "variables": [
+                {"variable": "v1", "loading": 0.85, "description": "Variable 1"},
+                {"variable": "v2", "loading": 0.75, "description": "Variable 2"}
+              ],
+              "used_emergency_rule": false
+            },
+            "F2": {
+              "llm_interpretation": "This factor represents test construct 2.",
+              "variables": [
+                {"variable": "v3", "loading": 0.70, "description": "Variable 3"}
+              ],
+              "used_emergency_rule": false
+            }
           }
-        }
-      }',
-      input_tokens = 100,
-      output_tokens = 50
-    ),
-    "malformed_json" = list(
-      content = content %||% '{suggested_names": {"F1": "Test Factor"}',  # Missing opening brace
-      input_tokens = 100,
-      output_tokens = 20
-    ),
-    "partial" = list(
-      content = content %||% '{
-        "suggested_names": {
-          "F1": "Test Factor"
-        }
-      }',  # Missing component_summaries
-      input_tokens = 100,
-      output_tokens = 30
-    ),
-    "empty" = list(
-      content = content %||% '{}',
-      input_tokens = 100,
-      output_tokens = 5
-    ),
-    "error" = stop("API Error: 500 Internal Server Error"),
-    "timeout" = stop("Request timeout after 30 seconds"),
-    "rate_limit" = stop("API Error: 429 Too Many Requests"),
-    stop("Unknown response_type: ", response_type)
+        }',
+        input_tokens = 100,
+        output_tokens = 50
+      )
+    },
+    "malformed_json" = function(content) {
+      list(
+        content = content %||% '{suggested_names": {"F1": "Test Factor"}',  # Missing opening brace
+        input_tokens = 100,
+        output_tokens = 20
+      )
+    },
+    "partial" = function(content) {
+      list(
+        content = content %||% '{
+          "suggested_names": {
+            "F1": "Test Factor"
+          }
+        }',  # Missing component_summaries
+        input_tokens = 100,
+        output_tokens = 30
+      )
+    },
+    "empty" = function(content) {
+      list(
+        content = content %||% '{}',
+        input_tokens = 100,
+        output_tokens = 5
+      )
+    },
+    "error" = function(content) {
+      stop("API Error: 500 Internal Server Error")
+    },
+    "timeout" = function(content) {
+      stop("Request timeout after 30 seconds")
+    },
+    "rate_limit" = function(content) {
+      stop("API Error: 429 Too Many Requests")
+    }
   )
+
+  # Look up response type in dispatch table
+  if (!response_type %in% names(response_generators)) {
+    stop("Unknown response_type: ", response_type)
+  }
+
+  # Call the appropriate generator function
+  response_generators[[response_type]](content)
 }
 
 #' Create mock chat object
@@ -124,7 +146,8 @@ mock_chat_session <- function(analysis_type = "fa", response_type = "success", .
 test_json_parsing <- function(scenario = c("valid", "malformed", "partial", "empty")) {
   scenario <- match.arg(scenario)
 
-  response_content <- switch(scenario,
+  # Dispatch table for JSON scenarios
+  json_scenarios <- list(
     "valid" = '{
       "suggested_names": {"F1": "Factor 1", "F2": "Factor 2"},
       "component_summaries": {
@@ -144,6 +167,13 @@ test_json_parsing <- function(scenario = c("valid", "malformed", "partial", "emp
     "partial" = '{"suggested_names": {"F1": "Factor 1"}}',  # Missing component_summaries
     "empty" = '{}'
   )
+
+  # Look up scenario in dispatch table
+  if (!scenario %in% names(json_scenarios)) {
+    stop("Unknown scenario: ", scenario)
+  }
+
+  response_content <- json_scenarios[[scenario]]
 
   # Attempt to parse (should use fallback mechanisms)
   psychinterpreter:::parse_llm_response(

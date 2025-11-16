@@ -87,7 +87,10 @@
       "Bash(do wc -l \"$f\")",
       "Bash(do grep -l \"$func\" /mnt/c/Users/Matze/Documents/GitHub/psychinterpreter/tests/testthat/*.R)",
       "Bash(sort:*)",
-      "Bash(jobs:*)"
+      "Bash(jobs:*)",
+      "Bash(.Rbuildignore:*)",
+      "Bash(1)",
+      "Bash(chmod:*)"
     ],
     "deny": [
       "Read(./.env*)",

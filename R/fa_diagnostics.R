@@ -1,6 +1,6 @@
 #' Find Cross-Loading Variables
 #'
-#' Identifies variables that load on multiple factors above the cutoff threshold. 
+#' Identifies variables that load on multiple factors above the cutoff threshold.
 #' Used for identifying potential issues with factor structure and discriminant validity.
 #' Cross-loading variables may indicate that factors are not well-separated or that
 #' the variable measures multiple constructs.
@@ -44,17 +44,17 @@ find_cross_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
   }
   # Pre-allocate list for results for efficiency
   cross_list <- vector("list", nrow(loadings_df))
-  
-  for (i in 1:nrow(loadings_df)) {
+
+  for (i in seq_len(nrow(loadings_df))) {
     high_loadings <- c()
-    
+
     # Check each factor for significant loadings
     for (col in factor_cols) {
       if (abs(loadings_df[[col]][i]) >= cutoff) {
         high_loadings <- c(high_loadings, paste0(col, " (", format_loading(loadings_df[[col]][i]), ")"))
       }
     }
-    
+
     # Only include variables with multiple significant loadings
     if (length(high_loadings) > 1) {
       cross_list[[i]] <- data.frame(
@@ -63,25 +63,25 @@ find_cross_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
       )
     }
   }
-  
+
   # Remove NULL entries and combine results
   cross_list <- Filter(Negate(is.null), cross_list)
-  
+
   if (length(cross_list) == 0) {
     return(data.frame(variable = character(), factors = character()))
   }
-  
+
   cross_loadings <- do.call(rbind, cross_list)
   rownames(cross_loadings) <- NULL
-  
-  return(cross_loadings)
+
+  cross_loadings
 }
 
 #' Find Variables with No Loadings Above Cutoff
 #'
-#' Identifies variables that do not have any factor loading above the cutoff threshold. 
-#' These variables may indicate issues with the factor structure, suggest additional 
-#' factors may be needed, or indicate variables that don't fit well in the current 
+#' Identifies variables that do not have any factor loading above the cutoff threshold.
+#' These variables may indicate issues with the factor structure, suggest additional
+#' factors may be needed, or indicate variables that don't fit well in the current
 #' factor solution.
 #'
 #' @param loadings_df A dataframe with loadings including a 'variable' column
@@ -123,13 +123,13 @@ find_no_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
   }
   # Pre-allocate list for results for efficiency
   no_load_list <- vector("list", nrow(loadings_df))
-  
-  for (i in 1:nrow(loadings_df)) {
+
+  for (i in seq_len(nrow(loadings_df))) {
     # Track the highest loading for each variable
     has_significant_loading <- FALSE
     max_loading <- -Inf
     max_factor <- ""
-    
+
     for (col in factor_cols) {
       loading_val <- abs(loadings_df[[col]][i])
       if (loading_val >= cutoff) {
@@ -142,7 +142,7 @@ find_no_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
         max_factor <- col
       }
     }
-    
+
     # Add variables with no significant loadings to the list
     if (!has_significant_loading) {
       no_load_list[[i]] <- data.frame(
@@ -151,18 +151,18 @@ find_no_loadings <- function(loadings_df, factor_cols = NULL, cutoff = 0.3) {
       )
     }
   }
-  
+
   # Remove NULL entries and combine results
   no_load_list <- Filter(Negate(is.null), no_load_list)
-  
+
   if (length(no_load_list) == 0) {
     return(data.frame(variable = character(), highest_loading = character()))
   }
-  
+
   no_loadings <- do.call(rbind, no_load_list)
   rownames(no_loadings) <- NULL
 
-  return(no_loadings)
+  no_loadings
 }
 
 #' Create Fit Summary for Factor Analysis

@@ -603,3 +603,4 @@ Update the developer guide when making **architectural or implementation changes
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
 - use DT::datatable() for .Qmd articles
 - when adding or editing functions, remember to update the references in the pkgdown.yml
+- whenever it is feasible and may save time, use subagents

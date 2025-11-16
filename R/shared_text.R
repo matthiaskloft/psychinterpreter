@@ -13,7 +13,7 @@ count_words <- function(text) {
   if (is.null(text) || is.na(text) || nchar(text) == 0) {
     return(0)
   }
-  
+
   # Split into words and count
   words <- strsplit(trimws(text), "\\s+")[[1]]
   # Remove empty strings that might result from multiple spaces
@@ -38,39 +38,39 @@ wrap_text <- function(text, max_length = 80) {
   if (is.null(text) || is.na(text) || nchar(text) == 0) {
     return(text)
   }
-  
+
   # Split text into lines to preserve existing formatting
   lines <- strsplit(text, "\n")[[1]]
   wrapped_lines <- character()
-  
+
   for (line in lines) {
     # Check if this is a header line (contains === or ---)
     if (grepl("^[=\\-]{3,}$", trimws(line))) {
       wrapped_lines <- c(wrapped_lines, line)
       next
     }
-    
+
     # Check if this is an empty line or very short line
     if (nchar(line) <= max_length || nchar(trimws(line)) == 0) {
       wrapped_lines <- c(wrapped_lines, line)
       next
     }
-    
+
     # Detect indentation
     leading_spaces <- sub("^(\\s*).*", "\\1", line)
     content <- sub("^\\s*", "", line)
-    
+
     # Split content into words
     words <- strsplit(content, "\\s+")[[1]]
-    
+
     if (length(words) == 0) {
       wrapped_lines <- c(wrapped_lines, line)
       next
     }
-    
+
     # Build wrapped lines
     current_line <- leading_spaces
-    
+
     for (word in words) {
       # Check if adding this word would exceed the limit
       test_line <- if (nchar(current_line) == nchar(leading_spaces)) {
@@ -78,7 +78,7 @@ wrap_text <- function(text, max_length = 80) {
       } else {
         paste0(current_line, " ", word)
       }
-      
+
       if (nchar(test_line) <= max_length) {
         current_line <- test_line
       } else {
@@ -89,45 +89,14 @@ wrap_text <- function(text, max_length = 80) {
         current_line <- paste0(leading_spaces, word)
       }
     }
-    
+
     # Add the last line if it has content
     if (nchar(current_line) > nchar(leading_spaces)) {
       wrapped_lines <- c(wrapped_lines, current_line)
     }
   }
-  
-  return(paste(wrapped_lines, collapse = "\n"))
-}
 
-#' Format Loading Value with Consistent Precision
-#'
-#' Formats numeric loading values with consistent precision and removes leading
-#' zeros for compact display. This is the standard format used throughout the
-#' package for displaying factor loadings in prompts, reports, and diagnostics.
-#'
-#' @param x Numeric value(s) to format. Can be a single value or vector.
-#' @param digits Integer. Number of decimal places (default = 3)
-#'
-#' @return Character string(s) with formatted values
-#'
-#' @details
-#' Formatting rules:
-#' - Positive values: 0.456 → ".456"
-#' - Negative values: -0.456 → "-.456"
-#' - Preserves sign and removes leading zero
-#' - Consistent decimal precision
-#'
-#' @examples
-#' \dontrun{
-#' format_loading(0.456)      # ".456"
-#' format_loading(-0.456)     # "-.456"
-#' format_loading(0.7, 2)     # ".70"
-#' format_loading(c(0.3, -0.5))  # c(".300", "-.500")
-#' }
-#'
-#' @keywords internal
-format_loading <- function(x, digits = 3) {
-  sub("^(-?)0\\.", "\\1.", sprintf(paste0("%.", digits, "f"), x))
+  return(paste(wrapped_lines, collapse = "\n"))
 }
 
 #' Normalize Token Count to Valid Numeric Value
@@ -160,51 +129,6 @@ normalize_token_count <- function(value) {
     return(0.0)
   }
   as.numeric(value)
-}
-
-#' Add Emergency Rule Suffix to Factor Name
-#'
-#' Adds the "(n.s.)" suffix to factor names when the emergency rule was used
-#' (i.e., factor has no loadings above cutoff, but top N loadings were used
-#' instead of marking it as undefined).
-#'
-#' @param name Character. Factor name from LLM
-#' @param used_emergency_rule Logical. Whether emergency rule was applied
-#'
-#' @return Character. Name with "(n.s.)" suffix if emergency rule was used,
-#'   otherwise unchanged. Special values like "NA", "na", "N/A", "n/a" are
-#'   not modified even if emergency rule was used.
-#'
-#' @details
-#' The "(n.s.)" suffix stands for "not significant" and indicates that the
-#' factor was interpreted based on loadings below the specified cutoff threshold.
-#'
-#' Special handling for undefined factor names:
-#' - "NA", "na", "N/A", "n/a" (case-sensitive) are not modified
-#' - This prevents double-labeling when factors are undefined
-#'
-#' @examples
-#' \dontrun{
-#' add_emergency_suffix("Memory", TRUE)   # "Memory (n.s.)"
-#' add_emergency_suffix("Memory", FALSE)  # "Memory"
-#' add_emergency_suffix("NA", TRUE)       # "NA" (no suffix)
-#' add_emergency_suffix("N/A", TRUE)      # "N/A" (no suffix)
-#' }
-#'
-#' @keywords internal
-add_emergency_suffix <- function(name, used_emergency_rule) {
-  # Don't add suffix if emergency rule wasn't used
-  if (!isTRUE(used_emergency_rule)) {
-    return(name)
-  }
-
-  # Don't add suffix to special "undefined" values
-  if (grepl("^NA$|^na$|^N/A$|^n/a$", name, ignore.case = FALSE)) {
-    return(name)
-  }
-
-  # Add suffix
-  paste0(name, " (n.s.)")
 }
 
 # ==============================================================================

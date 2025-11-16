@@ -49,3 +49,6 @@ po/*~
 rsconnect/
 .Rproj.user
 docs
+
+# Check output files
+check_output.txt

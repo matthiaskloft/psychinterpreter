@@ -5,11 +5,11 @@
 \title{Create Output Configuration}
 \usage{
 output_args(
-  format = "cli",
-  heading_level = 1,
-  suppress_heading = FALSE,
-  max_line_length = 80,
-  silent = 0
+  format = NULL,
+  heading_level = NULL,
+  suppress_heading = NULL,
+  max_line_length = NULL,
+  silent = NULL
 )
 }
 \arguments{

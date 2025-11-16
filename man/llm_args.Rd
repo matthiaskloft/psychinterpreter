@@ -5,14 +5,14 @@
 \title{Create LLM Configuration}
 \usage{
 llm_args(
-  llm_provider,
+  llm_provider = NULL,
   llm_model = NULL,
   system_prompt = NULL,
   params = NULL,
-  word_limit = 150,
+  word_limit = NULL,
   interpretation_guidelines = NULL,
   additional_info = NULL,
-  echo = "none"
+  echo = NULL
 )
 }
 \arguments{

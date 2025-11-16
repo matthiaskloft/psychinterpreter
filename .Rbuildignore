@@ -16,3 +16,6 @@
 ^tests/testthat/fixtures/make-fixtures\.R$
 ^tests/testthat/fixtures/README\.md$
 ^README\.Rmd$
+^\.Rproj\.user/.*lock_file$
+^\.lintr$
+^check_output\.txt$

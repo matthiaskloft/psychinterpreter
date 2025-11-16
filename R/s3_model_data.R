@@ -51,3 +51,31 @@ build_analysis_data.default <- function(fit_results, analysis_type = NULL, inter
     )
   )
 }
+
+
+#' Build Structured List for Interpretation
+#'
+#' S3 generic to build structured list from extracted components.
+#' Called when user provides structured list input to interpret().
+#'
+#' @param x Extracted data (e.g., loadings matrix)
+#' @param analysis_type Character. Analysis type identifier
+#' @param ... Additional analysis-specific arguments
+#'
+#' @return Structured list for interpret_core()
+#' @export
+#' @keywords internal
+build_structured_list <- function(x, analysis_type, ...) {
+  UseMethod("build_structured_list", structure(list(), class = analysis_type))
+}
+
+#' @export
+#' @keywords internal
+build_structured_list.default <- function(x, analysis_type, ...) {
+  cli::cli_abort(
+    c(
+      "{analysis_type} interpretation not yet implemented",
+      "i" = "Currently only 'fa' (factor analysis) is supported"
+    )
+  )
+}

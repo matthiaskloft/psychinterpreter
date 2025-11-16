@@ -48,12 +48,12 @@ build_fa_analysis_data_internal <- function(fit_results, variable_info, analysis
 
   # Validate cutoff
   if (!is.numeric(cutoff) || length(cutoff) != 1 || cutoff < 0 || cutoff > 1) {
-    cli::cli_abort("{.arg cutoff} must be a single numeric value between 0 and 1 (got {.val {cutoff}})")
+    cli::cli_abort(paste0("{.arg cutoff} must be a single numeric value between 0 and 1 (got ", cutoff, ")"))
   }
 
   # Validate n_emergency
   if (!is.numeric(n_emergency) || length(n_emergency) != 1 || n_emergency < 0 || n_emergency != as.integer(n_emergency)) {
-    cli::cli_abort("{.arg n_emergency} must be a non-negative integer (got {.val {n_emergency}})")
+    cli::cli_abort(paste0("{.arg n_emergency} must be a non-negative integer (got ", n_emergency, ")"))
   }
 
   # Validate hide_low_loadings
@@ -205,7 +205,7 @@ build_fa_analysis_data_internal <- function(fit_results, variable_info, analysis
     used_emergency_rule <- FALSE
     if (n_significant == 0 && n_emergency > 0) {
       # No variables above cutoff - use top N
-      top_n_idx <- order(abs_loadings, decreasing = TRUE)[1:min(n_emergency, length(abs_loadings))]
+      top_n_idx <- order(abs_loadings, decreasing = TRUE)[seq_len(min(n_emergency, length(abs_loadings)))]
       significant_vars <- rep(FALSE, length(abs_loadings))
       significant_vars[top_n_idx] <- TRUE
       used_emergency_rule <- TRUE
@@ -280,6 +280,9 @@ build_analysis_data.list <- function(fit_results, analysis_type = NULL, interpre
     )
   }
 
+  # Filter dots to avoid parameter name conflicts
+  dots_filtered <- dots[!names(dots) %in% c("fit_results", "variable_info", "analysis_type", "interpretation_args")]
+
   # Route to appropriate method based on analysis_type
   if (analysis_type == "fa") {
     # Validate variable_info is provided (required for FA)
@@ -291,10 +294,19 @@ build_analysis_data.list <- function(fit_results, analysis_type = NULL, interpre
         )
       )
     }
-    build_fa_analysis_data_internal(fit_results, variable_info, analysis_type, interpretation_args, ...)
+    do.call(build_fa_analysis_data_internal, c(list(
+      fit_results = fit_results,
+      variable_info = variable_info,
+      analysis_type = analysis_type,
+      interpretation_args = interpretation_args
+    ), dots_filtered))
   } else {
     # Call default which will error with helpful message
-    build_analysis_data.default(fit_results, analysis_type, interpretation_args, ...)
+    do.call(build_analysis_data.default, c(list(
+      fit_results = fit_results,
+      analysis_type = analysis_type,
+      interpretation_args = interpretation_args
+    ), dots_filtered))
   }
 }
 
@@ -317,8 +329,16 @@ build_analysis_data.matrix <- function(fit_results, analysis_type = "fa", interp
     )
   }
 
+  # Filter dots to avoid parameter name conflicts
+  dots_filtered <- dots[!names(dots) %in% c("fit_results", "variable_info", "analysis_type", "interpretation_args")]
+
   # Matrix input - treat as FA loadings
-  build_fa_analysis_data_internal(fit_results, variable_info, analysis_type, interpretation_args, ...)
+  do.call(build_fa_analysis_data_internal, c(list(
+    fit_results = fit_results,
+    variable_info = variable_info,
+    analysis_type = analysis_type,
+    interpretation_args = interpretation_args
+  ), dots_filtered))
 }
 
 
@@ -340,8 +360,16 @@ build_analysis_data.data.frame <- function(fit_results, analysis_type = "fa", in
     )
   }
 
+  # Filter dots to avoid parameter name conflicts
+  dots_filtered <- dots[!names(dots) %in% c("fit_results", "variable_info", "analysis_type", "interpretation_args")]
+
   # Data frame input - treat as FA loadings
-  build_fa_analysis_data_internal(fit_results, variable_info, analysis_type, interpretation_args, ...)
+  do.call(build_fa_analysis_data_internal, c(list(
+    fit_results = fit_results,
+    variable_info = variable_info,
+    analysis_type = analysis_type,
+    interpretation_args = interpretation_args
+  ), dots_filtered))
 }
 
 
@@ -373,30 +401,18 @@ build_analysis_data.psych <- function(fit_results, analysis_type = "fa", interpr
     )
   }
 
-  # Validate model structure
-  if (!inherits(fit_results, "psych")) {
-    cli::cli_abort(
-      c("Model must inherit from {.cls psych}", "x" = "Got class: {.cls {class(fit_results)}}")
-    )
-  }
+  # Validate model structure using dispatch table
+  validate_model_structure(fit_results)
 
-  if (is.null(fit_results$loadings)) {
-    cli::cli_abort("Model does not contain loadings component")
-  }
-
-  # Extract loadings
-  loadings <- as.data.frame(unclass(fit_results$loadings))
-
-  # Extract factor correlations if oblique rotation
-  factor_cor_mat <- if (!is.null(fit_results$Phi)) fit_results$Phi else NULL
-
-  # Create list and route to internal helper
-  loadings_list <- list(
-    loadings = loadings,
-    factor_cor_mat = factor_cor_mat
-  )
+  # Extract loadings and correlations using dispatch table
+  model_info <- get_model_info(fit_results)
+  extractor_fn <- get(model_info$extractor_name, mode = "function")
+  loadings_list <- extractor_fn(fit_results)
 
   # Call internal function with named parameters, passing remaining dots
+  # Filter dots to avoid parameter name conflicts
+  dots_filtered <- dots[!names(dots) %in% c("fit_results", "variable_info", "analysis_type", "interpretation_args")]
+
   do.call(
     build_fa_analysis_data_internal,
     c(
@@ -406,7 +422,7 @@ build_analysis_data.psych <- function(fit_results, analysis_type = "fa", interpr
         analysis_type = analysis_type,
         interpretation_args = interpretation_args
       ),
-      dots
+      dots_filtered
     )
   )
 }
@@ -448,39 +464,18 @@ build_analysis_data.lavaan <- function(fit_results, analysis_type = "fa", interp
     )
   }
 
-  # Validate model structure
-  if (!inherits(fit_results, "lavaan")) {
-    cli::cli_abort(
-      c("Model must inherit from {.cls lavaan}", "x" = "Got class: {.cls {class(fit_results)}}")
-    )
-  }
+  # Validate model structure using dispatch table
+  validate_model_structure(fit_results)
 
-  # Check if lavaan package is available
-  if (!requireNamespace("lavaan", quietly = TRUE)) {
-    cli::cli_abort(
-      c(
-        "Package {.pkg lavaan} is required to interpret lavaan models",
-        "i" = "Install with: install.packages('lavaan')"
-      )
-    )
-  }
-
-  # Extract standardized loadings
-  loadings_matrix <- lavaan::inspect(fit_results, what = "std")$lambda
-
-  # Extract factor correlations
-  factor_cor_mat <- lavaan::inspect(fit_results, what = "cor.lv")
-  if (is.null(dim(factor_cor_mat)) || all(factor_cor_mat == diag(nrow(factor_cor_mat)))) {
-    factor_cor_mat <- NULL  # Orthogonal factors
-  }
-
-  # Create list and route to internal helper
-  loadings_list <- list(
-    loadings = loadings_matrix,
-    factor_cor_mat = factor_cor_mat
-  )
+  # Extract loadings and correlations using dispatch table
+  model_info <- get_model_info(fit_results)
+  extractor_fn <- get(model_info$extractor_name, mode = "function")
+  loadings_list <- extractor_fn(fit_results)
 
   # Call internal function with named parameters, passing remaining dots
+  # Filter dots to avoid parameter name conflicts
+  dots_filtered <- dots[!names(dots) %in% c("fit_results", "variable_info", "analysis_type", "interpretation_args")]
+
   do.call(
     build_fa_analysis_data_internal,
     c(
@@ -490,7 +485,7 @@ build_analysis_data.lavaan <- function(fit_results, analysis_type = "fa", interp
         analysis_type = analysis_type,
         interpretation_args = interpretation_args
       ),
-      dots
+      dots_filtered
     )
   )
 }
@@ -520,39 +515,18 @@ build_analysis_data.SingleGroupClass <- function(fit_results, analysis_type = "f
     )
   }
 
-  # Validate model structure
-  if (!inherits(fit_results, "SingleGroupClass")) {
-    cli::cli_abort(
-      c("Model must inherit from {.cls SingleGroupClass}", "x" = "Got class: {.cls {class(fit_results)}}")
-    )
-  }
+  # Validate model structure using dispatch table
+  validate_model_structure(fit_results)
 
-  # Check if mirt package is available
-  if (!requireNamespace("mirt", quietly = TRUE)) {
-    cli::cli_abort(
-      c(
-        "Package {.pkg mirt} is required to interpret mirt models",
-        "i" = "Install with: install.packages('mirt')"
-      )
-    )
-  }
-
-  # Extract standardized loadings
-  loadings_matrix <- mirt::summary(fit_results, suppress = 1000)$rotF
-
-  # Extract factor correlations if oblique
-  factor_cor_mat <- mirt::summary(fit_results, suppress = 1000)$fcor
-  if (is.null(factor_cor_mat) || all(factor_cor_mat == diag(nrow(factor_cor_mat)))) {
-    factor_cor_mat <- NULL  # Orthogonal factors
-  }
-
-  # Create list and route to internal helper
-  loadings_list <- list(
-    loadings = loadings_matrix,
-    factor_cor_mat = factor_cor_mat
-  )
+  # Extract loadings and correlations using dispatch table
+  model_info <- get_model_info(fit_results)
+  extractor_fn <- get(model_info$extractor_name, mode = "function")
+  loadings_list <- extractor_fn(fit_results)
 
   # Call internal function with named parameters, passing remaining dots
+  # Filter dots to avoid parameter name conflicts
+  dots_filtered <- dots[!names(dots) %in% c("fit_results", "variable_info", "analysis_type", "interpretation_args")]
+
   do.call(
     build_fa_analysis_data_internal,
     c(
@@ -562,7 +536,7 @@ build_analysis_data.SingleGroupClass <- function(fit_results, analysis_type = "f
         analysis_type = analysis_type,
         interpretation_args = interpretation_args
       ),
-      dots
+      dots_filtered
     )
   )
 }
@@ -679,4 +653,19 @@ validate_fa_list_structure <- function(fit_results_list) {
 #' @noRd
 calculate_variance_explained <- function(loadings, n_variables) {
   sum(loadings^2) / n_variables
+}
+
+
+#' Build Structured List for FA
+#'
+#' @export
+#' @keywords internal
+build_structured_list.fa <- function(x, analysis_type, ...) {
+  dots <- list(...)
+  factor_cor_mat <- dots$factor_cor_mat
+
+  list(
+    loadings = x,
+    factor_cor_mat = factor_cor_mat
+  )
 }

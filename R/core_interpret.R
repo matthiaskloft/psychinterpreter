@@ -452,13 +452,17 @@ interpret_core <- function(analysis_data = NULL,
     cli::cli_alert_info("Creating fit summary...")
   }
 
+  # Filter dots to avoid parameter conflicts
+  # Remove parameters that are explicitly set in the named list
+  dots_filtered <- dots[!names(dots) %in% c("analysis_type", "analysis_data", "variable_info")]
+
   fit_summary <- do.call(create_fit_summary, c(
     list(
-      analysis_type = analysis_type_obj,
+      analysis_type = analysis_data$analysis_type,
       analysis_data = analysis_data,
       variable_info = variable_info
     ),
-    dots
+    dots_filtered
   ))
 
   # ==========================================================================
@@ -555,6 +559,17 @@ interpret_core <- function(analysis_data = NULL,
 #' @export
 #' @keywords internal
 create_fit_summary <- function(analysis_type, analysis_data, ...) {
+  # Validate analysis_type is a character string
+  if (!is.character(analysis_type) || length(analysis_type) != 1) {
+    cli::cli_abort(
+      c(
+        "Invalid analysis_type in create_fit_summary",
+        "x" = "analysis_type must be a single character string",
+        "i" = "Received: {class(analysis_type)} of length {length(analysis_type)}"
+      )
+    )
+  }
+
   # Create dispatch object with analysis_type class
   dispatch_obj <- structure(
     list(),

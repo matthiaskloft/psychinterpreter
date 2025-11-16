@@ -33,47 +33,22 @@ handle_raw_data_interpret <- function(x, analysis_type,
   # Validate analysis_type
   validate_analysis_type(effective_analysis_type)
 
-  # Route to model-specific function
-  switch(effective_analysis_type,
-    fa = {
-      # Extract factor_cor_mat from dots if provided
-      dots <- list(...)
-      factor_cor_mat <- dots$factor_cor_mat
+  # Build structured list via S3 dispatch
+  fit_results <- build_structured_list(
+    x = x,
+    analysis_type = effective_analysis_type,
+    ...
+  )
 
-      # Call interpret_core with structured list
-      # Note: variable_info passed through ... to interpret_core
-      interpret_core(
-        fit_results = list(
-          loadings = x,
-          factor_cor_mat = factor_cor_mat
-        ),
-        analysis_type = "fa",
-        chat_session = chat_session,
-        llm_args = llm_args,
-        interpretation_args = interpretation_args,
-        output_args = output_args,
-        ...  # Includes variable_info
-      )
-    },
-    gm = cli::cli_abort(
-      c(
-        "Gaussian Mixture (gm) interpretation not yet implemented",
-        "i" = "Currently only 'fa' (factor analysis) is supported"
-      )
-    ),
-    irt = cli::cli_abort(
-      c(
-        "IRT interpretation not yet implemented",
-        "i" = "Currently only 'fa' (factor analysis) is supported"
-      )
-    ),
-    cdm = cli::cli_abort(
-      c(
-        "CDM interpretation not yet implemented",
-        "i" = "Currently only 'fa' (factor analysis) is supported"
-      )
-    ),
-    cli::cli_abort("Unsupported analysis_type: {effective_analysis_type}")
+  # Call interpret_core with structured list
+  interpret_core(
+    fit_results = fit_results,
+    analysis_type = effective_analysis_type,
+    chat_session = chat_session,
+    llm_args = llm_args,
+    interpretation_args = interpretation_args,
+    output_args = output_args,
+    ...
   )
 }
 

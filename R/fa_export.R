@@ -73,34 +73,15 @@ export_interpretation.fa_interpretation <- function(interpretation_results,
     cli::cli_abort("interpretation_results must be a list (output from interpret())")
   }
 
-  if (!format %in% c("txt", "md")) {
-    cli::cli_abort(
-      c(
-        "Unsupported format: {.val {format}}",
-        "i" = "Supported formats: {.val txt}, {.val md}"
-      )
-    )
-  }
-
   if (!is.character(file) || length(file) != 1) {
     cli::cli_abort("file must be a single character string")
   }
 
-  # Determine correct file extension
-  expected_ext <- if (format == "txt") ".txt" else ".md"
+  # Get format configuration using dispatch table
+  format_config <- get_export_format_config(format)
 
-  # Check if file already has the correct extension
-  current_ext <- tolower(tools::file_ext(file))
-
-  # Add extension only if missing or different
-  if (current_ext == "" || paste0(".", current_ext) != expected_ext) {
-    # Remove any existing extension and add the correct one
-    file_base <- tools::file_path_sans_ext(file)
-    output_file <- paste0(file_base, expected_ext)
-  } else {
-    # User already provided correct extension
-    output_file <- file
-  }
+  # Process file path
+  output_file <- process_export_file_path(file, format_config$extension)
 
   # Extract directory from file path and ensure it exists
   file_dir <- dirname(output_file)
@@ -108,23 +89,20 @@ export_interpretation.fa_interpretation <- function(interpretation_results,
     cli::cli_abort("Directory does not exist: {.path {file_dir}}")
   }
 
-  output_format <- if (format == "txt") "cli" else "markdown"
-
   # Build report
   report <- build_fa_report(
     interpretation_results,
     n_factors = length(interpretation_results$component_summaries),
-    output_format = output_format,
+    output_format = format_config$output_format,
     cutoff = interpretation_results$analysis_data$cutoff,
     suppress_heading = FALSE,
     heading_level = 1
   )
 
+  # Apply format-specific post-processing
+  report <- apply_export_format(report, format_config)
+
   # Write report to file
-  # Strip ANSI codes if exporting cli format to txt file
-  if (format == "txt") {
-    report <- cli::ansi_strip(report)
-  }
   # Use cat() to properly interpret escape sequences like \n
   cat(report, file = output_file, sep = "")
 
@@ -133,4 +111,137 @@ export_interpretation.fa_interpretation <- function(interpretation_results,
   }
 
   invisible(TRUE)
+}
+
+#' Export Format Dispatch Table
+#'
+#' Centralized configuration for supported export formats.
+#' Maps format names to their properties (extension, output format, post-processor).
+#'
+#' @return A list of format configurations, each containing:
+#'   - `extension`: File extension including the dot (e.g., ".txt")
+#'   - `output_format`: Format name for report builder (e.g., "cli")
+#'   - `post_processor`: Function to apply format-specific transformations
+#'
+#' @keywords internal
+export_format_dispatch_table <- function() {
+  list(
+    txt = list(
+      extension = ".txt",
+      output_format = "cli",
+      post_processor = function(report) cli::ansi_strip(report),
+      supported_formats = c("txt")
+    ),
+    md = list(
+      extension = ".md",
+      output_format = "markdown",
+      post_processor = function(report) report,  # No transformation for markdown
+      supported_formats = c("md")
+    )
+  )
+}
+
+#' Get Export Format Configuration
+#'
+#' Retrieves configuration for a specific export format from the dispatch table.
+#' Validates that the format is supported and returns its configuration.
+#'
+#' @param format Character. The export format name (e.g., "txt", "md")
+#'
+#' @return A list containing the format configuration
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' config <- get_export_format_config("txt")
+#' # Returns list with extension=".txt", output_format="cli", post_processor=function
+#' }
+get_export_format_config <- function(format) {
+  # Get dispatch table
+  dispatch_table <- export_format_dispatch_table()
+
+  # Validate format exists in dispatch table
+  if (!format %in% names(dispatch_table)) {
+    supported <- paste(names(dispatch_table), collapse = ", ")
+    cli::cli_abort(
+      c(
+        "Unsupported format: {.val {format}}",
+        "i" = "Supported formats: {.val {supported}}"
+      )
+    )
+  }
+
+  # Return configuration for requested format
+  dispatch_table[[format]]
+}
+
+#' Process Export File Path
+#'
+#' Intelligently handles file extension management for export files.
+#' Adds the correct extension if missing, and replaces incorrect extensions.
+#'
+#' @param file Character. Original file path
+#' @param expected_extension Character. The extension that should be used (e.g., ".txt")
+#'
+#' @return Character. The processed file path with correct extension
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' # Add extension if missing
+#' process_export_file_path("report", ".txt")     # Returns "report.txt"
+#'
+#' # Keep correct extension
+#' process_export_file_path("report.txt", ".txt") # Returns "report.txt"
+#'
+#' # Replace incorrect extension
+#' process_export_file_path("report.md", ".txt")  # Returns "report.txt"
+#' }
+process_export_file_path <- function(file, expected_extension) {
+  # Get current file extension
+  current_ext <- tolower(tools::file_ext(file))
+
+  # Normalize expected extension (ensure it starts with ".")
+  if (!startsWith(expected_extension, ".")) {
+    expected_extension <- paste0(".", expected_extension)
+  }
+
+  # Check if file already has correct extension
+  if (current_ext == "" || paste0(".", current_ext) != expected_extension) {
+    # Remove any existing extension and add the correct one
+    file_base <- tools::file_path_sans_ext(file)
+    output_file <- paste0(file_base, expected_extension)
+  } else {
+    # User already provided correct extension
+    output_file <- file
+  }
+
+  output_file
+}
+
+#' Apply Export Format Transformations
+#'
+#' Applies format-specific post-processing to a report.
+#' Uses the post-processor function from the format configuration.
+#'
+#' @param report Character. The report text to process
+#' @param format_config List. Format configuration from dispatch table
+#'
+#' @return Character. The processed report
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' config <- get_export_format_config("txt")
+#' processed <- apply_export_format("Report with ANSI codes", config)
+#' }
+apply_export_format <- function(report, format_config) {
+  # Ensure format_config has a post_processor function
+  if (!is.function(format_config$post_processor)) {
+    cli::cli_warn("Format config missing post_processor, returning report unchanged")
+    return(report)
+  }
+
+  # Apply format-specific transformation
+  format_config$post_processor(report)
 }

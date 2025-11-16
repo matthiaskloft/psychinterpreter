@@ -1,0 +1,12 @@
+linters: linters_with_defaults(
+    line_length_linter = line_length_linter(120),
+    object_name_linter = NULL,  # Disable - S3 methods intentionally use dots
+    commented_code_linter = NULL,  # Disable - template code for future models
+    indentation_linter = NULL,  # Disable - too strict for R argument alignment
+    return_linter = return_linter(),
+    object_usage_linter = object_usage_linter()
+  )
+exclusions: list(
+    "R/RcppExports.R",
+    "tests/testthat.R"
+  )
