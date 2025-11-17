@@ -380,6 +380,185 @@ PARAMETER_REGISTRY <- list(
       list(valid = TRUE, message = NULL)
     },
     description = "Sort variables by loading strength within factors (FA only)"
+  ),
+
+  # ==========================================================================
+  # GAUSSIAN MIXTURE MODEL PARAMETERS (7 parameters)
+  # ==========================================================================
+
+  n_clusters = list(
+    default = NULL,
+    type = "integer",
+    range = c(1, 100),
+    allowed_values = NULL,
+    config_group = "interpretation_args",
+    model_specific = "gm",
+    required = FALSE,
+    validation_fn = function(value) {
+      if (is.null(value)) {
+        return(list(valid = TRUE, message = NULL))
+      }
+      if (!is.numeric(value) || length(value) != 1 || value != round(value)) {
+        return(list(
+          valid = FALSE,
+          message = "n_clusters must be a single integer"
+        ))
+      }
+      if (value < 1 || value > 100) {
+        return(list(
+          valid = FALSE,
+          message = "n_clusters must be between 1 and 100"
+        ))
+      }
+      list(valid = TRUE, message = NULL)
+    },
+    description = "Number of clusters (GM only)"
+  ),
+
+  covariance_type = list(
+    default = NULL,
+    type = "character",
+    range = NULL,
+    allowed_values = c("EII", "VII", "EEI", "VEI", "EVI", "VVI",
+                      "EEE", "VEE", "EVE", "VVE", "EEV", "VEV",
+                      "EVV", "VVV"),
+    config_group = "interpretation_args",
+    model_specific = "gm",
+    required = FALSE,
+    validation_fn = function(value) {
+      if (is.null(value)) {
+        return(list(valid = TRUE, message = NULL))
+      }
+      valid_types <- c("EII", "VII", "EEI", "VEI", "EVI", "VVI",
+                      "EEE", "VEE", "EVE", "VVE", "EEV", "VEV",
+                      "EVV", "VVV")
+      if (!value %in% valid_types) {
+        return(list(
+          valid = FALSE,
+          message = paste0("covariance_type must be one of: ",
+                          paste(valid_types, collapse = ", "))
+        ))
+      }
+      list(valid = TRUE, message = NULL)
+    },
+    description = "Covariance structure for mclust models (GM only)"
+  ),
+
+  min_cluster_size = list(
+    default = 5,
+    type = "integer",
+    range = c(1, 100),
+    allowed_values = NULL,
+    config_group = "interpretation_args",
+    model_specific = "gm",
+    required = FALSE,
+    validation_fn = function(value) {
+      if (!is.numeric(value) || length(value) != 1) {
+        return(list(
+          valid = FALSE,
+          message = "min_cluster_size must be a single numeric value"
+        ))
+      }
+      if (value < 1 || value > 100) {
+        return(list(
+          valid = FALSE,
+          message = "min_cluster_size must be between 1 and 100"
+        ))
+      }
+      list(valid = TRUE, message = NULL)
+    },
+    description = "Minimum meaningful cluster size for diagnostics (GM only)"
+  ),
+
+  separation_threshold = list(
+    default = 0.3,
+    type = "numeric",
+    range = c(0, 1),
+    allowed_values = NULL,
+    config_group = "interpretation_args",
+    model_specific = "gm",
+    required = FALSE,
+    validation_fn = function(value) {
+      if (!is.numeric(value) || length(value) != 1) {
+        return(list(
+          valid = FALSE,
+          message = "separation_threshold must be a single numeric value"
+        ))
+      }
+      if (value < 0 || value > 1) {
+        return(list(
+          valid = FALSE,
+          message = "separation_threshold must be between 0 and 1"
+        ))
+      }
+      list(valid = TRUE, message = NULL)
+    },
+    description = "Overlap threshold for cluster separation diagnostics (GM only)"
+  ),
+
+  profile_variables = list(
+    default = NULL,
+    type = "character",
+    range = NULL,
+    allowed_values = NULL,
+    config_group = "interpretation_args",
+    model_specific = "gm",
+    required = FALSE,
+    validation_fn = function(value) {
+      if (is.null(value)) {
+        return(list(valid = TRUE, message = NULL))
+      }
+      if (!is.character(value)) {
+        return(list(
+          valid = FALSE,
+          message = "profile_variables must be a character vector"
+        ))
+      }
+      list(valid = TRUE, message = NULL)
+    },
+    description = "Subset of variables to focus on for interpretation (GM only)"
+  ),
+
+  weight_by_uncertainty = list(
+    default = FALSE,
+    type = "logical",
+    range = NULL,
+    allowed_values = NULL,
+    config_group = "interpretation_args",
+    model_specific = "gm",
+    required = FALSE,
+    validation_fn = function(value) {
+      if (!is.logical(value) || length(value) != 1 || is.na(value)) {
+        return(list(
+          valid = FALSE,
+          message = "weight_by_uncertainty must be TRUE or FALSE"
+        ))
+      }
+      list(valid = TRUE, message = NULL)
+    },
+    description = "Weight interpretations by cluster assignment certainty (GM only)"
+  ),
+
+  plot_type = list(
+    default = "auto",
+    type = "character",
+    range = NULL,
+    allowed_values = c("auto", "heatmap", "parallel", "radar", "all"),
+    config_group = "interpretation_args",
+    model_specific = "gm",
+    required = FALSE,
+    validation_fn = function(value) {
+      valid_types <- c("auto", "heatmap", "parallel", "radar", "all")
+      if (!value %in% valid_types) {
+        return(list(
+          valid = FALSE,
+          message = paste0("plot_type must be one of: ",
+                          paste(valid_types, collapse = ", "))
+        ))
+      }
+      list(valid = TRUE, message = NULL)
+    },
+    description = "Visualization type for cluster profiles (GM only)"
   )
 )
 

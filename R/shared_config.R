@@ -44,7 +44,8 @@
 #' @noRd
 .VALID_INTERPRETATION_PARAMS <- list(
   fa = c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings"),
-  gm = character(0),  # Future: placeholder for Gaussian Mixture parameters
+  gm = c("n_clusters", "covariance_type", "min_cluster_size",
+         "separation_threshold", "profile_variables", "weight_by_uncertainty", "plot_type"),
   irt = character(0), # Future: placeholder for IRT parameters
   cdm = character(0)  # Future: placeholder for CDM parameters
 )
@@ -215,7 +216,8 @@ interpretation_args_fa <- function(cutoff = NULL,
 #' @keywords internal
 #' @noRd
 .INTERPRETATION_ARGS_DISPATCH <- list(
-  fa = interpretation_args_fa
+  fa = interpretation_args_fa,
+  gm = interpretation_args_gm
 )
 
 

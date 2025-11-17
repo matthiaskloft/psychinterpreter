@@ -43,8 +43,10 @@ reference:
       Functions for creating visual representations and applying consistent styling.
     contents:
       - plot.fa_interpretation
+      - plot.gm_interpretation
       - plot.interpretation
       - create_factor_plot
+      - create_cluster_profile_plot
       - theme_psychinterpreter
       - psychinterpreter_colors
 
@@ -57,10 +59,12 @@ reference:
 
   - title: "Utility Functions"
     desc: >
-      Helper functions for analyzing factor loading patterns and checking object types.
+      Helper functions for analyzing patterns and checking object types.
     contents:
       - find_cross_loadings
       - find_no_loadings
+      - find_overlapping_clusters
+      - find_distinguishing_variables_gm
       - is.interpretation
 
   - title: "Print Methods"

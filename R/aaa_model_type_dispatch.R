@@ -60,6 +60,14 @@ get_model_dispatch_table <- function() {
       package = "mirt",
       validator_name = "validate_mirt_model",
       extractor_name = "extract_mirt_loadings"
+    ),
+
+    # mclust package models
+    Mclust = list(
+      analysis_type = "gm",
+      package = "mclust",
+      validator_name = "validate_mclust_model",
+      extractor_name = "extract_mclust_data"
     )
   )
 }
