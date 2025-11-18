@@ -87,11 +87,7 @@ test_that(".get_valid_interpretation_params returns correct params for fa", {
 })
 
 test_that(".get_valid_interpretation_params returns empty for unimplemented types", {
-  expect_equal(
-    psychinterpreter:::.get_valid_interpretation_params("gm"),
-    character(0)
-  )
-
+  # IRT and CDM don't have parameters defined yet
   expect_equal(
     psychinterpreter:::.get_valid_interpretation_params("irt"),
     character(0)
@@ -127,9 +123,9 @@ test_that("interpretation_args uses dispatch table correctly for fa", {
 })
 
 test_that("interpretation_args dispatch table errors gracefully for unimplemented types", {
-  # GM is in the valid types but not yet implemented in dispatch table
+  # IRT is in the valid types but not yet implemented in dispatch table
   expect_error(
-    interpretation_args(analysis_type = "gm"),
+    interpretation_args(analysis_type = "irt"),
     "not yet implemented"
   )
 })

@@ -11,7 +11,17 @@
   ...
 )
 }
+\arguments{
+\item{fit_results}{Fitted model object (e.g., psych::fa, lavaan::cfa, list with loadings)}
+
+\item{analysis_type}{Character. Model type ("fa", "gm", "irt", "cdm"). Required for list inputs.}
+
+\item{interpretation_args}{Interpretation configuration object from interpretation_args() or NULL}
+
+\item{...}{Additional arguments passed to model-specific methods, including variable_info
+(data frame with 'variable' and 'description' columns, required for FA)}
+}
 \description{
-Default method for build_analysis_data
+Throws an informative error for unsupported model types.
 }
 \keyword{internal}

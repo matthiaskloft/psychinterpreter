@@ -4,9 +4,30 @@
 \alias{build_main_prompt.default}
 \title{Default method for build_main_prompt}
 \usage{
-\method{build_main_prompt}{default}(analysis_type, analysis_data, ...)
+\method{build_main_prompt}{default}(
+  analysis_type,
+  analysis_data,
+  word_limit,
+  additional_info = NULL,
+  ...
+)
+}
+\arguments{
+\item{analysis_type}{S3 dispatch object}
+
+\item{analysis_data}{List from build_analysis_data()}
+
+\item{word_limit}{Integer. Maximum words per interpretation}
+
+\item{additional_info}{Character or NULL. Optional context}
+
+\item{...}{Additional arguments (ignored)}
+}
+\value{
+Does not return (throws error)
 }
 \description{
-Default method for build_main_prompt
+Throws an error when no model-specific method is found. This ensures
+all supported model types have explicit prompt builders.
 }
 \keyword{internal}

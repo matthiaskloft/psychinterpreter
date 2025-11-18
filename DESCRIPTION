@@ -28,5 +28,7 @@ Suggests:
     testthat (>= 3.0.0),
     psych,
     lavaan,
-    mirt
+    mirt,
+    mclust,
+    fmsb
 Config/testthat/edition: 3

@@ -7,11 +7,13 @@
 #'
 #' Generates diagnostic information about clustering quality and potential issues.
 #'
+#' @param analysis_type Character. Type of analysis ("gm")
 #' @param analysis_data Standardized GM analysis data
+#' @param ... Additional arguments (currently unused)
 #' @return List with diagnostic information and warnings
 #' @export
 #' @keywords internal
-create_fit_summary.gm <- function(analysis_data) {
+create_fit_summary.gm <- function(analysis_type, analysis_data, ...) {
   fit_summary <- list(
     warnings = character(),
     notes = character(),
@@ -57,7 +59,7 @@ create_fit_summary.gm <- function(analysis_data) {
 
     # Check for very unbalanced clusters
     size_ratio <- max(analysis_data$proportions) / min(analysis_data$proportions)
-    if (size_ratio > 10) {
+    if (size_ratio > 5) {
       fit_summary$warnings <- c(
         fit_summary$warnings,
         paste0(

@@ -129,9 +129,9 @@ interpret(
 ```
 
 **Supported model types**:
-- `psych::fa()`, `psych::principal()`
-- `lavaan::cfa()`, `lavaan::sem()`, `lavaan::efa()`
-- `mirt::mirt()`
+- **Factor Analysis**: `psych::fa()`, `psych::principal()`, `lavaan::efa()`, `mirt::mirt()`
+- **SEM/CFA**: `lavaan::cfa()`, `lavaan::sem()`
+- **Gaussian Mixture**: `mclust::Mclust()`
 
 ## Pattern 2: Structured List
 
@@ -257,6 +257,31 @@ interpret(..., echo = "all")
 interpret(..., echo = "all")
 ```
 
+## Discovering Available Parameters
+
+```r
+# Show common parameters for all models (llm_args + output_args)
+show_interpret_args()
+
+# Show all parameters for Factor Analysis (includes FA-specific interpretation_args)
+show_interpret_args("fa")
+
+# Show all parameters for Gaussian Mixture Models (includes GM-specific interpretation_args)
+show_interpret_args("gm")
+
+# Capture parameter data programmatically
+params_df <- show_interpret_args("fa")
+print(params_df)
+```
+
+The function displays CLI-formatted output with:
+- **Parameter name** and type (character, integer, numeric, logical)
+- **Default value** from the centralized parameter registry
+- **Valid range** (for numeric) or **allowed values** (for categorical)
+- **Description** of what the parameter controls
+
+Parameters are organized by configuration group (llm_args, output_args, interpretation_args).
+
 ## Customizing Output
 
 ```r
@@ -300,7 +325,7 @@ colors <- psychinterpreter_colors("diverging")    # Blue-white-orange
 cat_cols <- psychinterpreter_colors("categorical") # Okabe-Ito palette
 ```
 
-## Working with Weak Factors
+## Working with Weak Factors (FA)
 
 ```r
 # Emergency rule: use top N loadings if none exceed cutoff
@@ -309,6 +334,44 @@ interpret(..., n_emergency = 0)  # Label weak factors as "undefined"
 
 # Hide non-significant loadings to save tokens
 interpret(..., hide_low_loadings = TRUE)
+```
+
+## Working with Gaussian Mixture Models (GM)
+
+```r
+library(mclust)
+
+# Fit Gaussian Mixture Model
+data_scaled <- scale(data)
+gmm_model <- Mclust(data_scaled, G = 1:5)
+
+# Get interpretation
+gm_result <- interpret(
+  fit_results = gmm_model,
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+  weight_by_uncertainty = TRUE,  # Weight by assignment certainty
+  plot_type = "auto"              # Auto-select visualization
+)
+
+# Multiple visualization types
+plot(gm_result, plot_type = "heatmap")    # Cluster means heatmap
+plot(gm_result, plot_type = "parallel")   # Parallel coordinates
+plot(gm_result, plot_type = "radar")      # Radar/spider plots
+plot(gm_result, plot_type = "all")        # All visualizations
+
+# GM-specific parameters
+interpret(
+  fit_results = gmm_model,
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+  min_cluster_size = 10,              # Minimum viable cluster size
+  separation_threshold = 0.4,         # Overlap detection threshold
+  profile_variables = c("var1", "var2", "var3"),  # Focus on subset
+  weight_by_uncertainty = TRUE        # Consider assignment uncertainty
+)
 ```
 
 ## API Configuration
@@ -483,7 +546,9 @@ interpret(..., echo = "all")
 
 - **Optimize tests further**: coverage and efficiency
 
-- **Implement gaussian_mixture class** - Requires 8 S3 methods + 2 optional methods (see dev/DEVELOPER_GUIDE.md)
+- **Implement IRT class** - Item Response Theory models (see dev/DEVELOPER_GUIDE.md)
+
+- **Implement CDM class** - Cognitive Diagnostic Models (see dev/DEVELOPER_GUIDE.md)
 
 ---
 
@@ -495,27 +560,51 @@ interpret(..., echo = "all")
 |----------|----------|
 | `interpret()` | Universal interpretation function (recommended) |
 | `chat_session()` | Create persistent LLM session |
+| `show_interpret_args()` | Show available parameters with defaults for interpret() |
 | `export_interpretation()` | Export to txt/md files |
 | `plot.fa_interpretation()` | Visualize factor loadings with color-blind friendly palette |
+| `plot.gm_interpretation()` | Visualize cluster profiles (heatmap/parallel/radar) |
 | `create_factor_plot()` | Create factor loading heatmap (standalone wrapper) |
+| `create_cluster_profile_plot()` | Create cluster profile plot (standalone wrapper) |
 | `theme_psychinterpreter()` | Custom ggplot2 theme for publication-ready plots |
 | `psychinterpreter_colors()` | Get color-blind friendly palettes |
-| `find_cross_loadings()` | Identify cross-loading variables |
-| `find_no_loadings()` | Identify orphaned variables |
+| `find_cross_loadings()` | Identify cross-loading variables (FA) |
+| `find_no_loadings()` | Identify orphaned variables (FA) |
+| `find_overlapping_clusters()` | Identify overlapping clusters (GM) |
+| `find_distinguishing_variables_gm()` | Identify key variables per cluster (GM) |
 | `llm_args()` | Create LLM configuration object |
 | `interpretation_args()` | Create model-specific interpretation configuration |
 | `output_args()` | Create output configuration object |
 
 ## Key Parameters
 
+### Common Parameters
+
 | Parameter | Values | Default | Description |
 |-----------|--------|---------|-------------|
 | `silent` | 0, 1, 2 | 0 | 0=report+messages, 1=messages only, 2=silent |
 | `format` | "cli", "markdown" | "cli" | Report format (in output_args) |
-| `word_limit` | 20-500 | 150 | Max words per factor interpretation |
+| `word_limit` | 20-500 | 150 | Max words per interpretation |
+| `echo` | "all", "none" | "none" | Show LLM prompts/responses |
+
+### FA-Specific Parameters
+
+| Parameter | Values | Default | Description |
+|-----------|--------|---------|-------------|
+| `cutoff` | 0-1 | 0.3 | Minimum loading threshold |
 | `n_emergency` | 0-10 | 2 | Top N loadings for weak factors (0=undefined) |
 | `hide_low_loadings` | TRUE/FALSE | FALSE | Hide non-significant loadings in prompt |
-| `echo` | "all", "none" | "none" | Show LLM prompts/responses |
+| `sort_loadings` | TRUE/FALSE | TRUE | Sort variables by loading strength |
+
+### GM-Specific Parameters
+
+| Parameter | Values | Default | Description |
+|-----------|--------|---------|-------------|
+| `min_cluster_size` | 1-100 | 5 | Minimum meaningful cluster size |
+| `separation_threshold` | 0-1 | 0.3 | Overlap detection threshold |
+| `weight_by_uncertainty` | TRUE/FALSE | FALSE | Weight by assignment certainty |
+| `plot_type` | "auto", "heatmap", "parallel", "radar", "all" | "auto" | Visualization type |
+| `profile_variables` | character vector | NULL | Focus on specific variables |
 
 ## Package Files
 
@@ -598,8 +687,9 @@ Update the developer guide when making **architectural or implementation changes
 
 ---
 
-**Last Updated**: 2025-11-16
+**Last Updated**: 2025-11-17
 **Maintainer**: Update when making significant user-facing changes
+**Latest Change**: Added Gaussian Mixture (GM) model support with full S3 implementation
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
 - use DT::datatable() for .Qmd articles
 - when adding or editing functions, remember to update the references in the pkgdown.yml

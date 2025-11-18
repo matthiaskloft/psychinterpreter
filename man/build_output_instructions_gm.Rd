@@ -7,14 +7,17 @@
 build_output_instructions_gm(analysis_data, word_limit)
 }
 \arguments{
-\item{analysis_data}{Standardized GM analysis data}
+\item{analysis_data}{Standardized GM analysis data (list with n_clusters,
+cluster_names, weight_by_uncertainty, and uncertainty elements)}
 
-\item{word_limit}{Maximum words per cluster interpretation}
+\item{word_limit}{Integer. Maximum words per cluster interpretation (instructions
+suggest 80-100\% usage of this limit)}
 }
 \value{
-Character string with output format instructions
+Character string with JSON format example and output requirements
 }
 \description{
-Build Output Instructions for GM Prompt
+Generates JSON format instructions and requirements for the LLM response,
+including cluster name requirements and interpretation guidelines.
 }
 \keyword{internal}

@@ -146,22 +146,23 @@ validate_list_structure.fa <- function(model_type, fit_results_list) {
 }
 
 
-#' Validate List Structure for Gaussian Mixture (GM) - Not Yet Implemented
+#' Validate GM Structured List (S3 Method)
+#'
+#' Extracts and validates GM-specific list components.
+#' The actual implementation is in gm_model_data.R
 #'
 #' @param model_type Dispatch object with gm class
-#' @param fit_results_list List. Structured list with GM components
+#' @param fit_results_list List. Structured list with GM components (must contain 'means')
 #'
-#' @return Never returns - always errors with "not yet implemented" message
+#' @return Standardized analysis_data list
 #' @export
 #' @keywords internal
+#' @seealso \code{\link{validate_list_structure.gm}} in gm_model_data.R for implementation
 validate_list_structure.gm <- function(model_type, fit_results_list) {
-  cli::cli_abort(
-    c(
-      "Gaussian Mixture (GM) model interpretation is not yet implemented",
-      "i" = "This feature is planned for a future release",
-      "i" = "Currently supported: Factor Analysis (FA) models"
-    )
-  )
+  # Call the actual implementation from gm_model_data.R
+  # Note: This is a wrapper to maintain consistency in s3_list_validation.R
+  # The real implementation handles GM-specific validation
+  validate_list_structure_gm_impl(fit_results_list)
 }
 
 

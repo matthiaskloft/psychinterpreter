@@ -27,7 +27,8 @@ create_cluster_profile_plot(
 \item{title}{Plot title}
 }
 \value{
-ggplot2 object
+For heatmap/parallel: a ggplot2 object. For radar: a recordedplot
+object (base R graphics created with fmsb::radarchart).
 }
 \description{
 Standalone function to create cluster profile visualizations.

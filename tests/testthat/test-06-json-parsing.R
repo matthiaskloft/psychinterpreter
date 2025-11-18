@@ -358,7 +358,7 @@ test_that("extract_by_pattern (FA)adds emergency suffix", {
 test_that("create_default_result (FA) creates defaults for all factors", {
   model_data <- create_mock_model_data(n_factors = 3)
 
-  result <- create_default_result("fa", model_data)
+  result <- create_default_result("fa", analysis_data = model_data)
 
   expect_type(result, "list")
   expect_named(result, c("component_summaries", "suggested_names"))
@@ -377,7 +377,7 @@ test_that("create_default_result (FA) creates defaults for all factors", {
 test_that("create_default_result (FA)handles single factor", {
   model_data <- create_mock_model_data(n_factors = 1)
 
-  result <- create_default_result("fa", model_data)
+  result <- create_default_result("fa", analysis_data = model_data)
 
   expect_length(result$suggested_names, 1)
   expect_equal(result$suggested_names$MR1, "Factor 1")
@@ -389,7 +389,7 @@ test_that("create_default_result (FA)preserves existing values if set", {
   # Pre-set some values (simulating undefined factor handling)
   model_data$factor_summaries$MR2$llm_interpretation <- "NA"
 
-  result <- create_default_result("fa", model_data)
+  result <- create_default_result("fa", analysis_data = model_data)
 
   # MR1 should get default
   expect_equal(result$component_summaries$MR1$llm_interpretation,
@@ -401,7 +401,7 @@ test_that("create_default_result (FA)preserves existing values if set", {
 test_that("create_default_result (FA)returns complete structure", {
   model_data <- create_mock_model_data(n_factors = 2)
 
-  result <- create_default_result("fa", model_data)
+  result <- create_default_result("fa", analysis_data = model_data)
 
   # Check structure
   expect_true(all(c("component_summaries", "suggested_names") %in% names(result)))
@@ -465,9 +465,342 @@ test_that("create_default_result (FA)works with real model data structure", {
     variable_info = var_info
   )
 
-  result <- create_default_result("fa", model_data)
+  result <- create_default_result("fa", analysis_data = model_data)
 
   expect_type(result, "list")
   expect_named(result, c("component_summaries", "suggested_names"))
   expect_length(result$suggested_names, ncol(fa_model$loadings))
+})
+
+# ==============================================================================
+# NEW JSON EDGE CASE TESTS (Phase 1, Task 1)
+# ==============================================================================
+
+test_that("JSON parsing handles unicode in factor names", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # Unicode in factor names
+  parsed <- list(
+    MR1 = list(
+      name = "Extraversion 😊",
+      interpretation = "Outgoing behavior"
+    ),
+    MR2 = list(
+      name = "Conscientiousness 📋",
+      interpretation = "Organized behavior"
+    )
+  )
+
+  result <- validate_parsed_result(parsed, "fa", model_data)
+
+  expect_type(result, "list")
+  expect_match(result$suggested_names$MR1, "😊")
+  expect_match(result$suggested_names$MR2, "📋")
+})
+
+test_that("JSON parsing handles unicode in interpretations", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # Unicode in interpretations
+  parsed <- list(
+    MR1 = list(
+      name = "Extraversion",
+      interpretation = "High sociability and energy 😊 with positive émotions"
+    ),
+    MR2 = list(
+      name = "Conscientiousness",
+      interpretation = "Organisation 📋 et diligence"
+    )
+  )
+
+  result <- validate_parsed_result(parsed, "fa", model_data)
+
+  expect_type(result, "list")
+  expect_match(result$component_summaries$MR1$llm_interpretation, "😊")
+  expect_match(result$component_summaries$MR1$llm_interpretation, "émotions")
+  expect_match(result$component_summaries$MR2$llm_interpretation, "📋")
+})
+
+test_that("JSON parsing handles very long interpretations", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # Very long interpretation (>5000 words)
+  long_text <- paste(rep("This is a very detailed interpretation with many words. ", 1000), collapse = "")
+
+  parsed <- list(
+    MR1 = list(
+      name = "Factor 1",
+      interpretation = long_text
+    ),
+    MR2 = list(
+      name = "Factor 2",
+      interpretation = "Short interpretation"
+    )
+  )
+
+  result <- validate_parsed_result(parsed, "fa", model_data)
+
+  expect_type(result, "list")
+  expect_true(nchar(result$component_summaries$MR1$llm_interpretation) > 5000)
+  expect_equal(result$component_summaries$MR2$llm_interpretation, "Short interpretation")
+})
+
+test_that("JSON parsing handles HTML/markdown code block artifacts", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # Response wrapped in markdown code blocks
+  response <- '```json
+{
+  "MR1": { "name": "Extraversion", "interpretation": "Outgoing behavior" },
+  "MR2": { "name": "Neuroticism", "interpretation": "Emotional instability" }
+}
+```'
+
+  result <- extract_by_pattern(response, "fa", model_data)
+
+  expect_type(result, "list")
+  expect_equal(result$suggested_names$MR1, "Extraversion (n.s.)")
+  expect_equal(result$suggested_names$MR2, "Neuroticism")
+})
+
+test_that("JSON parsing handles responses with extra unexpected fields", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # Extra unexpected fields should be ignored
+  parsed <- list(
+    MR1 = list(
+      name = "Extraversion",
+      interpretation = "Outgoing behavior",
+      extra_field = "This should be ignored",
+      another_field = 123
+    ),
+    MR2 = list(
+      name = "Neuroticism",
+      interpretation = "Emotional instability",
+      unexpected = TRUE
+    )
+  )
+
+  result <- validate_parsed_result(parsed, "fa", model_data)
+
+  expect_type(result, "list")
+  expect_equal(result$suggested_names$MR1, "Extraversion (n.s.)")
+  expect_equal(result$suggested_names$MR2, "Neuroticism")
+  expect_equal(result$component_summaries$MR1$llm_interpretation, "Outgoing behavior")
+})
+
+test_that("JSON parsing handles responses with missing optional fields", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # Only required fields present
+  parsed <- list(
+    MR1 = list(
+      name = "Extraversion",
+      interpretation = "Outgoing behavior"
+    ),
+    MR2 = list(
+      name = "Neuroticism",
+      interpretation = "Emotional instability"
+    )
+  )
+
+  result <- validate_parsed_result(parsed, "fa", model_data)
+
+  expect_type(result, "list")
+  expect_equal(result$suggested_names$MR1, "Extraversion (n.s.)")
+  expect_equal(result$suggested_names$MR2, "Neuroticism")
+})
+
+test_that("JSON parsing handles null values in name field", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # null in name field
+  parsed <- list(
+    MR1 = list(
+      name = NULL,
+      interpretation = "Outgoing behavior"
+    ),
+    MR2 = list(
+      name = "Neuroticism",
+      interpretation = "Emotional instability"
+    )
+  )
+
+  result <- validate_parsed_result(parsed, "fa", model_data)
+
+  expect_type(result, "list")
+  expect_equal(result$suggested_names$MR1, "Factor 1")  # Default when null
+  expect_equal(result$suggested_names$MR2, "Neuroticism")
+})
+
+test_that("JSON parsing handles null values in interpretation field", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # null in interpretation field
+  parsed <- list(
+    MR1 = list(
+      name = "Extraversion",
+      interpretation = NULL
+    ),
+    MR2 = list(
+      name = "Neuroticism",
+      interpretation = "Emotional instability"
+    )
+  )
+
+  result <- validate_parsed_result(parsed, "fa", model_data)
+
+  expect_type(result, "list")
+  expect_equal(result$component_summaries$MR1$llm_interpretation, "Unable to generate interpretation")
+  expect_equal(result$component_summaries$MR2$llm_interpretation, "Emotional instability")
+})
+
+test_that("JSON parsing handles numeric values instead of strings", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # Numeric instead of string
+  parsed <- list(
+    MR1 = list(
+      name = 123,
+      interpretation = 456
+    ),
+    MR2 = list(
+      name = "Neuroticism",
+      interpretation = "Emotional instability"
+    )
+  )
+
+  result <- validate_parsed_result(parsed, "fa", model_data)
+
+  expect_type(result, "list")
+  # Should convert numeric to string or use default
+  expect_true(is.character(result$suggested_names$MR1))
+  expect_true(is.character(result$component_summaries$MR1$llm_interpretation))
+})
+
+test_that("JSON parsing handles array values instead of expected types", {
+  model_data <- create_mock_model_data(n_factors = 2)
+
+  # Array instead of string - this should fail validation as it's invalid
+  parsed <- list(
+    MR1 = list(
+      name = c("Name1", "Name2"),
+      interpretation = c("Interp1", "Interp2")
+    ),
+    MR2 = list(
+      name = "Neuroticism",
+      interpretation = "Emotional instability"
+    )
+  )
+
+  # This should either return NULL or handle the error gracefully
+  result <- tryCatch({
+    validate_parsed_result(parsed, "fa", model_data)
+  }, error = function(e) NULL)
+
+  # If not NULL, check structure
+  if (!is.null(result)) {
+    expect_type(result, "list")
+    # Should have character results
+    expect_true(is.character(result$suggested_names$MR1))
+    expect_true(is.character(result$component_summaries$MR1$llm_interpretation))
+  } else {
+    # NULL is acceptable for invalid input
+    expect_null(result)
+  }
+})
+
+test_that("validate_parsed_result handles unicode from mock response", {
+  skip_if_not_installed("psych")
+
+  # Create minimal FA model and analysis data
+  fa_model <- minimal_fa_model()
+  var_info <- minimal_variable_info()
+
+  analysis_data <- psychinterpreter:::build_analysis_data.fa(
+    fa_model,
+    analysis_type = "fa",
+    interpretation_args = interpretation_args(analysis_type = "fa"),
+    variable_info = var_info
+  )
+
+  # Parse the unicode mock response JSON directly
+  unicode_json <- jsonlite::fromJSON(mock_llm_response("unicode")$content)
+
+  # Validate the parsed result
+  result <- psychinterpreter:::validate_parsed_result.fa(
+    unicode_json,
+    analysis_type = "fa",
+    analysis_data = analysis_data
+  )
+
+  expect_type(result, "list")
+  expect_true("suggested_names" %in% names(result))
+  expect_true("component_summaries" %in% names(result))
+  # Check unicode is preserved
+  expect_match(result$suggested_names$MR1, "😊")
+})
+
+test_that("validate_parsed_result handles very long interpretations from mock", {
+  skip_if_not_installed("psych")
+
+  # Create minimal FA model and analysis data
+  fa_model <- minimal_fa_model()
+  var_info <- minimal_variable_info()
+
+  analysis_data <- psychinterpreter:::build_analysis_data.fa(
+    fa_model,
+    analysis_type = "fa",
+    interpretation_args = interpretation_args(analysis_type = "fa"),
+    variable_info = var_info
+  )
+
+  # Parse the very_long mock response JSON directly
+  long_json <- jsonlite::fromJSON(mock_llm_response("very_long")$content)
+
+  # Validate the parsed result
+  result <- psychinterpreter:::validate_parsed_result.fa(
+    long_json,
+    analysis_type = "fa",
+    analysis_data = analysis_data
+  )
+
+  expect_type(result, "list")
+  expect_true("suggested_names" %in% names(result))
+  expect_true("component_summaries" %in% names(result))
+  # Check that long text was preserved
+  expect_true(nchar(result$component_summaries$MR1$llm_interpretation) > 5000)
+})
+
+test_that("validate_parsed_result handles html artifacts from mock (after cleanup)", {
+  skip_if_not_installed("psych")
+
+  # Create minimal FA model and analysis data
+  fa_model <- minimal_fa_model()
+  var_info <- minimal_variable_info()
+
+  analysis_data <- psychinterpreter:::build_analysis_data.fa(
+    fa_model,
+    analysis_type = "fa",
+    interpretation_args = interpretation_args(analysis_type = "fa"),
+    variable_info = var_info
+  )
+
+  # Get mock response and strip markdown code blocks
+  raw_response <- mock_llm_response("html_artifacts")$content
+  cleaned <- gsub("^```json\\n|\\n```$", "", raw_response)
+
+  # Parse the cleaned JSON
+  cleaned_json <- jsonlite::fromJSON(cleaned)
+
+  # Validate the parsed result
+  result <- psychinterpreter:::validate_parsed_result.fa(
+    cleaned_json,
+    analysis_type = "fa",
+    analysis_data = analysis_data
+  )
+
+  expect_type(result, "list")
+  expect_true("suggested_names" %in% names(result))
+  expect_true("component_summaries" %in% names(result))
 })

@@ -135,6 +135,11 @@ normalize_token_count <- function(value) {
 # GLOBAL VARIABLES
 # ==============================================================================
 
-# Declare global variables to avoid R CMD check NOTEs for NSE in dplyr
-# These are column names used in tidyverse pipelines
-utils::globalVariables(c("variable", "description", "loading", "loading_num"))
+# Declare global variables to avoid R CMD check NOTEs for NSE in dplyr/ggplot2
+# These are column names used in tidyverse pipelines and ggplot2 aesthetics
+utils::globalVariables(c(
+  # FA-related variables
+  "variable", "description", "loading", "loading_num",
+  # GM-related variables (used in ggplot2 aesthetics)
+  "Cluster", "Mean", "Size", "Value", "Variable"
+))

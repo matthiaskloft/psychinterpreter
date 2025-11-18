@@ -16,7 +16,7 @@
 #'   - **Structured list** with model components:
 #'     - For FA: \code{list(loadings = matrix, factor_cor_mat = matrix)} or \code{list(loadings = matrix)}
 #'       (both loadings and factor_cor_mat can be matrices or data.frames)
-#'     - For GM: Not yet implemented
+#'     - For GM: \code{list(means = matrix, covariances = array, proportions = numeric, z = matrix)}
 #'     - For IRT: Not yet implemented
 #'     - For CDM: Not yet implemented
 #' @param chat_session Optional. A chat_session object created with \code{\link{chat_session}}
@@ -127,18 +127,35 @@
 #' )
 #' }
 #'
+#' ## Discovering Available Parameters
+#'
+#' To see all available parameters with their defaults, types, and valid ranges,
+#' use \code{\link{show_interpret_args}}:
+#'
+#' \preformatted{
+#' # Show common parameters (llm_args + output_args)
+#' show_interpret_args()
+#'
+#' # Show all parameters for Factor Analysis
+#' show_interpret_args("fa")
+#'
+#' # Show all parameters for Gaussian Mixture Models
+#' show_interpret_args("gm")
+#' }
+#'
 #' ## Supported Model Types
 #'
 #' - **fa** (Factor Analysis): psych::fa(), psych::principal(), lavaan::cfa/efa(), mirt::mirt()
-#' - **gm** (Gaussian Mixture): Not yet implemented
+#' - **gm** (Gaussian Mixture): mclust::Mclust()
 #' - **irt** (Item Response Theory): Not yet implemented
 #' - **cdm** (Cognitive Diagnosis Models): Not yet implemented
 #'
 #' @return Model-specific interpretation object:
 #'   - FA: \code{fa_interpretation} (see \code{\link{interpret}})
-#'   - Future: \code{gm_interpretation}, \code{irt_interpretation}, etc.
+#'   - GM: \code{gm_interpretation} with cluster profiles and interpretations
+#'   - Future: \code{irt_interpretation}, \code{cdm_interpretation}
 #'
-#' @seealso \code{\link{interpret}}, \code{\link{chat_session}}
+#' @seealso \code{\link{interpret}}, \code{\link{chat_session}}, \code{\link{show_interpret_args}}
 #'
 #' @importFrom cli cli_abort cli_warn
 #' @importFrom tidyr pivot_wider
@@ -434,8 +451,8 @@ interpret_model <- function(model, ...) {
 #' Automatically extracts factor loadings and factor correlations (for oblique rotations).
 #'
 #' @param model A fitted model from \code{psych::fa()}
-#' @param variable_info Dataframe with variable names and descriptions
-#' @param ... Additional arguments passed to \code{\link{interpret_core}}
+#' @param ... Additional arguments including \code{variable_info} (dataframe with
+#'   variable names and descriptions) and other arguments passed to interpret_core()
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -446,7 +463,6 @@ interpret_model <- function(model, ...) {
 #'
 #' @export
 #' @keywords internal
-#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -499,8 +515,8 @@ interpret_model.fa <- function(model, ...) {
 #' Automatically extracts component loadings.
 #'
 #' @param model A fitted model from \code{psych::principal()}
-#' @param variable_info Dataframe with variable names and descriptions
-#' @param ... Additional arguments passed to \code{\link{interpret_core}}
+#' @param ... Additional arguments including \code{variable_info} (dataframe with
+#'   variable names and descriptions) and other arguments passed to interpret_core()
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -510,7 +526,6 @@ interpret_model.fa <- function(model, ...) {
 #'
 #' @export
 #' @keywords internal
-#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -573,8 +588,8 @@ interpret_model.principal <- function(model, ...) {
 #'
 #' @param model A fitted model from \code{lavaan::cfa()}, \code{lavaan::sem()},
 #'   or \code{lavaan::lavaan()}
-#' @param variable_info Dataframe with variable names and descriptions
-#' @param ... Additional arguments passed to \code{\link{interpret_core}}
+#' @param ... Additional arguments including \code{variable_info} (dataframe with
+#'   variable names and descriptions) and other arguments passed to interpret_core()
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -588,7 +603,6 @@ interpret_model.principal <- function(model, ...) {
 #'
 #' @export
 #' @keywords internal
-#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -703,8 +717,8 @@ interpret_model.lavaan <- function(model, ...) {
 #' efa() function when output="efa" is specified.
 #'
 #' @param model A fitted model from \code{lavaan::efa()} with output="efa"
-#' @param variable_info Dataframe with variable names and descriptions
-#' @param ... Additional arguments passed to \code{\link{interpret_core}}
+#' @param ... Additional arguments including \code{variable_info} (dataframe with
+#'   variable names and descriptions) and other arguments passed to interpret_core()
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -714,7 +728,6 @@ interpret_model.lavaan <- function(model, ...) {
 #'
 #' @export
 #' @keywords internal
-#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -785,6 +798,70 @@ interpret_model.efaList <- function(model, ...) {
 
 
 # ==============================================================================
+# METHODS FOR MCLUST PACKAGE (GAUSSIAN MIXTURE MODELS)
+# ==============================================================================
+
+#' Interpret Results from mclust::Mclust()
+#'
+#' Internal S3 method to interpret Gaussian Mixture Model results from the mclust package.
+#' Automatically extracts cluster means, covariances, and membership probabilities.
+#'
+#' @param model A fitted model from \code{mclust::Mclust()}
+#' @param ... Additional arguments including \code{variable_info} (dataframe with
+#'   variable names and descriptions, optional for GM) and other arguments passed to interpret_core()
+#'
+#' @return A \code{gm_interpretation} object
+#'
+#' @details
+#' This method extracts:
+#' - Cluster means from \code{model$parameters$mean}
+#' - Covariance matrices from \code{model$parameters$variance$sigma}
+#' - Cluster proportions from \code{model$parameters$pro}
+#' - Membership probabilities from \code{model$z}
+#'
+#' @export
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' library(mclust)
+#' data <- iris[, 1:4]
+#' gmm_model <- Mclust(data, G = 3)
+#'
+#' var_info <- data.frame(
+#'   variable = colnames(data),
+#'   description = c("Sepal length", "Sepal width", "Petal length", "Petal width")
+#' )
+#'
+#' result <- interpret(fit_results = gmm_model, variable_info = var_info,
+#'                     llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+#' }
+interpret_model.Mclust <- function(model, ...) {
+  # Extract parameters from ...
+  dots <- list(...)
+  chat_session <- dots$chat_session
+
+  # Validate chat_session if provided
+  validate_chat_session_for_analysis_type(chat_session, "gm")
+
+  # Note: variable_info is optional for GM but can be provided
+  # If not provided, variable names will be extracted from model data
+
+  # Call interpret_core with fit_results (build_analysis_data will extract analysis data)
+  result <- interpret_core(
+    fit_results = model,
+    analysis_type = "gm",
+    ...  # Includes variable_info if provided
+  )
+
+  # Validate return class
+  stopifnot(inherits(result, "gm_interpretation"))
+
+  return(result)
+}
+
+
+# ==============================================================================
 # METHODS FOR MIRT PACKAGE
 # ==============================================================================
 
@@ -795,10 +872,9 @@ interpret_model.efaList <- function(model, ...) {
 #' factor correlations.
 #'
 #' @param model A fitted model from \code{mirt::mirt()}
-#' @param variable_info Dataframe with variable (item) names and descriptions
-#' @param rotate Character. Rotation method to apply when extracting loadings.
-#'   Options include "oblimin", "varimax", "promax", etc. Default is "oblimin"
-#' @param ... Additional arguments passed to \code{\link{interpret_core}}
+#' @param ... Additional arguments including \code{variable_info} (dataframe with
+#'   variable/item names and descriptions), \code{rotate} (rotation method such as
+#'   "oblimin", "varimax", "promax"; default "oblimin"), and other arguments passed to interpret_core()
 #'
 #' @return An \code{fa_interpretation} object
 #'
@@ -809,7 +885,6 @@ interpret_model.efaList <- function(model, ...) {
 #'
 #' @export
 #' @keywords internal
-#' @noRd
 #'
 #' @examples
 #' \dontrun{

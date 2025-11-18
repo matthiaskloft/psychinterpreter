@@ -19,7 +19,7 @@
 VALID_ANALYSIS_TYPES <- c("fa", "gm", "irt", "cdm")
 
 # Analysis types with full implementation
-IMPLEMENTED_ANALYSIS_TYPES <- c("fa")
+IMPLEMENTED_ANALYSIS_TYPES <- c("fa", "gm")
 
 
 #' Validate Analysis Type

@@ -1,195 +1,8 @@
 # ============================================================================
 # FORMAT DISPATCH SYSTEM
 # ============================================================================
-# This system provides a centralized way to handle format-specific logic
-# without repeated if/else conditionals throughout the code.
-
-#' @keywords internal
-#' @noRd
-.format_dispatch_table <- list(
-  "markdown" = list(
-    heading_prefix = function(level) paste(rep("#", level), collapse = ""),
-    bold = function(x) paste0("**", x, "**"),
-    italic = function(x) paste0("*", x, "*"),
-    section_header = function(level, title) {
-      h <- paste(rep("#", level), collapse = "")
-      paste0("\n", h, " ", title, "\n\n")
-    },
-    main_header = function(title, level) {
-      h <- paste(rep("#", level), collapse = "")
-      paste0(h, " ", title, "\n\n")
-    },
-    line_break = "  \n",
-    list_item = "- ",
-    styled_title = function(x) x,
-    styled_section_header = function(x) x,
-    separator = "",
-    newline_before_section = "\n",
-    newline_after_section = "\n",
-    # Token display
-    token_header = function(bold_fn) paste0(bold_fn("Tokens:"), "  \n"),
-    token_line = function(label, value) paste0("  ", label, ": ", value, "  \n"),
-    # Factor names display
-    factor_name_item = function(i, var_explained, name) {
-      paste0("- **Factor ", i, " (", round(var_explained * 100, 1), "%):** *", name, "*\n")
-    },
-    total_variance = function(total) {
-      paste0("\n**Total variance explained by all factors: ", round(total * 100, 1), "%**\n")
-    },
-    # Correlation display
-    correlation_item = function(factor_name, correlations, split_long = TRUE) {
-      if (split_long && length(correlations) > 3) {
-        line1 <- paste(correlations[1:3], collapse = ", ")
-        line2 <- paste(correlations[4:length(correlations)], collapse = ", ")
-        paste0("- **", factor_name, ":** ", line1, ",  \n  ", line2, "\n")
-      } else {
-        paste0("- **", factor_name, ":** ", paste(correlations, collapse = ", "), "\n")
-      }
-    },
-    # Variable display
-    var_display_with_desc = function(var, desc) paste0("**", var, ":** ", desc),
-    var_display_no_desc = function(var) paste0("**", var, "**"),
-    # Warning messages
-    section_intro = function(text) paste0(text, "\n\n"),
-    # Colored section headers
-    warning_header = function(level, title) {
-      h <- paste(rep("#", level), collapse = "")
-      paste0("\n", h, " ", title, "\n\n")
-    },
-    error_header = function(level, title) {
-      h <- paste(rep("#", level), collapse = "")
-      paste0("\n", h, " ", title, "\n\n")
-    },
-    # Factor separator
-    factor_separator = ""
-  ),
-  "cli" = list(
-    heading_prefix = function(level) "",
-    bold = function(x) cli::style_bold(x),
-    italic = function(x) cli::col_cyan(x),
-    section_header = function(level, title) {
-      paste0("\n", cli::col_cyan(cli::style_bold(title)), "\n",
-             cli::rule(line = 1, line_col = "cyan"), "\n\n")
-    },
-    main_header = function(title, level) {
-      paste0(cli::col_cyan(cli::style_bold(title)), "\n",
-             cli::rule(line = 1, line_col = "cyan"), "\n\n")
-    },
-    line_break = "\n",
-    list_item = paste0(cli::symbol$bullet, " "),
-    styled_title = function(x) cli::col_cyan(cli::style_bold(x)),
-    styled_section_header = function(x) cli::col_cyan(cli::style_bold(x)),
-    separator = "\n",
-    newline_before_section = "\n",
-    newline_after_section = "\n\n",
-    # Token display
-    token_header = function(bold_fn) paste0(bold_fn("Tokens:"), "\n"),
-    token_line = function(label, value) paste0("  ", label, ": ", value, "\n"),
-    # Factor names display
-    factor_name_item = function(i, var_explained, name) {
-      paste0(cli::symbol$bullet, " ",
-             cli::style_bold(paste0("Factor ", i)),
-             " (", round(var_explained * 100, 1), "%): ",
-             cli::col_green(name), "\n")
-    },
-    total_variance = function(total) {
-      paste0("\n", cli::style_bold("Total variance explained:"), " ",
-             round(total * 100, 1), "%\n")
-    },
-    # Correlation display
-    correlation_item = function(factor_name, correlations, split_long = FALSE) {
-      paste0(factor_name, ": ", paste(correlations, collapse = ", "), "\n")
-    },
-    # Variable display
-    var_display_with_desc = function(var, desc) paste0(var, ", ", desc),
-    var_display_no_desc = function(var) var,
-    # Warning messages
-    section_intro = function(text) paste0(text, "\n"),
-    # Colored section headers
-    warning_header = function(level, title) {
-      paste0("\n", cli::col_yellow(cli::style_bold(title)), "\n",
-             cli::rule(line = 1, line_col = "yellow"), "\n\n")
-    },
-    error_header = function(level, title) {
-      paste0("\n", cli::col_red(cli::style_bold(title)), "\n",
-             cli::rule(line = 1, line_col = "red"), "\n\n")
-    },
-    # Factor separator
-    factor_separator = paste0(cli::rule(line = 2, line_col = "grey"), "\n\n")
-  )
-)
-
-#' Get Format-Specific Function
-#'
-#' @param format Character. "cli" or "markdown"
-#' @param element Character. Element name (e.g., "bold", "italic", "section_header")
-#'
-#' @return Function or value for the specified format and element
-#'
-#' @keywords internal
-#' @noRd
-get_format_fn <- function(format, element) {
-  if (!format %in% names(.format_dispatch_table)) {
-    cli::cli_abort(c(paste0("Unknown format: ", format), "i" = "Supported: 'cli', 'markdown'"))
-  }
-  if (!element %in% names(.format_dispatch_table[[format]])) {
-    cli::cli_abort(c(paste0("Unknown element: ", element), "i" = paste0("Format: ", format)))
-  }
-  .format_dispatch_table[[format]][[element]]
-}
-
-#' Create Format-Specific Heading
-#'
-#' @param format Character. "cli" or "markdown"
-#' @param level Integer. Heading level for markdown
-#' @param title Character. Heading text
-#'
-#' @return Character string with formatted heading
-#'
-#' @keywords internal
-#' @noRd
-fmt_heading <- function(format, level, title) {
-  header_fn <- get_format_fn(format, "section_header")
-  header_fn(level, title)
-}
-
-#' Format Text with Style
-#'
-#' @param format Character. "cli" or "markdown"
-#' @param text Character. Text to format
-#' @param style Character. Style type ("bold", "italic", etc.)
-#'
-#' @return Character string with applied styling
-#'
-#' @keywords internal
-#' @noRd
-fmt_style <- function(format, text, style = "bold") {
-  fn <- get_format_fn(format, style)
-  if (is.function(fn)) {
-    fn(text)
-  } else {
-    text
-  }
-}
-
-#' Format Key-Value Pair
-#'
-#' @param format Character. "cli" or "markdown"
-#' @param key Character. Key/label
-#' @param value Character. Value
-#'
-#' @return Character string with formatted key-value pair
-#'
-#' @keywords internal
-#' @noRd
-fmt_keyval <- function(format, key, value) {
-  bold_fn <- get_format_fn(format, "bold")
-  if (format == "markdown") {
-    paste0(bold_fn(paste0(key, ":")), " ", value, "  \n")
-  } else {
-    paste0(bold_fn(paste0(key, ":")), " ", value, "\n")
-  }
-}
+# This file uses the centralized format dispatch system from shared_formatting.R
+# See shared_formatting.R for core formatting functions and model-specific extensions.
 
 #' Build Factor Interpretation Header
 #'
@@ -514,10 +327,10 @@ build_report_header <- function(interpretation_results,
                                  suppress_heading = FALSE) {
   chat <- interpretation_results$chat
   llm_info <- interpretation_results$llm_info
-  bold_fn <- get_format_fn(output_format, "bold")
-  main_header_fn <- get_format_fn(output_format, "main_header")
-  token_header_fn <- get_format_fn(output_format, "token_header")
-  token_line_fn <- get_format_fn(output_format, "token_line")
+  bold_fn <- get_format_fn(output_format, "bold", "fa")
+  main_header_fn <- get_format_fn(output_format, "main_header", "fa")
+  token_header_fn <- get_format_fn(output_format, "token_header", "fa")
+  token_line_fn <- get_format_fn(output_format, "token_line", "fa")
 
   # Add main heading unless suppressed
   if (!suppress_heading) {
@@ -527,13 +340,13 @@ build_report_header <- function(interpretation_results,
   }
 
   # Build metadata section
-  report <- paste0(report, fmt_keyval(output_format, "Number of factors", as.character(n_factors)))
-  report <- paste0(report, fmt_keyval(output_format, "Loading cutoff", as.character(cutoff)))
+  report <- paste0(report, fmt_keyval(output_format, "Number of factors", as.character(n_factors), "fa"))
+  report <- paste0(report, fmt_keyval(output_format, "Loading cutoff", as.character(cutoff), "fa"))
 
   # Handle LLM info safely
   if (!is.null(chat)) {
     llm_value <- paste(chat$llm_provider, "-", chat$llm_model %||% "default")
-    report <- paste0(report, fmt_keyval(output_format, "LLM used", llm_value))
+    report <- paste0(report, fmt_keyval(output_format, "LLM used", llm_value, "fa"))
 
     if (!is.null(interpretation_results$input_tokens) &&
         !is.null(interpretation_results$output_tokens)) {
@@ -546,7 +359,7 @@ build_report_header <- function(interpretation_results,
     }
   } else if (!is.null(llm_info)) {
     llm_value <- paste(llm_info$llm_provider, "-", llm_info$llm_model %||% "default")
-    report <- paste0(report, fmt_keyval(output_format, "LLM used", llm_value))
+    report <- paste0(report, fmt_keyval(output_format, "LLM used", llm_value, "fa"))
   }
 
   return(report)
@@ -569,9 +382,9 @@ build_factor_names_section <- function(suggested_names,
                                         factor_summaries,
                                         output_format,
                                         heading_level = 1) {
-  section_header_fn <- get_format_fn(output_format, "section_header")
-  factor_name_item_fn <- get_format_fn(output_format, "factor_name_item")
-  total_variance_fn <- get_format_fn(output_format, "total_variance")
+  section_header_fn <- get_format_fn(output_format, "section_header", "fa")
+  factor_name_item_fn <- get_format_fn(output_format, "factor_name_item", "fa")
+  total_variance_fn <- get_format_fn(output_format, "total_variance", "fa")
 
   # Build section header
   report <- section_header_fn(heading_level + 1, "SUGGESTED FACTOR NAMES")
@@ -620,8 +433,8 @@ build_correlations_section <- function(factor_cor_mat,
     cor_factors <- rownames(cor_df)
   }
 
-  section_header_fn <- get_format_fn(output_format, "section_header")
-  correlation_item_fn <- get_format_fn(output_format, "correlation_item")
+  section_header_fn <- get_format_fn(output_format, "section_header", "fa")
+  correlation_item_fn <- get_format_fn(output_format, "correlation_item", "fa")
 
   # Build section header
   report <- section_header_fn(heading_level + 1, "FACTOR CORRELATIONS")
@@ -671,12 +484,12 @@ build_fit_summary_section <- function(cross_loadings,
                                        output_format,
                                        heading_level = 1) {
   report <- ""
-  warning_header_fn <- get_format_fn(output_format, "warning_header")
-  error_header_fn <- get_format_fn(output_format, "error_header")
-  section_intro_fn <- get_format_fn(output_format, "section_intro")
-  var_display_with_desc_fn <- get_format_fn(output_format, "var_display_with_desc")
-  var_display_no_desc_fn <- get_format_fn(output_format, "var_display_no_desc")
-  newline_after <- get_format_fn(output_format, "newline_after_section")
+  warning_header_fn <- get_format_fn(output_format, "warning_header", "fa")
+  error_header_fn <- get_format_fn(output_format, "error_header", "fa")
+  section_intro_fn <- get_format_fn(output_format, "section_intro", "fa")
+  var_display_with_desc_fn <- get_format_fn(output_format, "var_display_with_desc", "fa")
+  var_display_no_desc_fn <- get_format_fn(output_format, "var_display_no_desc", "fa")
+  newline_after <- get_format_fn(output_format, "newline_after_section", "fa")
 
   # Add cross-loadings section
   if (!is.null(cross_loadings) && is.data.frame(cross_loadings) && nrow(cross_loadings) > 0 &&
@@ -810,7 +623,7 @@ build_fa_report <- function(interpretation_results,
   )
 
   # 4. Detailed factor interpretations section
-  section_header_fn <- get_format_fn(output_format, "section_header")
+  section_header_fn <- get_format_fn(output_format, "section_header", "fa")
   report <- paste0(report, section_header_fn(heading_level + 1, "DETAILED FACTOR INTERPRETATIONS"))
 
   for (i in 1:n_factors) {
@@ -852,7 +665,7 @@ build_fa_report <- function(interpretation_results,
     )
 
     # Add separator (format-specific)
-    factor_separator <- get_format_fn(output_format, "factor_separator")
+    factor_separator <- get_format_fn(output_format, "factor_separator", "fa")
     report <- paste0(report, factor_separator)
   }
 

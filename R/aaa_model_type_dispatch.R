@@ -272,6 +272,54 @@ validate_mirt_model <- function(model) {
 }
 
 
+#' Validate mclust Package Models
+#'
+#' @param model A mclust::Mclust() model
+#' @return NULL invisibly if valid, errors otherwise
+#' @keywords internal
+#' @noRd
+validate_mclust_model <- function(model) {
+  if (!inherits(model, "Mclust")) {
+    cli::cli_abort(
+      c(
+        "Model must inherit from {.cls Mclust}",
+        "x" = "Got class: {.cls {class(model)}}"
+      )
+    )
+  }
+
+  # Check if mclust package is available
+  if (!requireNamespace("mclust", quietly = TRUE)) {
+    cli::cli_abort(
+      c(
+        "Package {.pkg mclust} is required to interpret mclust models",
+        "i" = "Install with: install.packages('mclust')"
+      )
+    )
+  }
+
+  # Check if model has required components
+  if (is.null(model$parameters) || is.null(model$parameters$mean)) {
+    cli::cli_abort("Model does not contain parameters$mean component")
+  }
+
+  invisible(NULL)
+}
+
+
+#' Extract GM Data from mclust Models
+#'
+#' @param model A mclust::Mclust() model
+#' @return List with GM data components
+#' @keywords internal
+#' @noRd
+extract_mclust_data <- function(model) {
+  # This is a placeholder - actual extraction is handled by build_analysis_data.Mclust()
+  # We just return the model as-is since build_analysis_data.Mclust() does the real work
+  list(model = model)
+}
+
+
 # ==============================================================================
 # MODEL EXTRACTORS
 # ==============================================================================

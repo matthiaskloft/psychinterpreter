@@ -1,6 +1,6 @@
 # Testing Guidelines
 
-**Last Updated:** 2025-11-16 (Additional test coverage added)
+**Last Updated:** 2025-11-18 (Provider-specific integration tests added)
 
 ## 📊 Current Test Suite Status
 
@@ -11,13 +11,16 @@
 - **Test Coverage**: ~92% (up from ~80% baseline)
 
 **Organization:**
-- **21 test files** with numbered prefixes (0X=fast, 1X=integration, 2X=output/utilities, 99=performance)
+- **23 test files** with numbered prefixes (0X=fast, 1X=integration, 2X=output/utilities, 3X=provider-specific, 99=performance)
 - Fast tests: 11 files, NO LLM, ~10-20s
 - Integration tests: 3 files, WITH LLM, ~50-70s
-- New test files (2025-11-16): test-23 through test-27 (66+ new tests)
+- Provider-specific: 1 file, WITH LLM (skips without API keys), 18 tests
+- New test files (2025-11-18): test-30 (provider integration, 18 tests)
+- New test files (2025-11-16): test-23 through test-27 (66+ tests)
 
 **Infrastructure:**
 - 5 cached interpretation fixtures
+- 11 mock LLM scenarios (success, malformed JSON, errors, unicode, very long responses, etc.)
 - 6 mock LLM helper functions
 - 7 performance benchmark tests
 
@@ -58,6 +61,9 @@ Test files are organized with numbered prefixes for clarity and easy filtering:
 - `test-25-unimplemented-models.R` - Error handling for GM/IRT/CDM (4 tests)
 - `test-26-parameter-extraction.R` - extract_model_parameters(), validate_model_requirements() (21 tests)
 - `test-27-report-and-summary.R` - build_report(), create_fit_summary() (19 tests)
+
+**Provider-Specific Tests (test-3X-*.R)** - Skip without API keys:
+- `test-30-provider-integration.R` - OpenAI, Anthropic, Ollama integration (18 tests, skip_on_cran, requires API keys)
 
 **Performance Tests (test-99-*.R)** - Run last:
 - `test-99-performance.R` - Performance benchmarks (7 tests, skip_on_ci)
@@ -101,6 +107,15 @@ devtools::test()                      # All tests (~70-90s)
 - Test coverage increased from ~80% to ~92% (12 percentage point improvement)
 - Test count increased from ~185 to ~235+ (27% increase)
 - **Result:** Near-complete test coverage, production-ready quality
+
+### Phase 5: Provider-Specific and Mock Testing (2025-11-18) ✅
+- Enhanced mock LLM infrastructure with 5 new scenarios (unicode, very long, HTML artifacts, provider errors)
+- Added 28 new mock-based tests (JSON edge cases, error handling, GM-specific)
+- Created provider-specific integration test suite (test-30-provider-integration.R, 18 tests)
+- Tests for OpenAI, Anthropic, and Ollama with proper skip guards
+- Fixed duplicate test numbering (test-28-gm-unit-tests.R → test-14-gm-unit-tests.R)
+- Documented provider-specific testing setup and usage
+- **Result:** Reduced LLM dependency, improved cross-provider confidence, better error coverage
 
 ### Key Achievements
 - **53% reduction** in LLM-dependent tests (32→15 total, including integration tests)
@@ -253,6 +268,92 @@ test_that("JSON parsing with different scenarios", {
 - `test_json_parsing(scenario)` - Test JSON parsing fallback tiers
 - `mock_fa_model()` - Create minimal mock FA object
 - `mock_interpretation()` - Create complete mock interpretation
+
+### Provider-Specific Testing (Phase 5)
+
+Provider-specific integration tests are in `test-30-provider-integration.R` and verify behavior across different LLM providers (OpenAI, Anthropic, Ollama).
+
+**Setup:**
+```r
+# Set API keys as environment variables
+Sys.setenv(OPENAI_API_KEY = "your-openai-key")
+Sys.setenv(ANTHROPIC_API_KEY = "your-anthropic-key")
+
+# Ollama requires local installation (no API key needed)
+# Install from: https://ollama.com
+```
+
+**Test categories:**
+1. **OpenAI tests** (4 tests) - Requires `OPENAI_API_KEY`
+   - Successful interpretation
+   - Token tracking (prompt_tokens, completion_tokens, total_tokens)
+   - Chat session across multiple requests
+   - Rate limit error handling
+
+2. **Anthropic tests** (4 tests) - Requires `ANTHROPIC_API_KEY`
+   - Successful interpretation
+   - Token tracking (input_tokens, output_tokens)
+   - Chat session with cumulative token tracking
+   - Prompt caching behavior (system prompts cached on 2nd+ calls)
+
+3. **Ollama tests** (2 tests) - Requires local Ollama installation
+   - Works without API keys
+   - Token tracking (returns zero/NULL - no tracking support)
+
+4. **Provider switching tests** (2 tests)
+   - Provider locked to session (cannot switch mid-session)
+   - Different providers in separate sessions
+
+5. **Error handling tests** (2 tests)
+   - Invalid API key produces informative error
+   - Network errors handled gracefully
+
+**Skip conditions:**
+- `skip_if_no_openai_key()` - Skips if `OPENAI_API_KEY` not set
+- `skip_if_no_anthropic_key()` - Skips if `ANTHROPIC_API_KEY` not set
+- `skip_on_cran()` - Skips on CRAN (all provider tests)
+- `skip_on_ci()` - Skips on CI (API-based tests only, not Ollama)
+
+**Example usage:**
+```r
+# Run all provider tests (requires API keys)
+devtools::test_file("tests/testthat/test-30-provider-integration.R")
+
+# Run specific provider tests
+devtools::test(filter = "OpenAI")
+devtools::test(filter = "Anthropic")
+devtools::test(filter = "Ollama")
+```
+
+**Expected behavior:**
+- **OpenAI**: Provides detailed token counts (prompt, completion, total)
+- **Anthropic**: Provides token counts + cache info (cache hits can reduce counts)
+- **Ollama**: May return NULL or zeros for token tracking (not supported)
+
+**Token tracking differences:**
+```r
+# OpenAI format
+result$token_usage
+#> $prompt_tokens: 150
+#> $completion_tokens: 50
+#> $total_tokens: 200
+
+# Anthropic format
+result$token_usage
+#> $input_tokens: 150
+#> $output_tokens: 50
+#> (May include cache_read_input_tokens, cache_creation_input_tokens)
+
+# Ollama format
+result$token_usage
+#> NULL or list with zeros
+```
+
+**Notes:**
+- All provider tests use `word_limit = 20` to minimize token usage and cost
+- Tests create minimal fixtures (3 items × 2 factors) to reduce API calls
+- OpenAI and Anthropic tests skip on CI to avoid API costs
+- Ollama tests can run on CI if Ollama is installed locally
 
 ### Performance Testing (Phase 2)
 

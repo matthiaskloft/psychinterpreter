@@ -8,30 +8,30 @@ interpretation_args_gm(
   analysis_type = "gm",
   n_clusters = NULL,
   covariance_type = NULL,
-  min_cluster_size = 5,
-  separation_threshold = 0.3,
+  min_cluster_size = NULL,
+  separation_threshold = NULL,
   profile_variables = NULL,
-  weight_by_uncertainty = FALSE,
-  plot_type = "auto",
+  weight_by_uncertainty = NULL,
+  plot_type = NULL,
   ...
 )
 }
 \arguments{
 \item{analysis_type}{Character string, must be "gm"}
 
-\item{n_clusters}{Integer, number of clusters (optional)}
+\item{n_clusters}{Integer or NULL. Number of clusters (default: NULL, inferred from model)}
 
-\item{covariance_type}{Character, covariance structure (e.g., "VVV", "EII")}
+\item{covariance_type}{Character or NULL. Covariance structure (e.g., "VVV", "EII") (default: NULL, inferred from model)}
 
-\item{min_cluster_size}{Integer, minimum meaningful cluster size (default: 5)}
+\item{min_cluster_size}{Integer or NULL. Minimum meaningful cluster size (default from registry: 5)}
 
-\item{separation_threshold}{Numeric, overlap threshold for diagnostics (default: 0.3)}
+\item{separation_threshold}{Numeric or NULL. Overlap threshold for diagnostics (default from registry: 0.3)}
 
-\item{profile_variables}{Character vector, subset of variables to focus on (optional)}
+\item{profile_variables}{Character vector or NULL. Subset of variables to focus on (default: NULL)}
 
-\item{weight_by_uncertainty}{Logical, whether to weight by uncertainty if available (default: FALSE)}
+\item{weight_by_uncertainty}{Logical or NULL. Whether to weight by uncertainty if available (default from registry: FALSE)}
 
-\item{plot_type}{Character, visualization type: "heatmap", "parallel", "radar", or "auto" (default: "auto")}
+\item{plot_type}{Character or NULL. Visualization type: "heatmap", "parallel", "radar", or "auto" (default from registry: "auto")}
 
 \item{...}{Additional arguments (currently unused)}
 }

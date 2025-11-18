@@ -61,7 +61,7 @@ test_that("validate_list_structure.gm works with valid input", {
 
   gm_list <- readRDS(test_path("fixtures/gm/sample_gm_list.rds"))
 
-  analysis_data <- psychinterpreter:::validate_list_structure.gm(gm_list)
+  analysis_data <- psychinterpreter:::validate_list_structure_gm_impl(gm_list)
 
   expect_equal(analysis_data$analysis_type, "gm")
   expect_true("means" %in% names(analysis_data))
@@ -76,7 +76,7 @@ test_that("validate_list_structure.gm creates defaults for missing components", 
     means = matrix(rnorm(12), nrow = 4, ncol = 3)
   )
 
-  analysis_data <- psychinterpreter:::validate_list_structure.gm(minimal_list)
+  analysis_data <- psychinterpreter:::validate_list_structure_gm_impl(minimal_list)
 
   # Should create default covariances (identity matrices)
   expect_equal(dim(analysis_data$covariances), c(4, 4, 3))
@@ -93,7 +93,7 @@ test_that("validate_list_structure.gm creates defaults for missing components", 
 test_that("validate_list_structure.gm fails without required components", {
   # Missing means
   expect_error({
-    psychinterpreter:::validate_list_structure.gm(list(covariances = matrix(1)))
+    psychinterpreter:::validate_list_structure_gm_impl(list(covariances = matrix(1)))
   }, "Missing required components")
 })
 
@@ -120,7 +120,7 @@ test_that("interpretation_args_gm validates parameters correctly", {
   # Invalid min_cluster_size
   expect_error({
     interpretation_args_gm(analysis_type = "gm", min_cluster_size = -1)
-  }, "min_cluster_size must be a positive integer")
+  }, "min_cluster_size must be between 1 and 100")
 
   # Invalid separation_threshold
   expect_error({
@@ -130,12 +130,12 @@ test_that("interpretation_args_gm validates parameters correctly", {
   # Invalid plot_type
   expect_error({
     interpretation_args_gm(analysis_type = "gm", plot_type = "invalid")
-  }, "Invalid plot_type")
+  }, "plot_type must be one of")
 
   # Invalid covariance_type
   expect_error({
     interpretation_args_gm(analysis_type = "gm", covariance_type = "XXX")
-  }, "Invalid covariance_type")
+  }, "covariance_type must be one of")
 })
 
 test_that("interpretation_args_gm returns correct structure", {
@@ -175,10 +175,13 @@ test_that("build_main_prompt.gm creates valid prompt", {
 
   analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
   var_info <- readRDS(test_path("fixtures/gm/sample_gm_var_info.rds"))
-  llm_args <- llm_args(word_limit = 50, additional_info = NULL)
 
   main_prompt <- psychinterpreter:::build_main_prompt.gm(
-    analysis_data, var_info, llm_args
+    analysis_type = "gm",
+    analysis_data = analysis_data,
+    word_limit = 50,
+    additional_info = NULL,
+    variable_info = var_info
   )
 
   expect_type(main_prompt, "character")
@@ -202,30 +205,31 @@ test_that("validate_parsed_result.gm validates correctly", {
   analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
   valid_json <- readRDS(test_path("fixtures/gm/valid_gm_json.rds"))
 
-  # Valid result
-  expect_true(
-    psychinterpreter:::validate_parsed_result.gm(valid_json, analysis_data)
-  )
+  # Valid result - needs analysis_type parameter (returns formatted result, not TRUE)
+  result <- psychinterpreter:::validate_parsed_result.gm(valid_json, "gm", analysis_data)
+  expect_true(is.list(result))
+  expect_true("component_summaries" %in% names(result))
+  expect_true("suggested_names" %in% names(result))
 
-  # Invalid: wrong number of clusters
+  # Invalid: wrong number of clusters (returns NULL, not FALSE)
   invalid_json1 <- list(Cluster_1 = "text")
-  expect_false(
-    psychinterpreter:::validate_parsed_result.gm(invalid_json1, analysis_data)
+  expect_null(
+    psychinterpreter:::validate_parsed_result.gm(invalid_json1, "gm", analysis_data)
   )
 
-  # Invalid: non-character values
+  # Invalid: non-character values (returns NULL, not FALSE)
   invalid_json2 <- list(
     Cluster_1 = 123,
     Cluster_2 = "text",
     Cluster_3 = "text"
   )
-  expect_false(
-    psychinterpreter:::validate_parsed_result.gm(invalid_json2, analysis_data)
+  expect_null(
+    psychinterpreter:::validate_parsed_result.gm(invalid_json2, "gm", analysis_data)
   )
 
-  # Invalid: not a list
-  expect_false(
-    psychinterpreter:::validate_parsed_result.gm("not a list", analysis_data)
+  # Invalid: not a list (returns NULL, not FALSE)
+  expect_null(
+    psychinterpreter:::validate_parsed_result.gm("not a list", "gm", analysis_data)
   )
 })
 
@@ -236,12 +240,16 @@ test_that("extract_by_pattern.gm extracts from malformed responses", {
   malformed_response <- readRDS(test_path("fixtures/gm/malformed_gm_response.rds"))
 
   extracted <- psychinterpreter:::extract_by_pattern.gm(
-    malformed_response, analysis_data
+    response = malformed_response,
+    analysis_type = "gm",
+    analysis_data = analysis_data
   )
 
-  # Should extract 3 clusters
-  expect_equal(length(extracted), analysis_data$n_clusters)
-  expect_true(all(sapply(extracted, is.character)))
+  # Should return formatted result with component_summaries
+  expect_true(is.list(extracted))
+  expect_true("component_summaries" %in% names(extracted))
+  expect_equal(length(extracted$component_summaries), analysis_data$n_clusters)
+  expect_true(all(sapply(extracted$component_summaries, is.character)))
 })
 
 test_that("create_default_result.gm creates valid defaults", {
@@ -249,12 +257,18 @@ test_that("create_default_result.gm creates valid defaults", {
 
   analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
 
-  defaults <- psychinterpreter:::create_default_result.gm(analysis_data)
+  defaults <- psychinterpreter:::create_default_result.gm(
+    analysis_type = "gm",
+    analysis_data = analysis_data
+  )
 
-  expect_equal(length(defaults), analysis_data$n_clusters)
-  expect_equal(names(defaults), analysis_data$cluster_names)
-  expect_true(all(sapply(defaults, is.character)))
-  expect_true(all(nchar(unlist(defaults)) > 0))
+  # Should return formatted result with component_summaries
+  expect_true(is.list(defaults))
+  expect_true("component_summaries" %in% names(defaults))
+  expect_equal(length(defaults$component_summaries), analysis_data$n_clusters)
+  expect_equal(names(defaults$component_summaries), analysis_data$cluster_names)
+  expect_true(all(sapply(defaults$component_summaries, is.character)))
+  expect_true(all(nchar(unlist(defaults$component_summaries)) > 0))
 })
 
 # =================================
@@ -267,7 +281,8 @@ test_that("create_fit_summary.gm identifies issues correctly", {
   # Test with unbalanced model (should warn about small clusters)
   unbalanced_model <- readRDS(test_path("fixtures/gm/unbalanced_model.rds"))
   analysis_data_unbal <- psychinterpreter:::build_analysis_data.Mclust(unbalanced_model)
-  fit_summary_unbal <- psychinterpreter:::create_fit_summary.gm(analysis_data_unbal)
+  # create_fit_summary.gm needs analysis_type parameter
+  fit_summary_unbal <- psychinterpreter:::create_fit_summary.gm("gm", analysis_data_unbal)
 
   expect_true(length(fit_summary_unbal$warnings) > 0)
   expect_true(any(grepl("Small|unbalanced", fit_summary_unbal$warnings, ignore.case = TRUE)))
@@ -275,7 +290,7 @@ test_that("create_fit_summary.gm identifies issues correctly", {
   # Test with overlapping clusters (should warn about uncertainty)
   overlap_model <- readRDS(test_path("fixtures/gm/overlap_model.rds"))
   analysis_data_overlap <- psychinterpreter:::build_analysis_data.Mclust(overlap_model)
-  fit_summary_overlap <- psychinterpreter:::create_fit_summary.gm(analysis_data_overlap)
+  fit_summary_overlap <- psychinterpreter:::create_fit_summary.gm("gm", analysis_data_overlap)
 
   # Should have warnings or notes about overlap/uncertainty
   expect_true(
@@ -367,11 +382,11 @@ test_that("create_radar_plot_gm limits variables for clarity", {
   skip_if_not_installed("mclust")
   skip_if_not_installed("ggplot2")
 
-  # Load high-dimensional model
-  high_dim_model <- readRDS(test_path("fixtures/gm/high_dim_model.rds"))
+  # Load very high-dimensional model (20 variables)
+  high_dim_model <- readRDS(test_path("fixtures/gm/very_high_dim_model.rds"))
   analysis_data <- psychinterpreter:::build_analysis_data.Mclust(high_dim_model)
 
-  expect_equal(analysis_data$n_variables, 15)
+  expect_equal(analysis_data$n_variables, 20)
 
   # Should inform about limiting to 15 variables
   expect_message({
@@ -442,14 +457,14 @@ test_that("build_report.gm_interpretation creates valid report", {
 
   # CLI format
   report_cli <- psychinterpreter:::build_report.gm_interpretation(
-    mock_interpretation, format = "cli"
+    mock_interpretation, output_format = "cli"
   )
   expect_type(report_cli, "character")
   expect_true(nchar(report_cli) > 0)
 
   # Markdown format
   report_md <- psychinterpreter:::build_report.gm_interpretation(
-    mock_interpretation, format = "markdown"
+    mock_interpretation, output_format = "markdown"
   )
   expect_type(report_md, "character")
   expect_true(grepl("^#", report_md))  # Should start with heading
@@ -488,21 +503,21 @@ test_that("GM parameters are registered correctly", {
 
 test_that("GM dispatch table is registered correctly", {
   # Check analysis type display name
-  expect_equal(.ANALYSIS_TYPE_DISPLAY_NAMES["gm"], c(gm = "Gaussian Mixture"))
+  expect_equal(psychinterpreter:::.ANALYSIS_TYPE_DISPLAY_NAMES["gm"], c(gm = "Gaussian Mixture"))
 
   # Check valid parameters
-  gm_params <- .VALID_INTERPRETATION_PARAMS$gm
+  gm_params <- psychinterpreter:::.VALID_INTERPRETATION_PARAMS$gm
   expect_true("min_cluster_size" %in% gm_params)
   expect_true("separation_threshold" %in% gm_params)
   expect_true("plot_type" %in% gm_params)
 
   # Check interpretation args dispatch
-  expect_true("gm" %in% names(.INTERPRETATION_ARGS_DISPATCH))
-  expect_equal(.INTERPRETATION_ARGS_DISPATCH$gm, interpretation_args_gm)
+  expect_true("gm" %in% names(psychinterpreter:::.INTERPRETATION_ARGS_DISPATCH))
+  expect_equal(psychinterpreter:::.INTERPRETATION_ARGS_DISPATCH$gm, interpretation_args_gm)
 })
 
 test_that("Mclust model type dispatch is registered", {
-  dispatch_table <- get_model_dispatch_table()
+  dispatch_table <- psychinterpreter:::get_model_dispatch_table()
 
   expect_true("Mclust" %in% names(dispatch_table))
   expect_equal(dispatch_table$Mclust$analysis_type, "gm")

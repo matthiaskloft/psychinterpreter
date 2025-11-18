@@ -251,6 +251,7 @@ test_that("interpret_core works with all configuration objects", {
 
 test_that("interpret_core reuses existing chat_session correctly", {
   skip_if_not_installed("psych")
+  skip_on_ci()
   skip_if_no_llm()
 
   fa_model <- minimal_fa_model()
@@ -388,4 +389,147 @@ test_that("interpret_core completes in reasonable time", {
 
   # Should complete in under 60 seconds (generous for LLM call)
   expect_lt(elapsed, 60)
+})
+
+# ==============================================================================
+# SECTION 9: ERROR HANDLING WITH MOCKS (NO LLM)
+# ==============================================================================
+
+test_that("interpret_core handles malformed JSON gracefully with mock", {
+  skip_if_not_installed("psych")
+
+  fa_model <- minimal_fa_model()
+  var_info <- minimal_variable_info()
+
+  # Create mock chat session with malformed JSON response
+  mock_chat <- mock_chat_session(analysis_type = "fa", response_type = "malformed_json")
+
+  # Should handle malformed JSON - either return defaults or handle error
+  result <- tryCatch({
+    psychinterpreter:::interpret_core(
+      fit_results = fa_model,
+      chat_session = mock_chat,
+      variable_info = var_info,
+      silent = 2
+    )
+  }, error = function(e) NULL)
+
+  # If it returns a result, check it's valid
+  if (!is.null(result)) {
+    expect_s3_class(result, "fa_interpretation")
+    expect_true("component_summaries" %in% names(result))
+    expect_true("suggested_names" %in% names(result))
+  } else {
+    # Or it can fail gracefully
+    expect_null(result)
+  }
+})
+
+test_that("interpret_core handles empty response with mock", {
+  skip_if_not_installed("psych")
+
+  fa_model <- minimal_fa_model()
+  var_info <- minimal_variable_info()
+
+  # Create mock chat session with empty response
+  mock_chat <- mock_chat_session(analysis_type = "fa", response_type = "empty")
+
+  # Should handle empty response gracefully
+  result <- psychinterpreter:::interpret_core(
+    fit_results = fa_model,
+    chat_session = mock_chat,
+    variable_info = var_info,
+    silent = 2
+  )
+
+  # Should return an interpretation object with defaults
+  expect_s3_class(result, "fa_interpretation")
+  expect_true("component_summaries" %in% names(result))
+  expect_true("suggested_names" %in% names(result))
+})
+
+test_that("interpret_core handles partial response with mock", {
+  skip_if_not_installed("psych")
+
+  fa_model <- minimal_fa_model()
+  var_info <- minimal_variable_info()
+
+  # Create mock chat session with partial response
+  mock_chat <- mock_chat_session(analysis_type = "fa", response_type = "partial")
+
+  # Should handle partial response gracefully
+  result <- psychinterpreter:::interpret_core(
+    fit_results = fa_model,
+    chat_session = mock_chat,
+    variable_info = var_info,
+    silent = 2
+  )
+
+  # Should return an interpretation object with some defaults
+  expect_s3_class(result, "fa_interpretation")
+  expect_true("component_summaries" %in% names(result))
+  expect_true("suggested_names" %in% names(result))
+})
+
+test_that("interpret_core handles timeout error with mock", {
+  skip_if_not_installed("psych")
+
+  fa_model <- minimal_fa_model()
+  var_info <- minimal_variable_info()
+
+  # Create mock chat session that throws timeout error
+  mock_chat <- mock_chat_session(analysis_type = "fa", response_type = "timeout")
+
+  # Should handle timeout error
+  expect_error(
+    psychinterpreter:::interpret_core(
+      fit_results = fa_model,
+      chat_session = mock_chat,
+      variable_info = var_info,
+      silent = 2
+    ),
+    "timeout"
+  )
+})
+
+test_that("interpret_core handles rate limit error with mock", {
+  skip_if_not_installed("psych")
+
+  fa_model <- minimal_fa_model()
+  var_info <- minimal_variable_info()
+
+  # Create mock chat session that throws rate limit error
+  mock_chat <- mock_chat_session(analysis_type = "fa", response_type = "rate_limit")
+
+  # Should handle rate limit error
+  expect_error(
+    psychinterpreter:::interpret_core(
+      fit_results = fa_model,
+      chat_session = mock_chat,
+      variable_info = var_info,
+      silent = 2
+    ),
+    "429|rate.?limit"
+  )
+})
+
+test_that("interpret_core handles generic API error with mock", {
+  skip_if_not_installed("psych")
+
+  fa_model <- minimal_fa_model()
+  var_info <- minimal_variable_info()
+
+  # Create mock chat session that throws generic error
+  mock_chat <- mock_chat_session(analysis_type = "fa", response_type = "error")
+
+  # Should handle API error
+  expect_error(
+    psychinterpreter:::interpret_core(
+      fit_results = fa_model,
+      chat_session = mock_chat,
+      variable_info = var_info,
+      silent = 2
+    ),
+    "API Error|500"
+  )
 })

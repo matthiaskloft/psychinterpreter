@@ -4,15 +4,19 @@
 \alias{validate_parsed_result.gm}
 \title{Validate Parsed JSON Result for Gaussian Mixture Models}
 \usage{
-\method{validate_parsed_result}{gm}(parsed_result, analysis_data)
+\method{validate_parsed_result}{gm}(parsed, analysis_type, analysis_data, ...)
 }
 \arguments{
-\item{parsed_result}{List from JSON parsing}
+\item{parsed}{List from JSON parsing}
+
+\item{analysis_type}{Character. Type of analysis ("gm")}
 
 \item{analysis_data}{Standardized GM analysis data}
+
+\item{...}{Additional arguments (currently unused)}
 }
 \value{
-Logical indicating whether the result is valid
+A list with two components: \code{component_summaries} (named list of cluster interpretations) and \code{suggested_names} (named list of cluster labels), or NULL if validation fails
 }
 \description{
 Checks if the parsed JSON contains the expected cluster interpretation structure.

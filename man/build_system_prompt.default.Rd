@@ -6,7 +6,18 @@
 \usage{
 \method{build_system_prompt}{default}(analysis_type, word_limit, ...)
 }
+\arguments{
+\item{analysis_type}{S3 dispatch object}
+
+\item{word_limit}{Integer. Maximum words per interpretation}
+
+\item{...}{Additional arguments (ignored)}
+}
+\value{
+Does not return (throws error)
+}
 \description{
-Default method for build_system_prompt
+Throws an error when no model-specific method is found. This ensures
+all supported model types have explicit prompt builders.
 }
 \keyword{internal}

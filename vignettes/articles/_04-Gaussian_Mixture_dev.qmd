@@ -86,11 +86,9 @@ pa_result <- fa.parallel(
 
 Perform FA with 6 factors identified by the parallel analysis
 ```{r fa-analysis}
-fa_result <- fa(
+fa_result <- psych::fa(
   bfi,
-  nfactors = pa_result$nfact,
-  rotate = "oblimin",
-  fm = "ml"
+  nfactors = pa_result$nfact
 )
 summary(fa_result)
 ```
@@ -124,16 +122,21 @@ head(variable_info) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 We now generate factor interpretations using the specified LLM:
-```{r interpret-with-chat}
-#| output: asis
+```{r}
+ollamar::list_models()
 
+#show_interpret_args("fa")
+provider <- "anthropic"
+llm <- ellmer::models_anthropic()[1,"id"]
+```
+
+```{r interpret-with-chat}
 word_limit <- 50
 
 result <- interpret(
   fit_results = fa_result,
-  llm_provider = "ollama",
-  llm_model = "qwen3-vl:235b-instruct-cloud",
-  #llm_model = "gpt-oss:20b-cloud",
+  llm_provider = provider,
+  llm_model = llm,
   # set temperature and seed for reproducibility
   params = params(temperature = 0, seed = 42),
   variable_info = variable_info,
@@ -141,12 +144,7 @@ result <- interpret(
   n_emergency = 2,
   additional_info = NULL,
   sort_loadings = TRUE,
-  word_limit =  word_limit,
-  max_line_length = 80,
-  silent = FALSE,
-  echo = "none",
-  output_format = "markdown",
-  heading_level = 3
+  word_limit =  word_limit
 )
 ```
 Let's do a cluster analysis on the factor scores using a Gaussian Mixture Model (GMM).
@@ -169,9 +167,10 @@ head(fa_scores) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
 
 Find Best Gaussian Mixture Model
 ```{r}
-gmm_model <- mclustBIC(fa_scores, G = 1:10)
+gmm_model <- mclustBIC(fa_scores, G = 1:15)
 
 summary(gmm_model)
+plot(gmm_model)
 ```
 
 Fit the Best Model
@@ -208,10 +207,33 @@ head(gmm_z) |> round(3) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 
-We can again check the total global token usage:
-```{r usage2}
-print(chat)
+
+
+```{r}
+variable_info_gmm <- data.frame(
+  variable = colnames(fa_scores),
+  description = result$component_summaries |> purrr::map(function(x) x$llm_interpretation) |> unlist()
+)
 ```
+
+```{r}
+# Get interpretation
+result <- interpret(
+  fit_results = gmm_best,
+  variable_info = variable_info_gmm,
+  llm_provider = provider,
+  llm_model = llm,
+  weight_by_uncertainty = TRUE,
+  word_limit = 50
+)
+```
+
+```{r}
+plot(result, plot_type = "all")
+```
+
+
+
 
 
 # Session Info

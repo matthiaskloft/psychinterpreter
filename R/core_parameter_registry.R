@@ -33,7 +33,6 @@
 #'
 #' @export
 PARAMETER_REGISTRY <- list(
-
   # ==========================================================================
   # LLM_ARGS PARAMETERS (8 parameters)
   # ==========================================================================
@@ -42,13 +41,16 @@ PARAMETER_REGISTRY <- list(
     default = NULL,
     type = "character",
     range = NULL,
-    allowed_values = NULL,  # Any provider name is valid
+    allowed_values = NULL,
+    # Any provider name is valid
     config_group = "llm_args",
     model_specific = NULL,
     required = TRUE,
     validation_fn = function(value) {
       if (is.null(value)) {
-        return(list(valid = FALSE, message = "{.arg llm_provider} is required (e.g., 'ollama', 'anthropic', 'openai')"))
+        return(
+          list(valid = FALSE, message = "{.arg llm_provider} is required (e.g., 'ollama', 'anthropic', 'openai')")
+        )
       }
       if (!is.character(value) || length(value) != 1) {
         return(list(valid = FALSE, message = "{.arg llm_provider} must be a single character string"))
@@ -71,7 +73,9 @@ PARAMETER_REGISTRY <- list(
         return(list(valid = TRUE, message = NULL))  # NULL is allowed
       }
       if (!is.character(value) || length(value) != 1) {
-        return(list(valid = FALSE, message = "{.arg llm_model} must be a single character string or NULL"))
+        return(
+          list(valid = FALSE, message = "{.arg llm_model} must be a single character string or NULL")
+        )
       }
       list(valid = TRUE, message = NULL)
     },
@@ -91,7 +95,9 @@ PARAMETER_REGISTRY <- list(
         return(list(valid = TRUE, message = NULL))
       }
       if (!is.character(value)) {
-        return(list(valid = FALSE, message = "{.arg system_prompt} must be a character string or NULL"))
+        return(
+          list(valid = FALSE, message = "{.arg system_prompt} must be a character string or NULL")
+        )
       }
       list(valid = TRUE, message = NULL)
     },
@@ -131,7 +137,9 @@ PARAMETER_REGISTRY <- list(
         return(list(valid = FALSE, message = "{.arg word_limit} must be a single numeric value"))
       }
       if (value < 20 || value > 500) {
-        return(list(valid = FALSE, message = "{.arg word_limit} must be between 20 and 500 (recommended range: 50-200 words)"))
+        return(
+          list(valid = FALSE, message = "{.arg word_limit} must be between 20 and 500 (recommended range: 50-200 words)")
+        )
       }
       list(valid = TRUE, message = NULL)
     },
@@ -151,7 +159,9 @@ PARAMETER_REGISTRY <- list(
         return(list(valid = TRUE, message = NULL))
       }
       if (!is.character(value)) {
-        return(list(valid = FALSE, message = "{.arg interpretation_guidelines} must be a character string or NULL"))
+        return(
+          list(valid = FALSE, message = "{.arg interpretation_guidelines} must be a character string or NULL")
+        )
       }
       list(valid = TRUE, message = NULL)
     },
@@ -171,7 +181,9 @@ PARAMETER_REGISTRY <- list(
         return(list(valid = TRUE, message = NULL))
       }
       if (!is.character(value)) {
-        return(list(valid = FALSE, message = "{.arg additional_info} must be a character string or NULL"))
+        return(
+          list(valid = FALSE, message = "{.arg additional_info} must be a character string or NULL")
+        )
       }
       list(valid = TRUE, message = NULL)
     },
@@ -232,11 +244,20 @@ PARAMETER_REGISTRY <- list(
     required = FALSE,
     validation_fn = function(value) {
       if (!is.numeric(value) || length(value) != 1) {
-        return(list(valid = FALSE, message = "{.arg heading_level} must be a single integer between 1 and 6"))
+        return(
+          list(valid = FALSE, message = "{.arg heading_level} must be a single integer between 1 and 6")
+        )
       }
       if (value < 1 || value > 6 || value != as.integer(value)) {
         # Format the value inline to avoid variable scoping issues in cli_abort
-        return(list(valid = FALSE, message = paste0("{.arg heading_level} must be an integer between 1 and 6 (got ", value, ")")))
+        return(list(
+          valid = FALSE,
+          message = paste0(
+            "{.arg heading_level} must be an integer between 1 and 6 (got ",
+            value,
+            ")"
+          )
+        ))
       }
       list(valid = TRUE, message = NULL)
     },
@@ -273,7 +294,9 @@ PARAMETER_REGISTRY <- list(
         return(list(valid = FALSE, message = "{.arg max_line_length} must be a single numeric value"))
       }
       if (value < 40 || value > 300) {
-        return(list(valid = FALSE, message = "{.arg max_line_length} must be between 40 and 300 (recommended: 80-120 for console output)"))
+        return(
+          list(valid = FALSE, message = "{.arg max_line_length} must be between 40 and 300 (recommended: 80-120 for console output)")
+        )
       }
       list(valid = TRUE, message = NULL)
     },
@@ -294,12 +317,19 @@ PARAMETER_REGISTRY <- list(
         value <- ifelse(value, 2L, 0L)
       }
       if (!is.numeric(value) || length(value) != 1) {
-        return(list(valid = FALSE, message = "{.arg silent} must be logical (TRUE/FALSE) or integer (0/1/2)"))
+        return(
+          list(valid = FALSE, message = "{.arg silent} must be logical (TRUE/FALSE) or integer (0/1/2)")
+        )
       }
       if (!value %in% c(0, 1, 2)) {
-        return(list(valid = FALSE, message = paste0("{.arg silent} must be 0, 1, or 2 (got ", value, ")")))
+        return(list(
+          valid = FALSE,
+          message = paste0("{.arg silent} must be 0, 1, or 2 (got ", value, ")")
+        ))
       }
-      list(valid = TRUE, message = NULL, normalized = as.integer(value))
+      list(valid = TRUE,
+           message = NULL,
+           normalized = as.integer(value))
     },
     description = "Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)"
   ),
@@ -321,7 +351,10 @@ PARAMETER_REGISTRY <- list(
         return(list(valid = FALSE, message = "{.arg cutoff} must be a single numeric value"))
       }
       if (value < 0 || value > 1) {
-        return(list(valid = FALSE, message = paste0("{.arg cutoff} must be between 0 and 1 (got ", value, ")")))
+        return(list(
+          valid = FALSE,
+          message = paste0("{.arg cutoff} must be between 0 and 1 (got ", value, ")")
+        ))
       }
       list(valid = TRUE, message = NULL)
     },
@@ -341,7 +374,14 @@ PARAMETER_REGISTRY <- list(
         return(list(valid = FALSE, message = "{.arg n_emergency} must be a single integer value"))
       }
       if (value < 0 || value != as.integer(value)) {
-        return(list(valid = FALSE, message = paste0("{.arg n_emergency} must be a non-negative integer (got ", value, ")")))
+        return(list(
+          valid = FALSE,
+          message = paste0(
+            "{.arg n_emergency} must be a non-negative integer (got ",
+            value,
+            ")"
+          )
+        ))
       }
       list(valid = TRUE, message = NULL)
     },
@@ -398,17 +438,12 @@ PARAMETER_REGISTRY <- list(
       if (is.null(value)) {
         return(list(valid = TRUE, message = NULL))
       }
-      if (!is.numeric(value) || length(value) != 1 || value != round(value)) {
-        return(list(
-          valid = FALSE,
-          message = "n_clusters must be a single integer"
-        ))
+      if (!is.numeric(value) ||
+          length(value) != 1 || value != round(value)) {
+        return(list(valid = FALSE, message = "n_clusters must be a single integer"))
       }
       if (value < 1 || value > 100) {
-        return(list(
-          valid = FALSE,
-          message = "n_clusters must be between 1 and 100"
-        ))
+        return(list(valid = FALSE, message = "n_clusters must be between 1 and 100"))
       }
       list(valid = TRUE, message = NULL)
     },
@@ -419,9 +454,22 @@ PARAMETER_REGISTRY <- list(
     default = NULL,
     type = "character",
     range = NULL,
-    allowed_values = c("EII", "VII", "EEI", "VEI", "EVI", "VVI",
-                      "EEE", "VEE", "EVE", "VVE", "EEV", "VEV",
-                      "EVV", "VVV"),
+    allowed_values = c(
+      "EII",
+      "VII",
+      "EEI",
+      "VEI",
+      "EVI",
+      "VVI",
+      "EEE",
+      "VEE",
+      "EVE",
+      "VVE",
+      "EEV",
+      "VEV",
+      "EVV",
+      "VVV"
+    ),
     config_group = "interpretation_args",
     model_specific = "gm",
     required = FALSE,
@@ -429,14 +477,29 @@ PARAMETER_REGISTRY <- list(
       if (is.null(value)) {
         return(list(valid = TRUE, message = NULL))
       }
-      valid_types <- c("EII", "VII", "EEI", "VEI", "EVI", "VVI",
-                      "EEE", "VEE", "EVE", "VVE", "EEV", "VEV",
-                      "EVV", "VVV")
+      valid_types <- c(
+        "EII",
+        "VII",
+        "EEI",
+        "VEI",
+        "EVI",
+        "VVI",
+        "EEE",
+        "VEE",
+        "EVE",
+        "VVE",
+        "EEV",
+        "VEV",
+        "EVV",
+        "VVV"
+      )
       if (!value %in% valid_types) {
         return(list(
           valid = FALSE,
-          message = paste0("covariance_type must be one of: ",
-                          paste(valid_types, collapse = ", "))
+          message = paste0(
+            "covariance_type must be one of: ",
+            paste(valid_types, collapse = ", ")
+          )
         ))
       }
       list(valid = TRUE, message = NULL)
@@ -454,16 +517,10 @@ PARAMETER_REGISTRY <- list(
     required = FALSE,
     validation_fn = function(value) {
       if (!is.numeric(value) || length(value) != 1) {
-        return(list(
-          valid = FALSE,
-          message = "min_cluster_size must be a single numeric value"
-        ))
+        return(list(valid = FALSE, message = "min_cluster_size must be a single numeric value"))
       }
       if (value < 1 || value > 100) {
-        return(list(
-          valid = FALSE,
-          message = "min_cluster_size must be between 1 and 100"
-        ))
+        return(list(valid = FALSE, message = "min_cluster_size must be between 1 and 100"))
       }
       list(valid = TRUE, message = NULL)
     },
@@ -480,16 +537,10 @@ PARAMETER_REGISTRY <- list(
     required = FALSE,
     validation_fn = function(value) {
       if (!is.numeric(value) || length(value) != 1) {
-        return(list(
-          valid = FALSE,
-          message = "separation_threshold must be a single numeric value"
-        ))
+        return(list(valid = FALSE, message = "separation_threshold must be a single numeric value"))
       }
       if (value < 0 || value > 1) {
-        return(list(
-          valid = FALSE,
-          message = "separation_threshold must be between 0 and 1"
-        ))
+        return(list(valid = FALSE, message = "separation_threshold must be between 0 and 1"))
       }
       list(valid = TRUE, message = NULL)
     },
@@ -509,10 +560,7 @@ PARAMETER_REGISTRY <- list(
         return(list(valid = TRUE, message = NULL))
       }
       if (!is.character(value)) {
-        return(list(
-          valid = FALSE,
-          message = "profile_variables must be a character vector"
-        ))
+        return(list(valid = FALSE, message = "profile_variables must be a character vector"))
       }
       list(valid = TRUE, message = NULL)
     },
@@ -529,10 +577,7 @@ PARAMETER_REGISTRY <- list(
     required = FALSE,
     validation_fn = function(value) {
       if (!is.logical(value) || length(value) != 1 || is.na(value)) {
-        return(list(
-          valid = FALSE,
-          message = "weight_by_uncertainty must be TRUE or FALSE"
-        ))
+        return(list(valid = FALSE, message = "weight_by_uncertainty must be TRUE or FALSE"))
       }
       list(valid = TRUE, message = NULL)
     },
@@ -552,8 +597,10 @@ PARAMETER_REGISTRY <- list(
       if (!value %in% valid_types) {
         return(list(
           valid = FALSE,
-          message = paste0("plot_type must be one of: ",
-                          paste(valid_types, collapse = ", "))
+          message = paste0(
+            "plot_type must be one of: ",
+            paste(valid_types, collapse = ", ")
+          )
         ))
       }
       list(valid = TRUE, message = NULL)
@@ -583,10 +630,7 @@ PARAMETER_REGISTRY <- list(
 get_param_default <- function(param_name) {
   if (!param_name %in% names(PARAMETER_REGISTRY)) {
     cli::cli_abort(
-      c(
-        "Unknown parameter: {.arg {param_name}}",
-        "i" = "Valid parameters: {.val {names(PARAMETER_REGISTRY)}}"
-      )
+      c("Unknown parameter: {.arg {param_name}}", "i" = "Valid parameters: {.val {names(PARAMETER_REGISTRY)}}")
     )
   }
 
@@ -615,17 +659,13 @@ get_param_default <- function(param_name) {
 get_params_by_group <- function(config_group, model_type = NULL) {
   if (!config_group %in% c("llm_args", "output_args", "interpretation_args")) {
     cli::cli_abort(
-      c(
-        "Invalid config_group: {.val {config_group}}",
-        "i" = "Valid groups: 'llm_args', 'output_args', 'interpretation_args'"
-      )
+      c("Invalid config_group: {.val {config_group}}", "i" = "Valid groups: 'llm_args', 'output_args', 'interpretation_args'")
     )
   }
 
   # Filter by config group
-  params <- PARAMETER_REGISTRY[
-    vapply(PARAMETER_REGISTRY, function(p) p$config_group == config_group, logical(1))
-  ]
+  params <- PARAMETER_REGISTRY[vapply(PARAMETER_REGISTRY, function(p)
+    p$config_group == config_group, logical(1))]
 
   # Further filter by model type if specified (only for interpretation_args)
   if (!is.null(model_type)) {
@@ -638,11 +678,9 @@ get_params_by_group <- function(config_group, model_type = NULL) {
         )
       )
     } else {
-      params <- params[
-        vapply(params, function(p) {
-          is.null(p$model_specific) || p$model_specific == model_type
-        }, logical(1))
-      ]
+      params <- params[vapply(params, function(p) {
+        is.null(p$model_specific) || p$model_specific == model_type
+      }, logical(1))]
     }
   }
 
@@ -680,10 +718,7 @@ get_params_by_group <- function(config_group, model_type = NULL) {
 validate_param <- function(param_name, value, throw_error = TRUE) {
   if (!param_name %in% names(PARAMETER_REGISTRY)) {
     cli::cli_abort(
-      c(
-        "Unknown parameter: {.arg {param_name}}",
-        "i" = "Valid parameters: {.val {names(PARAMETER_REGISTRY)}}"
-      )
+      c("Unknown parameter: {.arg {param_name}}", "i" = "Valid parameters: {.val {names(PARAMETER_REGISTRY)}}")
     )
   }
 
@@ -771,7 +806,8 @@ validate_params <- function(param_list, throw_error = TRUE) {
   }
 
   if (!throw_error) {
-    invalid_params <- names(results)[vapply(results, function(r) !r$valid, logical(1))]
+    invalid_params <- names(results)[vapply(results, function(r)
+      ! r$valid, logical(1))]
     list(
       valid = all_valid,
       results = results,

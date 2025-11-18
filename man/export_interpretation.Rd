@@ -39,7 +39,7 @@ File extension is automatically added if not provided by the user.
 This is an S3 generic function. Model-specific export methods are implemented as:
 \itemize{
 \item \code{export_interpretation.fa_interpretation()} for factor analysis
-\item Future: \code{export_interpretation.gm_interpretation()} for gaussian mixture
+\item \code{export_interpretation.gm_interpretation()} for gaussian mixture
 \item Future: \code{export_interpretation.irt_interpretation()} for IRT
 \item Future: \code{export_interpretation.cdm_interpretation()} for CDM
 }

@@ -4,17 +4,32 @@
 \alias{build_analysis_data.Mclust}
 \title{Build Analysis Data for Mclust Objects}
 \usage{
-\method{build_analysis_data}{Mclust}(fit_results, interpretation_args = NULL, ...)
+\method{build_analysis_data}{Mclust}(
+  fit_results,
+  analysis_type = NULL,
+  interpretation_args = NULL,
+  ...
+)
 }
 \arguments{
 \item{fit_results}{An object of class "Mclust" from the mclust package}
+
+\item{analysis_type}{Character. Analysis type (not used, for S3 consistency)}
 
 \item{interpretation_args}{List of interpretation parameters (optional)}
 
 \item{...}{Additional arguments passed to interpretation_args_gm}
 }
 \value{
-A list containing standardized GM data for interpretation
+A list with standardized GM data including: \code{means} (cluster means
+matrix), \code{covariances} (3D array of cluster covariance matrices),
+\code{proportions} (cluster mixing proportions), \code{n_clusters},
+\code{n_variables}, \code{n_observations}, \code{variable_names},
+\code{cluster_names}, \code{covariance_type} (mclust model name),
+\code{classification} (cluster assignments), \code{uncertainty} (assignment
+uncertainty values), \code{weight_by_uncertainty} (logical flag),
+\code{profile_variables} (subset of variables for interpretation), and
+\code{min_cluster_size}, \code{separation_threshold} (diagnostic thresholds)
 }
 \description{
 Extracts and standardizes data from fitted mclust Gaussian mixture models.

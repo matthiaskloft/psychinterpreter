@@ -4,17 +4,19 @@
 \alias{build_cluster_section_gm}
 \title{Build Cluster Section for GM Prompt}
 \usage{
-build_cluster_section_gm(analysis_data, llm_args)
+build_cluster_section_gm(analysis_data)
 }
 \arguments{
-\item{analysis_data}{Standardized GM analysis data}
-
-\item{llm_args}{List of LLM configuration parameters}
+\item{analysis_data}{Standardized GM analysis data (list with means, proportions,
+covariances, uncertainty, weight_by_uncertainty, profile_variables, etc.)}
 }
 \value{
-Character string with formatted cluster statistics
+Character string with formatted cluster statistics including means,
+sizes, uncertainty (if enabled), and within-cluster correlations
 }
 \description{
-Build Cluster Section for GM Prompt
+Formats comprehensive cluster statistics including means, proportions, uncertainty,
+and within-cluster correlations for the interpretation prompt. Filters to
+profile_variables if specified.
 }
 \keyword{internal}

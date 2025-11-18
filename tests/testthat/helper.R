@@ -261,6 +261,73 @@ sample_mirt_model <- function() {
   .test_cache[[cache_key]]
 }
 
+# GM Fixtures (for S3 method testing) ----
+# These fixtures cache Gaussian Mixture model fits
+
+#' Load minimal GM model fixture (for token-efficient LLM tests)
+#'
+#' @return A fitted mclust::Mclust object (3 clusters)
+minimal_gm_model <- function() {
+  cache_key <- "minimal_gm_model"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "gm", "minimal_gm_model.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load minimal GM variable info (for token-efficient LLM tests)
+#'
+#' @return A data frame with short variable descriptions for GM
+minimal_gm_var_info <- function() {
+  cache_key <- "minimal_gm_var_info"
+  if (!exists(cache_key, envir = .test_cache)) {
+    .test_cache[[cache_key]] <- readRDS(get_fixture_path("fixtures", "gm", "minimal_gm_var_info.rds"))
+  }
+  .test_cache[[cache_key]]
+}
+
+#' Load sample GM interpretation result (fixture to avoid LLM calls)
+#'
+#' @return A complete gm_interpretation object
+sample_gm_interpretation <- function() {
+  cache_key <- "sample_gm_interpretation"
+
+  # Check if fixture exists in cache
+  if (!exists(cache_key, envir = .test_cache)) {
+    # Try to load from file first
+    fixture_path <- get_fixture_path("fixtures", "gm", "sample_gm_interpretation.rds")
+
+    if (file.exists(fixture_path)) {
+      .test_cache[[cache_key]] <- readRDS(fixture_path)
+    } else {
+      # Generate fixture if it doesn't exist
+      # This will only run once per test session
+      skip_if_no_llm()
+
+      model <- minimal_gm_model()
+      var_info <- minimal_gm_var_info()
+
+      # Create interpretation with minimal token usage
+      interp <- psychinterpreter::interpret(
+        fit_results = model,
+        variable_info = var_info,
+        llm_provider = "ollama",
+        llm_model = "gpt-oss:20b-cloud",
+        word_limit = 20,
+        silent = 2
+      )
+
+      # Cache it
+      .test_cache[[cache_key]] <- interp
+
+      # Optionally save to file for future use
+      # saveRDS(interp, fixture_path)
+    }
+  }
+
+  .test_cache[[cache_key]]
+}
+
 # LLM Availability Functions ----
 
 #' Check if Ollama/LLM is available for testing

@@ -4,19 +4,21 @@
 \alias{create_radar_plot_gm}
 \title{Create Radar Plot for GM Clusters}
 \usage{
-create_radar_plot_gm(analysis_data, cutoff = 0.3, title = NULL)
+create_radar_plot_gm(analysis_data, cutoff = 0.3, title = NULL, ...)
 }
 \arguments{
 \item{analysis_data}{Standardized GM analysis data}
 
-\item{cutoff}{Threshold for highlighting}
+\item{cutoff}{Threshold for highlighting (not used in fmsb implementation)}
 
 \item{title}{Plot title (optional)}
+
+\item{...}{Additional arguments passed to fmsb::radarchart}
 }
 \value{
-ggplot2 object or gridExtra arrangement
+A recorded plot object (class "recordedplot")
 }
 \description{
-Creates radar/spider plots for cluster profiles.
+Creates a radar/spider plot showing cluster profiles using fmsb::radarchart.
 }
 \keyword{internal}

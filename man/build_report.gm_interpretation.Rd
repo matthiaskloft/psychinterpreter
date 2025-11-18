@@ -4,14 +4,24 @@
 \alias{build_report.gm_interpretation}
 \title{Build Report for GM Interpretation}
 \usage{
-\method{build_report}{gm_interpretation}(interpretation, format = c("cli", "markdown"), heading_level = 2)
+\method{build_report}{gm_interpretation}(
+  interpretation,
+  output_format = "cli",
+  heading_level = 1,
+  suppress_heading = FALSE,
+  ...
+)
 }
 \arguments{
 \item{interpretation}{An object of class "gm_interpretation"}
 
-\item{format}{Output format: "cli" or "markdown"}
+\item{output_format}{Output format: "cli" or "markdown"}
 
-\item{heading_level}{Starting heading level for markdown (default: 2)}
+\item{heading_level}{Starting heading level for markdown (default: 1)}
+
+\item{suppress_heading}{Logical. If TRUE, suppress the main heading}
+
+\item{...}{Additional arguments (for S3 consistency)}
 }
 \value{
 Character string containing the formatted report

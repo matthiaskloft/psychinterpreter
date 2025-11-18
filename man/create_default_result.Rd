@@ -9,10 +9,14 @@ create_default_result(analysis_type, ...)
 \arguments{
 \item{analysis_type}{Character. Model type}
 
-\item{...}{Additional arguments for model-specific defaults}
+\item{...}{Additional arguments for model-specific defaults, including:
+\itemize{
+\item \code{analysis_data}: Standardized model data (required by most implementations)
+}}
 }
 \value{
-List. Default result structure
+List with model-specific structure (e.g., \code{component_summaries} and
+\code{suggested_names}) containing generic default interpretations
 }
 \description{
 Model-specific default result when all parsing methods fail.

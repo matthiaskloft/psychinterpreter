@@ -4,15 +4,17 @@
 \alias{extract_by_pattern.gm}
 \title{Extract Interpretations by Pattern for Gaussian Mixture Models}
 \usage{
-\method{extract_by_pattern}{gm}(response_text, analysis_data)
+\method{extract_by_pattern}{gm}(response, analysis_type, ...)
 }
 \arguments{
-\item{response_text}{Raw text response from LLM}
+\item{response}{Raw text response from LLM}
 
-\item{analysis_data}{Standardized GM analysis data}
+\item{analysis_type}{Character. Analysis type ("gm")}
+
+\item{...}{Additional arguments including analysis_data}
 }
 \value{
-Named list of cluster interpretations or NULL
+A list with two components: \code{component_summaries} (named list of cluster interpretations) and \code{suggested_names} (named list of cluster labels), or NULL if extraction fails
 }
 \description{
 Fallback extraction method using regex patterns when JSON parsing fails.

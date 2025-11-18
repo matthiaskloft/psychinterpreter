@@ -6,7 +6,15 @@
 \usage{
 \method{create_default_result}{default}(analysis_type, ...)
 }
+\arguments{
+\item{analysis_type}{Character. Model type}
+
+\item{...}{Additional arguments (ignored)}
+}
+\value{
+Does not return (throws error)
+}
 \description{
-Default method for create_default_result
+Throws an error when no model-specific method is found.
 }
 \keyword{internal}

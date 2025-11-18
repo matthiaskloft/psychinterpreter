@@ -29,7 +29,7 @@ interpret(
 \itemize{
 \item For FA: \code{list(loadings = matrix, factor_cor_mat = matrix)} or \code{list(loadings = matrix)}
 (both loadings and factor_cor_mat can be matrices or data.frames)
-\item For GM: Not yet implemented
+\item For GM: \code{list(means = matrix, covariances = array, proportions = numeric, z = matrix)}
 \item For IRT: Not yet implemented
 \item For CDM: Not yet implemented
 }
@@ -69,7 +69,8 @@ suppress_heading, max_line_length, silent (default = NULL).}
 Model-specific interpretation object:
 \itemize{
 \item FA: \code{fa_interpretation} (see \code{\link{interpret}})
-\item Future: \code{gm_interpretation}, \code{irt_interpretation}, etc.
+\item GM: \code{gm_interpretation} with cluster profiles and interpretations
+\item Future: \code{irt_interpretation}, \code{cdm_interpretation}
 }
 }
 \description{
@@ -155,10 +156,27 @@ interpret(
 }
 }
 
+\subsection{Discovering Available Parameters}{
+
+To see all available parameters with their defaults, types, and valid ranges,
+use \code{\link{show_interpret_args}}:
+
+\preformatted{
+# Show common parameters (llm_args + output_args)
+show_interpret_args()
+
+# Show all parameters for Factor Analysis
+show_interpret_args("fa")
+
+# Show all parameters for Gaussian Mixture Models
+show_interpret_args("gm")
+}
+}
+
 \subsection{Supported Model Types}{
 \itemize{
 \item \strong{fa} (Factor Analysis): psych::fa(), psych::principal(), lavaan::cfa/efa(), mirt::mirt()
-\item \strong{gm} (Gaussian Mixture): Not yet implemented
+\item \strong{gm} (Gaussian Mixture): mclust::Mclust()
 \item \strong{irt} (Item Response Theory): Not yet implemented
 \item \strong{cdm} (Cognitive Diagnosis Models): Not yet implemented
 }
@@ -221,5 +239,5 @@ print(chat)  # Check token usage
 }
 }
 \seealso{
-\code{\link{interpret}}, \code{\link{chat_session}}
+\code{\link{interpret}}, \code{\link{chat_session}}, \code{\link{show_interpret_args}}
 }

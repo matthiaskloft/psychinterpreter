@@ -128,8 +128,10 @@ parse_llm_response <- function(response, analysis_type, ...) {
 #'
 #' @param parsed List. Parsed JSON object
 #' @param analysis_type Character. Model type
-#' @param ... Additional arguments for model-specific validation
-#' @return List or NULL. Validated result or NULL if invalid
+#' @param ... Additional arguments for model-specific validation, including:
+#'   - \code{analysis_data}: Standardized model data (required by most implementations)
+#' @return List with model-specific structure (e.g., \code{component_summaries} and
+#'   \code{suggested_names} for FA/GM models), or NULL if validation fails
 #' @export
 #' @keywords internal
 validate_parsed_result <- function(parsed, analysis_type, ...) {
@@ -142,8 +144,10 @@ validate_parsed_result <- function(parsed, analysis_type, ...) {
 #'
 #' @param response Character. Raw LLM response
 #' @param analysis_type Character. Model type
-#' @param ... Additional arguments for model-specific extraction
-#' @return List or NULL. Extracted result or NULL if extraction failed
+#' @param ... Additional arguments for model-specific extraction, including:
+#'   - \code{analysis_data}: Standardized model data (required by most implementations)
+#' @return List with model-specific structure (e.g., \code{component_summaries} and
+#'   \code{suggested_names}), or NULL if extraction failed
 #' @export
 #' @keywords internal
 extract_by_pattern <- function(response, analysis_type, ...) {
@@ -155,8 +159,10 @@ extract_by_pattern <- function(response, analysis_type, ...) {
 #' Model-specific default result when all parsing methods fail.
 #'
 #' @param analysis_type Character. Model type
-#' @param ... Additional arguments for model-specific defaults
-#' @return List. Default result structure
+#' @param ... Additional arguments for model-specific defaults, including:
+#'   - \code{analysis_data}: Standardized model data (required by most implementations)
+#' @return List with model-specific structure (e.g., \code{component_summaries} and
+#'   \code{suggested_names}) containing generic default interpretations
 #' @export
 #' @keywords internal
 create_default_result <- function(analysis_type, ...) {
@@ -164,37 +170,60 @@ create_default_result <- function(analysis_type, ...) {
 }
 
 #' Default method for validate_parsed_result
+#'
+#' Throws an error when no model-specific method is found.
+#'
+#' @param parsed List. Parsed JSON object
+#' @param analysis_type Character. Model type
+#' @param ... Additional arguments (ignored)
+#'
+#' @return Does not return (throws error)
 #' @export
 #' @keywords internal
 validate_parsed_result.default <- function(parsed, analysis_type, ...) {
   cli::cli_abort(
     c(
       "No validation method for model type: {.val {analysis_type}}",
-      "i" = "Available types: fa, gm, irt, cdm"
+      "i" = "Currently implemented: fa, gm (irt and cdm planned)"
     )
   )
 }
 
 #' Default method for extract_by_pattern
+#'
+#' Throws an error when no model-specific method is found.
+#'
+#' @param response Character. Raw LLM response
+#' @param analysis_type Character. Model type
+#' @param ... Additional arguments (ignored)
+#'
+#' @return Does not return (throws error)
 #' @export
 #' @keywords internal
 extract_by_pattern.default <- function(response, analysis_type, ...) {
   cli::cli_abort(
     c(
       "No pattern extraction method for model type: {.val {analysis_type}}",
-      "i" = "Available types: fa, gm, irt, cdm"
+      "i" = "Currently implemented: fa, gm (irt and cdm planned)"
     )
   )
 }
 
 #' Default method for create_default_result
+#'
+#' Throws an error when no model-specific method is found.
+#'
+#' @param analysis_type Character. Model type
+#' @param ... Additional arguments (ignored)
+#'
+#' @return Does not return (throws error)
 #' @export
 #' @keywords internal
 create_default_result.default <- function(analysis_type, ...) {
   cli::cli_abort(
     c(
       "No default result method for model type: {.val {analysis_type}}",
-      "i" = "Available types: fa, gm, irt, cdm"
+      "i" = "Currently implemented: fa, gm (irt and cdm planned)"
     )
   )
 }

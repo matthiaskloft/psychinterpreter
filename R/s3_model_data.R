@@ -36,6 +36,9 @@ build_analysis_data <- function(fit_results, analysis_type = NULL, interpretatio
 
 #' Default method for build_analysis_data
 #'
+#' Throws an informative error for unsupported model types.
+#'
+#' @inheritParams build_analysis_data
 #' @export
 #' @keywords internal
 build_analysis_data.default <- function(fit_results, analysis_type = NULL, interpretation_args = NULL, ...) {
@@ -45,9 +48,9 @@ build_analysis_data.default <- function(fit_results, analysis_type = NULL, inter
   cli::cli_abort(
     c(
       "No model data builder for object of class: {.val {model_class}}",
-      "i" = "Supported types: fa, psych, principal, lavaan, SingleGroupClass (mirt), or list",
+      "i" = "Supported types: fa, psych, principal, lavaan, SingleGroupClass (mirt), Mclust, or list",
       "i" = "For list input, provide analysis_type parameter (e.g., analysis_type = 'fa')",
-      "i" = "Implement build_analysis_data.{model_class}() in R/{model_class}_analysis_data.R to add support"
+      "i" = "Implement build_analysis_data.{model_class}() in R/{model_class}_model_data.R to add support"
     )
   )
 }
@@ -69,13 +72,18 @@ build_structured_list <- function(x, analysis_type, ...) {
   UseMethod("build_structured_list", structure(list(), class = analysis_type))
 }
 
+#' Default method for build_structured_list
+#'
+#' Throws an error for unsupported analysis types.
+#'
+#' @inheritParams build_structured_list
 #' @export
 #' @keywords internal
 build_structured_list.default <- function(x, analysis_type, ...) {
   cli::cli_abort(
     c(
       "{analysis_type} interpretation not yet implemented",
-      "i" = "Currently only 'fa' (factor analysis) is supported"
+      "i" = "Currently supported: 'fa' (factor analysis), 'gm' (Gaussian mixture)"
     )
   )
 }

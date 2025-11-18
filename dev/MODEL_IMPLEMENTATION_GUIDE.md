@@ -365,11 +365,20 @@ Use this checklist when implementing a new analysis type (replace `{analysis}` w
 
 ### Phase 6: Report Generation
 
+- [ ] **`R/aaa_shared_formatting.R`** modifications
+  - [ ] Add `.{ANALYSIS}_FORMAT_EXTENSIONS` table after existing extensions
+  - [ ] Define markdown format functions for all required dispatch elements
+  - [ ] Define CLI format functions for all required dispatch elements
+  - [ ] Update `get_format_fn()` switch statement to include new model type
+  - [ ] Document required dispatch elements for the model
+
 - [ ] **`R/{analysis}_report.R`**
-  - [ ] `build_report.{analysis}_interpretation()` - orchestrator
+  - [ ] `build_report.{analysis}_interpretation()` - orchestrator using format dispatch
+  - [ ] `print.{analysis}_interpretation()` - print method with format regeneration
   - [ ] Helper functions for each report section (~60-130 lines each)
-  - [ ] Text and Markdown formatting support
-  - [ ] Test report generation
+  - [ ] Use `get_format_fn()` instead of inline if/else for formatting
+  - [ ] Use helper wrappers: `fmt_heading()`, `fmt_keyval()`, `fmt_style()`
+  - [ ] Test report generation in both CLI and markdown formats
 
 ### Phase 7: Integration & Dispatch Table Registration
 
@@ -1245,6 +1254,8 @@ detect_{issue}_{analysis} <- function(analysis_data) {
 
 **Purpose**: Format interpretation into user-facing report (text or markdown).
 
+**IMPORTANT: Use the Shared Format Dispatch System** (see Section 7.1 below)
+
 #### 7.1 Main Report Builder
 
 ```r
@@ -1427,6 +1438,415 @@ build_diagnostics_section_{analysis} <- function(diagnostics, output_format) {
 - `build_factor_names_section()` - line 321
 - `build_correlations_section()` - line 477
 - `build_diagnostics_section()` - line 695
+
+---
+
+### Step 7.1: Using the Shared Format Dispatch System
+
+**File**: `R/aaa_shared_formatting.R` (centralized formatting functions)
+
+**Purpose**: The package uses a centralized format dispatch system to avoid duplicating format-specific logic across model types. This makes it easier to maintain consistency and add new formats in the future.
+
+#### Understanding the Format Dispatch System
+
+**Key concept**: Instead of writing inline if/else statements for format-specific logic, you retrieve formatting functions from dispatch tables.
+
+**Benefits**:
+- DRY principle: Format logic defined once in dispatch tables
+- Consistency: All model types use the same base formatting
+- Extensibility: Easy to add new formats or model-specific extensions
+- Testability: Format functions can be tested in isolation
+
+#### Three Levels of Formatting Functions
+
+**1. Base Format Dispatch** (`.BASE_FORMAT_DISPATCH` in `shared_formatting.R:13-76`)
+
+Core formatting shared across all model types:
+- `heading_prefix(level)` - Markdown heading symbols
+- `bold(x)` - Bold text
+- `italic(x)` - Italic text
+- `section_header(level, title)` - Section headers
+- `main_header(title, level)` - Main headers
+- `line_break` - Line breaks
+- `list_item` - List item bullets
+- `token_header(bold_fn)` - Token count header
+- `token_line(label, value)` - Token count lines
+- `section_intro(text)` - Section intro text
+- `warning_header(level, title)` - Warning headers (colored)
+- `error_header(level, title)` - Error headers (colored)
+
+**2. Model-Specific Format Extensions** (e.g., `.FA_FORMAT_EXTENSIONS`, `.GM_FORMAT_EXTENSIONS`)
+
+Model-specific formatting elements that extend the base dispatch:
+- FA: `factor_name_item()`, `total_variance()`, `correlation_item()`, `var_display_with_desc()`, `factor_separator`
+- GM: `cluster_name_item()`, `cluster_header()`, `model_info_item()`, `diagnostic_warning()`, `key_variable_item()`, `cluster_separator`
+
+**3. Helper Wrapper Functions** (e.g., `fmt_heading()`, `fmt_style()`, `fmt_keyval()`)
+
+Convenience wrappers that simplify common formatting tasks.
+
+#### How to Use Format Dispatch in Report Builders
+
+**Step 1: Get formatting functions at the start of your builder**
+
+```r
+build_report_header_{analysis} <- function(interpretation, output_format, heading_level) {
+  format <- match.arg(output_format, c("cli", "markdown"))
+
+  # Get dispatch functions (specify model_type for model-specific extensions)
+  bold_fn <- get_format_fn(format, "bold", "{analysis}")
+  main_header_fn <- get_format_fn(format, "main_header", "{analysis}")
+  token_header_fn <- get_format_fn(format, "token_header", "{analysis}")
+  token_line_fn <- get_format_fn(format, "token_line", "{analysis}")
+
+  # Build report using retrieved functions...
+}
+```
+
+**Step 2: Use the retrieved functions instead of if/else**
+
+```r
+# ❌ OLD WAY - inline if/else for every format decision
+if (output_format == "markdown") {
+  report <- paste0("## ", title, "\n\n")
+} else {
+  report <- paste0(cli::style_bold(title), "\n", cli::rule(), "\n\n")
+}
+
+# ✅ NEW WAY - dispatch table lookup
+section_header_fn <- get_format_fn(format, "section_header", "{analysis}")
+report <- section_header_fn(level = 2, title = title)
+```
+
+**Step 3: Use helper wrappers for common patterns**
+
+```r
+# Format key-value pairs
+report <- paste0(report, fmt_keyval(format, "BIC", bic_value, "{analysis}"))
+report <- paste0(report, fmt_keyval(format, "Clusters", n_clusters, "{analysis}"))
+
+# Format headings
+report <- paste0(report, fmt_heading(format, 2, "Model Information", "{analysis}"))
+
+# Format styled text
+report <- paste0(report, fmt_style(format, "Important", "bold", "{analysis}"))
+```
+
+#### Adding Model-Specific Format Extensions
+
+When implementing a new model type (IRT, CDM), you'll add model-specific extensions to `R/aaa_shared_formatting.R`.
+
+**Location**: Add after the last format extensions table (after `.GM_FORMAT_EXTENSIONS`, line 212)
+
+**Template**:
+
+```r
+#' {ANALYSIS}-Specific Format Extensions
+#'
+#' Formatting functions specific to {ANALYSIS_FULL_NAME} reports.
+#' Extends base dispatch table with {ANALYSIS}-specific elements.
+#'
+#' @keywords internal
+#' @noRd
+.{ANALYSIS}_FORMAT_EXTENSIONS <- list(
+  "markdown" = list(
+    # Component names display (analogous to factor_name_item, cluster_name_item)
+    component_name_item = function(i, metric_value, name) {
+      paste0("- **{Component} ", i, " (", metric_value, "):** *", name, "*\n")
+    },
+
+    # Component header for interpretation sections
+    component_header = function(component_num, component_name, suggested_name,
+                                metric_text, heading_level) {
+      hashes <- paste(rep("#", heading_level), collapse = "")
+      if (!is.null(suggested_name) && suggested_name != "") {
+        display_name <- paste0(component_name, ': "', suggested_name, '"', metric_text)
+      } else {
+        display_name <- paste0(component_name, metric_text)
+      }
+      paste0(hashes, " ", display_name, "\n\n")
+    },
+
+    # Model-specific items
+    model_info_item = function(label, value) {
+      paste0("- ", label, ": ", value, "\n")
+    },
+
+    # Diagnostic messages
+    diagnostic_warning = function(message) {
+      paste0("- [!] ", message, "\n")
+    },
+    diagnostic_note = function(message) {
+      paste0("- [i] ", message, "\n")
+    },
+
+    # Key data display (model-specific)
+    key_data_item = function(data_name, value1, value2) {
+      paste0("- ", data_name, " (val1: ", round(value1, 2),
+             " vs val2: ", round(value2, 2), ")\n")
+    },
+
+    # Component separator (like factor_separator, cluster_separator)
+    component_separator = ""
+  ),
+
+  "cli" = list(
+    # CLI versions of the same functions
+    component_name_item = function(i, metric_value, name) {
+      paste0(cli::symbol$bullet, " ",
+             cli::style_bold(paste0("{Component} ", i)),
+             " (", metric_value, "): ",
+             cli::col_green(name), "\n")
+    },
+
+    component_header = function(component_num, component_name, suggested_name,
+                               metric_text, heading_level) {
+      if (!is.null(suggested_name) && suggested_name != "") {
+        display_name <- paste0(component_name, ': "', suggested_name, '"', metric_text)
+      } else {
+        display_name <- paste0(component_name, metric_text)
+      }
+      paste0(cli::style_bold(display_name), "\n")
+    },
+
+    model_info_item = function(label, value) {
+      paste0("  ", label, ": ", value, "\n")
+    },
+
+    diagnostic_warning = function(message) {
+      paste0("    ", cli::col_yellow(message), "\n")
+    },
+    diagnostic_note = function(message) {
+      paste0("    ", cli::col_blue(message), "\n")
+    },
+
+    key_data_item = function(data_name, value1, value2) {
+      paste0("    - ", data_name, " (", round(value1, 2),
+             " vs ", round(value2, 2), ")\n")
+    },
+
+    component_separator = paste0(cli::rule(line = 2, line_col = "grey"), "\n\n")
+  )
+)
+```
+
+**Key points**:
+- Every markdown function needs a corresponding CLI function
+- Use descriptive function names that indicate what they format
+- Follow existing naming patterns (e.g., `{component}_name_item`, `{component}_header`)
+- Include separators if you want visual dividers between components
+
+#### Updating get_format_fn() Dispatch
+
+After adding your format extensions, update `get_format_fn()` in `shared_formatting.R`:
+
+**Location**: Lines 237-265 in `R/aaa_shared_formatting.R`
+
+**Add your model type to the switch statement**:
+
+```r
+get_format_fn <- function(format, element, model_type = NULL) {
+  format <- match.arg(format, c("cli", "markdown"))
+
+  # Try model-specific extensions first
+  if (!is.null(model_type)) {
+    extension_table <- switch(
+      model_type,
+      "fa" = .FA_FORMAT_EXTENSIONS,
+      "gm" = .GM_FORMAT_EXTENSIONS,
+      "{analysis}" = .{ANALYSIS}_FORMAT_EXTENSIONS,  # ADD YOUR MODEL TYPE
+      NULL
+    )
+
+    if (!is.null(extension_table) && element %in% names(extension_table[[format]])) {
+      return(extension_table[[format]][[element]])
+    }
+  }
+
+  # Fall back to base dispatch table
+  if (element %in% names(.BASE_FORMAT_DISPATCH[[format]])) {
+    return(.BASE_FORMAT_DISPATCH[[format]][[element]])
+  }
+
+  # Element not found - error
+  stop(sprintf(
+    "Format element '%s' not found for format '%s'%s",
+    element, format,
+    if (!is.null(model_type)) paste0(" and model type '", model_type, "'") else ""
+  ))
+}
+```
+
+#### Required Dispatch Elements by Model Type
+
+When implementing a new model type, you MUST provide these dispatch elements:
+
+**Universal elements** (inherited from `.BASE_FORMAT_DISPATCH`):
+- `heading_prefix`, `bold`, `italic`, `section_header`, `main_header`
+- `line_break`, `list_item`, `token_header`, `token_line`
+- `section_intro`, `warning_header`, `error_header`
+
+**Model-specific elements** (add to your format extensions):
+- `{component}_name_item` - Display component with key metric
+- `{component}_header` - Header for component interpretation sections
+- `model_info_item` - Display model metadata
+- `diagnostic_warning`, `diagnostic_note` - Diagnostic messages
+- `key_data_item` - Display model-specific key data
+- `{component}_separator` - Visual separator between components
+
+**Examples from existing model types**:
+- **FA**: `factor_name_item`, `factor_separator`, `total_variance`, `correlation_item`, `var_display_with_desc`, `var_display_no_desc`
+- **GM**: `cluster_name_item`, `cluster_separator`, `cluster_header`, `model_info_item`, `diagnostic_warning`, `diagnostic_note`, `key_variable_item`
+
+#### Print Method Requirements
+
+**ALL model types MUST implement a print method** that:
+
+1. Validates the interpretation object structure
+2. Validates print parameters (max_line_length, output_format, heading_level)
+3. Supports format regeneration using `build_report.{analysis}_interpretation()`
+4. Uses `wrap_text()` from `shared_text.R` for CLI format
+5. Preserves formatting for markdown output (no wrapping)
+
+**Template** (see `print.fa_interpretation()` in `fa_report.R:791-913` or `print.gm_interpretation()` in `gm_report.R:277-379`):
+
+```r
+#' @export
+print.{analysis}_interpretation <- function(x,
+                                            max_line_length = 80,
+                                            output_format = NULL,
+                                            heading_level = 1,
+                                            suppress_heading = FALSE,
+                                            ...) {
+  # 1. Validate object structure
+  if (!inherits(x, "{analysis}_interpretation") || !is.list(x)) {
+    cli::cli_abort(
+      c("Input must be a {analysis}_interpretation object",
+        "i" = "This should be the output from interpret()")
+    )
+  }
+
+  if (!("report" %in% names(x)) && !("component_summaries" %in% names(x))) {
+    cli::cli_abort(
+      c("{analysis}_interpretation object must contain 'report' or 'component_summaries'",
+        "i" = "This should be the output from interpret()")
+    )
+  }
+
+  # 2. Validate parameters (max_line_length, output_format, heading_level)
+  # ... (see FA/GM examples for full validation logic)
+
+  # 3. Regenerate report if output_format specified
+  if (!is.null(output_format) && "component_summaries" %in% names(x)) {
+    report_text <- build_report.{analysis}_interpretation(
+      interpretation = x,
+      output_format = output_format,
+      heading_level = heading_level,
+      suppress_heading = suppress_heading
+    )
+  } else {
+    # Use existing report
+    report_text <- x$report
+  }
+
+  # 4. Wrap text for CLI format only
+  if (is.null(output_format) || output_format == "cli") {
+    wrapped_report <- wrap_text(report_text, max_line_length)
+    cat(wrapped_report)
+  } else {
+    # Markdown: no wrapping
+    cat(report_text)
+  }
+
+  return(invisible(NULL))
+}
+```
+
+**Key print method features**:
+- **Format regeneration**: Users can convert between CLI and markdown after analysis
+- **Text wrapping**: CLI format wraps at word boundaries for readability
+- **Markdown preservation**: Markdown format preserves exact formatting
+- **Validation**: Comprehensive parameter validation with helpful error messages
+- **Suppress heading**: Optional heading suppression for document integration
+
+#### Complete Report Builder Example with Format Dispatch
+
+**Full example using all format dispatch features**:
+
+```r
+build_{component}_section_{analysis} <- function(component_data,
+                                                 suggested_names,
+                                                 format,
+                                                 heading_level) {
+  # Get dispatch functions
+  section_header_fn <- get_format_fn(format, "section_header", "{analysis}")
+  component_name_item_fn <- get_format_fn(format, "component_name_item", "{analysis}")
+  component_header_fn <- get_format_fn(format, "component_header", "{analysis}")
+  component_separator_fn <- get_format_fn(format, "component_separator", "{analysis}")
+
+  # Build section header
+  section <- section_header_fn(heading_level + 1, "{Component} Interpretations")
+
+  # Add each component
+  for (i in seq_along(component_data)) {
+    component_name <- names(component_data)[i]
+    data <- component_data[[component_name]]
+    suggested_name <- suggested_names[[component_name]]
+
+    # Use component_name_item for summary display
+    section <- paste0(
+      section,
+      component_name_item_fn(i, data$metric_value, suggested_name)
+    )
+
+    # Use component_header for detailed section
+    section <- paste0(
+      section,
+      component_header_fn(i, component_name, suggested_name,
+                         data$additional_metric, heading_level + 2)
+    )
+
+    # Add interpretation text
+    section <- paste0(section, data$interpretation, "\n\n")
+
+    # Add separator
+    section <- paste0(section, component_separator_fn)
+  }
+
+  return(section)
+}
+```
+
+#### When to Use Base Dispatch vs Model-Specific Extensions
+
+**Use base dispatch** (no model_type argument) for:
+- Standard headers and section titles
+- Token counts
+- Bold/italic text
+- List items
+- Line breaks
+
+**Use model-specific extensions** (with model_type argument) for:
+- Component names and headers (factors, clusters, items, etc.)
+- Component separators
+- Model-specific data displays
+- Model-specific diagnostics
+
+**Example**:
+```r
+# Base dispatch - universal formatting
+section_header_fn <- get_format_fn(format, "section_header")
+bold_fn <- get_format_fn(format, "bold")
+
+# Model-specific - IRT-specific formatting
+item_param_fn <- get_format_fn(format, "item_parameter_display", "irt")
+ability_dist_fn <- get_format_fn(format, "ability_distribution", "irt")
+```
+
+**Reference implementations**:
+- **FA**: `R/fa_report.R` - Complete format dispatch integration (lines 1-949)
+- **GM**: `R/gm_report.R` - Complete format dispatch integration (lines 1-635)
+- **Shared formatting**: `R/aaa_shared_formatting.R` - All dispatch tables and helpers (lines 1-356)
 
 ---
 
@@ -2260,38 +2680,69 @@ if (is_supported_model(fit_results)) {
 
 ---
 
-### Pattern 10: Format Dispatch
+### Pattern 10: Shared Format Dispatch System
 
-**Location**: Report builders (`R/{analysis}_report.R`)
+**Location**: `R/aaa_shared_formatting.R` (centralized) and all report builders
 
-**Code**:
+**IMPORTANT**: The package now uses a **centralized format dispatch system**. DO NOT create local format dispatch tables in report files.
+
+**Code (Centralized Format Dispatch)**:
 ```r
-# Format dispatch table (usually internal to report file)
-.format_dispatch <- list(
-  cli = list(
-    heading = function(text) paste0(toupper(text), "\n", paste(rep("=", 40), collapse = ""), "\n"),
-    subheading = function(text) paste0("\n", text, ":\n"),
-    bold = function(text) text
+# In report builders - retrieve formatting functions from shared dispatch
+build_report_header_{analysis} <- function(interpretation, output_format, heading_level) {
+  format <- match.arg(output_format, c("cli", "markdown"))
+
+  # Get dispatch functions from shared system
+  bold_fn <- get_format_fn(format, "bold", "{analysis}")
+  main_header_fn <- get_format_fn(format, "main_header", "{analysis}")
+  section_header_fn <- get_format_fn(format, "section_header", "{analysis}")
+
+  # Use retrieved functions
+  report <- main_header_fn("Report Title", heading_level)
+  report <- paste0(report, section_header_fn(heading_level + 1, "Section Title"))
+  report <- paste0(report, "Content here")
+
+  # Use helper wrappers for common patterns
+  report <- paste0(report, fmt_keyval(format, "Key", "Value", "{analysis}"))
+}
+```
+
+**Model-Specific Extensions**:
+```r
+# In R/aaa_shared_formatting.R - add model-specific format extensions
+.{ANALYSIS}_FORMAT_EXTENSIONS <- list(
+  "markdown" = list(
+    component_name_item = function(i, metric, name) {
+      paste0("- **Component ", i, " (", metric, "):** *", name, "*\n")
+    },
+    component_separator = ""
   ),
-  markdown = list(
-    heading = function(text, level = 1) paste0(paste(rep("#", level), collapse = ""), " ", text, "\n"),
-    subheading = function(text, level = 2) paste0(paste(rep("#", level), collapse = ""), " ", text, "\n"),
-    bold = function(text) paste0("**", text, "**")
+  "cli" = list(
+    component_name_item = function(i, metric, name) {
+      paste0(cli::symbol$bullet, " ",
+             cli::style_bold(paste0("Component ", i)),
+             " (", metric, "): ",
+             cli::col_green(name), "\n")
+    },
+    component_separator = paste0(cli::rule(line = 2, line_col = "grey"), "\n\n")
   )
 )
 
-# Usage
-formatter <- .format_dispatch[[output_format]]
-report <- paste0(
-  formatter$heading("Report Title"),
-  formatter$subheading("Section"),
-  "Content here"
-)
+# Then update get_format_fn() switch statement to include new model type
 ```
 
-**Why**: DRY principle - format once, output in multiple styles.
+**Why**:
+- **Single source of truth**: Format logic defined once, used everywhere
+- **DRY principle**: No duplicated format dispatch tables across files
+- **Consistency**: All model types use the same base formatting
+- **Extensibility**: Easy to add new formats (e.g., HTML, LaTeX)
+- **Model-specific customization**: Extensions for model-specific elements
 
-**Reference**: `fa_report.R:31-56` (similar pattern)
+**Reference**:
+- **Shared formatting system**: `R/aaa_shared_formatting.R:1-356`
+- **FA integration**: `R/fa_report.R:1-949` (uses shared system + FA extensions)
+- **GM integration**: `R/gm_report.R:1-635` (uses shared system + GM extensions)
+- **Full guide**: See "Step 7.1: Using the Shared Format Dispatch System" in this document
 
 ---
 
@@ -2575,10 +3026,19 @@ extract_yourpackage_data <- function(model) { ... }
 4. **Model Type Dispatch**: `aaa_model_type_dispatch.R:21-144`
 5. **Multi-tier JSON Fallback**: `fa_json.R:22-226`
 6. **Modular Report Helpers**: `fa_report.R:132-838`
+7. **Shared Format Dispatch**: `aaa_shared_formatting.R:13-356`
+
+**Format Dispatch System Files**:
+- `R/aaa_shared_formatting.R` (356 lines) - Base dispatch + FA/GM extensions
+  - `.BASE_FORMAT_DISPATCH` (lines 13-76) - Core formatting for all models
+  - `.FA_FORMAT_EXTENSIONS` (lines 85-132) - Factor analysis specific
+  - `.GM_FORMAT_EXTENSIONS` (lines 141-212) - Gaussian mixture specific
+  - `get_format_fn()` (lines 237-265) - Format function retrieval
+  - `fmt_heading()`, `fmt_style()`, `fmt_keyval()` (lines 290-356) - Helper wrappers
 
 ---
 
-**Last Updated**: 2025-11-16 (Dispatch table refactoring completed)
+**Last Updated**: 2025-11-18 (Added comprehensive format dispatch system guidance)
 
 **Maintainer**: Update when:
 - Adding new model types (GM, IRT, CDM)

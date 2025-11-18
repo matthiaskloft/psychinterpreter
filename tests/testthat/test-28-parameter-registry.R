@@ -13,7 +13,7 @@
 # - get_registry_param_names() listing
 
 test_that("PARAMETER_REGISTRY is complete with all required fields", {
-  # All 17 parameters should be present
+  # All 24 parameters should be present
   expected_params <- c(
     # llm_args (8)
     "llm_provider", "llm_model", "system_prompt", "params",
@@ -21,11 +21,14 @@ test_that("PARAMETER_REGISTRY is complete with all required fields", {
     # output_args (5)
     "format", "heading_level", "suppress_heading", "max_line_length", "silent",
     # interpretation_args FA (4)
-    "cutoff", "n_emergency", "hide_low_loadings", "sort_loadings"
+    "cutoff", "n_emergency", "hide_low_loadings", "sort_loadings",
+    # interpretation_args GM (7)
+    "n_clusters", "covariance_type", "min_cluster_size", "separation_threshold",
+    "profile_variables", "weight_by_uncertainty", "plot_type"
   )
 
   expect_equal(sort(names(PARAMETER_REGISTRY)), sort(expected_params))
-  expect_length(PARAMETER_REGISTRY, 17)
+  expect_length(PARAMETER_REGISTRY, 24)
 
   # Check each parameter has required fields
   for (param_name in names(PARAMETER_REGISTRY)) {
@@ -84,6 +87,17 @@ test_that("PARAMETER_REGISTRY has correct config group assignments", {
                  info = paste(param, "should be in interpretation_args"))
     expect_equal(PARAMETER_REGISTRY[[param]]$model_specific, "fa",
                  info = paste(param, "should be FA-specific"))
+  }
+
+  # interpretation_args GM (7 parameters)
+  gm_params <- c("n_clusters", "covariance_type", "min_cluster_size",
+                 "separation_threshold", "profile_variables",
+                 "weight_by_uncertainty", "plot_type")
+  for (param in gm_params) {
+    expect_equal(PARAMETER_REGISTRY[[param]]$config_group, "interpretation_args",
+                 info = paste(param, "should be in interpretation_args"))
+    expect_equal(PARAMETER_REGISTRY[[param]]$model_specific, "gm",
+                 info = paste(param, "should be GM-specific"))
   }
 })
 
@@ -152,10 +166,11 @@ test_that("get_params_by_group() filters by config group correctly", {
   expect_length(output_params, 5)
   expect_true(all(c("format", "heading_level", "silent", "max_line_length") %in% names(output_params)))
 
-  # interpretation_args (all models)
+  # interpretation_args (all models: 4 FA + 7 GM = 11)
   interp_params <- get_params_by_group("interpretation_args")
-  expect_length(interp_params, 4)  # FA only currently
+  expect_length(interp_params, 11)
   expect_true(all(c("cutoff", "n_emergency", "hide_low_loadings", "sort_loadings") %in% names(interp_params)))
+  expect_true(all(c("n_clusters", "min_cluster_size", "plot_type") %in% names(interp_params)))
 })
 
 
@@ -168,6 +183,18 @@ test_that("get_params_by_group() filters by model type correctly", {
   # All FA parameters should have model_specific = "fa"
   for (param in fa_params) {
     expect_equal(param$model_specific, "fa")
+  }
+
+  # GM-specific parameters
+  gm_params <- get_params_by_group("interpretation_args", model_type = "gm")
+  expect_length(gm_params, 7)
+  expect_true(all(c("n_clusters", "covariance_type", "min_cluster_size",
+                    "separation_threshold", "profile_variables",
+                    "weight_by_uncertainty", "plot_type") %in% names(gm_params)))
+
+  # All GM parameters should have model_specific = "gm"
+  for (param in gm_params) {
+    expect_equal(param$model_specific, "gm")
   }
 })
 
@@ -438,8 +465,9 @@ test_that("validate_params() errors on unnamed list", {
 
 test_that("get_registry_param_names() returns all parameter names", {
   all_names <- get_registry_param_names()
-  expect_length(all_names, 17)
+  expect_length(all_names, 24)
   expect_true(all(c("word_limit", "cutoff", "format", "echo") %in% all_names))
+  expect_true(all(c("n_clusters", "plot_type") %in% all_names))
 })
 
 
@@ -453,8 +481,9 @@ test_that("get_registry_param_names() filters by config group", {
   expect_true(all(c("format", "silent", "max_line_length") %in% output_names))
 
   interp_names <- get_registry_param_names("interpretation_args")
-  expect_length(interp_names, 4)
+  expect_length(interp_names, 11)  # 4 FA + 7 GM
   expect_true(all(c("cutoff", "n_emergency") %in% interp_names))
+  expect_true(all(c("n_clusters", "plot_type") %in% interp_names))
 })
 
 
@@ -530,4 +559,198 @@ test_that("Registry handles all output_args parameters", {
   expect_equal(validated$suppress_heading, TRUE)
   expect_equal(validated$max_line_length, 100)
   expect_equal(validated$silent, 1L)
+})
+
+
+# ==============================================================================
+# show_interpret_args() TESTS
+# ==============================================================================
+
+test_that("show_interpret_args() returns data.frame with correct structure", {
+  # Capture output to suppress printing
+  output <- capture.output(result <- show_interpret_args())
+
+  expect_s3_class(result, "data.frame")
+  expect_true(all(c("parameter", "default", "type", "range_or_values",
+                    "config_group", "description") %in% names(result)))
+})
+
+
+test_that("show_interpret_args() with NULL shows common parameters only", {
+  output <- capture.output(result <- show_interpret_args())
+
+  # Should show llm_args + output_args only
+  expect_true(all(result$config_group %in% c("llm_args", "output_args")))
+
+  # Should have 8 llm_args + 5 output_args = 13 rows
+  expect_equal(nrow(result), 13)
+
+  # Should include key parameters
+  expect_true("word_limit" %in% result$parameter)
+  expect_true("format" %in% result$parameter)
+  expect_true("silent" %in% result$parameter)
+
+  # Should NOT include interpretation_args
+  expect_false("cutoff" %in% result$parameter)
+  expect_false("n_clusters" %in% result$parameter)
+})
+
+
+test_that("show_interpret_args() with NULL displays informative message", {
+  output <- capture.output(result <- show_interpret_args(), type = "message")
+
+  # Check that output contains the expected informative messages
+  output_text <- paste(output, collapse = "\n")
+  # Check that some output was generated (messages + parameter display)
+  expect_true(length(output) > 0)
+  expect_true(nchar(output_text) > 100)  # Should have substantive output
+})
+
+
+test_that("show_interpret_args('fa') shows FA-specific parameters", {
+  output <- capture.output(result <- show_interpret_args("fa"))
+
+  # Should include llm_args + output_args + FA interpretation_args
+  expect_true(all(result$config_group %in% c("llm_args", "output_args", "interpretation_args")))
+
+  # Should have 8 + 5 + 4 = 17 rows
+  expect_equal(nrow(result), 17)
+
+  # Should include FA-specific parameters
+  expect_true("cutoff" %in% result$parameter)
+  expect_true("n_emergency" %in% result$parameter)
+  expect_true("hide_low_loadings" %in% result$parameter)
+  expect_true("sort_loadings" %in% result$parameter)
+
+  # Should NOT include GM-specific parameters
+  expect_false("n_clusters" %in% result$parameter)
+  expect_false("plot_type" %in% result$parameter)
+})
+
+
+test_that("show_interpret_args('gm') shows GM-specific parameters", {
+  output <- capture.output(result <- show_interpret_args("gm"))
+
+  # Should include llm_args + output_args + GM interpretation_args
+  expect_true(all(result$config_group %in% c("llm_args", "output_args", "interpretation_args")))
+
+  # Should have 8 + 5 + 7 = 20 rows
+  expect_equal(nrow(result), 20)
+
+  # Should include GM-specific parameters
+  expect_true("n_clusters" %in% result$parameter)
+  expect_true("covariance_type" %in% result$parameter)
+  expect_true("min_cluster_size" %in% result$parameter)
+  expect_true("separation_threshold" %in% result$parameter)
+  expect_true("profile_variables" %in% result$parameter)
+  expect_true("weight_by_uncertainty" %in% result$parameter)
+  expect_true("plot_type" %in% result$parameter)
+
+  # Should NOT include FA-specific parameters
+  expect_false("cutoff" %in% result$parameter)
+  expect_false("n_emergency" %in% result$parameter)
+})
+
+
+test_that("show_interpret_args() formats defaults correctly", {
+  output <- capture.output(result <- show_interpret_args("fa"))
+
+  # Check default formatting for different types
+  word_limit_row <- result[result$parameter == "word_limit", ]
+  expect_equal(word_limit_row$default, "150")
+
+  format_row <- result[result$parameter == "format", ]
+  expect_equal(format_row$default, "\"cli\"")
+
+  cutoff_row <- result[result$parameter == "cutoff", ]
+  expect_equal(cutoff_row$default, "0.3")
+
+  hide_low_row <- result[result$parameter == "hide_low_loadings", ]
+  expect_equal(hide_low_row$default, "FALSE")
+
+  llm_model_row <- result[result$parameter == "llm_model", ]
+  expect_equal(llm_model_row$default, "NULL")
+})
+
+
+test_that("show_interpret_args() formats ranges and allowed values correctly", {
+  output <- capture.output(result <- show_interpret_args("fa"))
+
+  # Check range formatting
+  word_limit_row <- result[result$parameter == "word_limit", ]
+  expect_equal(word_limit_row$range_or_values, "20-500")
+
+  cutoff_row <- result[result$parameter == "cutoff", ]
+  expect_equal(cutoff_row$range_or_values, "0-1")
+
+  # Check allowed values formatting
+  format_row <- result[result$parameter == "format", ]
+  expect_equal(format_row$range_or_values, "\"cli\", \"markdown\"")
+
+  echo_row <- result[result$parameter == "echo", ]
+  expect_equal(echo_row$range_or_values, "\"none\", \"output\", \"all\"")
+
+  # Check no range/values
+  llm_model_row <- result[result$parameter == "llm_model", ]
+  expect_equal(llm_model_row$range_or_values, "-")
+})
+
+
+test_that("show_interpret_args() errors on invalid analysis_type", {
+  expect_error(
+    show_interpret_args("invalid"),
+    "Invalid.*analysis_type"
+  )
+
+  expect_error(
+    show_interpret_args(123),
+    "must be a single character string"
+  )
+
+  expect_error(
+    show_interpret_args(c("fa", "gm")),
+    "must be a single character string"
+  )
+})
+
+
+test_that("show_interpret_args() warns on unimplemented model types", {
+  expect_warning(
+    output <- capture.output(result <- show_interpret_args("irt")),
+    "not yet implemented"
+  )
+
+  expect_warning(
+    output <- capture.output(result <- show_interpret_args("cdm")),
+    "not yet implemented"
+  )
+})
+
+
+test_that("show_interpret_args() produces CLI-formatted output", {
+  output <- capture.output(result <- show_interpret_args("fa"), type = "message")
+
+  output_text <- paste(output, collapse = "\n")
+
+  # Check that substantial output was generated
+  expect_true(length(output) > 0)
+  expect_true(nchar(output_text) > 100)
+
+  # Check that parameter names appear in output
+  expect_true(grepl("word_limit", output_text))
+  expect_true(grepl("cutoff", output_text))
+  expect_true(grepl("format", output_text))
+})
+
+
+test_that("show_interpret_args() returns invisible data.frame", {
+  # Capture both output and return value
+  output <- capture.output(result <- show_interpret_args())
+
+  # The function should print output
+  expect_true(length(output) > 0)
+
+  # But also return a data.frame
+  expect_s3_class(result, "data.frame")
+  expect_true(nrow(result) > 0)
 })

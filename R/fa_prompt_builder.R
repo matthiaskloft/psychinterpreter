@@ -85,15 +85,9 @@ build_main_prompt.fa <- function(analysis_type,
   }
 
   # Extract FA-specific parameters from analysis_data
-  loadings_df <- analysis_data$loadings_df
-  cutoff <- analysis_data$cutoff
-  n_emergency <- analysis_data$n_emergency
-  hide_low_loadings <- analysis_data$hide_low_loadings
-  factor_cor_mat <- analysis_data$factor_cor_mat
   factor_summaries <- analysis_data$factor_summaries
   factor_cols <- analysis_data$factor_cols
   n_factors <- analysis_data$n_factors
-  n_variables <- analysis_data$n_variables
 
   # Extract optional parameters from ...
   interpretation_guidelines <- dots$interpretation_guidelines
@@ -141,7 +135,38 @@ build_main_prompt.fa <- function(analysis_type,
   # ============================================================================
   # SECTION 3: VARIABLE DESCRIPTIONS
   # ============================================================================
-  prompt <- paste0(prompt, "# VARIABLE DESCRIPTIONS\n")
+  prompt <- paste0(prompt, build_variable_section_fa(variable_info), "\n")
+
+  # ============================================================================
+  # SECTION 4: FACTOR LOADINGS
+  # ============================================================================
+  prompt <- paste0(prompt, build_loadings_section_fa(analysis_data), "\n")
+
+  # ============================================================================
+  # SECTION 5: FACTOR CORRELATIONS (if provided)
+  # ============================================================================
+  if (!is.null(analysis_data$factor_cor_mat)) {
+    prompt <- paste0(prompt, build_correlations_section_fa(analysis_data), "\n")
+  }
+
+  # ============================================================================
+  # SECTION 6: OUTPUT FORMAT
+  # ============================================================================
+  prompt <- paste0(prompt, build_output_instructions_fa(analysis_data, word_limit))
+
+  return(prompt)
+}
+
+#' Build Variable Section for FA Prompt
+#'
+#' Formats variable descriptions for inclusion in the FA interpretation prompt.
+#'
+#' @param variable_info Data frame with 'variable' and 'description' columns
+#' @return Character string with formatted variable information
+#' @keywords internal
+build_variable_section_fa <- function(variable_info) {
+  prompt <- "# VARIABLE DESCRIPTIONS\n"
+
   if (nrow(variable_info) > 0) {
     for (i in seq_len(min(nrow(variable_info), 1e3))) {
       var_desc <- ifelse(
@@ -152,12 +177,29 @@ build_main_prompt.fa <- function(analysis_type,
       prompt <- paste0(prompt, "- ", variable_info$variable[i], ": ", var_desc, "\n")
     }
   }
-  prompt <- paste0(prompt, "\n")
 
-  # ============================================================================
-  # SECTION 4: FACTOR LOADINGS
-  # ============================================================================
-  prompt <- paste0(prompt, "# FACTOR LOADINGS\n")
+  return(prompt)
+}
+
+#' Build Loadings Section for FA Prompt
+#'
+#' Formats factor loadings and variance explained for the FA interpretation prompt.
+#'
+#' @param analysis_data List containing loadings_df, factor_cols, n_factors,
+#'   cutoff, n_emergency, hide_low_loadings, and factor_summaries
+#' @return Character string with formatted loadings and variance information
+#' @keywords internal
+build_loadings_section_fa <- function(analysis_data) {
+  # Extract parameters
+  loadings_df <- analysis_data$loadings_df
+  factor_cols <- analysis_data$factor_cols
+  n_factors <- analysis_data$n_factors
+  cutoff <- analysis_data$cutoff
+  n_emergency <- analysis_data$n_emergency
+  hide_low_loadings <- analysis_data$hide_low_loadings
+  factor_summaries <- analysis_data$factor_summaries
+
+  prompt <- "# FACTOR LOADINGS\n"
   prompt <- paste0(
     prompt,
     "**Cutoff threshold**: ",
@@ -201,9 +243,7 @@ build_main_prompt.fa <- function(analysis_type,
     )
   }
 
-  # ============================================================================
-  # SECTION 5: VARIANCE EXPLAINED
-  # ============================================================================
+  # Add variance explained
   prompt <- paste0(prompt, "\n**Variance Explained**: ")
   variance_entries <- c()
   for (i in 1:n_factors) {
@@ -213,59 +253,81 @@ build_main_prompt.fa <- function(analysis_type,
     variance_pct <- round(variance_explained * 100, 1)
     variance_entries <- c(variance_entries, paste0(factor_name, "=", variance_pct, "%"))
   }
-  prompt <- paste0(prompt, paste(variance_entries, collapse = " "), "\n\n")
+  prompt <- paste0(prompt, paste(variance_entries, collapse = " "), "\n")
 
-  # ============================================================================
-  # SECTION 6: FACTOR CORRELATIONS (if provided)
-  # ============================================================================
-  if (!is.null(factor_cor_mat)) {
-    prompt <- paste0(prompt, "# FACTOR CORRELATIONS\n")
+  return(prompt)
+}
 
-    # Convert matrix to dataframe if needed and get factor names
-    if (is.matrix(factor_cor_mat)) {
-      cor_df <- as.data.frame(factor_cor_mat)
-      cor_factors <- rownames(factor_cor_mat)
-    } else {
-      cor_df <- factor_cor_mat
-      cor_factors <- rownames(cor_df)
-    }
+#' Build Correlations Section for FA Prompt
+#'
+#' Formats factor correlation matrix for the FA interpretation prompt.
+#'
+#' @param analysis_data List containing factor_cor_mat
+#' @return Character string with formatted correlation information
+#' @keywords internal
+build_correlations_section_fa <- function(analysis_data) {
+  factor_cor_mat <- analysis_data$factor_cor_mat
 
-    # Add correlation matrix information in compact format
-    prompt <- paste0(
-      prompt,
-      "Factor correlations help understand relationships between factors:\n"
-    )
-    for (i in seq_along(cor_factors)) {
-      factor_name <- cor_factors[i]
-      if (factor_name %in% names(cor_df)) {
-        cor_vector <- c()
-        for (j in seq_along(cor_factors)) {
-          other_factor <- cor_factors[j]
-          if (other_factor != factor_name &&
-              other_factor %in% names(cor_df)) {
-            cor_val <- round(cor_df[[other_factor]][i], 2)
-            cor_formatted <- format_loading(cor_val, digits = 2)
-            cor_vector <- c(cor_vector,
-                            paste0(other_factor, "=", cor_formatted))
-          }
-        }
-        if (length(cor_vector) > 0) {
-          prompt <- paste0(
-            prompt,
-            factor_name,
-            " with: ",
-            paste(cor_vector, collapse = " "),
-            "\n"
-          )
-        }
-      }
-    }
-    prompt <- paste0(prompt, "\n")
+  prompt <- "# FACTOR CORRELATIONS\n"
+
+  # Convert matrix to dataframe if needed and get factor names
+  if (is.matrix(factor_cor_mat)) {
+    cor_df <- as.data.frame(factor_cor_mat)
+    cor_factors <- rownames(factor_cor_mat)
+  } else {
+    cor_df <- factor_cor_mat
+    cor_factors <- rownames(cor_df)
   }
 
-  # ============================================================================
-  # SECTION 7: OUTPUT FORMAT
-  # ============================================================================
+  # Add correlation matrix information in compact format
+  prompt <- paste0(
+    prompt,
+    "Factor correlations help understand relationships between factors:\n"
+  )
+  for (i in seq_along(cor_factors)) {
+    factor_name <- cor_factors[i]
+    if (factor_name %in% names(cor_df)) {
+      cor_vector <- c()
+      for (j in seq_along(cor_factors)) {
+        other_factor <- cor_factors[j]
+        if (other_factor != factor_name &&
+            other_factor %in% names(cor_df)) {
+          cor_val <- round(cor_df[[other_factor]][i], 2)
+          cor_formatted <- format_loading(cor_val, digits = 2)
+          cor_vector <- c(cor_vector,
+                          paste0(other_factor, "=", cor_formatted))
+        }
+      }
+      if (length(cor_vector) > 0) {
+        prompt <- paste0(
+          prompt,
+          factor_name,
+          " with: ",
+          paste(cor_vector, collapse = " "),
+          "\n"
+        )
+      }
+    }
+  }
+
+  return(prompt)
+}
+
+#' Build Output Instructions for FA Prompt
+#'
+#' Generates JSON format instructions and requirements for the LLM response.
+#'
+#' @param analysis_data List containing n_factors, factor_cols, n_emergency,
+#'   and factor_summaries
+#' @param word_limit Integer. Maximum words per factor interpretation
+#' @return Character string with JSON format example and output requirements
+#' @keywords internal
+build_output_instructions_fa <- function(analysis_data, word_limit) {
+  n_factors <- analysis_data$n_factors
+  factor_cols <- analysis_data$factor_cols
+  n_emergency <- analysis_data$n_emergency
+  factor_summaries <- analysis_data$factor_summaries
+
   # Check for undefined factors (n_emergency = 0 case)
   undefined_factors <- c()
   for (i in 1:n_factors) {
@@ -279,7 +341,6 @@ build_main_prompt.fa <- function(analysis_type,
   }
 
   prompt <- paste0(
-    prompt,
     "# OUTPUT FORMAT\n",
     "Respond with ONLY valid JSON using factor names as object keys:\n\n",
     "```json\n",

@@ -11,10 +11,14 @@ extract_by_pattern(response, analysis_type, ...)
 
 \item{analysis_type}{Character. Model type}
 
-\item{...}{Additional arguments for model-specific extraction}
+\item{...}{Additional arguments for model-specific extraction, including:
+\itemize{
+\item \code{analysis_data}: Standardized model data (required by most implementations)
+}}
 }
 \value{
-List or NULL. Extracted result or NULL if extraction failed
+List with model-specific structure (e.g., \code{component_summaries} and
+\code{suggested_names}), or NULL if extraction failed
 }
 \description{
 Model-specific pattern-based extraction when JSON parsing fails.

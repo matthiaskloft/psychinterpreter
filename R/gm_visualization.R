@@ -3,6 +3,9 @@
 # PURPOSE: Visualization functions for Gaussian Mixture Model interpretations
 # ===================================================================
 
+#' @importFrom stats aggregate sd var
+NULL
+
 #' Plot GM Interpretation
 #'
 #' Creates visualizations of cluster profiles with multiple plot type options.
@@ -13,7 +16,8 @@
 #' @param variables Character vector of variables to include (NULL for all)
 #' @param ... Additional arguments passed to specific plot functions
 #'
-#' @return A ggplot2 object or list of plots if plot_type="all"
+#' @return For heatmap/parallel: a ggplot2 object. For radar: a recordedplot object
+#'   (base R graphics). For plot_type="all": a list containing all three plot types.
 #' @export
 #'
 #' @examples
@@ -119,7 +123,7 @@ create_heatmap_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
     plot_data,
     ggplot2::aes(x = Cluster, y = Variable, fill = Mean)
   ) +
-    ggplot2::geom_tile(color = "white", size = 0.5) +
+    ggplot2::geom_tile(color = "white", linewidth = 0.5) +
     ggplot2::scale_fill_gradient2(
       low = psychinterpreter_colors("diverging")[1],
       mid = "white",
@@ -196,12 +200,12 @@ create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
     plot_data,
     ggplot2::aes(x = Variable, y = Value, group = Cluster, color = Cluster)
   ) +
-    ggplot2::geom_line(ggplot2::aes(size = Size), alpha = 0.7) +
+    ggplot2::geom_line(ggplot2::aes(linewidth = Size), alpha = 0.7) +
     ggplot2::geom_point(size = 2) +
     ggplot2::scale_color_manual(
       values = psychinterpreter_colors("categorical")[1:analysis_data$n_clusters]
     ) +
-    ggplot2::scale_size_continuous(
+    ggplot2::scale_linewidth_continuous(
       range = c(0.5, 2),
       guide = "none"
     ) +
@@ -224,14 +228,20 @@ create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
 
 #' Create Radar Plot for GM Clusters
 #'
-#' Creates radar/spider plots for cluster profiles.
+#' Creates a radar/spider plot showing cluster profiles using fmsb::radarchart.
 #'
 #' @param analysis_data Standardized GM analysis data
-#' @param cutoff Threshold for highlighting
+#' @param cutoff Threshold for highlighting (not used in fmsb implementation)
 #' @param title Plot title (optional)
-#' @return ggplot2 object or gridExtra arrangement
+#' @param ... Additional arguments passed to fmsb::radarchart
+#' @return A recorded plot object (class "recordedplot")
 #' @keywords internal
-create_radar_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
+create_radar_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL, ...) {
+  # Check if fmsb is available
+  if (!requireNamespace("fmsb", quietly = TRUE)) {
+    cli::cli_abort("Package {.pkg fmsb} is required for radar plots. Install it with: install.packages('fmsb')")
+  }
+
   # Limit to reasonable number of variables for radar plot
   if (analysis_data$n_variables > 15) {
     # Select top 15 most variable features
@@ -249,87 +259,78 @@ create_radar_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
     var_names_subset <- analysis_data$variable_names
   }
 
-  # Prepare data for radar plot
-  plot_list <- list()
-
-  for (k in seq_len(analysis_data$n_clusters)) {
-    cluster_name <- analysis_data$cluster_names[k]
-    cluster_means <- means_subset[, k]
-
-    # Create data frame for this cluster
-    cluster_df <- data.frame(
-      Variable = var_names_subset,
-      Value = cluster_means,
-      Cluster = cluster_name
+  # Inform if too many clusters for overlaid radar (best practice: 2-3 max)
+  if (analysis_data$n_clusters > 3) {
+    cli::cli_inform(
+      "Overlaid radar plot may be difficult to read with {analysis_data$n_clusters} clusters. Consider using heatmap or parallel plot instead."
     )
-
-    # Add first row at end to close the polygon
-    cluster_df <- rbind(cluster_df, cluster_df[1, ])
-
-    # Create individual radar plot
-    p <- ggplot2::ggplot(
-      cluster_df,
-      ggplot2::aes(x = Variable, y = Value, group = Cluster)
-    ) +
-      ggplot2::coord_polar() +
-      ggplot2::geom_polygon(
-        fill = psychinterpreter_colors("categorical")[k],
-        alpha = 0.3,
-        color = psychinterpreter_colors("categorical")[k],
-        size = 1
-      ) +
-      ggplot2::geom_point(
-        color = psychinterpreter_colors("categorical")[k],
-        size = 2
-      ) +
-      theme_psychinterpreter() +
-      ggplot2::theme(
-        axis.text.x = ggplot2::element_text(size = 8),
-        panel.grid.major = ggplot2::element_line(color = "gray90"),
-        panel.background = ggplot2::element_rect(fill = "white")
-      ) +
-      ggplot2::labs(
-        title = cluster_name,
-        subtitle = if (!is.null(analysis_data$proportions)) {
-          paste0(round(analysis_data$proportions[k] * 100, 1), "% of observations")
-        } else {
-          ""
-        }
-      ) +
-      ggplot2::ylim(
-        min(analysis_data$means) - 0.5,
-        max(analysis_data$means) + 0.5
-      ) +
-      ggplot2::geom_hline(
-        yintercept = 0,
-        linetype = "dashed",
-        alpha = 0.5
-      )
-
-    plot_list[[k]] <- p
   }
 
-  # Arrange plots in grid
-  if (length(plot_list) == 1) {
-    return(plot_list[[1]])
-  } else {
-    # Calculate grid dimensions
-    n_cols <- ceiling(sqrt(length(plot_list)))
-    n_rows <- ceiling(length(plot_list) / n_cols)
+  # Prepare data for fmsb::radarchart
+  # Format: first row = max, second row = min, remaining rows = data
+  data_range <- range(means_subset)
+  max_val <- ceiling(data_range[2])
+  min_val <- floor(data_range[1])
 
-    # Create combined plot
-    combined_plot <- gridExtra::grid.arrange(
-      grobs = plot_list,
-      ncol = n_cols,
-      nrow = n_rows,
-      top = grid::textGrob(
-        title %||% "Cluster Profiles: Radar Plots",
-        gp = grid::gpar(fontsize = 14, fontface = "bold")
-      )
-    )
+  # Transpose means so variables are columns
+  radar_data <- as.data.frame(t(means_subset))
+  colnames(radar_data) <- var_names_subset
+  rownames(radar_data) <- analysis_data$cluster_names
 
-    return(combined_plot)
-  }
+  # Add max and min rows
+  radar_data <- rbind(
+    max = rep(max_val, ncol(radar_data)),
+    min = rep(min_val, ncol(radar_data)),
+    radar_data
+  )
+
+  # Get color palette (with transparency for fills)
+  cluster_colors <- psychinterpreter_colors("categorical")[seq_len(analysis_data$n_clusters)]
+
+  # Set up plotting parameters
+  n_clusters <- analysis_data$n_clusters
+
+  # Default radarchart parameters with better styling
+  default_args <- list(
+    df = radar_data,
+    axistype = 1,
+    pcol = cluster_colors,
+    pfcol = NA,  # No shading/fill
+    plwd = 2,
+    plty = 1,
+    cglcol = "grey",
+    cglty = 1,
+    axislabcol = "grey",  # Match grid color
+    caxislabels = seq(min_val, max_val, length.out = 5),
+    cglwd = 0.8,
+    vlcex = 0.8,
+    title = title %||% "Cluster Profiles: Radar Plot"
+  )
+
+  # Merge with user-provided arguments
+  radar_args <- modifyList(default_args, list(...))
+
+  # Clear any existing plot
+  graphics::plot.new()
+
+  # Create the radar chart
+  do.call(fmsb::radarchart, radar_args)
+
+  # Add legend
+  graphics::legend(
+    x = "topright",
+    legend = analysis_data$cluster_names,
+    bty = "n",
+    pch = 20,
+    col = cluster_colors,
+    text.col = "grey20",
+    cex = 0.9,
+    pt.cex = 2
+  )
+
+  # Record and return the plot
+  p <- grDevices::recordPlot()
+  return(p)
 }
 
 #' Filter Variables for GM Visualization
@@ -365,7 +366,8 @@ filter_variables_gm <- function(analysis_data, var_indices) {
 #' @param cutoff Threshold for highlighting important values
 #' @param title Plot title
 #'
-#' @return ggplot2 object
+#' @return For heatmap/parallel: a ggplot2 object. For radar: a recordedplot
+#'   object (base R graphics created with fmsb::radarchart).
 #' @export
 #'
 #' @examples

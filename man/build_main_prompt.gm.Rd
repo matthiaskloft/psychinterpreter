@@ -2,21 +2,49 @@
 % Please edit documentation in R/gm_prompt_builder.R
 \name{build_main_prompt.gm}
 \alias{build_main_prompt.gm}
-\title{Build Main Prompt for Gaussian Mixture Model Interpretation}
+\title{Build Main Prompt for Gaussian Mixture Model}
 \usage{
-\method{build_main_prompt}{gm}(analysis_data, variable_info, llm_args)
+\method{build_main_prompt}{gm}(
+  analysis_type,
+  analysis_data,
+  word_limit,
+  additional_info = NULL,
+  ...
+)
 }
 \arguments{
-\item{analysis_data}{Standardized GM analysis data}
+\item{analysis_type}{Object with class "gm"}
 
-\item{variable_info}{Data frame with variable descriptions}
+\item{analysis_data}{List containing:
+\itemize{
+\item n_clusters: Number of clusters
+\item n_variables: Number of variables
+\item n_observations: Number of observations
+\item cluster_names: Character vector of cluster names
+\item means: Matrix of cluster means (variables x clusters)
+\item variable_names: Character vector of variable names
+\item proportions: Numeric vector of cluster proportions
+\item covariances: Array of covariance matrices (optional)
+\item covariance_type: Character describing covariance structure (optional)
+\item uncertainty: Numeric vector of uncertainty values (optional)
+\item classification: Integer vector of cluster assignments (optional)
+\item weight_by_uncertainty: Logical. Whether to weight by uncertainty
+\item profile_variables: Character vector of variables to focus on (optional)
+}}
 
-\item{llm_args}{List of LLM configuration parameters}
+\item{word_limit}{Integer. Word limit for interpretations}
+
+\item{additional_info}{Character or NULL. Additional context}
+
+\item{...}{Additional arguments passed from generic, including variable_info
+(data frame with 'variable' and 'description' columns, required for GM)}
 }
 \value{
-Character string containing the main prompt
+Character. User prompt text
 }
 \description{
-Constructs the user prompt containing cluster statistics and variable information.
+Constructs the complete user prompt containing cluster statistics, variable
+descriptions, and interpretation instructions. All GM-specific parameters
+are extracted from analysis_data.
 }
 \keyword{internal}

@@ -7,14 +7,16 @@
 build_system_prompt(analysis_type, word_limit, ...)
 }
 \arguments{
-\item{analysis_type}{An object with class corresponding to the model type ("fa", "gm", "irt", "cdm")}
+\item{analysis_type}{An S3 dispatch object with class corresponding to the model type
+("fa", "gm", "irt", "cdm"). Typically created as \code{structure(list(), class = "fa")}.
+See \code{?interpret} for supported model types.}
 
-\item{word_limit}{Integer. Word limit for interpretations to include in prompt}
+\item{word_limit}{Integer. Maximum words per interpretation (used in prompt instructions)}
 
-\item{...}{Additional arguments passed to model-specific methods}
+\item{...}{Additional arguments passed to model-specific methods (currently unused)}
 }
 \value{
-Character. System prompt text
+Character. System prompt text defining LLM's role and interpretation guidelines
 }
 \description{
 Constructs the system prompt that defines the LLM's role and expertise

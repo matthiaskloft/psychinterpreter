@@ -18,7 +18,8 @@
 \item{...}{Additional arguments passed to specific plot functions}
 }
 \value{
-A ggplot2 object or list of plots if plot_type="all"
+For heatmap/parallel: a ggplot2 object. For radar: a recordedplot object
+(base R graphics). For plot_type="all": a list containing all three plot types.
 }
 \description{
 Creates visualizations of cluster profiles with multiple plot type options.

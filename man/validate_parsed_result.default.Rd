@@ -6,7 +6,17 @@
 \usage{
 \method{validate_parsed_result}{default}(parsed, analysis_type, ...)
 }
+\arguments{
+\item{parsed}{List. Parsed JSON object}
+
+\item{analysis_type}{Character. Model type}
+
+\item{...}{Additional arguments (ignored)}
+}
+\value{
+Does not return (throws error)
+}
 \description{
-Default method for validate_parsed_result
+Throws an error when no model-specific method is found.
 }
 \keyword{internal}

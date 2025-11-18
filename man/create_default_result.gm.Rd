@@ -4,13 +4,15 @@
 \alias{create_default_result.gm}
 \title{Create Default Result for Gaussian Mixture Models}
 \usage{
-\method{create_default_result}{gm}(analysis_data)
+\method{create_default_result}{gm}(analysis_type, ...)
 }
 \arguments{
-\item{analysis_data}{Standardized GM analysis data}
+\item{analysis_type}{Character. Analysis type ("gm")}
+
+\item{...}{Additional arguments including analysis_data}
 }
 \value{
-Named list with default cluster interpretations
+A list with two components: \code{component_summaries} (named list of default cluster interpretations) and \code{suggested_names} (named list of cluster names)
 }
 \description{
 Generates default interpretations when parsing completely fails.

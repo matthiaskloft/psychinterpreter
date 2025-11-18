@@ -4,9 +4,12 @@
 #' for any model type. Delegates model-specific logic to S3 methods.
 #'
 #' @param analysis_data List. Model-specific data structure (loadings, parameters, etc.)
-#' @param analysis_type Character. Type of analysis ("fa", "gm", "irt", "cdm")
+#' @param fit_results Fitted model object or structured list. Used for extracting analysis_data
+#'   if analysis_data is NULL. Can be psych::fa(), mclust::Mclust(), or structured list.
+#' @param analysis_type Character. Type of analysis ("fa" and "gm" implemented; "irt", "cdm" planned)
 #' @param llm_provider Character. LLM provider (e.g., "anthropic", "openai", "ollama"). Required when chat_session is NULL (default = NULL)
-#' @param llm_model Character or NULL. Model name
+#' @param llm_model Character or NULL. Model name. If NULL and chat_session is NULL, uses
+#'   provider's default model. Ignored if chat_session is provided (default = NULL)
 #' @param chat_session Chat session object or NULL. If NULL, creates temporary session
 #' @param system_prompt Character or NULL. Optional custom system prompt to override the package default.
 #'   If NULL, uses model-specific default system prompt. Ignored if chat_session is provided (default = NULL)
@@ -22,11 +25,19 @@
 #'   - 2 or TRUE: Completely silent, suppress all output
 #'   For backward compatibility, logical values are accepted and converted to integers.
 #' @param echo Character. Echo level: "none", "output", "all" (default = "none")
-#' @param params ellmer params object or NULL
+#' @param params ellmer params object or NULL. Advanced ellmer configuration. Most users
+#'   should use llm_args() instead (default = NULL)
+#' @param interpretation_args List or interpretation_args object. Model-specific interpretation
+#'   configuration. Created with \code{\link{interpretation_args}} (default = NULL)
+#' @param llm_args List or llm_args object. LLM configuration settings. Created with
+#'   \code{\link{llm_args}} (default = NULL)
+#' @param output_args List or output_args object. Output configuration settings. Created
+#'   with \code{\link{output_args}} (default = NULL)
 #' @param ... Additional arguments passed to model-specific methods, including variable_info
-#'   (data frame with 'variable' and 'description' columns, required for FA)
+#'   (data frame with 'variable' and 'description' columns, required for FA and recommended for GM)
 #'
-#' @return Interpretation object with class c("\{analysis_type\}_interpretation", "interpretation", "list")
+#' @return Interpretation object with class c("<model>_interpretation", "interpretation", "list")
+#'   where <model> is the analysis type (e.g., "fa_interpretation", "gm_interpretation")
 #'
 #' @details
 #' This function orchestrates the interpretation workflow:
@@ -38,6 +49,10 @@
 #' 6. Create fit summary (model-specific via S3)
 #' 7. Build report (model-specific via S3)
 #' 8. Return interpretation object
+#'
+#' Export functionality is available via \code{\link{export_interpretation}}, which supports
+#' both FA and GM interpretations. Use \code{export_interpretation(result, format = "md")}
+#' or \code{export_interpretation(result, format = "txt")} to save results.
 #'
 #' @keywords internal
 #' @noRd
@@ -443,6 +458,9 @@ interpret_core <- function(analysis_data = NULL,
   # Note: These may remain 0 for providers without token tracking support (e.g., Ollama)
   chat_session$total_input_tokens <- chat_session$total_input_tokens + input_tokens
   chat_session$total_output_tokens <- chat_session$total_output_tokens + output_tokens
+  chat_session$cumulative_tokens$input_tokens <- chat_session$total_input_tokens
+  chat_session$cumulative_tokens$output_tokens <- chat_session$total_output_tokens
+  chat_session$cumulative_tokens$total_tokens <- chat_session$total_input_tokens + chat_session$total_output_tokens
   chat_session$n_interpretations <- chat_session$n_interpretations + 1L
 
   # ==========================================================================
@@ -479,6 +497,11 @@ interpret_core <- function(analysis_data = NULL,
     input_tokens = input_tokens,
     output_tokens = output_tokens,
     total_tokens = input_tokens + output_tokens,
+    token_usage = list(
+      input_tokens = input_tokens,
+      output_tokens = output_tokens,
+      total_tokens = input_tokens + output_tokens
+    ),
     llm_info = list(
       llm_provider = chat_local$get_provider()@name,
       model = chat_local$get_model(),

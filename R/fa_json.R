@@ -126,7 +126,7 @@ extract_by_pattern.fa <- function(response, analysis_type, analysis_data, ...) {
     )
     match <- regexpr(pattern, response, perl = TRUE)
 
-    if (match > 0) {
+    if (match[1] > 0) {
       # Extract the matched factor object
       factor_text <- regmatches(response, match)
 
@@ -134,7 +134,7 @@ extract_by_pattern.fa <- function(response, analysis_type, analysis_data, ...) {
       parsed_factor <- tryCatch({
         # Extract just the object part (everything after the factor name)
         object_match <- regexpr("\\{[^{}]*\\}", factor_text, perl = TRUE)
-        if (object_match > 0) {
+        if (object_match[1] > 0) {
           object_text <- regmatches(factor_text, object_match)
           jsonlite::fromJSON(object_text)
         } else {
@@ -191,13 +191,20 @@ extract_by_pattern.fa <- function(response, analysis_type, analysis_data, ...) {
 #' Creates default values when all parsing methods fail.
 #'
 #' @param analysis_type Character. "fa"
-#' @param analysis_data List. Contains factor_cols and factor_summaries
-#' @param ... Additional arguments (unused)
+#' @param ... Additional arguments including analysis_data
 #'
 #' @return List with component_summaries and suggested_names
 #' @export
 #' @keywords internal
-create_default_result.fa <- function(analysis_type, analysis_data, ...) {
+create_default_result.fa <- function(analysis_type, ...) {
+  # Extract analysis_data from ...
+  dots <- list(...)
+  analysis_data <- dots$analysis_data
+
+  if (is.null(analysis_data)) {
+    cli::cli_abort("analysis_data is required for FA default results")
+  }
+
   factor_cols <- analysis_data$factor_cols
   factor_summaries <- analysis_data$factor_summaries
 

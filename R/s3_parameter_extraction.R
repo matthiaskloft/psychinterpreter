@@ -159,18 +159,22 @@ validate_model_requirements.fa <- function(analysis_type, ...) {
 }
 
 
-#' Extract GM-Specific Parameters (Placeholder)
+#' Extract GM-Specific Parameters
+#'
+#' Extracts Gaussian Mixture Model specific parameters from interpretation_args,
+#' including cluster configuration, separation thresholds, and uncertainty settings.
 #'
 #' @param analysis_type GM analysis type object
-#' @param interpretation_args Config object
+#' @param interpretation_args Config object containing GM parameters (n_clusters,
+#'   covariance_type, min_cluster_size, separation_threshold, weight_by_uncertainty,
+#'   profile_variables)
 #' @param ... Additional arguments
 #'
-#' @return Named list with GM parameters
+#' @return Named list with GM parameters extracted from interpretation_args
 #' @export
 #' @keywords internal
 extract_model_parameters.gm <- function(analysis_type, interpretation_args, ...) {
-  # Placeholder for future GM implementation
-  # Would extract things like n_clusters, covariance_type, etc.
+  # Extract GM-specific parameters from interpretation_args
   params <- list()
 
   if (!is.null(interpretation_args)) {
@@ -186,16 +190,21 @@ extract_model_parameters.gm <- function(analysis_type, interpretation_args, ...)
 }
 
 
-#' Validate GM Requirements (Placeholder)
+#' Validate GM Requirements
+#'
+#' Validates requirements for Gaussian Mixture Model interpretations. Unlike FA,
+#' GM does not strictly require variable_info (cluster names can be assigned
+#' without variable descriptions), but variable_info is recommended for
+#' meaningful interpretations.
 #'
 #' @param analysis_type GM analysis type object
-#' @param ... Additional arguments
+#' @param ... Additional arguments (may include fit_results for future validation)
 #'
-#' @return Invisible NULL
+#' @return Invisible NULL (validation failures throw errors via cli::cli_abort)
 #' @export
 #' @keywords internal
 validate_model_requirements.gm <- function(analysis_type, ...) {
-  # GM doesn't require variable_info
-  # Might require other things like cluster_info
+  # GM doesn't strictly require variable_info, but it's recommended
+  # Future: Could validate cluster counts, covariance structures, etc.
   invisible(NULL)
 }

@@ -6,7 +6,17 @@
 \usage{
 \method{extract_by_pattern}{default}(response, analysis_type, ...)
 }
+\arguments{
+\item{response}{Character. Raw LLM response}
+
+\item{analysis_type}{Character. Model type}
+
+\item{...}{Additional arguments (ignored)}
+}
+\value{
+Does not return (throws error)
+}
 \description{
-Default method for extract_by_pattern
+Throws an error when no model-specific method is found.
 }
 \keyword{internal}

@@ -1,6 +1,6 @@
 # psychinterpreter Developer Guide
 
-**Last Updated**: 2025-11-16
+**Last Updated**: 2025-11-18
 **Version**: 0.0.0.9000
 **Purpose**: Technical reference for package maintainers and contributors
 **Status**: Critical bugs fixed, production-ready
@@ -212,12 +212,13 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 | `class_chat_session.R` | ~287 | `chat_session` class (constructors, validators, print); uses environments for mutable state |
 | `class_interpretation.R` | ~92 | Base `interpretation` class infrastructure |
 
-### Shared Utilities (4 files)
+### Shared Utilities (5 files)
 
 **Purpose**: Regular utility functions used by all analysis types (not S3 methods)
 
 | File | Lines | Purpose |
 |------|-------|---------|
+| `aaa_shared_formatting.R` | ~356 | Centralized format dispatch system for report generation (loaded first via `aaa_` prefix) |
 | `shared_config.R` | ~580 | Config constructors: `llm_args()`, `interpretation_args()`, `output_args()`, builders |
 | `shared_visualization.R` | ~250 | `psychinterpreter_colors()`, `theme_psychinterpreter()` (color palettes and ggplot2 theme) |
 | `shared_utils.R` | ~156 | Validation, routing, helper functions |
@@ -236,7 +237,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 | `fa_prompt_builder.R` | ~356 | S3 methods: `build_system_prompt.fa()`, `build_main_prompt.fa()` |
 | `fa_json.R` | ~225 | S3 methods: `validate_parsed_result.fa()`, `extract_by_pattern.fa()`, `create_default_result.fa()` |
 | `fa_diagnostics.R` | ~197 | S3 method: `create_fit_summary.fa()` with `find_cross_loadings()`, `find_no_loadings()` |
-| `fa_report.R` | ~1084 | S3 methods: `build_report.fa_interpretation()`, `print.fa_interpretation()` with modular section builders |
+| `fa_report.R` | ~949 | S3 methods: `build_report.fa_interpretation()`, `print.fa_interpretation()` with modular section builders; uses shared formatting dispatch |
 
 **Additional Methods (3 optional but recommended)**:
 | File | Lines | Purpose |
@@ -246,10 +247,28 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 
 **Note**: The `print.fa_interpretation()` method is implemented in `fa_report.R` and handles console output formatting. It delegates to `build_report.fa_interpretation()` for report generation.
 
-### Future Analysis Types (Planned)
+### Gaussian Mixture Implementation (7 files) - ✅ IMPLEMENTED
 
-**Gaussian Mixture (GM)**: Not implemented
-- `gm_model_data.R`, `gm_prompts.R`, `gm_json.R`, `gm_diagnostics.R`, `gm_report.R`, `gm_visualization.R`
+**Purpose**: GM-specific S3 method implementations
+
+**Core Methods (8 required)**:
+| File | Lines | Purpose |
+|------|-------|---------|
+| `gm_model_data.R` | ~750 | S3 methods: `build_analysis_data.Mclust()` and structured list support |
+| `gm_prompt_builder.R` | ~400 | S3 methods: `build_system_prompt.gm()`, `build_main_prompt.gm()` |
+| `gm_json.R` | ~300 | S3 methods: `validate_parsed_result.gm()`, `extract_by_pattern.gm()`, `create_default_result.gm()` |
+| `gm_diagnostics.R` | ~350 | S3 method: `create_fit_summary.gm()` with `find_overlapping_clusters()`, `find_distinguishing_variables_gm()` |
+| `gm_report.R` | ~635 | S3 methods: `build_report.gm_interpretation()`, `print.gm_interpretation()` with modular section builders; uses shared formatting dispatch |
+
+**Additional Methods**:
+| File | Lines | Purpose |
+|------|-------|---------|
+| `gm_export.R` | ~120 | S3 method: `export_interpretation.gm_interpretation()` |
+| `gm_visualization.R` | ~450 | S3 method: `plot.gm_interpretation()`, multiple plot types (heatmap, parallel, radar) |
+
+**Note**: GM implementation includes LLM metadata tracking (tokens, elapsed time) and uses the shared formatting dispatch system for consistent report generation across formats.
+
+### Future Analysis Types (Planned)
 
 **Item Response Theory (IRT)**: Not implemented
 - `irt_model_data.R`, `irt_prompts.R`, `irt_json.R`, `irt_diagnostics.R`, `irt_report.R`, `irt_visualization.R`
@@ -257,9 +276,126 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 **Cognitive Diagnosis Models (CDM)**: Not implemented
 - `cdm_model_data.R`, `cdm_prompts.R`, `cdm_json.R`, `cdm_diagnostics.R`, `cdm_report.R`, `cdm_visualization.R`
 
-**Implementation Note**: Extensibility infrastructure already in place with commented placeholders. See `dev/templates/` and `dev/MODEL_IMPLEMENTATION_GUIDE.md` for implementation instructions.
+**Implementation Note**: Extensibility infrastructure in place. See `dev/templates/` and `dev/MODEL_IMPLEMENTATION_GUIDE.md` for implementation instructions.
 
-## 2.3 S3 Method System
+## 2.3 Shared Formatting System
+
+**Overview**: The package uses a centralized format dispatch system in `R/aaa_shared_formatting.R` to provide consistent formatting across different output formats (CLI and markdown) and analysis types (FA, GM, IRT, CDM).
+
+**File naming**: The `aaa_` prefix ensures this file loads first via R's alphabetical loading order, making the formatting functions available before any report files that depend on them.
+
+### Architecture
+
+The formatting system uses a **three-tier hierarchy**:
+
+1. **Base Dispatch Table** (`.BASE_FORMAT_DISPATCH`)
+   - Core formatting functions shared across all model types
+   - Contains basic text styling, headers, and structural elements
+   - Elements: `bold()`, `italic()`, `section_header()`, `main_header()`, `line_break`, `list_item`, `token_header()`, `token_line()`, etc.
+
+2. **Model-Specific Extension Tables**
+   - `.FA_FORMAT_EXTENSIONS`: FA-specific formatting (factor names, correlations, variables)
+   - `.GM_FORMAT_EXTENSIONS`: GM-specific formatting (cluster names, cluster headers, diagnostics)
+   - Future: `.IRT_FORMAT_EXTENSIONS`, `.CDM_FORMAT_EXTENSIONS`
+
+3. **Lookup Function** (`get_format_fn()`)
+   - Retrieves formatting functions from the dispatch system
+   - Tries model-specific extensions first, falls back to base table
+   - Parameters: `format` ("cli"/"markdown"), `element` (function name), `model_type` ("fa"/"gm"/NULL)
+
+### Usage Pattern
+
+```r
+# In report generation code (e.g., fa_report.R, gm_report.R):
+
+# 1. Get formatting function for specific element
+bold_fn <- get_format_fn(format, "bold", "fa")
+header_fn <- get_format_fn(format, "section_header", "fa")
+
+# 2. Use formatting function
+report <- header_fn(2, "Factor Names")
+report <- paste0(report, bold_fn("Important:"), " Details here")
+
+# 3. Convenience wrappers available
+heading <- fmt_heading("markdown", 2, "Section Title", "fa")
+styled_text <- fmt_style("cli", "Bold text", "bold", "fa")
+keyval <- fmt_keyval("markdown", "BIC", 1234.56, "gm")
+```
+
+### Implementation Locations
+
+**Core Dispatch System**:
+- `R/aaa_shared_formatting.R` (lines 1-356)
+  - `.BASE_FORMAT_DISPATCH` table (lines 13-76)
+  - `.FA_FORMAT_EXTENSIONS` table (lines 85-132)
+  - `.GM_FORMAT_EXTENSIONS` table (lines 141-212)
+  - `get_format_fn()` helper (lines 237-265)
+  - Convenience wrappers: `fmt_heading()`, `fmt_style()`, `fmt_keyval()` (lines 290-355)
+
+**Usage in Report Files**:
+- `R/fa_report.R`: Uses shared formatting throughout
+  - Lines 4-6: Comment noting use of shared formatting system
+  - Lines 330-365: Example usage in `build_report_header()`
+- `R/gm_report.R`: Uses shared formatting throughout
+  - Lines 4-6: Comment noting use of shared formatting system
+  - Lines 18-109: Example usage in `build_report_header_gm()`
+
+### Adding New Formats
+
+To add a new output format (e.g., HTML):
+
+1. Add format entry to `.BASE_FORMAT_DISPATCH`:
+```r
+.BASE_FORMAT_DISPATCH <- list(
+  "markdown" = list(...),
+  "cli" = list(...),
+  "html" = list(  # NEW
+    bold = function(x) paste0("<b>", x, "</b>"),
+    italic = function(x) paste0("<i>", x, "</i>"),
+    ...
+  )
+)
+```
+
+2. Add model-specific extensions as needed:
+```r
+.FA_FORMAT_EXTENSIONS <- list(
+  "markdown" = list(...),
+  "cli" = list(...),
+  "html" = list(  # NEW
+    factor_name_item = function(i, var_explained, name) {
+      paste0("<li><b>Factor ", i, " (", round(var_explained * 100, 1), "%):</b> <i>", name, "</i></li>\n")
+    },
+    ...
+  )
+)
+```
+
+3. No changes needed to `get_format_fn()` or report files - they automatically use the new format.
+
+### Benefits
+
+1. **Consistency**: All reports use identical formatting logic for same output format
+2. **Maintainability**: Format changes require updates in ONE location only
+3. **Extensibility**: New model types inherit base formatting, only customize what's unique
+4. **Clarity**: Dispatch tables serve as self-documenting format specification
+5. **DRY Principle**: Eliminated format-specific conditional logic throughout report files
+
+### Code Example: Format Dispatch in Action
+
+```r
+# Before (scattered conditionals in fa_report.R and gm_report.R):
+if (format == "markdown") {
+  report <- paste0("**", key, ":** ", value, "  \n")
+} else {
+  report <- paste0(cli::style_bold(paste0(key, ":")), " ", value, "\n")
+}
+
+# After (single function call):
+report <- fmt_keyval(format, key, value, model_type)
+```
+
+## 2.4 S3 Method System
 
 Each S3 generic is exported with `#' @export`, and individual S3 methods are also exported with `#' @export` following standard R package practices.
 
@@ -279,11 +415,83 @@ Each analysis type (FA, GM, IRT, CDM) must implement these 8 methods:
 ### Current Implementations
 
 - **Factor Analysis (FA)**: All 8 methods implemented ✓
-- **Gaussian Mixture (GM)**: Not implemented
+- **Gaussian Mixture (GM)**: All 8 methods implemented ✓
 - **Item Response Theory (IRT)**: Not implemented
 - **Cognitive Diagnosis Models (CDM)**: Not implemented
 
-## 2.4 Interpretation Workflow
+## 2.5 Report Generation Architecture
+
+Both FA and GM implementations follow a consistent report generation pattern using the shared formatting dispatch system:
+
+### Report Generation Flow
+
+```
+build_report.{model}_interpretation()
+    ↓
+1. build_report_header_{model}()
+   - Uses fmt_keyval() for metadata
+   - Uses token_header_fn() and token_line_fn() for token display
+   - Includes LLM info and elapsed time
+    ↓
+2. build_{component}_names_section_{model}()
+   - Uses {component}_name_item_fn() (factor_name_item_fn or cluster_name_item_fn)
+   - Shows component sizes and suggested names
+    ↓
+3. build_interpretations_section_{model}()
+   - Uses {component}_header_fn() for each component
+   - Uses {component}_separator_fn() between components
+   - Includes LLM interpretations
+    ↓
+4. build_fit_summary_section_{model}()
+   - Uses warning_header_fn() and error_header_fn()
+   - Uses diagnostic_warning_fn() and diagnostic_note_fn()
+    ↓
+5. print.{model}_interpretation()
+   - Regenerates report if output_format specified
+   - Wraps text for CLI format using wrap_text()
+   - Preserves markdown formatting
+```
+
+### Key Design Patterns
+
+1. **Modular Section Builders**: Each major report section has dedicated builder function
+2. **Format Dispatch**: All formatting logic delegated to `get_format_fn()` calls
+3. **Consistent Metadata**: LLM info, tokens, and elapsed time displayed identically across model types
+4. **Dynamic Regeneration**: Reports can be regenerated in different formats via `print()` method
+
+### GM-Specific Report Features
+
+The GM implementation includes several enhancements over the initial FA implementation:
+
+1. **Comprehensive Metadata Display**
+   - Number of clusters, variables, observations
+   - Covariance structure description
+   - BIC and minimum cluster separation
+   - LLM provider, model, token counts, elapsed time
+
+2. **Cluster Separators**
+   - Visual separators between cluster interpretations (like FA factor separators)
+   - Format-specific: markdown uses blank lines, CLI uses styled rules
+
+3. **Diagnostics Section**
+   - Warnings for overlapping clusters, small clusters
+   - Notes for high uncertainty, distinguishing variables
+   - Color-coded in CLI format (yellow for warnings, blue for notes)
+
+4. **Key Variables Section**
+   - Displays top distinguishing variables per cluster
+   - Shows cluster mean vs overall mean for each variable
+
+5. **Full print() Method**
+   - Validates all parameters (max_line_length, output_format, heading_level)
+   - Supports dynamic report regeneration in different formats
+   - Text wrapping for CLI format only
+
+**Code Locations**:
+- FA: `R/fa_report.R` (lines 307-948)
+- GM: `R/gm_report.R` (lines 8-635)
+
+## 2.6 Interpretation Workflow
 
 The `interpret()` function is implemented as a **plain function with named arguments**, not an S3 generic. This design prevents positional dispatch confusion and provides clear parameter validation. Internally, it uses S3 dispatch via `interpret_model()` methods for fitted model objects.
 
@@ -330,7 +538,7 @@ User calls interpret(fit_results, variable_info, ...)
 4. Return interpretation object with token tracking
 ```
 
-## 2.5 Adding a New Analysis Type
+## 2.7 Adding a New Analysis Type
 
 Complete templates and implementation guide are available:
 - **📖 Implementation Guide**: `dev/MODEL_IMPLEMENTATION_GUIDE.md` - Comprehensive step-by-step guide
@@ -1246,5 +1454,5 @@ if (!result$valid) {
 
 ---
 
-**Last Updated**: 2025-11-16
+**Last Updated**: 2025-11-18
 **Maintainer**: Update when making architectural changes

@@ -2,18 +2,23 @@
 % Please edit documentation in R/gm_prompt_builder.R
 \name{build_system_prompt.gm}
 \alias{build_system_prompt.gm}
-\title{Build System Prompt for Gaussian Mixture Model Interpretation}
+\title{Build System Prompt for Gaussian Mixture Model}
 \usage{
-\method{build_system_prompt}{gm}(analysis_data)
+\method{build_system_prompt}{gm}(analysis_type, word_limit = 100, ...)
 }
 \arguments{
-\item{analysis_data}{Standardized GM analysis data}
+\item{analysis_type}{Object with class "gm"}
+
+\item{word_limit}{Integer. Word limit for interpretations}
+
+\item{...}{Additional arguments (unused)}
 }
 \value{
-Character string containing the system prompt
+Character. System prompt text
 }
 \description{
-Creates the system prompt that defines the LLM's expertise and role
-for interpreting clustering results.
+Creates the expert clustering analyst system prompt for GM interpretation.
+This is the single source of truth for the GM system prompt, used by both
+interpret_model.Mclust() and chat_session() to eliminate duplication.
 }
 \keyword{internal}

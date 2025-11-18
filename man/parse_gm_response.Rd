@@ -12,7 +12,7 @@ parse_gm_response(response_text, analysis_data)
 \item{analysis_data}{Standardized GM analysis data}
 }
 \value{
-Named list of cluster interpretations
+A list with two components: \code{component_summaries} (named list of cluster interpretations) and \code{suggested_names} (named list of cluster labels)
 }
 \description{
 High-level function that orchestrates JSON parsing with fallback strategies.

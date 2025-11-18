@@ -4,10 +4,17 @@
 \alias{build_key_variables_section_gm}
 \title{Build Key Variables Section for GM Report}
 \usage{
-build_key_variables_section_gm(distinguishing_vars, format, heading_level)
+build_key_variables_section_gm(
+  distinguishing_vars,
+  suggested_names,
+  format,
+  heading_level
+)
 }
 \arguments{
 \item{distinguishing_vars}{List of distinguishing variables per cluster}
+
+\item{suggested_names}{Named list of suggested cluster names}
 
 \item{format}{Output format}
 

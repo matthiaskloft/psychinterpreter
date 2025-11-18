@@ -19,7 +19,7 @@
 #' @details
 #' This is an S3 generic function. Model-specific export methods are implemented as:
 #' - `export_interpretation.fa_interpretation()` for factor analysis
-#' - Future: `export_interpretation.gm_interpretation()` for gaussian mixture
+#' - `export_interpretation.gm_interpretation()` for gaussian mixture
 #' - Future: `export_interpretation.irt_interpretation()` for IRT
 #' - Future: `export_interpretation.cdm_interpretation()` for CDM
 #'
@@ -33,6 +33,15 @@ export_interpretation <- function(interpretation_results,
 
 #' Default Export Method
 #'
+#' Throws an error when no model-specific export method is found. This ensures
+#' all supported model types have explicit export implementations.
+#'
+#' @param interpretation_results Interpretation results object
+#' @param format Character. Export format ("txt" or "md")
+#' @param file Character. File path with or without extension
+#' @param silent Integer or logical. Output verbosity control
+#'
+#' @return Does not return (throws error)
 #' @export
 #' @keywords internal
 export_interpretation.default <- function(interpretation_results,
@@ -75,7 +84,7 @@ export_interpretation.default <- function(interpretation_results,
   cli::cli_abort(
     c(
       "No export method for model type: {.val {analysis_type}}",
-      "i" = "Available types: fa",
+      "i" = "Available types: fa, gm",
       "i" = "Implement export_interpretation.{analysis_type}_interpretation() in R/models/{analysis_type}/"
     )
   )

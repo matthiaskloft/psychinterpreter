@@ -4,19 +4,18 @@
 \alias{build_variable_section_gm}
 \title{Build Variable Section for GM Prompt}
 \usage{
-build_variable_section_gm(analysis_data, variable_info, llm_args)
+build_variable_section_gm(analysis_data, variable_info)
 }
 \arguments{
-\item{analysis_data}{Standardized GM analysis data}
+\item{analysis_data}{Standardized GM analysis data (list with profile_variables element)}
 
-\item{variable_info}{Data frame with variable descriptions}
-
-\item{llm_args}{List of LLM configuration parameters}
+\item{variable_info}{Data frame with 'variable' and 'description' columns}
 }
 \value{
 Character string with formatted variable information
 }
 \description{
-Build Variable Section for GM Prompt
+Formats variable descriptions for inclusion in the GM interpretation prompt.
+Filters to profile_variables if specified in analysis_data.
 }
 \keyword{internal}

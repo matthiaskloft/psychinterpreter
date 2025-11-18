@@ -11,7 +11,20 @@
   silent = 0
 )
 }
+\arguments{
+\item{interpretation_results}{Interpretation results object}
+
+\item{format}{Character. Export format ("txt" or "md")}
+
+\item{file}{Character. File path with or without extension}
+
+\item{silent}{Integer or logical. Output verbosity control}
+}
+\value{
+Does not return (throws error)
+}
 \description{
-Default Export Method
+Throws an error when no model-specific export method is found. This ensures
+all supported model types have explicit export implementations.
 }
 \keyword{internal}

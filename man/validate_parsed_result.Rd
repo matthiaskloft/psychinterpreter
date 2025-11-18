@@ -11,10 +11,14 @@ validate_parsed_result(parsed, analysis_type, ...)
 
 \item{analysis_type}{Character. Model type}
 
-\item{...}{Additional arguments for model-specific validation}
+\item{...}{Additional arguments for model-specific validation, including:
+\itemize{
+\item \code{analysis_data}: Standardized model data (required by most implementations)
+}}
 }
 \value{
-List or NULL. Validated result or NULL if invalid
+List with model-specific structure (e.g., \code{component_summaries} and
+\code{suggested_names} for FA/GM models), or NULL if validation fails
 }
 \description{
 Model-specific validation of parsed JSON.

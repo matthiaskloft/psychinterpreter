@@ -72,11 +72,7 @@ test_that("interpretation_args() uses default values when not specified", {
 })
 
 test_that("interpretation_args() errors for unimplemented analysis types", {
-  expect_error(
-    interpretation_args(analysis_type = "gm"),
-    "not yet implemented"
-  )
-
+  # GM is now implemented, so test IRT and CDM instead
   expect_error(
     interpretation_args(analysis_type = "irt"),
     "not yet implemented"

@@ -4,10 +4,14 @@
 \alias{create_fit_summary.gm}
 \title{Create Fit Summary for Gaussian Mixture Models}
 \usage{
-\method{create_fit_summary}{gm}(analysis_data)
+\method{create_fit_summary}{gm}(analysis_type, analysis_data, ...)
 }
 \arguments{
+\item{analysis_type}{Character. Type of analysis ("gm")}
+
 \item{analysis_data}{Standardized GM analysis data}
+
+\item{...}{Additional arguments (currently unused)}
 }
 \value{
 List with diagnostic information and warnings

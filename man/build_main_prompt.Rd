@@ -4,18 +4,33 @@
 \alias{build_main_prompt}
 \title{Build User Prompt (S3 Generic)}
 \usage{
-build_main_prompt(analysis_type, analysis_data, ...)
+build_main_prompt(
+  analysis_type,
+  analysis_data,
+  word_limit,
+  additional_info = NULL,
+  ...
+)
 }
 \arguments{
-\item{analysis_type}{An object with class corresponding to the model type ("fa", "gm", "irt", "cdm")}
+\item{analysis_type}{An S3 dispatch object with class corresponding to the model type
+("fa", "gm", "irt", "cdm"). See \code{?interpret} for supported model types.}
 
-\item{analysis_data}{List. Model-specific data (loadings, parameters, etc.)}
+\item{analysis_data}{List. Standardized model data from \code{\link{build_analysis_data}}.
+Structure varies by model type and contains all necessary information for prompt construction.}
 
-\item{...}{Additional arguments passed to model-specific methods, including variable_info
-(data frame with 'variable' and 'description' columns, required for FA)}
+\item{word_limit}{Integer. Maximum words per interpretation (included in prompt instructions)}
+
+\item{additional_info}{Character or NULL. Optional additional context to include in prompt}
+
+\item{...}{Additional arguments passed to model-specific methods, including:
+\itemize{
+\item \code{variable_info}: Data frame with 'variable' and 'description' columns (required by most model types)
+\item Model-specific parameters as needed
+}}
 }
 \value{
-Character. User prompt text
+Character. User prompt text containing analysis data and interpretation instructions
 }
 \description{
 Constructs the user prompt containing analysis data and instructions

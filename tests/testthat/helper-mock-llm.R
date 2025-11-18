@@ -2,6 +2,10 @@
 # Enables testing of error scenarios and edge cases without actual LLM calls
 # Part of Phase 2 Test Optimization (2.1)
 
+# Mock Provider S4 Class
+# Define a simple S4 class to mock provider objects
+setClass("MockProvider", slots = c(name = "character"))
+
 #' Create mock LLM response
 #'
 #' @param response_type Type of response: "success", "malformed_json", "error", "timeout", "partial", "empty"
@@ -74,6 +78,84 @@ mock_llm_response <- function(response_type = "success", content = NULL, ...) {
     },
     "rate_limit" = function(content) {
       stop("API Error: 429 Too Many Requests")
+    },
+    "unicode" = function(content) {
+      list(
+        content = content %||% '{
+          "MR1": {
+            "name": "Extraversion 😊 - High sociability and energy",
+            "interpretation": "This factor captures outgoing 😊 social behavior with émotions positives."
+          },
+          "MR2": {
+            "name": "Conscientiousness 📋 - Organisation et diligence",
+            "interpretation": "Conscientiousness involves self-discipline and organisation 📋."
+          }
+        }',
+        input_tokens = 100,
+        output_tokens = 60
+      )
+    },
+    "very_long" = function(content) {
+      long_text <- paste(rep("Very detailed interpretation with lots of words. ", 500), collapse = "")
+      long_text2 <- paste(rep("Another very long interpretation here. ", 500), collapse = "")
+      list(
+        content = content %||% paste0('{
+          "MR1": {
+            "name": "Test Factor 1",
+            "interpretation": "', long_text, '"
+          },
+          "MR2": {
+            "name": "Test Factor 2",
+            "interpretation": "', long_text2, '"
+          }
+        }'),
+        input_tokens = 100,
+        output_tokens = 5000
+      )
+    },
+    "html_artifacts" = function(content) {
+      list(
+        content = content %||% '```json
+{
+  "MR1": {
+    "name": "Extraversion",
+    "interpretation": "This factor represents high sociability"
+  },
+  "MR2": {
+    "name": "Conscientiousness",
+    "interpretation": "This factor represents high organization"
+  }
+}
+```',
+        input_tokens = 100,
+        output_tokens = 50
+      )
+    },
+    "provider_error_openai" = function(content) {
+      stop(structure(
+        list(
+          message = "Rate limit exceeded",
+          error = list(
+            message = "Rate limit exceeded",
+            type = "rate_limit_error",
+            param = NULL,
+            code = "rate_limit_exceeded"
+          )
+        ),
+        class = c("openai_error", "error", "condition")
+      ))
+    },
+    "provider_error_anthropic" = function(content) {
+      stop(structure(
+        list(
+          message = "Rate limit exceeded. Please try again later.",
+          error = list(
+            type = "rate_limit_error",
+            message = "Rate limit exceeded. Please try again later."
+          )
+        ),
+        class = c("anthropic_error", "error", "condition")
+      ))
     }
   )
 
@@ -97,13 +179,59 @@ mock_chat <- function(response_type = "success", ...) {
   stored_response_type <- response_type
   stored_dots <- list(...)
 
-  list(
+  chat_obj <- list(
     chat = function(prompt, echo = "none", ...) {
       mock_llm_response(stored_response_type, ...)
     },
     get_turns = function() list(),
-    extract_data = function(...) list()
+    extract_data = function(...) list(),
+    get_tokens = function() {
+      # Return mock token data frame
+      data.frame(
+        role = c("user", "assistant"),
+        tokens = c(100, 50),
+        stringsAsFactors = FALSE
+      )
+    },
+    get_provider = function() {
+      # Return S4 mock provider object
+      new("MockProvider", name = "mock")
+    },
+    get_model = function() {
+      "mock-model"
+    },
+    clone = function() {
+      # Return a clone of the chat object
+      mock_chat_clone <- list(
+        chat = function(prompt, echo = "none", ...) {
+          mock_llm_response(stored_response_type, ...)
+        },
+        get_turns = function() list(),
+        extract_data = function(...) list(),
+        get_tokens = function() {
+          # Return mock token data frame
+          data.frame(
+            role = c("user", "assistant"),
+            tokens = c(100, 50),
+            stringsAsFactors = FALSE
+          )
+        },
+        get_provider = function() {
+          # Return S4 mock provider object
+          new("MockProvider", name = "mock")
+        },
+        get_model = function() {
+          "mock-model"
+        },
+        set_turns = function(turns) {
+          # Return self for chaining
+          mock_chat_clone
+        }
+      )
+      mock_chat_clone
+    }
   )
+  chat_obj
 }
 
 #' Create mock chat_session for testing

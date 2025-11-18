@@ -136,6 +136,11 @@ chat_session <- function(analysis_type = "fa",
   # (Some providers don't support token tracking and will leave these at 0)
   chat_obj$total_input_tokens <- 0.0
   chat_obj$total_output_tokens <- 0.0
+  chat_obj$cumulative_tokens <- list(
+    input_tokens = 0.0,
+    output_tokens = 0.0,
+    total_tokens = 0.0
+  )
   chat_obj$system_prompt <- final_system_prompt
 
   class(chat_obj) <- c(paste0(analysis_type, "_chat_session"), "chat_session")
