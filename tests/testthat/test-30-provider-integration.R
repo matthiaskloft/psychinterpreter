@@ -400,6 +400,17 @@ test_that("Ollama token tracking returns zero or NULL", {
 
 test_that("Cannot switch providers mid-session", {
   skip_on_cran()
+  skip_on_ci()
+
+  # Ollama requires local installation
+  ollama_available <- tryCatch({
+    system("ollama --version", intern = TRUE, ignore.stderr = TRUE)
+    TRUE
+  }, error = function(e) FALSE)
+
+  if (!ollama_available) {
+    skip("Ollama not installed or not in PATH")
+  }
 
   fixture <- create_minimal_fa_fixture()
 
@@ -419,6 +430,17 @@ test_that("Cannot switch providers mid-session", {
 
 test_that("Different providers can be used in separate sessions", {
   skip_on_cran()
+  skip_on_ci()
+
+  # Ollama requires local installation
+  ollama_available <- tryCatch({
+    system("ollama --version", intern = TRUE, ignore.stderr = TRUE)
+    TRUE
+  }, error = function(e) FALSE)
+
+  if (!ollama_available) {
+    skip("Ollama not installed or not in PATH")
+  }
 
   fixture <- create_minimal_fa_fixture()
 
