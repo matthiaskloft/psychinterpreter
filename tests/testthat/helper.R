@@ -328,6 +328,40 @@ sample_gm_interpretation <- function() {
   .test_cache[[cache_key]]
 }
 
+# LLM Configuration Functions ----
+
+#' Get LLM provider for tests
+#'
+#' Returns the LLM provider to use in tests. Checks environment variable
+#' TEST_LLM_PROVIDER first, then falls back to "ollama".
+#'
+#' @return Character string with provider name
+#' @examples
+#' \dontrun{
+#' # Set in .Renviron or before tests:
+#' Sys.setenv(TEST_LLM_PROVIDER = "anthropic")
+#' get_test_llm_provider()  # Returns "anthropic"
+#' }
+get_test_llm_provider <- function() {
+  Sys.getenv("TEST_LLM_PROVIDER", unset = "ollama")
+}
+
+#' Get LLM model for tests
+#'
+#' Returns the LLM model to use in tests. Checks environment variable
+#' TEST_LLM_MODEL first, then falls back to "gpt-oss:20b-cloud".
+#'
+#' @return Character string with model name
+#' @examples
+#' \dontrun{
+#' # Set in .Renviron or before tests:
+#' Sys.setenv(TEST_LLM_MODEL = "claude-3-5-haiku-20241022")
+#' get_test_llm_model()  # Returns "claude-3-5-haiku-20241022"
+#' }
+get_test_llm_model <- function() {
+  Sys.getenv("TEST_LLM_MODEL", unset = "gpt-oss:20b-cloud")
+}
+
 # LLM Availability Functions ----
 
 #' Check if Ollama/LLM is available for testing
@@ -344,18 +378,23 @@ has_ollama <- function() {
     return(FALSE)
   }
 
-  # Try to actually connect to Ollama and run a minimal test
+  # Try to actually connect to the configured LLM and run a minimal test
   tryCatch({
+    provider <- get_test_llm_provider()
+    model <- get_test_llm_model()
+
     # Create a minimal chat session to test connectivity
+    # Format: provider/model for ellmer
+    llm_name <- paste0(provider, "/", model)
     test_chat <- ellmer::chat(
-      name = "ollama/gpt-oss:20b-cloud",
+      name = llm_name,
       system_prompt = "test"
     )
-    # Try a simple query - if this fails, Ollama isn't properly available
+    # Try a simple query - if this fails, LLM isn't properly available
     test_chat$chat("hello", echo = "none")
     return(TRUE)
   }, error = function(e) {
-    # If we get any error (including HTTP 500), Ollama isn't available
+    # If we get any error (including HTTP 500), LLM isn't available
     return(FALSE)
   })
 }

@@ -167,15 +167,17 @@ test_that("interpret.fa end-to-end integration with psych::fa", {
   llm_provider <- "ollama"
   llm_model <- "gpt-oss:20b-cloud"
 
-  # Single integration test to verify end-to-end works
-  result <- interpret(
-    fit_results = fa_model,
-    variable_info = var_info,
-    llm_provider = llm_provider,
-    llm_model = llm_model,
-    word_limit = 20,  # Minimal for speed
-    silent = TRUE
-  )
+  # Single integration test to verify end-to-end works (skip if rate limited)
+  result <- with_llm_rate_limit_skip({
+    interpret(
+      fit_results = fa_model,
+      variable_info = var_info,
+      llm_provider = llm_provider,
+      llm_model = llm_model,
+      word_limit = 20,  # Minimal for speed
+      silent = TRUE
+    )
+  })
 
   # Verify result structure
   expect_s3_class(result, "fa_interpretation")
