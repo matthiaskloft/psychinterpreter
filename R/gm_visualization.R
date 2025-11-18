@@ -4,6 +4,7 @@
 # ===================================================================
 
 #' @importFrom stats aggregate sd var
+#' @importFrom utils modifyList
 NULL
 
 #' Plot GM Interpretation

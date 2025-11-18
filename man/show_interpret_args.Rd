@@ -45,6 +45,7 @@ Parameters are organized by configuration group:
 # Show common parameters for all models
 show_interpret_args()
 
+\donttest{
 # Show all parameters for Factor Analysis
 show_interpret_args("fa")
 
@@ -54,4 +55,5 @@ show_interpret_args("gm")
 # Capture parameter data programmatically
 params <- show_interpret_args("fa")
 print(params)
+}
 }

@@ -342,17 +342,19 @@ test_that("Ollama provider works without API keys", {
 
   fixture <- create_minimal_fa_fixture()
 
-  # Should work without any API keys
+  # Should work without any API keys (skip if rate limited)
   expect_no_error(
-    result <- interpret(
-      fit_results = list(loadings = fixture$loadings),
-      variable_info = fixture$variable_info,
-      analysis_type = "fa",
-      llm_provider = "ollama",
-      llm_model = "gpt-oss:20b-cloud",
-      word_limit = 20,
-      silent = 2
-    )
+    result <- with_llm_rate_limit_skip({
+      interpret(
+        fit_results = list(loadings = fixture$loadings),
+        variable_info = fixture$variable_info,
+        analysis_type = "fa",
+        llm_provider = "ollama",
+        llm_model = "gpt-oss:20b-cloud",
+        word_limit = 20,
+        silent = 2
+      )
+    })
   )
 })
 
@@ -371,15 +373,18 @@ test_that("Ollama token tracking returns zero or NULL", {
 
   fixture <- create_minimal_fa_fixture()
 
-  result <- interpret(
-    fit_results = list(loadings = fixture$loadings),
-    variable_info = fixture$variable_info,
-    analysis_type = "fa",
-    llm_provider = "ollama",
-    llm_model = "gpt-oss:20b-cloud",
-    word_limit = 20,
-    silent = 2
-  )
+  # Run interpretation (skip if rate limited)
+  result <- with_llm_rate_limit_skip({
+    interpret(
+      fit_results = list(loadings = fixture$loadings),
+      variable_info = fixture$variable_info,
+      analysis_type = "fa",
+      llm_provider = "ollama",
+      llm_model = "gpt-oss:20b-cloud",
+      word_limit = 20,
+      silent = 2
+    )
+  })
 
   # Ollama may not track tokens (provider-specific behavior)
   # Should be NULL or contain zeros

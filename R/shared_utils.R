@@ -135,6 +135,7 @@ validate_chat_session_for_analysis_type <- function(chat_session, expected_type)
 #' # Show common parameters for all models
 #' show_interpret_args()
 #'
+#' \donttest{
 #' # Show all parameters for Factor Analysis
 #' show_interpret_args("fa")
 #'
@@ -144,6 +145,7 @@ validate_chat_session_for_analysis_type <- function(chat_session, expected_type)
 #' # Capture parameter data programmatically
 #' params <- show_interpret_args("fa")
 #' print(params)
+#' }
 show_interpret_args <- function(analysis_type = NULL) {
 
   # Validate analysis_type if provided

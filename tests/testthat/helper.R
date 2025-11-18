@@ -371,3 +371,39 @@ skip_if_no_llm <- function() {
     testthat::skip("Ollama LLM not available (either ellmer package missing or service not responding)")
   }
 }
+
+#' Execute LLM call with automatic rate limit handling
+#'
+#' Wraps an expression that makes LLM calls and automatically skips the test
+#' if a rate limit error (HTTP 429) is encountered.
+#'
+#' @param expr Expression to evaluate (typically an interpret() call)
+#' @return Result of the expression if successful
+#' @examples
+#' \dontrun{
+#' result <- with_llm_rate_limit_skip({
+#'   interpret(
+#'     fit_results = model,
+#'     variable_info = var_info,
+#'     llm_provider = "ollama",
+#'     llm_model = "gpt-oss:20b-cloud"
+#'   )
+#' })
+#' }
+with_llm_rate_limit_skip <- function(expr) {
+  tryCatch(
+    expr,
+    error = function(e) {
+      # Check if error message contains HTTP 429 or rate limit indicators
+      error_msg <- conditionMessage(e)
+      is_rate_limit <- grepl("429|Too Many Requests|rate limit", error_msg, ignore.case = TRUE)
+
+      if (is_rate_limit) {
+        testthat::skip(paste("API rate limit reached:", error_msg))
+      } else {
+        # Re-throw other errors
+        stop(e)
+      }
+    }
+  )
+}

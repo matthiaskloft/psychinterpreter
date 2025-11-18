@@ -10,15 +10,17 @@ test_that("interpret() works with Mclust objects (minimal LLM test)", {
   gm_model <- readRDS(test_path("fixtures/gm/minimal_gm_model.rds"))
   gm_var_info <- readRDS(test_path("fixtures/gm/minimal_gm_var_info.rds"))
 
-  # Run interpretation with minimal word_limit
-  result <- interpret(
-    fit_results = gm_model,
-    variable_info = gm_var_info,
-    llm_provider = "ollama",
-    llm_model = "gpt-oss:20b-cloud",
-    word_limit = 20,
-    silent = 2
-  )
+  # Run interpretation with minimal word_limit (skip if rate limited)
+  result <- with_llm_rate_limit_skip({
+    interpret(
+      fit_results = gm_model,
+      variable_info = gm_var_info,
+      llm_provider = "ollama",
+      llm_model = "gpt-oss:20b-cloud",
+      word_limit = 20,
+      silent = 2
+    )
+  })
 
   # Check structure
   expect_s3_class(result, "gm_interpretation")
@@ -79,14 +81,16 @@ test_that("interpret() handles GM chat sessions", {
 
   expect_s3_class(chat, "chat_session")
 
-  # Run interpretation with chat session
-  result <- interpret(
-    chat_session = chat,
-    fit_results = gm_model,
-    variable_info = gm_var_info,
-    word_limit = 20,
-    silent = 2
-  )
+  # Run interpretation with chat session (skip if rate limited)
+  result <- with_llm_rate_limit_skip({
+    interpret(
+      chat_session = chat,
+      fit_results = gm_model,
+      variable_info = gm_var_info,
+      word_limit = 20,
+      silent = 2
+    )
+  })
 
   expect_s3_class(result, "gm_interpretation")
 })
@@ -757,15 +761,17 @@ test_that("metadata display works with minimal LLM test", {
   gm_model <- readRDS(test_path("fixtures/gm/minimal_gm_model.rds"))
   gm_var_info <- readRDS(test_path("fixtures/gm/minimal_gm_var_info.rds"))
 
-  # Run interpretation with minimal word_limit
-  result <- interpret(
-    fit_results = gm_model,
-    variable_info = gm_var_info,
-    llm_provider = "ollama",
-    llm_model = "gpt-oss:20b-cloud",
-    word_limit = 20,
-    silent = 2
-  )
+  # Run interpretation with minimal word_limit (skip if rate limited)
+  result <- with_llm_rate_limit_skip({
+    interpret(
+      fit_results = gm_model,
+      variable_info = gm_var_info,
+      llm_provider = "ollama",
+      llm_model = "gpt-oss:20b-cloud",
+      word_limit = 20,
+      silent = 2
+    )
+  })
 
   # Build report
   report <- psychinterpreter:::build_report.gm_interpretation(
