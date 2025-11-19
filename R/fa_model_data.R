@@ -71,6 +71,7 @@ build_fa_analysis_data_internal <- function(fit_results, variable_info, analysis
   # ==========================================================================
 
   loadings <- NULL
+  structure_matrix <- NULL  # For oblique rotations
 
   # Handle different input types
   if (is.list(fit_results) && !is.data.frame(fit_results)) {
@@ -88,6 +89,10 @@ build_fa_analysis_data_internal <- function(fit_results, variable_info, analysis
     # Extract factor_cor_mat if provided in list
     if ("factor_cor_mat" %in% names(fit_results) && is.null(factor_cor_mat)) {
       factor_cor_mat <- fit_results$factor_cor_mat
+    }
+    # Extract structure matrix if provided (for oblique rotations)
+    if ("structure_matrix" %in% names(fit_results)) {
+      structure_matrix <- fit_results$structure_matrix
     }
   } else {
     # Direct matrix/data.frame input
@@ -114,6 +119,20 @@ build_fa_analysis_data_internal <- function(fit_results, variable_info, analysis
         "x" = "Got {.cls {class(loadings)}}"
       )
     )
+  }
+
+  # Convert structure matrix to dataframe if provided (for oblique rotations)
+  structure_df <- NULL
+  if (!is.null(structure_matrix)) {
+    if (is.matrix(structure_matrix) || inherits(structure_matrix, "matrix")) {
+      structure_df <- as.data.frame(unclass(structure_matrix))
+      structure_df$variable <- rownames(structure_df)
+    } else if (is.data.frame(structure_matrix)) {
+      structure_df <- structure_matrix
+      if (!"variable" %in% names(structure_df)) {
+        structure_df$variable <- rownames(structure_df)
+      }
+    }
   }
 
   # Get factor names
@@ -187,6 +206,13 @@ build_fa_analysis_data_internal <- function(fit_results, variable_info, analysis
   loadings_with_info <- loadings_df |>
     dplyr::left_join(variable_info, by = "variable")
 
+  # Also merge structure matrix if available
+  structure_with_info <- NULL
+  if (!is.null(structure_df)) {
+    structure_with_info <- structure_df |>
+      dplyr::left_join(variable_info, by = "variable")
+  }
+
   # ==========================================================================
   # STEP 5: BUILD FACTOR SUMMARIES
   # ==========================================================================
@@ -217,20 +243,37 @@ build_fa_analysis_data_internal <- function(fit_results, variable_info, analysis
       factor_data <- loadings_with_info[significant_vars, c("variable", "description", factor_name), drop = FALSE]
       names(factor_data)[3] <- "loading"
 
+      # Add direction and strength columns
+      factor_data$strength <- sapply(factor_data$loading, categorize_loading_strength)
+      factor_data$direction <- ifelse(factor_data$loading >= 0, "Positive", "Negative")
+
       # Sort by loading if requested
       if (sort_loadings) {
         factor_data <- factor_data[order(abs(factor_data$loading), decreasing = TRUE), , drop = FALSE]
       }
 
       # Calculate variance explained
-      all_loadings <- loadings_with_info[[factor_name]]
-      variance_explained <- sum(all_loadings^2) / length(all_loadings)
+      # For oblique rotations with structure matrix: use diag(t(pattern) %*% structure) / n_variables
+      # For orthogonal rotations: use sum(pattern^2) / n_variables
+      if (!is.null(structure_with_info)) {
+        # Oblique rotation - use pattern-structure product
+        pattern_vec <- loadings_with_info[[factor_name]]
+        structure_vec <- structure_with_info[[factor_name]]
+        # This calculates the contribution of this factor to total variance
+        variance_explained <- sum(pattern_vec * structure_vec) / n_variables
+      } else {
+        # Orthogonal rotation or no structure matrix - use simple sum of squares
+        all_loadings <- loadings_with_info[[factor_name]]
+        variance_explained <- sum(all_loadings^2) / n_variables
+      }
     } else {
       # No significant loadings (n_emergency = 0 case)
       factor_data <- data.frame(
         variable = character(0),
         description = character(0),
-        loading = numeric(0)
+        loading = numeric(0),
+        strength = character(0),
+        direction = character(0)
       )
       variance_explained <- 0
     }
@@ -259,6 +302,30 @@ build_fa_analysis_data_internal <- function(fit_results, variable_info, analysis
     n_emergency = n_emergency,
     hide_low_loadings = hide_low_loadings
   )
+}
+
+
+#' Categorize Loading Strength
+#'
+#' Internal helper to categorize the strength of factor loadings based on
+#' their absolute values.
+#'
+#' @param loading Numeric. The loading value
+#'
+#' @return Character. One of "Very Strong", "Strong", "Moderate", or "Weak"
+#' @keywords internal
+#' @noRd
+categorize_loading_strength <- function(loading) {
+  abs_loading <- abs(loading)
+  if (abs_loading >= 0.7) {
+    return("Very Strong")
+  } else if (abs_loading >= 0.5) {
+    return("Strong")
+  } else if (abs_loading >= 0.3) {
+    return("Moderate")
+  } else {
+    return("Weak")
+  }
 }
 
 

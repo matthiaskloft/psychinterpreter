@@ -88,7 +88,8 @@ Perform FA with 6 factors identified by the parallel analysis
 ```{r fa-analysis}
 fa_result <- psych::fa(
   bfi,
-  nfactors = pa_result$nfact
+  nfactors = pa_result$nfact, 
+  rotate = "oblimin",
 )
 summary(fa_result)
 ```
@@ -126,6 +127,7 @@ We now generate factor interpretations using the specified LLM:
 ollamar::list_models()
 
 #show_interpret_args("fa")
+#Sys.setenv(ANTHROPIC_API_KEY = "")
 provider <- "anthropic"
 llm <- ellmer::models_anthropic()[1,"id"]
 ```
@@ -140,7 +142,8 @@ result <- interpret(
   # set temperature and seed for reproducibility
   params = params(temperature = 0, seed = 42),
   variable_info = variable_info,
-  cutoff = 0.23,
+  cutoff = 0.3,
+  hide_low_loadings = TRUE,
   n_emergency = 2,
   additional_info = NULL,
   sort_loadings = TRUE,
@@ -167,7 +170,7 @@ head(fa_scores) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
 
 Find Best Gaussian Mixture Model
 ```{r}
-gmm_model <- mclustBIC(fa_scores, G = 1:15)
+gmm_model <- mclustICL(fa_scores, G = 1:15)
 
 summary(gmm_model)
 plot(gmm_model)

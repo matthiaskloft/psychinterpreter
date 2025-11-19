@@ -333,15 +333,24 @@ extract_mclust_data <- function(model) {
 #' @keywords internal
 #' @noRd
 extract_psych_loadings <- function(model) {
-  # Extract loadings
+  # Extract loadings (pattern matrix)
   loadings <- as.data.frame(unclass(model$loadings))
 
   # Extract factor correlations if oblique rotation
   factor_cor_mat <- if (!is.null(model$Phi)) model$Phi else NULL
 
+  # Extract structure matrix if available (for oblique rotations)
+  # This is needed for correct variance calculation
+  structure_matrix <- if (!is.null(model$Structure)) {
+    as.data.frame(unclass(model$Structure))
+  } else {
+    NULL
+  }
+
   list(
     loadings = loadings,
-    factor_cor_mat = factor_cor_mat
+    factor_cor_mat = factor_cor_mat,
+    structure_matrix = structure_matrix
   )
 }
 
