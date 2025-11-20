@@ -150,6 +150,9 @@ create_heatmap_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizo
     values_to = "Mean"
   )
 
+  # Preserve cluster order by converting to factor with correct levels
+  plot_data$Cluster <- factor(plot_data$Cluster, levels = analysis_data$cluster_names)
+
   # Apply cutoff
   plot_data$Significant <- abs(plot_data$Mean) >= cutoff
 

@@ -38,8 +38,8 @@ validate_parsed_result.gm <- function(parsed, analysis_type, analysis_data, ...)
     # Check for exact match or close match
     if (!expected_key %in% actual_keys) {
       # Also check for variations like "cluster_1", "Cluster1", etc.
-      pattern <- paste0("(?i)cluster[_\\s]*", k)
-      if (!any(grepl(pattern, actual_keys))) {
+      pattern <- paste0("(?i)cluster[_\\s]*", k, "\\b")
+      if (!any(grepl(pattern, actual_keys, perl = TRUE))) {
         return(NULL)
       }
     }
@@ -295,7 +295,7 @@ parse_gm_response <- function(response_text, analysis_data) {
       found_key <- NULL
       for (actual_key in names(parsed_result)) {
         if (actual_key == expected_key ||
-            grepl(paste0("(?i)cluster[_\\s]*", k), actual_key)) {
+            grepl(paste0("(?i)cluster[_\\s]*", k, "\\b"), actual_key, perl = TRUE)) {
           found_key <- actual_key
           break
         }
