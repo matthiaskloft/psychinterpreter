@@ -243,7 +243,7 @@ result <- interpret(
 ```
 
 ```{r}
-plot(result, plot_type = "all")
+plot(result, plot_type = "all", orientation = "vertical")
 ```
 
 

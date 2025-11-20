@@ -17,6 +17,9 @@ NULL
 #' @param variables Character vector of variables to include (NULL for all)
 #' @param orientation Character: "horizontal" (variables on x-axis, default) or
 #'   "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.
+#' @param cluster_order Character: "alphabetical" (default) sorts cluster names alphabetically
+#'   in parallel plots, "numerical" preserves original model order, "reverse" reverses the
+#'   original model order. Only affects parallel plots.
 #' @param ... Additional arguments passed to specific plot functions
 #'
 #' @return For heatmap/parallel: a ggplot2 object. For radar: a recordedplot object
@@ -40,6 +43,11 @@ NULL
 #' plot(gm_interpretation, plot_type = "heatmap", orientation = "vertical")
 #' plot(gm_interpretation, plot_type = "parallel", orientation = "vertical")
 #'
+#' # Cluster ordering in parallel plots
+#' plot(gm_interpretation, plot_type = "parallel", cluster_order = "alphabetical")
+#' plot(gm_interpretation, plot_type = "parallel", cluster_order = "numerical")
+#' plot(gm_interpretation, plot_type = "parallel", cluster_order = "reverse")
+#'
 #' # All plot types
 #' plots <- plot(gm_interpretation, plot_type = "all")
 #'
@@ -52,6 +60,7 @@ plot.gm_interpretation <- function(
     cutoff = 0.3,
     variables = NULL,
     orientation = "horizontal",
+    cluster_order = "alphabetical",
     ...) {
 
   # Extract analysis data
@@ -111,14 +120,14 @@ plot.gm_interpretation <- function(
   if (plot_type == "all") {
     plots <- list(
       heatmap = create_heatmap_gm(analysis_data, cutoff, orientation, ...),
-      parallel = create_parallel_plot_gm(analysis_data, cutoff, orientation, ...),
+      parallel = create_parallel_plot_gm(analysis_data, cutoff, orientation, cluster_order, ...),
       radar = create_radar_plot_gm(analysis_data, cutoff, ...)
     )
     return(plots)
   } else if (plot_type == "heatmap") {
     return(create_heatmap_gm(analysis_data, cutoff, orientation, ...))
   } else if (plot_type == "parallel") {
-    return(create_parallel_plot_gm(analysis_data, cutoff, orientation, ...))
+    return(create_parallel_plot_gm(analysis_data, cutoff, orientation, cluster_order, ...))
   } else if (plot_type == "radar") {
     return(create_radar_plot_gm(analysis_data, cutoff, ...))
   } else {
@@ -219,16 +228,33 @@ create_heatmap_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizo
 #' @param analysis_data Standardized GM analysis data
 #' @param cutoff Threshold for highlighting
 #' @param orientation Character: "horizontal" (variables on x-axis, default) or "vertical" (variables on y-axis)
+#' @param cluster_order Character: "alphabetical" (default) sorts cluster names alphabetically,
+#'   "numerical" preserves original model order, "reverse" reverses the original model order
 #' @param title Plot title (optional)
 #' @return ggplot2 object
 #' @keywords internal
-create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizontal", title = NULL) {
+create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizontal",
+                                     cluster_order = "alphabetical", title = NULL) {
+  # Validate cluster_order parameter
+  if (!cluster_order %in% c("alphabetical", "numerical", "reverse")) {
+    cli::cli_abort("{.arg cluster_order} must be 'alphabetical', 'numerical', or 'reverse', not {.val {cluster_order}}")
+  }
+
+  # Determine cluster order
+  if (cluster_order == "alphabetical") {
+    cluster_levels <- sort(analysis_data$cluster_names)
+  } else if (cluster_order == "reverse") {
+    cluster_levels <- rev(analysis_data$cluster_names)
+  } else {
+    cluster_levels <- analysis_data$cluster_names
+  }
+
   # Prepare data
   means_df <- as.data.frame(t(analysis_data$means))
   colnames(means_df) <- analysis_data$variable_names
   means_df$Cluster <- factor(
     analysis_data$cluster_names,
-    levels = analysis_data$cluster_names
+    levels = cluster_levels
   )
 
   # Add cluster size information
@@ -264,6 +290,9 @@ create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, orientation = "
     )
   } else {
     # Variables on y-axis (rotated parallel coordinates)
+    # Sort data by Cluster and Variable to ensure lines connect points correctly
+    plot_data <- plot_data[order(plot_data$Cluster, plot_data$Variable), ]
+
     aes_mapping <- ggplot2::aes(x = Value, y = Variable, group = Cluster, color = Cluster)
     x_lab <- "Standardized Mean"
     y_lab <- "Variable (ordered by variance)"
@@ -275,8 +304,15 @@ create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, orientation = "
   }
 
   # Create parallel coordinates plot
+  # Use geom_path for vertical (respects data order) and geom_line for horizontal (sorts by x)
+  if (orientation == "vertical") {
+    line_layer <- ggplot2::geom_path(ggplot2::aes(linewidth = Size), alpha = 0.7)
+  } else {
+    line_layer <- ggplot2::geom_line(ggplot2::aes(linewidth = Size), alpha = 0.7)
+  }
+
   p <- ggplot2::ggplot(plot_data, aes_mapping) +
-    ggplot2::geom_line(ggplot2::aes(linewidth = Size), alpha = 0.7) +
+    line_layer +
     ggplot2::geom_point(size = 2) +
     ggplot2::scale_color_manual(
       values = psychinterpreter_colors("categorical")[1:analysis_data$n_clusters]
@@ -441,6 +477,9 @@ filter_variables_gm <- function(analysis_data, var_indices) {
 #' @param cutoff Threshold for highlighting important values
 #' @param orientation Character: "horizontal" (variables on x-axis, default) or
 #'   "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.
+#' @param cluster_order Character: "alphabetical" (default) sorts cluster names alphabetically
+#'   in parallel plots, "numerical" preserves original order, "reverse" reverses the original
+#'   order. Only affects parallel plots.
 #' @param title Plot title
 #'
 #' @return For heatmap/parallel: a ggplot2 object. For radar: a recordedplot
@@ -476,11 +515,17 @@ create_cluster_profile_plot <- function(
     plot_type = "heatmap",
     cutoff = 0.3,
     orientation = "horizontal",
+    cluster_order = "alphabetical",
     title = NULL) {
 
   # Validate orientation parameter
   if (!orientation %in% c("horizontal", "vertical")) {
     cli::cli_abort("orientation must be 'horizontal' or 'vertical'")
+  }
+
+  # Validate cluster_order parameter
+  if (!cluster_order %in% c("alphabetical", "numerical", "reverse")) {
+    cli::cli_abort("{.arg cluster_order} must be 'alphabetical', 'numerical', or 'reverse', not {.val {cluster_order}}")
   }
 
   # Prepare analysis_data structure for plotting functions
@@ -504,7 +549,7 @@ create_cluster_profile_plot <- function(
   if (plot_type == "heatmap") {
     return(create_heatmap_gm(analysis_data, cutoff, orientation, title))
   } else if (plot_type == "parallel") {
-    return(create_parallel_plot_gm(analysis_data, cutoff, orientation, title))
+    return(create_parallel_plot_gm(analysis_data, cutoff, orientation, cluster_order, title))
   } else if (plot_type == "radar") {
     return(create_radar_plot_gm(analysis_data, cutoff, title))
   } else {

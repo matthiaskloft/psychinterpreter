@@ -10,6 +10,7 @@
   cutoff = 0.3,
   variables = NULL,
   orientation = "horizontal",
+  cluster_order = "alphabetical",
   ...
 )
 }
@@ -24,6 +25,10 @@
 
 \item{orientation}{Character: "horizontal" (variables on x-axis, default) or
 "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.}
+
+\item{cluster_order}{Character: "alphabetical" (default) sorts cluster names alphabetically
+in parallel plots, "numerical" preserves original model order, "reverse" reverses the
+original model order. Only affects parallel plots.}
 
 \item{...}{Additional arguments passed to specific plot functions}
 }
@@ -50,6 +55,11 @@ plot(gm_interpretation, plot_type = "parallel", orientation = "horizontal")
 # Vertical orientation (clusters/values on x-axis)
 plot(gm_interpretation, plot_type = "heatmap", orientation = "vertical")
 plot(gm_interpretation, plot_type = "parallel", orientation = "vertical")
+
+# Cluster ordering in parallel plots
+plot(gm_interpretation, plot_type = "parallel", cluster_order = "alphabetical")
+plot(gm_interpretation, plot_type = "parallel", cluster_order = "numerical")
+plot(gm_interpretation, plot_type = "parallel", cluster_order = "reverse")
 
 # All plot types
 plots <- plot(gm_interpretation, plot_type = "all")

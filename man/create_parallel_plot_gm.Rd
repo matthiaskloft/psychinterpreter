@@ -8,6 +8,7 @@ create_parallel_plot_gm(
   analysis_data,
   cutoff = 0.3,
   orientation = "horizontal",
+  cluster_order = "alphabetical",
   title = NULL
 )
 }
@@ -17,6 +18,9 @@ create_parallel_plot_gm(
 \item{cutoff}{Threshold for highlighting}
 
 \item{orientation}{Character: "horizontal" (variables on x-axis, default) or "vertical" (variables on y-axis)}
+
+\item{cluster_order}{Character: "alphabetical" (default) sorts cluster names alphabetically,
+"numerical" preserves original model order, "reverse" reverses the original model order}
 
 \item{title}{Plot title (optional)}
 }

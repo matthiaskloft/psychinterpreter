@@ -11,6 +11,7 @@ create_cluster_profile_plot(
   plot_type = "heatmap",
   cutoff = 0.3,
   orientation = "horizontal",
+  cluster_order = "alphabetical",
   title = NULL
 )
 }
@@ -27,6 +28,10 @@ create_cluster_profile_plot(
 
 \item{orientation}{Character: "horizontal" (variables on x-axis, default) or
 "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.}
+
+\item{cluster_order}{Character: "alphabetical" (default) sorts cluster names alphabetically
+in parallel plots, "numerical" preserves original order, "reverse" reverses the original
+order. Only affects parallel plots.}
 
 \item{title}{Plot title}
 }
