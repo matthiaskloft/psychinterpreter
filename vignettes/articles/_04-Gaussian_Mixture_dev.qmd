@@ -170,7 +170,7 @@ head(fa_scores) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
 
 Find Best Gaussian Mixture Model
 ```{r}
-gmm_model <- mclustICL(fa_scores, G = 1:15)
+gmm_model <- mclustICL(ggplot2::remove_missing(bfi), G = 1:10, prior = priorControl())
 
 summary(gmm_model)
 plot(gmm_model)
@@ -178,34 +178,45 @@ plot(gmm_model)
 
 Fit the Best Model
 ```{r}
-gmm_best <- Mclust(fa_scores, x = gmm_model)
+best_model <- pickBIC(gmm_model)
+# extract model name from best_model$names
+model_name <- names(best_model)[1] |> stringr::str_extract("[A-Z]{3}")
+n_clusters <- names(best_model)[1] |> stringr::str_extract("[1-9]") |> as.integer()
+# Run mclust with automatic model and cluster selection
+gm_result <- mclust::Mclust(
+  ggplot2::remove_missing(bfi),
+  G = n_clusters,
+  modelNames = model_name,
+  warn = TRUE,
+  prior = priorControl()
+)
 
-summary(gmm_best)
+summary(gm_result)
 ```
 
 Get the mean vector, covariance matrix, and mixing proportions from the model fit.
 
 Means:
 ```{r}
-gmm_means <- gmm_best$parameters$mean
+gmm_means <- gm_result$parameters$mean
 head(gmm_means) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 Covariance Matrix:
 ```{r}
-gmm_covariances <- gmm_best$parameters$variance$sigma
+gmm_covariances <- gm_result$parameters$variance$sigma
 head(gmm_covariances[,,1]) |> round(2) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 Mixing proportions
 ```{r}
-gmm_proportions <- gmm_best$parameters$pro
+gmm_proportions <- gm_result$parameters$pro
 gmm_proportions |> as.data.frame() |> round(3) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 z matrix as the membership grades for every person
 ```{r}
-gmm_z <- gmm_best$z
+gmm_z <- gm_result$z
 head(gmm_z) |> round(3) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
@@ -222,8 +233,8 @@ variable_info_gmm <- data.frame(
 ```{r}
 # Get interpretation
 result <- interpret(
-  fit_results = gmm_best,
-  variable_info = variable_info_gmm,
+  fit_results = gm_result,
+  variable_info = variable_info,
   llm_provider = provider,
   llm_model = llm,
   weight_by_uncertainty = TRUE,

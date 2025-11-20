@@ -844,14 +844,14 @@ interpret_model.Mclust <- function(model, ...) {
   # Validate chat_session if provided
   validate_chat_session_for_analysis_type(chat_session, "gm")
 
-  # Note: variable_info is optional for GM but can be provided
-  # If not provided, variable names will be extracted from model data
+  # Note: variable_info is required for GM interpretation
+  # Variable names from the model will be validated against variable_info
 
   # Call interpret_core with fit_results (build_analysis_data will extract analysis data)
   result <- interpret_core(
     fit_results = model,
     analysis_type = "gm",
-    ...  # Includes variable_info if provided
+    ...  # Must include variable_info
   )
 
   # Validate return class

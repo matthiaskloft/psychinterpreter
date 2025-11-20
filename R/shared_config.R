@@ -229,7 +229,10 @@ interpretation_args_fa <- function(cutoff = NULL,
 #' @param llm_provider Character. LLM provider (e.g., "anthropic", "openai", "ollama")
 #' @param llm_model Character or NULL. LLM model name (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20241022")
 #' @param system_prompt Character or NULL. Custom system prompt to override default (default = NULL)
-#' @param params List or NULL. ellmer params object (created via ellmer::params()) (default = NULL)
+#' @param params List or NULL. ellmer params object (created via ellmer::params()).
+#'   Note: Some providers may not support all parameters (e.g., Ollama doesn't support 'seed').
+#'   Unsupported parameters will generate warnings from ellmer but won't affect functionality.
+#'   (default = NULL)
 #' @param word_limit Integer. Maximum words for LLM interpretations (default = 150)
 #' @param interpretation_guidelines Character or NULL. Custom interpretation guidelines (default = NULL)
 #' @param additional_info Character or NULL. Additional context for LLM (default = NULL)

@@ -10,6 +10,7 @@ create_cluster_profile_plot(
   cluster_names = NULL,
   plot_type = "heatmap",
   cutoff = 0.3,
+  orientation = "horizontal",
   title = NULL
 )
 }
@@ -23,6 +24,9 @@ create_cluster_profile_plot(
 \item{plot_type}{Type of plot: "heatmap", "parallel", or "radar"}
 
 \item{cutoff}{Threshold for highlighting important values}
+
+\item{orientation}{Character: "horizontal" (variables on x-axis, default) or
+"vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.}
 
 \item{title}{Plot title}
 }
@@ -40,10 +44,18 @@ means <- matrix(rnorm(15), nrow = 5, ncol = 3)
 var_names <- paste0("Var", 1:5)
 cluster_names <- paste0("Cluster_", 1:3)
 
-# Create heatmap
+# Create heatmap with default horizontal orientation
 p <- create_cluster_profile_plot(
   means, var_names, cluster_names,
   plot_type = "heatmap"
+)
+print(p)
+
+# Create heatmap with vertical orientation
+p <- create_cluster_profile_plot(
+  means, var_names, cluster_names,
+  plot_type = "heatmap",
+  orientation = "vertical"
 )
 print(p)
 }

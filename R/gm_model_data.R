@@ -32,6 +32,19 @@ build_analysis_data.Mclust <- function(fit_results, analysis_type = NULL, interp
   # Extract GM parameters from interpretation_args or ...
   dots <- list(...)
 
+  # Extract variable_info (required for GM)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for GM)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for Gaussian mixture model interpretation",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
+
   # Extract from interpretation_args if provided and is a list
   min_cluster_size <- if (!is.null(interpretation_args) && is.list(interpretation_args)) {
     interpretation_args$min_cluster_size
@@ -102,6 +115,9 @@ build_analysis_data.Mclust <- function(fit_results, analysis_type = NULL, interp
     variable_names <- paste0("V", seq_len(n_variables))
   }
 
+  # Validate variable matching with variable_info
+  validate_variable_matching(variable_names, variable_info, "GM")
+
   # Set cluster names
   cluster_names <- paste0("Cluster_", seq_len(n_clusters))
 
@@ -168,6 +184,19 @@ validate_list_structure_gm_impl <- function(fit_results, interpretation_args = N
 
   # Extract GM parameters from interpretation_args or ...
   dots <- list(...)
+
+  # Extract variable_info (required for GM)
+  variable_info <- dots$variable_info
+
+  # Validate variable_info is provided (required for GM)
+  if (is.null(variable_info)) {
+    cli::cli_abort(
+      c(
+        "{.var variable_info} is required for Gaussian mixture model interpretation",
+        "i" = "Provide a data frame with 'variable' and 'description' columns"
+      )
+    )
+  }
 
   # Extract from interpretation_args if provided and is a list
   min_cluster_size <- if (!is.null(interpretation_args) && is.list(interpretation_args)) {
@@ -254,6 +283,9 @@ validate_list_structure_gm_impl <- function(fit_results, interpretation_args = N
   } else {
     variable_names <- paste0("V", seq_len(n_variables))
   }
+
+  # Validate variable matching with variable_info
+  validate_variable_matching(variable_names, variable_info, "GM")
 
   # Cluster names
   if (!is.null(colnames(means))) {

@@ -12,7 +12,9 @@
 #'   default system prompt. Use this to provide institution- or project-specific framing for the LLM
 #'   (e.g., preferred terminology, audience level, or reporting conventions). If NULL, the model-specific
 #'   default system prompt is used (default = NULL).
-#' @param params List. ellmer parameters (temperature, etc.). Default uses ellmer::params()
+#' @param params List. ellmer parameters (temperature, etc.). Default uses ellmer::params().
+#'   Note: Some providers may not support all parameters (e.g., Ollama doesn't support 'seed').
+#'   Unsupported parameters will generate warnings from ellmer but won't affect functionality.
 #' @param echo Character. Echo level ("none", "output", "all"). Default is "none"
 #' @param word_limit Integer. Word limit for interpretations (only used if system_prompt is NULL).
 #'   Default is 100.

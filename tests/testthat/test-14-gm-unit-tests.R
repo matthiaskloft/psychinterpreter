@@ -10,8 +10,9 @@ test_that("build_analysis_data.Mclust extracts data correctly", {
   skip_if_not_installed("mclust")
 
   gm_model <- readRDS(test_path("fixtures/gm/sample_gm_model.rds"))
+  var_info <- readRDS(test_path("fixtures/gm/sample_gm_var_info.rds"))
 
-  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model)
+  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = var_info)
 
   # Check required components
   expect_true(all(c("means", "covariances", "proportions", "memberships") %in% names(analysis_data)))
@@ -35,11 +36,12 @@ test_that("build_analysis_data.Mclust handles spherical models", {
   skip_if_not_installed("mclust")
 
   gm_model <- readRDS(test_path("fixtures/gm/minimal_gm_model.rds"))
+  var_info <- readRDS(test_path("fixtures/gm/minimal_gm_var_info.rds"))
 
   # This should be EII (spherical) model
   expect_equal(gm_model$modelName, "EII")
 
-  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model)
+  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = var_info)
 
   # Should create diagonal covariance matrices
   expect_equal(dim(analysis_data$covariances), c(3, 3, 2))  # 3 vars, 2 clusters
@@ -52,6 +54,56 @@ test_that("build_analysis_data.Mclust handles spherical models", {
   }
 })
 
+test_that("build_analysis_data.Mclust requires variable_info", {
+  skip_if_not_installed("mclust")
+
+  gm_model <- readRDS(test_path("fixtures/gm/sample_gm_model.rds"))
+
+  # Should fail without variable_info
+  expect_error(
+    psychinterpreter:::build_analysis_data.Mclust(gm_model),
+    "variable_info.*required"
+  )
+})
+
+test_that("build_analysis_data.Mclust validates variable matching", {
+  skip_if_not_installed("mclust")
+
+  gm_model <- readRDS(test_path("fixtures/gm/sample_gm_model.rds"))
+
+  # Model has variables: Var1, Var2, Var3, Var4, Var5
+
+  # Test 1: Variable in model but not in variable_info
+  var_info_missing <- data.frame(
+    variable = c("Var1", "Var2", "Var3", "Var4"),  # Missing Var5
+    description = c("Test1", "Test2", "Test3", "Test4")
+  )
+  expect_error(
+    psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = var_info_missing),
+    "Variables in GM model not found in variable_info.*Var5"
+  )
+
+  # Test 2: Variable in variable_info but not in model
+  var_info_extra <- data.frame(
+    variable = c("Var1", "Var2", "Var3", "Var4", "Var5", "Var6"),  # Extra Var6
+    description = c("Test1", "Test2", "Test3", "Test4", "Test5", "Test6")
+  )
+  expect_error(
+    psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = var_info_extra),
+    "Variables in variable_info not found in GM model.*Var6"
+  )
+
+  # Test 3: No matching variables at all
+  var_info_nomatch <- data.frame(
+    variable = c("Wrong1", "Wrong2", "Wrong3", "Wrong4", "Wrong5"),
+    description = c("Test1", "Test2", "Test3", "Test4", "Test5")
+  )
+  expect_error(
+    psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = var_info_nomatch),
+    "No variables from GM model found in variable_info"
+  )
+})
+
 #' =================================
 # validate_list_structure.gm Tests
 # =================================
@@ -60,8 +112,9 @@ test_that("validate_list_structure.gm works with valid input", {
   skip_if_not_installed("mclust")
 
   gm_list <- readRDS(test_path("fixtures/gm/sample_gm_list.rds"))
+  var_info <- readRDS(test_path("fixtures/gm/sample_gm_var_info.rds"))
 
-  analysis_data <- psychinterpreter:::validate_list_structure_gm_impl(gm_list)
+  analysis_data <- psychinterpreter:::validate_list_structure_gm_impl(gm_list, variable_info = var_info)
 
   expect_equal(analysis_data$analysis_type, "gm")
   expect_true("means" %in% names(analysis_data))
@@ -73,10 +126,16 @@ test_that("validate_list_structure.gm creates defaults for missing components", 
 
   # Minimal list with just means
   minimal_list <- list(
-    means = matrix(rnorm(12), nrow = 4, ncol = 3)
+    means = matrix(rnorm(12), nrow = 4, ncol = 3, dimnames = list(c("V1", "V2", "V3", "V4"), NULL))
   )
 
-  analysis_data <- psychinterpreter:::validate_list_structure_gm_impl(minimal_list)
+  # Create matching variable_info
+  var_info <- data.frame(
+    variable = c("V1", "V2", "V3", "V4"),
+    description = c("Variable 1", "Variable 2", "Variable 3", "Variable 4")
+  )
+
+  analysis_data <- psychinterpreter:::validate_list_structure_gm_impl(minimal_list, variable_info = var_info)
 
   # Should create default covariances (identity matrices)
   expect_equal(dim(analysis_data$covariances), c(4, 4, 3))
@@ -91,10 +150,56 @@ test_that("validate_list_structure.gm creates defaults for missing components", 
 })
 
 test_that("validate_list_structure.gm fails without required components", {
+  # Create minimal variable_info (won't be used since means is missing)
+  var_info <- data.frame(
+    variable = c("V1"),
+    description = c("Test")
+  )
+
   # Missing means
   expect_error({
-    psychinterpreter:::validate_list_structure_gm_impl(list(covariances = matrix(1)))
+    psychinterpreter:::validate_list_structure_gm_impl(list(covariances = matrix(1)), variable_info = var_info)
   }, "Missing required components")
+})
+
+test_that("validate_list_structure.gm requires variable_info", {
+  # Minimal list with just means
+  minimal_list <- list(
+    means = matrix(rnorm(12), nrow = 4, ncol = 3, dimnames = list(c("V1", "V2", "V3", "V4"), NULL))
+  )
+
+  # Should fail without variable_info
+  expect_error(
+    psychinterpreter:::validate_list_structure_gm_impl(minimal_list),
+    "variable_info.*required"
+  )
+})
+
+test_that("validate_list_structure.gm validates variable matching", {
+  # Create list with means having specific variable names
+  gm_list <- list(
+    means = matrix(rnorm(15), nrow = 5, ncol = 3, dimnames = list(c("Var1", "Var2", "Var3", "Var4", "Var5"), NULL))
+  )
+
+  # Test 1: Variable in model but not in variable_info
+  var_info_missing <- data.frame(
+    variable = c("Var1", "Var2", "Var3", "Var4"),  # Missing Var5
+    description = c("Test1", "Test2", "Test3", "Test4")
+  )
+  expect_error(
+    psychinterpreter:::validate_list_structure_gm_impl(gm_list, variable_info = var_info_missing),
+    "Variables in GM model not found in variable_info.*Var5"
+  )
+
+  # Test 2: Variable in variable_info but not in model
+  var_info_extra <- data.frame(
+    variable = c("Var1", "Var2", "Var3", "Var4", "Var5", "Var6"),  # Extra Var6
+    description = c("Test1", "Test2", "Test3", "Test4", "Test5", "Test6")
+  )
+  expect_error(
+    psychinterpreter:::validate_list_structure_gm_impl(gm_list, variable_info = var_info_extra),
+    "Variables in variable_info not found in GM model.*Var6"
+  )
 })
 
 # =================================
@@ -280,7 +385,11 @@ test_that("create_fit_summary.gm identifies issues correctly", {
 
   # Test with unbalanced model (should warn about small clusters)
   unbalanced_model <- readRDS(test_path("fixtures/gm/unbalanced_model.rds"))
-  analysis_data_unbal <- psychinterpreter:::build_analysis_data.Mclust(unbalanced_model)
+  unbal_var_info <- data.frame(
+    variable = c("Y1", "Y2", "Y3"),
+    description = c("Variable Y1", "Variable Y2", "Variable Y3")
+  )
+  analysis_data_unbal <- psychinterpreter:::build_analysis_data.Mclust(unbalanced_model, variable_info = unbal_var_info)
   # create_fit_summary.gm needs analysis_type parameter
   fit_summary_unbal <- psychinterpreter:::create_fit_summary.gm("gm", analysis_data_unbal)
 
@@ -289,7 +398,11 @@ test_that("create_fit_summary.gm identifies issues correctly", {
 
   # Test with overlapping clusters (should warn about uncertainty)
   overlap_model <- readRDS(test_path("fixtures/gm/overlap_model.rds"))
-  analysis_data_overlap <- psychinterpreter:::build_analysis_data.Mclust(overlap_model)
+  overlap_var_info <- data.frame(
+    variable = c("X1", "X2", "X3"),
+    description = c("Variable X1", "Variable X2", "Variable X3")
+  )
+  analysis_data_overlap <- psychinterpreter:::build_analysis_data.Mclust(overlap_model, variable_info = overlap_var_info)
   fit_summary_overlap <- psychinterpreter:::create_fit_summary.gm("gm", analysis_data_overlap)
 
   # Should have warnings or notes about overlap/uncertainty
@@ -384,7 +497,14 @@ test_that("create_radar_plot_gm limits variables for clarity", {
 
   # Load very high-dimensional model (20 variables)
   high_dim_model <- readRDS(test_path("fixtures/gm/very_high_dim_model.rds"))
-  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(high_dim_model)
+
+  # Create variable_info for 20 dimensions (model uses V1-V20)
+  high_dim_var_info <- data.frame(
+    variable = paste0("V", 1:20),
+    description = paste("Variable", 1:20)
+  )
+
+  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(high_dim_model, variable_info = high_dim_var_info)
 
   expect_equal(analysis_data$n_variables, 20)
 

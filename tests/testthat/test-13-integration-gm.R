@@ -100,9 +100,10 @@ test_that("interpret() respects GM-specific parameters", {
 
   # Load fixtures
   gm_model <- readRDS(test_path("fixtures/gm/sample_gm_model.rds"))
+  gm_var_info <- readRDS(test_path("fixtures/gm/sample_gm_var_info.rds"))
 
   # Test build_analysis_data with different parameters
-  analysis_data_default <- psychinterpreter:::build_analysis_data.Mclust(gm_model)
+  analysis_data_default <- psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = gm_var_info)
   expect_equal(analysis_data_default$min_cluster_size, 5)  # default
   expect_equal(analysis_data_default$separation_threshold, 0.3)  # default
   expect_false(analysis_data_default$weight_by_uncertainty)  # default
@@ -110,6 +111,7 @@ test_that("interpret() respects GM-specific parameters", {
   # Test with custom parameters
   analysis_data_custom <- psychinterpreter:::build_analysis_data.Mclust(
     gm_model,
+    variable_info = gm_var_info,
     min_cluster_size = 10,
     separation_threshold = 0.5,
     weight_by_uncertainty = TRUE,
@@ -127,21 +129,33 @@ test_that("GM interpretation handles edge cases", {
 
   # Single cluster
   single_model <- readRDS(test_path("fixtures/gm/single_cluster_model.rds"))
+  single_var_info <- data.frame(
+    variable = c("Var1", "Var2", "Var3", "Var4", "Var5"),
+    description = c("Openness to experience", "Conscientiousness", "Extraversion", "Agreeableness", "Neuroticism")
+  )
   expect_no_error({
-    analysis_data <- psychinterpreter:::build_analysis_data.Mclust(single_model)
+    analysis_data <- psychinterpreter:::build_analysis_data.Mclust(single_model, variable_info = single_var_info)
   })
   expect_equal(analysis_data$n_clusters, 1)
 
   # Overlapping clusters (high uncertainty)
   overlap_model <- readRDS(test_path("fixtures/gm/overlap_model.rds"))
-  analysis_data_overlap <- psychinterpreter:::build_analysis_data.Mclust(overlap_model)
+  overlap_var_info <- data.frame(
+    variable = c("X1", "X2", "X3"),
+    description = c("Variable X1", "Variable X2", "Variable X3")
+  )
+  analysis_data_overlap <- psychinterpreter:::build_analysis_data.Mclust(overlap_model, variable_info = overlap_var_info)
   fit_summary <- psychinterpreter:::create_fit_summary.gm("gm", analysis_data_overlap)
   # Should have warnings about overlap/uncertainty
   expect_true(length(fit_summary$warnings) > 0 || length(fit_summary$notes) > 0)
 
   # Unbalanced clusters
   unbalanced_model <- readRDS(test_path("fixtures/gm/unbalanced_model.rds"))
-  analysis_data_unbalanced <- psychinterpreter:::build_analysis_data.Mclust(unbalanced_model)
+  unbalanced_var_info <- data.frame(
+    variable = c("Y1", "Y2", "Y3"),
+    description = c("Variable Y1", "Variable Y2", "Variable Y3")
+  )
+  analysis_data_unbalanced <- psychinterpreter:::build_analysis_data.Mclust(unbalanced_model, variable_info = unbalanced_var_info)
   fit_summary_unbalanced <- psychinterpreter:::create_fit_summary.gm("gm", analysis_data_unbalanced)
   # Should warn about small or unbalanced clusters
   expect_true(any(grepl("Small|unbalanced", fit_summary_unbalanced$warnings, ignore.case = TRUE)))
@@ -804,7 +818,7 @@ test_that("GM interpretation handles malformed JSON with mock", {
   gm_var_info <- readRDS(test_path("fixtures/gm/minimal_gm_var_info.rds"))
 
   # Create analysis data
-  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model)
+  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = gm_var_info)
 
   # Create malformed GM JSON response
   malformed_response <- list(
@@ -868,7 +882,7 @@ test_that("GM interpretation handles partial response (missing clusters) with mo
   gm_var_info <- readRDS(test_path("fixtures/gm/minimal_gm_var_info.rds"))
 
   # Create analysis data
-  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model)
+  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = gm_var_info)
 
   # Get expected number of clusters
   n_clusters <- gm_model$G
@@ -934,7 +948,7 @@ test_that("GM interpretation handles wrong cluster count with mock", {
   gm_var_info <- readRDS(test_path("fixtures/gm/minimal_gm_var_info.rds"))
 
   # Create analysis data
-  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model)
+  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = gm_var_info)
 
   # Get expected number of clusters
   n_clusters <- gm_model$G
@@ -1005,7 +1019,7 @@ test_that("GM interpretation handles unicode in cluster names with mock", {
   gm_var_info <- readRDS(test_path("fixtures/gm/minimal_gm_var_info.rds"))
 
   # Create analysis data
-  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model)
+  analysis_data <- psychinterpreter:::build_analysis_data.Mclust(gm_model, variable_info = gm_var_info)
 
   # Get expected number of clusters
   n_clusters <- gm_model$G

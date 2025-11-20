@@ -4,7 +4,14 @@
 \alias{plot.gm_interpretation}
 \title{Plot GM Interpretation}
 \usage{
-\method{plot}{gm_interpretation}(x, plot_type = NULL, cutoff = 0.3, variables = NULL, ...)
+\method{plot}{gm_interpretation}(
+  x,
+  plot_type = NULL,
+  cutoff = 0.3,
+  variables = NULL,
+  orientation = "horizontal",
+  ...
+)
 }
 \arguments{
 \item{x}{An object of class "gm_interpretation"}
@@ -14,6 +21,9 @@
 \item{cutoff}{Numeric threshold for highlighting important values (default: 0.3)}
 
 \item{variables}{Character vector of variables to include (NULL for all)}
+
+\item{orientation}{Character: "horizontal" (variables on x-axis, default) or
+"vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.}
 
 \item{...}{Additional arguments passed to specific plot functions}
 }
@@ -31,6 +41,15 @@ plot(gm_interpretation)
 
 # Specific plot type
 plot(gm_interpretation, plot_type = "heatmap")
+plot(gm_interpretation, plot_type = "parallel")
+
+# Horizontal orientation (variables on x-axis, default)
+plot(gm_interpretation, plot_type = "heatmap", orientation = "horizontal")
+plot(gm_interpretation, plot_type = "parallel", orientation = "horizontal")
+
+# Vertical orientation (clusters/values on x-axis)
+plot(gm_interpretation, plot_type = "heatmap", orientation = "vertical")
+plot(gm_interpretation, plot_type = "parallel", orientation = "vertical")
 
 # All plot types
 plots <- plot(gm_interpretation, plot_type = "all")

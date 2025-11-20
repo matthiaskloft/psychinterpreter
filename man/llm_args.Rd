@@ -22,7 +22,10 @@ llm_args(
 
 \item{system_prompt}{Character or NULL. Custom system prompt to override default (default = NULL)}
 
-\item{params}{List or NULL. ellmer params object (created via ellmer::params()) (default = NULL)}
+\item{params}{List or NULL. ellmer params object (created via ellmer::params()).
+Note: Some providers may not support all parameters (e.g., Ollama doesn't support 'seed').
+Unsupported parameters will generate warnings from ellmer but won't affect functionality.
+(default = NULL)}
 
 \item{word_limit}{Integer. Maximum words for LLM interpretations (default = 150)}
 

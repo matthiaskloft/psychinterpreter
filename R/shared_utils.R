@@ -345,3 +345,66 @@ show_interpret_args <- function(analysis_type = NULL) {
 }
 
 
+#' Validate Variable Matching Between Model and variable_info
+#'
+#' Internal helper to ensure that variables in the model match those in variable_info.
+#' Used by both FA and GM model data builders to ensure data consistency.
+#'
+#' @param model_variables Character vector. Variable names from the model
+#' @param variable_info Data frame with 'variable' and 'description' columns
+#' @param analysis_type Character. Model type for error messages ("fa", "gm", etc.)
+#'
+#' @return NULL (invisibly) if validation passes, errors otherwise
+#' @keywords internal
+#' @noRd
+validate_variable_matching <- function(model_variables, variable_info, analysis_type = "model") {
+  # Validate variable_info structure
+  if (!is.data.frame(variable_info)) {
+    cli::cli_abort("{.arg variable_info} must be a data frame")
+  }
+  if (!"variable" %in% names(variable_info)) {
+    cli::cli_abort("{.arg variable_info} must contain a 'variable' column")
+  }
+  if (!"description" %in% names(variable_info)) {
+    cli::cli_abort("{.arg variable_info} must contain a 'description' column")
+  }
+
+  # Check for variable matching
+  missing_in_info <- setdiff(model_variables, variable_info$variable)
+  missing_in_model <- setdiff(variable_info$variable, model_variables)
+
+  # Error if no variables match at all
+  if (length(missing_in_info) == length(model_variables)) {
+    cli::cli_abort(
+      c(
+        "No variables from {analysis_type} model found in variable_info",
+        "x" = "Check that the 'variable' column matches",
+        "i" = "First few variables in model: {.val {head(model_variables, 3)}}"
+      )
+    )
+  }
+
+  # Error if any model variables are missing from variable_info
+  if (length(missing_in_info) > 0) {
+    cli::cli_abort(
+      c(
+        "Variables in {analysis_type} model not found in variable_info:",
+        "x" = "{.val {missing_in_info}}"
+      )
+    )
+  }
+
+  # Error if any variable_info variables are missing from model
+  if (length(missing_in_model) > 0) {
+    cli::cli_abort(
+      c(
+        "Variables in variable_info not found in {analysis_type} model:",
+        "x" = "{.val {missing_in_model}}"
+      )
+    )
+  }
+
+  invisible(NULL)
+}
+
+

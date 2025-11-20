@@ -27,7 +27,9 @@ default system prompt. Use this to provide institution- or project-specific fram
 (e.g., preferred terminology, audience level, or reporting conventions). If NULL, the model-specific
 default system prompt is used (default = NULL).}
 
-\item{params}{List. ellmer parameters (temperature, etc.). Default uses ellmer::params()}
+\item{params}{List. ellmer parameters (temperature, etc.). Default uses ellmer::params().
+Note: Some providers may not support all parameters (e.g., Ollama doesn't support 'seed').
+Unsupported parameters will generate warnings from ellmer but won't affect functionality.}
 
 \item{echo}{Character. Echo level ("none", "output", "all"). Default is "none"}
 

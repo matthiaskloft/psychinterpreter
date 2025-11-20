@@ -4,12 +4,19 @@
 \alias{create_heatmap_gm}
 \title{Create Heatmap for GM Clusters}
 \usage{
-create_heatmap_gm(analysis_data, cutoff = 0.3, title = NULL)
+create_heatmap_gm(
+  analysis_data,
+  cutoff = 0.3,
+  orientation = "horizontal",
+  title = NULL
+)
 }
 \arguments{
 \item{analysis_data}{Standardized GM analysis data}
 
 \item{cutoff}{Threshold for highlighting}
+
+\item{orientation}{Character: "horizontal" (variables on x-axis) or "vertical" (clusters on x-axis)}
 
 \item{title}{Plot title (optional)}
 }

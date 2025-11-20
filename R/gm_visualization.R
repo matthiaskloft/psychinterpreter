@@ -15,6 +15,8 @@ NULL
 #' @param plot_type Character: "auto", "heatmap", "parallel", "radar", or "all"
 #' @param cutoff Numeric threshold for highlighting important values (default: 0.3)
 #' @param variables Character vector of variables to include (NULL for all)
+#' @param orientation Character: "horizontal" (variables on x-axis, default) or
+#'   "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.
 #' @param ... Additional arguments passed to specific plot functions
 #'
 #' @return For heatmap/parallel: a ggplot2 object. For radar: a recordedplot object
@@ -28,6 +30,15 @@ NULL
 #'
 #' # Specific plot type
 #' plot(gm_interpretation, plot_type = "heatmap")
+#' plot(gm_interpretation, plot_type = "parallel")
+#'
+#' # Horizontal orientation (variables on x-axis, default)
+#' plot(gm_interpretation, plot_type = "heatmap", orientation = "horizontal")
+#' plot(gm_interpretation, plot_type = "parallel", orientation = "horizontal")
+#'
+#' # Vertical orientation (clusters/values on x-axis)
+#' plot(gm_interpretation, plot_type = "heatmap", orientation = "vertical")
+#' plot(gm_interpretation, plot_type = "parallel", orientation = "vertical")
 #'
 #' # All plot types
 #' plots <- plot(gm_interpretation, plot_type = "all")
@@ -40,10 +51,27 @@ plot.gm_interpretation <- function(
     plot_type = NULL,
     cutoff = 0.3,
     variables = NULL,
+    orientation = "horizontal",
     ...) {
 
   # Extract analysis data
   analysis_data <- x$analysis_data
+
+  # Use suggested names from LLM interpretation if available
+  if (!is.null(x$suggested_names) && length(x$suggested_names) == analysis_data$n_clusters) {
+    # Map suggested names to cluster names in order
+    suggested_cluster_names <- character(analysis_data$n_clusters)
+    for (i in seq_len(analysis_data$n_clusters)) {
+      generic_name <- analysis_data$cluster_names[i]
+      if (!is.null(x$suggested_names[[generic_name]])) {
+        suggested_cluster_names[i] <- x$suggested_names[[generic_name]]
+      } else {
+        suggested_cluster_names[i] <- generic_name
+      }
+    }
+    # Update cluster names in analysis_data for plotting
+    analysis_data$cluster_names <- suggested_cluster_names
+  }
 
   # Use plot_type from analysis_data if not specified
   if (is.null(plot_type)) {
@@ -74,18 +102,23 @@ plot.gm_interpretation <- function(
     analysis_data <- filter_variables_gm(analysis_data, var_indices)
   }
 
+  # Validate orientation parameter
+  if (!orientation %in% c("horizontal", "vertical")) {
+    cli::cli_abort("orientation must be 'horizontal' or 'vertical'")
+  }
+
   # Create appropriate plot(s)
   if (plot_type == "all") {
     plots <- list(
-      heatmap = create_heatmap_gm(analysis_data, cutoff, ...),
-      parallel = create_parallel_plot_gm(analysis_data, cutoff, ...),
+      heatmap = create_heatmap_gm(analysis_data, cutoff, orientation, ...),
+      parallel = create_parallel_plot_gm(analysis_data, cutoff, orientation, ...),
       radar = create_radar_plot_gm(analysis_data, cutoff, ...)
     )
     return(plots)
   } else if (plot_type == "heatmap") {
-    return(create_heatmap_gm(analysis_data, cutoff, ...))
+    return(create_heatmap_gm(analysis_data, cutoff, orientation, ...))
   } else if (plot_type == "parallel") {
-    return(create_parallel_plot_gm(analysis_data, cutoff, ...))
+    return(create_parallel_plot_gm(analysis_data, cutoff, orientation, ...))
   } else if (plot_type == "radar") {
     return(create_radar_plot_gm(analysis_data, cutoff, ...))
   } else {
@@ -99,10 +132,11 @@ plot.gm_interpretation <- function(
 #'
 #' @param analysis_data Standardized GM analysis data
 #' @param cutoff Threshold for highlighting
+#' @param orientation Character: "horizontal" (variables on x-axis) or "vertical" (clusters on x-axis)
 #' @param title Plot title (optional)
 #' @return ggplot2 object
 #' @keywords internal
-create_heatmap_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
+create_heatmap_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizontal", title = NULL) {
   # Prepare data for plotting
   means_df <- as.data.frame(analysis_data$means)
   colnames(means_df) <- analysis_data$cluster_names
@@ -119,10 +153,27 @@ create_heatmap_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
   # Apply cutoff
   plot_data$Significant <- abs(plot_data$Mean) >= cutoff
 
+  # Set up axes based on orientation
+  if (orientation == "horizontal") {
+    # Variables on x-axis (horizontal), clusters on y-axis
+    x_var <- "Variable"
+    y_var <- "Cluster"
+    x_lab <- "Variable"
+    y_lab <- "Cluster"
+    x_angle <- 45
+  } else {
+    # Clusters on x-axis (vertical), variables on y-axis
+    x_var <- "Cluster"
+    y_var <- "Variable"
+    x_lab <- "Cluster"
+    y_lab <- "Variable"
+    x_angle <- 45
+  }
+
   # Create heatmap
   p <- ggplot2::ggplot(
     plot_data,
-    ggplot2::aes(x = Cluster, y = Variable, fill = Mean)
+    ggplot2::aes(x = .data[[x_var]], y = .data[[y_var]], fill = Mean)
   ) +
     ggplot2::geom_tile(color = "white", linewidth = 0.5) +
     ggplot2::scale_fill_gradient2(
@@ -135,14 +186,14 @@ create_heatmap_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
     ) +
     theme_psychinterpreter() +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+      axis.text.x = ggplot2::element_text(angle = x_angle, hjust = 1),
       panel.grid = ggplot2::element_blank()
     ) +
     ggplot2::labs(
       title = title %||% "Cluster Profiles: Variable Means",
       subtitle = paste0("Gaussian Mixture Model with ", analysis_data$n_clusters, " clusters"),
-      x = "Cluster",
-      y = "Variable"
+      x = x_lab,
+      y = y_lab
     )
 
   # Add text for significant values
@@ -164,10 +215,11 @@ create_heatmap_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
 #'
 #' @param analysis_data Standardized GM analysis data
 #' @param cutoff Threshold for highlighting
+#' @param orientation Character: "horizontal" (variables on x-axis, default) or "vertical" (variables on y-axis)
 #' @param title Plot title (optional)
 #' @return ggplot2 object
 #' @keywords internal
-create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
+create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizontal", title = NULL) {
   # Prepare data
   means_df <- as.data.frame(t(analysis_data$means))
   colnames(means_df) <- analysis_data$variable_names
@@ -196,11 +248,31 @@ create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
   var_order <- var_importance$Variable[order(var_importance$Value, decreasing = TRUE)]
   plot_data$Variable <- factor(plot_data$Variable, levels = var_order)
 
+  # Set up axes and reference lines based on orientation
+  if (orientation == "horizontal") {
+    # Variables on x-axis (standard parallel coordinates)
+    aes_mapping <- ggplot2::aes(x = Variable, y = Value, group = Cluster, color = Cluster)
+    x_lab <- "Variable (ordered by variance)"
+    y_lab <- "Standardized Mean"
+    x_angle <- 45
+    ref_line_layer <- list(
+      ggplot2::geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5),
+      ggplot2::geom_hline(yintercept = c(-cutoff, cutoff), linetype = "dotted", alpha = 0.3)
+    )
+  } else {
+    # Variables on y-axis (rotated parallel coordinates)
+    aes_mapping <- ggplot2::aes(x = Value, y = Variable, group = Cluster, color = Cluster)
+    x_lab <- "Standardized Mean"
+    y_lab <- "Variable (ordered by variance)"
+    x_angle <- 0
+    ref_line_layer <- list(
+      ggplot2::geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5),
+      ggplot2::geom_vline(xintercept = c(-cutoff, cutoff), linetype = "dotted", alpha = 0.3)
+    )
+  }
+
   # Create parallel coordinates plot
-  p <- ggplot2::ggplot(
-    plot_data,
-    ggplot2::aes(x = Variable, y = Value, group = Cluster, color = Cluster)
-  ) +
+  p <- ggplot2::ggplot(plot_data, aes_mapping) +
     ggplot2::geom_line(ggplot2::aes(linewidth = Size), alpha = 0.7) +
     ggplot2::geom_point(size = 2) +
     ggplot2::scale_color_manual(
@@ -212,17 +284,16 @@ create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL) {
     ) +
     theme_psychinterpreter() +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+      axis.text.x = ggplot2::element_text(angle = x_angle, hjust = 1),
       legend.position = "right"
     ) +
     ggplot2::labs(
       title = title %||% "Cluster Profiles: Parallel Coordinates",
       subtitle = paste0("Line thickness represents cluster size"),
-      x = "Variable (ordered by variance)",
-      y = "Standardized Mean"
+      x = x_lab,
+      y = y_lab
     ) +
-    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5) +
-    ggplot2::geom_hline(yintercept = c(-cutoff, cutoff), linetype = "dotted", alpha = 0.3)
+    ref_line_layer
 
   return(p)
 }
@@ -365,6 +436,8 @@ filter_variables_gm <- function(analysis_data, var_indices) {
 #' @param cluster_names Character vector of cluster names
 #' @param plot_type Type of plot: "heatmap", "parallel", or "radar"
 #' @param cutoff Threshold for highlighting important values
+#' @param orientation Character: "horizontal" (variables on x-axis, default) or
+#'   "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.
 #' @param title Plot title
 #'
 #' @return For heatmap/parallel: a ggplot2 object. For radar: a recordedplot
@@ -378,10 +451,18 @@ filter_variables_gm <- function(analysis_data, var_indices) {
 #' var_names <- paste0("Var", 1:5)
 #' cluster_names <- paste0("Cluster_", 1:3)
 #'
-#' # Create heatmap
+#' # Create heatmap with default horizontal orientation
 #' p <- create_cluster_profile_plot(
 #'   means, var_names, cluster_names,
 #'   plot_type = "heatmap"
+#' )
+#' print(p)
+#'
+#' # Create heatmap with vertical orientation
+#' p <- create_cluster_profile_plot(
+#'   means, var_names, cluster_names,
+#'   plot_type = "heatmap",
+#'   orientation = "vertical"
 #' )
 #' print(p)
 #' }
@@ -391,7 +472,13 @@ create_cluster_profile_plot <- function(
     cluster_names = NULL,
     plot_type = "heatmap",
     cutoff = 0.3,
+    orientation = "horizontal",
     title = NULL) {
+
+  # Validate orientation parameter
+  if (!orientation %in% c("horizontal", "vertical")) {
+    cli::cli_abort("orientation must be 'horizontal' or 'vertical'")
+  }
 
   # Prepare analysis_data structure for plotting functions
   if (is.null(variable_names)) {
@@ -412,9 +499,9 @@ create_cluster_profile_plot <- function(
 
   # Create appropriate plot
   if (plot_type == "heatmap") {
-    return(create_heatmap_gm(analysis_data, cutoff, title))
+    return(create_heatmap_gm(analysis_data, cutoff, orientation, title))
   } else if (plot_type == "parallel") {
-    return(create_parallel_plot_gm(analysis_data, cutoff, title))
+    return(create_parallel_plot_gm(analysis_data, cutoff, orientation, title))
   } else if (plot_type == "radar") {
     return(create_radar_plot_gm(analysis_data, cutoff, title))
   } else {

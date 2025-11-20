@@ -23,11 +23,11 @@ NULL
 build_system_prompt.gm <- function(analysis_type, word_limit = 100, ...) {
   paste0(
     "# ROLE\n",
-    "You are an expert in clustering analysis, Gaussian mixture models, ",
-    "and psychological profiling.\n\n",
+    "You are an expert psychometrician spezialized in cluster analysis using ",
+    "Gaussian mixture models.\n\n",
 
     "# TASK\n",
-    "Provide comprehensive cluster interpretation by: (1) naming each cluster with a ",
+    "Provide a comprehensive interpretation of a cluster analysis by: (1) naming each cluster with a ",
     "short, descriptive label (2-4 words), (2) explaining the profile and characteristics ",
     "of each cluster, and (3) identifying what distinguishes each cluster from others.\n\n",
 

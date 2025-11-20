@@ -26,7 +26,9 @@
 #'   For backward compatibility, logical values are accepted and converted to integers.
 #' @param echo Character. Echo level: "none", "output", "all" (default = "none")
 #' @param params ellmer params object or NULL. Advanced ellmer configuration. Most users
-#'   should use llm_args() instead (default = NULL)
+#'   should use llm_args() instead. Note: Some providers may not support all parameters
+#'   (e.g., Ollama doesn't support 'seed'). Unsupported parameters will generate warnings
+#'   from ellmer but won't affect functionality. (default = NULL)
 #' @param interpretation_args List or interpretation_args object. Model-specific interpretation
 #'   configuration. Created with \code{\link{interpretation_args}} (default = NULL)
 #' @param llm_args List or llm_args object. LLM configuration settings. Created with
@@ -441,7 +443,8 @@ interpret_core <- function(analysis_data = NULL,
   # inconsistent or double-counted totals.
   # Extract token counts from the tokens dataframe
   # Use normalize_token_count() to ensure we always get valid numeric values
-  if (!is.null(tokens_df) && nrow(tokens_df) > 0) {
+  if (!is.null(tokens_df) && nrow(tokens_df) > 0 &&
+      "tokens" %in% names(tokens_df) && "role" %in% names(tokens_df)) {
     input_tokens <- normalize_token_count(
       sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
     )
