@@ -4,12 +4,34 @@
 \alias{create_radar_plot_gm}
 \title{Create Radar Plot for GM Clusters}
 \usage{
-create_radar_plot_gm(analysis_data, cutoff = 0.3, title = NULL, ...)
+create_radar_plot_gm(
+  analysis_data,
+  what = "means",
+  cutoff = 0.3,
+  variable_order = "variance",
+  top_k = Inf,
+  centering = "none",
+  title = NULL,
+  ...
+)
 }
 \arguments{
 \item{analysis_data}{Standardized GM analysis data}
 
+\item{what}{Character: "means" (cluster means, default), "variances" (within-cluster SDs),
+or "ratio" (between/within variance ratio for discrimination)}
+
 \item{cutoff}{Threshold for highlighting (not used in fmsb implementation)}
+
+\item{variable_order}{Character: how to order variables. Options: "variance" (by variance across clusters, descending),
+"variance_reversed" (by variance, ascending), "mean" (by mean value, ascending), "mean_reversed" (by mean value, descending),
+"alphabetical" (A-Z), "alphabetical_reversed" (Z-A), "original" (data order), "original_reversed" (reversed data order)}
+
+\item{top_k}{Integer: maximum number of variables to display (default: Inf, shows all variables).
+If there are more variables than this limit, only the top k most variable features will be shown.}
+
+\item{centering}{Character: "none" (default), "variable" (center by row mean), or "global" (center by grand mean).
+Only applies when what="means".}
 
 \item{title}{Plot title (optional)}
 
@@ -19,6 +41,6 @@ create_radar_plot_gm(analysis_data, cutoff = 0.3, title = NULL, ...)
 A recorded plot object (class "recordedplot")
 }
 \description{
-Creates a radar/spider plot showing cluster profiles using fmsb::radarchart.
+Creates a radar/spider plot showing cluster profiles (means, variance, or discrimination ratios) using fmsb::radarchart.
 }
 \keyword{internal}

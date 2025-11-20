@@ -6,21 +6,36 @@
 \usage{
 create_parallel_plot_gm(
   analysis_data,
+  what = "means",
   cutoff = 0.3,
   orientation = "horizontal",
-  cluster_order = "alphabetical",
+  variable_order = "variance",
+  top_k = Inf,
+  centering = "none",
   title = NULL
 )
 }
 \arguments{
 \item{analysis_data}{Standardized GM analysis data}
 
+\item{what}{Character: "means" (cluster means, default), "variances" (within-cluster SDs),
+or "ratio" (between/within variance ratio for discrimination)}
+
 \item{cutoff}{Threshold for highlighting}
 
 \item{orientation}{Character: "horizontal" (variables on x-axis, default) or "vertical" (variables on y-axis)}
 
-\item{cluster_order}{Character: "alphabetical" (default) sorts cluster names alphabetically,
-"numerical" preserves original model order, "reverse" reverses the original model order}
+\item{variable_order}{Character: "variance" (default) orders by variance descending,
+"variance_reversed" by variance ascending, "mean" orders by mean value ascending,
+"mean_reversed" by mean descending, "original" preserves data order,
+"original_reversed" reverses data order, "alphabetical" sorts alphabetically,
+"alphabetical_reversed" reverse alphabetical}
+
+\item{top_k}{Integer: maximum number of variables to display (default: Inf, shows all).
+If there are more variables, only the top k most variable features are shown.}
+
+\item{centering}{Character: "none" (default), "variable" (center by row mean), or "global" (center by grand mean).
+Only applies when what="means".}
 
 \item{title}{Plot title (optional)}
 }
@@ -28,6 +43,6 @@ create_parallel_plot_gm(
 ggplot2 object
 }
 \description{
-Creates a parallel coordinates plot showing cluster profiles.
+Creates a parallel coordinates plot showing cluster profiles (means, variance, or discrimination ratios).
 }
 \keyword{internal}

@@ -2,6 +2,36 @@
 # UNIT TESTS: Gaussian Mixture Model Functions
 # ==============================================================================
 
+# Helper Functions ----
+# Create a GM interpretation object from analysis_data for testing
+create_test_gm_interpretation <- function(analysis_data) {
+  structure(
+    list(
+      analysis_data = analysis_data,
+      llm_output = list(
+        cluster_interpretations = list(
+          Cluster_1 = "Test interpretation for cluster 1",
+          Cluster_2 = "Test interpretation for cluster 2",
+          Cluster_3 = "Test interpretation for cluster 3"
+        ),
+        suggested_names = list(
+          Cluster_1 = "Group A",
+          Cluster_2 = "Group B",
+          Cluster_3 = "Group C"
+        )
+      ),
+      suggested_names = list(
+        Cluster_1 = "Group A",
+        Cluster_2 = "Group B",
+        Cluster_3 = "Group C"
+      ),
+      report = "Test GM interpretation report",
+      model_info = list(analysis_type = "gm", model_class = "Mclust")
+    ),
+    class = c("gm_interpretation", "interpretation")
+  )
+}
+
 # =================================
 # build_analysis_data.Mclust Tests
 # =================================
@@ -508,10 +538,9 @@ test_that("create_radar_plot_gm limits variables for clarity", {
 
   expect_equal(analysis_data$n_variables, 20)
 
-  # Should inform about limiting to 15 variables
-  expect_message({
-    p <- psychinterpreter:::create_radar_plot_gm(analysis_data)
-  }, "limited to top 15")
+  # Should create plot even with many variables
+  p <- psychinterpreter:::create_radar_plot_gm(analysis_data)
+  expect_s3_class(p, "recordedplot")
 })
 
 test_that("create_cluster_profile_plot standalone function works", {
@@ -642,4 +671,305 @@ test_that("Mclust model type dispatch is registered", {
   expect_true("Mclust" %in% names(dispatch_table))
   expect_equal(dispatch_table$Mclust$analysis_type, "gm")
   expect_equal(dispatch_table$Mclust$package, "mclust")
+})
+
+# ===================================================================
+# Variance Visualization Tests
+# ===================================================================
+
+test_that("extract_variance_matrix extracts standard deviations correctly", {
+  skip_if_not_installed("mclust")
+
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+
+  # Extract variance matrix
+  var_matrix <- psychinterpreter:::extract_variance_matrix(analysis_data)
+
+  # Should be a matrix with correct dimensions
+  expect_true(is.matrix(var_matrix))
+  expect_equal(nrow(var_matrix), analysis_data$n_variables)
+  expect_equal(ncol(var_matrix), analysis_data$n_clusters)
+
+  # All values should be positive (standard deviations)
+  expect_true(all(var_matrix >= 0))
+
+  # Should match diagonal of covariance matrices
+  for (k in 1:analysis_data$n_clusters) {
+    expected_sds <- sqrt(diag(analysis_data$covariances[,,k]))
+    expect_equal(var_matrix[,k], expected_sds)
+  }
+})
+
+test_that("extract_variance_ratio_matrix calculates discrimination ratios correctly", {
+  skip_if_not_installed("mclust")
+
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+
+  # Extract ratio matrix
+  ratio_matrix <- psychinterpreter:::extract_variance_ratio_matrix(analysis_data)
+
+  # Should be a matrix with correct dimensions
+  expect_true(is.matrix(ratio_matrix))
+  expect_equal(nrow(ratio_matrix), analysis_data$n_variables)
+  expect_equal(ncol(ratio_matrix), analysis_data$n_clusters)
+
+  # All values should be non-negative
+  expect_true(all(ratio_matrix >= 0))
+
+  # Ratios should be same across clusters (it's a variable-level metric)
+  for (i in 1:nrow(ratio_matrix)) {
+    expect_true(all(ratio_matrix[i,] == ratio_matrix[i,1]))
+  }
+})
+
+test_that("create_heatmap_gm supports what parameter", {
+  skip_if_not_installed("mclust")
+  skip_if_not_installed("ggplot2")
+
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+
+  # Test means (default)
+  p_means <- psychinterpreter:::create_heatmap_gm(analysis_data, what = "means")
+  expect_s3_class(p_means, "ggplot")
+
+  # Test variance
+  p_var <- psychinterpreter:::create_heatmap_gm(analysis_data, what = "variances")
+  expect_s3_class(p_var, "ggplot")
+
+  # Test ratio
+  p_ratio <- psychinterpreter:::create_heatmap_gm(analysis_data, what = "ratio")
+  expect_s3_class(p_ratio, "ggplot")
+
+  # Invalid what should error
+  expect_error(
+    psychinterpreter:::create_heatmap_gm(analysis_data, what = "invalid"),
+    "must be 'means', 'variances', or 'ratio'"
+  )
+})
+
+test_that("create_parallel_plot_gm supports what parameter", {
+  skip_if_not_installed("mclust")
+  skip_if_not_installed("ggplot2")
+
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+
+  # Test means (default)
+  p_means <- psychinterpreter:::create_parallel_plot_gm(analysis_data, what = "means")
+  expect_s3_class(p_means, "ggplot")
+
+  # Test variance
+  p_var <- psychinterpreter:::create_parallel_plot_gm(analysis_data, what = "variances")
+  expect_s3_class(p_var, "ggplot")
+
+  # Test ratio
+  p_ratio <- psychinterpreter:::create_parallel_plot_gm(analysis_data, what = "ratio")
+  expect_s3_class(p_ratio, "ggplot")
+
+  # Invalid what should error
+  expect_error(
+    psychinterpreter:::create_parallel_plot_gm(analysis_data, what = "invalid"),
+    "must be 'means', 'variances', or 'ratio'"
+  )
+})
+
+test_that("create_radar_plot_gm supports what parameter", {
+  skip_if_not_installed("mclust")
+  skip_if_not_installed("fmsb")
+
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+
+  # Test means (default)
+  p_means <- psychinterpreter:::create_radar_plot_gm(analysis_data, what = "means")
+  expect_s3_class(p_means, "recordedplot")
+
+  # Test variance
+  p_var <- psychinterpreter:::create_radar_plot_gm(analysis_data, what = "variances")
+  expect_s3_class(p_var, "recordedplot")
+
+  # Test ratio
+  p_ratio <- psychinterpreter:::create_radar_plot_gm(analysis_data, what = "ratio")
+  expect_s3_class(p_ratio, "recordedplot")
+
+  # Invalid what should error
+  expect_error(
+    psychinterpreter:::create_radar_plot_gm(analysis_data, what = "invalid"),
+    "must be 'means', 'variances', or 'ratio'"
+  )
+})
+
+test_that("plot.gm_interpretation dispatches what parameter correctly", {
+  skip_if_not_installed("mclust")
+  skip_if_not_installed("ggplot2")
+
+  # Create minimal interpretation object for testing
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+  gm_interp <- create_test_gm_interpretation(analysis_data)
+
+  # Test means
+  p_means <- plot(gm_interp, plot_type = "heatmap", what = "means")
+  expect_s3_class(p_means, "ggplot")
+
+  # Test variance
+  p_var <- plot(gm_interp, plot_type = "heatmap", what = "variances")
+  expect_s3_class(p_var, "ggplot")
+
+  # Test ratio
+  p_ratio <- plot(gm_interp, plot_type = "parallel", what = "ratio")
+  expect_s3_class(p_ratio, "ggplot")
+
+  # Invalid what should error
+  expect_error(
+    plot(gm_interp, plot_type = "heatmap", what = "invalid"),
+    "must be 'means', 'variances', or 'ratio'"
+  )
+})
+
+test_that("create_cluster_profile_plot warns for non-means what parameter", {
+  # Create simple test data
+  means <- matrix(rnorm(12), nrow = 4, ncol = 3)
+
+  # Means should work without warning
+  expect_silent(
+    create_cluster_profile_plot(means, what = "means")
+  )
+
+  # Variance should warn and fallback to means
+  expect_warning(
+    create_cluster_profile_plot(means, what = "variances"),
+    "only supports what='means'"
+  )
+
+  # Should still produce a plot despite warning
+  expect_warning(
+    p <- create_cluster_profile_plot(means, what = "variances")
+  )
+  expect_s3_class(p, "ggplot")
+})
+
+# ===================================================================
+# Data Centering Tests
+# ===================================================================
+
+test_that("apply_centering works correctly with all centering types", {
+  skip_if_not_installed("mclust")
+
+  # Create a simple test matrix
+  test_matrix <- matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9), nrow = 3, ncol = 3)
+  rownames(test_matrix) <- c("var1", "var2", "var3")
+  colnames(test_matrix) <- c("cluster1", "cluster2", "cluster3")
+
+  # Test: no centering
+  centered_none <- psychinterpreter:::apply_centering(test_matrix, "none")
+  expect_equal(centered_none, test_matrix)
+
+  # Test: variable centering (center each row by its mean)
+  centered_var <- psychinterpreter:::apply_centering(test_matrix, "variable")
+  row_means <- rowMeans(centered_var)
+  expect_true(all(abs(row_means) < 1e-10))  # Row means should be ~0
+  expect_equal(ncol(centered_var), ncol(test_matrix))
+  expect_equal(nrow(centered_var), nrow(test_matrix))
+
+  # Test: global centering (center all values by grand mean)
+  centered_global <- psychinterpreter:::apply_centering(test_matrix, "global")
+  grand_mean_original <- mean(test_matrix)
+  grand_mean_centered <- mean(centered_global)
+  expect_true(abs(grand_mean_centered) < 1e-10)  # Grand mean should be ~0
+  expect_equal(ncol(centered_global), ncol(test_matrix))
+  expect_equal(nrow(centered_global), nrow(test_matrix))
+
+  # Test: invalid centering type
+  expect_error(
+    psychinterpreter:::apply_centering(test_matrix, "invalid"),
+    "centering.*must be"
+  )
+})
+
+test_that("centering parameter works in plot.gm_interpretation", {
+  skip_if_not_installed("mclust")
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+  gm_interp <- create_test_gm_interpretation(analysis_data)
+
+  # Variable centering with heatmap
+  p_var <- plot(gm_interp, plot_type = "heatmap", centering = "variable")
+  expect_s3_class(p_var, "ggplot")
+
+  # Global centering with parallel plot
+  p_global <- plot(gm_interp, plot_type = "parallel", centering = "global")
+  expect_s3_class(p_global, "ggplot")
+
+  # No centering (default)
+  p_none <- plot(gm_interp, plot_type = "radar", centering = "none")
+  expect_s3_class(p_none, "recordedplot")
+})
+
+test_that("centering only works with what='means'", {
+  skip_if_not_installed("mclust")
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+  gm_interp <- create_test_gm_interpretation(analysis_data)
+
+  # Centering with means should work
+  expect_silent(
+    plot(gm_interp, plot_type = "heatmap", what = "means", centering = "variable")
+  )
+
+  # Centering with variances should error
+  expect_error(
+    plot(gm_interp, plot_type = "heatmap", what = "variances", centering = "variable"),
+    "centering.*only applies when.*what.*means"
+  )
+
+  # Centering with ratio should error
+  expect_error(
+    plot(gm_interp, plot_type = "heatmap", what = "ratio", centering = "global"),
+    "centering.*only applies when.*what.*means"
+  )
+})
+
+test_that("centering parameter validation works", {
+  skip_if_not_installed("mclust")
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+  gm_interp <- create_test_gm_interpretation(analysis_data)
+
+  # Valid centering values should work
+  expect_silent(
+    plot(gm_interp, plot_type = "heatmap", centering = "none")
+  )
+  expect_silent(
+    plot(gm_interp, plot_type = "heatmap", centering = "variable")
+  )
+  expect_silent(
+    plot(gm_interp, plot_type = "heatmap", centering = "global")
+  )
+
+  # Invalid centering value should error
+  expect_error(
+    plot(gm_interp, plot_type = "heatmap", centering = "invalid"),
+    "centering.*must be.*none.*variable.*global"
+  )
+})
+
+test_that("centering works correctly in all three plot types", {
+  skip_if_not_installed("mclust")
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+  gm_interp <- create_test_gm_interpretation(analysis_data)
+
+  # Test heatmap with variable centering
+  p_heat <- plot(gm_interp, plot_type = "heatmap", centering = "variable")
+  expect_s3_class(p_heat, "ggplot")
+
+  # Test parallel plot with global centering
+  p_par <- plot(gm_interp, plot_type = "parallel", centering = "global")
+  expect_s3_class(p_par, "ggplot")
+
+  # Test radar plot with variable centering
+  p_rad <- plot(gm_interp, plot_type = "radar", centering = "variable")
+  expect_s3_class(p_rad, "recordedplot")
+
+  # Test plot_type="all" with centering
+  p_all <- plot(gm_interp, plot_type = "all", centering = "variable")
+  expect_type(p_all, "list")
+  expect_length(p_all, 3)
+  expect_s3_class(p_all$heatmap, "ggplot")
+  expect_s3_class(p_all$parallel, "ggplot")
+  expect_s3_class(p_all$radar, "recordedplot")
 })

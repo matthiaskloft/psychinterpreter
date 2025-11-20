@@ -7,10 +7,13 @@
 \method{plot}{gm_interpretation}(
   x,
   plot_type = NULL,
+  what = "means",
   cutoff = 0.3,
   variables = NULL,
   orientation = "horizontal",
-  cluster_order = "alphabetical",
+  variable_order = "variance",
+  top_k = Inf,
+  centering = "none",
   ...
 )
 }
@@ -19,6 +22,9 @@
 
 \item{plot_type}{Character: "auto", "heatmap", "parallel", "radar", or "all"}
 
+\item{what}{Character: "means" (cluster means, default), "variances" (within-cluster SDs),
+or "ratio" (between/within variance ratio for discrimination). Determines what data to visualize.}
+
 \item{cutoff}{Numeric threshold for highlighting important values (default: 0.3)}
 
 \item{variables}{Character vector of variables to include (NULL for all)}
@@ -26,9 +32,19 @@
 \item{orientation}{Character: "horizontal" (variables on x-axis, default) or
 "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.}
 
-\item{cluster_order}{Character: "alphabetical" (default) sorts cluster names alphabetically
-in parallel plots, "numerical" preserves original model order, "reverse" reverses the
-original model order. Only affects parallel plots.}
+\item{variable_order}{Character: "variance" (default) orders by variance descending,
+"variance_reversed" by variance ascending, "mean" orders by mean value ascending,
+"mean_reversed" by mean value descending, "original" preserves data order,
+"original_reversed" reverses data order, "alphabetical" sorts A-Z,
+"alphabetical_reversed" sorts Z-A. Cluster order is always fixed to the original model order.}
+
+\item{top_k}{Integer: maximum number of variables to display (default: Inf, shows all variables).
+If there are more variables than this limit, only the top k most variable features (by variance) will be shown.
+Applies to all plot types.}
+
+\item{centering}{Character: "none" (default, no centering), "variable" (center each variable
+by its mean across clusters), or "global" (center all values by the grand mean).
+Only applies when what="means". Centering helps highlight cluster differences.}
 
 \item{...}{Additional arguments passed to specific plot functions}
 }
@@ -41,12 +57,16 @@ Creates visualizations of cluster profiles with multiple plot type options.
 }
 \examples{
 \dontrun{
-# Basic plot (auto-selects best type)
+# Basic plot (auto-selects best type, shows means)
 plot(gm_interpretation)
 
-# Specific plot type
-plot(gm_interpretation, plot_type = "heatmap")
-plot(gm_interpretation, plot_type = "parallel")
+# Variance visualizations
+plot(gm_interpretation, what = "variances")  # Within-cluster standard deviations
+plot(gm_interpretation, what = "ratio")      # Discrimination ratios
+
+# Specific plot type with variance
+plot(gm_interpretation, plot_type = "heatmap", what = "variances")
+plot(gm_interpretation, plot_type = "parallel", what = "ratio")
 
 # Horizontal orientation (variables on x-axis, default)
 plot(gm_interpretation, plot_type = "heatmap", orientation = "horizontal")
@@ -56,10 +76,10 @@ plot(gm_interpretation, plot_type = "parallel", orientation = "horizontal")
 plot(gm_interpretation, plot_type = "heatmap", orientation = "vertical")
 plot(gm_interpretation, plot_type = "parallel", orientation = "vertical")
 
-# Cluster ordering in parallel plots
-plot(gm_interpretation, plot_type = "parallel", cluster_order = "alphabetical")
-plot(gm_interpretation, plot_type = "parallel", cluster_order = "numerical")
-plot(gm_interpretation, plot_type = "parallel", cluster_order = "reverse")
+# Variable ordering in parallel plots (cluster order is always model order)
+plot(gm_interpretation, plot_type = "parallel", variable_order = "variance")
+plot(gm_interpretation, plot_type = "parallel", variable_order = "variance_reversed")
+plot(gm_interpretation, plot_type = "parallel", variable_order = "alphabetical")
 
 # All plot types
 plots <- plot(gm_interpretation, plot_type = "all")

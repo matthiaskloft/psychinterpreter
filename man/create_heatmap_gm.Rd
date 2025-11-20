@@ -6,17 +6,34 @@
 \usage{
 create_heatmap_gm(
   analysis_data,
+  what = "means",
   cutoff = 0.3,
   orientation = "horizontal",
+  variable_order = "variance",
+  top_k = Inf,
+  centering = "none",
   title = NULL
 )
 }
 \arguments{
 \item{analysis_data}{Standardized GM analysis data}
 
+\item{what}{Character: "means" (cluster means, default), "variances" (within-cluster SDs),
+or "ratio" (between/within variance ratio for discrimination)}
+
 \item{cutoff}{Threshold for highlighting}
 
 \item{orientation}{Character: "horizontal" (variables on x-axis) or "vertical" (clusters on x-axis)}
+
+\item{variable_order}{Character: how to order variables. Options: "variance" (by variance across clusters, descending),
+"variance_reversed" (by variance, ascending), "mean" (by mean value, ascending), "mean_reversed" (by mean value, descending),
+"alphabetical" (A-Z), "alphabetical_reversed" (Z-A), "original" (data order), "original_reversed" (reversed data order)}
+
+\item{top_k}{Integer: maximum number of variables to display (default: Inf, shows all).
+If there are more variables, only the top k most variable features are shown.}
+
+\item{centering}{Character: "none" (default), "variable" (center by row mean), or "global" (center by grand mean).
+Only applies when what="means".}
 
 \item{title}{Plot title (optional)}
 }
@@ -24,6 +41,6 @@ create_heatmap_gm(
 ggplot2 object
 }
 \description{
-Creates a heatmap showing standardized means for each cluster.
+Creates a heatmap showing cluster profiles (means, variance, or discrimination ratios).
 }
 \keyword{internal}

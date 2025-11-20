@@ -1,0 +1,4 @@
+* checking for file ‘./DESCRIPTION’ ... OK
+cp: error reading 'psychinterpreter/.Rproj.user/0C02CFDC/sources/session-1d9236c3/lock_file': Input/output error
+ ERROR
+copying to build directory failed

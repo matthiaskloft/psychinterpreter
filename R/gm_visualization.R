@@ -13,13 +13,23 @@ NULL
 #'
 #' @param x An object of class "gm_interpretation"
 #' @param plot_type Character: "auto", "heatmap", "parallel", "radar", or "all"
+#' @param what Character: "means" (cluster means, default), "variances" (within-cluster SDs),
+#'   or "ratio" (between/within variance ratio for discrimination). Determines what data to visualize.
 #' @param cutoff Numeric threshold for highlighting important values (default: 0.3)
 #' @param variables Character vector of variables to include (NULL for all)
 #' @param orientation Character: "horizontal" (variables on x-axis, default) or
 #'   "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.
-#' @param cluster_order Character: "alphabetical" (default) sorts cluster names alphabetically
-#'   in parallel plots, "numerical" preserves original model order, "reverse" reverses the
-#'   original model order. Only affects parallel plots.
+#' @param variable_order Character: "variance" (default) orders by variance descending,
+#'   "variance_reversed" by variance ascending, "mean" orders by mean value ascending,
+#'   "mean_reversed" by mean value descending, "original" preserves data order,
+#'   "original_reversed" reverses data order, "alphabetical" sorts A-Z,
+#'   "alphabetical_reversed" sorts Z-A. Cluster order is always fixed to the original model order.
+#' @param top_k Integer: maximum number of variables to display (default: Inf, shows all variables).
+#'   If there are more variables than this limit, only the top k most variable features (by variance) will be shown.
+#'   Applies to all plot types.
+#' @param centering Character: "none" (default, no centering), "variable" (center each variable
+#'   by its mean across clusters), or "global" (center all values by the grand mean).
+#'   Only applies when what="means". Centering helps highlight cluster differences.
 #' @param ... Additional arguments passed to specific plot functions
 #'
 #' @return For heatmap/parallel: a ggplot2 object. For radar: a recordedplot object
@@ -28,12 +38,16 @@ NULL
 #'
 #' @examples
 #' \dontrun{
-#' # Basic plot (auto-selects best type)
+#' # Basic plot (auto-selects best type, shows means)
 #' plot(gm_interpretation)
 #'
-#' # Specific plot type
-#' plot(gm_interpretation, plot_type = "heatmap")
-#' plot(gm_interpretation, plot_type = "parallel")
+#' # Variance visualizations
+#' plot(gm_interpretation, what = "variances")  # Within-cluster standard deviations
+#' plot(gm_interpretation, what = "ratio")      # Discrimination ratios
+#'
+#' # Specific plot type with variance
+#' plot(gm_interpretation, plot_type = "heatmap", what = "variances")
+#' plot(gm_interpretation, plot_type = "parallel", what = "ratio")
 #'
 #' # Horizontal orientation (variables on x-axis, default)
 #' plot(gm_interpretation, plot_type = "heatmap", orientation = "horizontal")
@@ -43,10 +57,10 @@ NULL
 #' plot(gm_interpretation, plot_type = "heatmap", orientation = "vertical")
 #' plot(gm_interpretation, plot_type = "parallel", orientation = "vertical")
 #'
-#' # Cluster ordering in parallel plots
-#' plot(gm_interpretation, plot_type = "parallel", cluster_order = "alphabetical")
-#' plot(gm_interpretation, plot_type = "parallel", cluster_order = "numerical")
-#' plot(gm_interpretation, plot_type = "parallel", cluster_order = "reverse")
+#' # Variable ordering in parallel plots (cluster order is always model order)
+#' plot(gm_interpretation, plot_type = "parallel", variable_order = "variance")
+#' plot(gm_interpretation, plot_type = "parallel", variable_order = "variance_reversed")
+#' plot(gm_interpretation, plot_type = "parallel", variable_order = "alphabetical")
 #'
 #' # All plot types
 #' plots <- plot(gm_interpretation, plot_type = "all")
@@ -57,10 +71,13 @@ NULL
 plot.gm_interpretation <- function(
     x,
     plot_type = NULL,
+    what = "means",
     cutoff = 0.3,
     variables = NULL,
     orientation = "horizontal",
-    cluster_order = "alphabetical",
+    variable_order = "variance",
+    top_k = Inf,
+    centering = "none",
     ...) {
 
   # Extract analysis data
@@ -116,20 +133,35 @@ plot.gm_interpretation <- function(
     cli::cli_abort("orientation must be 'horizontal' or 'vertical'")
   }
 
+  # Validate what parameter
+  if (!what %in% c("means", "variances", "ratio")) {
+    cli::cli_abort("{.arg what} must be 'means', 'variances', or 'ratio', not {.val {what}}")
+  }
+
+  # Validate centering parameter
+  if (!centering %in% c("none", "variable", "global")) {
+    cli::cli_abort("{.arg centering} must be 'none', 'variable', or 'global', not {.val {centering}}")
+  }
+
+  # Validate that centering only applies to means
+  if (centering != "none" && what != "means") {
+    cli::cli_abort("{.arg centering} only applies when {.arg what} is 'means', not '{what}'")
+  }
+
   # Create appropriate plot(s)
   if (plot_type == "all") {
     plots <- list(
-      heatmap = create_heatmap_gm(analysis_data, cutoff, orientation, ...),
-      parallel = create_parallel_plot_gm(analysis_data, cutoff, orientation, cluster_order, ...),
-      radar = create_radar_plot_gm(analysis_data, cutoff, ...)
+      heatmap = create_heatmap_gm(analysis_data, what, cutoff, orientation, variable_order, top_k, centering, ...),
+      parallel = create_parallel_plot_gm(analysis_data, what, cutoff, orientation, variable_order, top_k, centering, ...),
+      radar = create_radar_plot_gm(analysis_data, what, cutoff, variable_order, top_k, centering, ...)
     )
     return(plots)
   } else if (plot_type == "heatmap") {
-    return(create_heatmap_gm(analysis_data, cutoff, orientation, ...))
+    return(create_heatmap_gm(analysis_data, what, cutoff, orientation, variable_order, top_k, centering, ...))
   } else if (plot_type == "parallel") {
-    return(create_parallel_plot_gm(analysis_data, cutoff, orientation, cluster_order, ...))
+    return(create_parallel_plot_gm(analysis_data, what, cutoff, orientation, variable_order, top_k, centering, ...))
   } else if (plot_type == "radar") {
-    return(create_radar_plot_gm(analysis_data, cutoff, ...))
+    return(create_radar_plot_gm(analysis_data, what, cutoff, variable_order, top_k, centering, ...))
   } else {
     cli::cli_abort("Invalid plot_type: must be 'auto', 'heatmap', 'parallel', 'radar', or 'all'")
   }
@@ -137,40 +169,140 @@ plot.gm_interpretation <- function(
 
 #' Create Heatmap for GM Clusters
 #'
-#' Creates a heatmap showing standardized means for each cluster.
+#' Creates a heatmap showing cluster profiles (means, variance, or discrimination ratios).
 #'
 #' @param analysis_data Standardized GM analysis data
+#' @param what Character: "means" (cluster means, default), "variances" (within-cluster SDs),
+#'   or "ratio" (between/within variance ratio for discrimination)
 #' @param cutoff Threshold for highlighting
 #' @param orientation Character: "horizontal" (variables on x-axis) or "vertical" (clusters on x-axis)
+#' @param variable_order Character: how to order variables. Options: "variance" (by variance across clusters, descending),
+#'   "variance_reversed" (by variance, ascending), "mean" (by mean value, ascending), "mean_reversed" (by mean value, descending),
+#'   "alphabetical" (A-Z), "alphabetical_reversed" (Z-A), "original" (data order), "original_reversed" (reversed data order)
+#' @param top_k Integer: maximum number of variables to display (default: Inf, shows all).
+#'   If there are more variables, only the top k most variable features are shown.
+#' @param centering Character: "none" (default), "variable" (center by row mean), or "global" (center by grand mean).
+#'   Only applies when what="means".
 #' @param title Plot title (optional)
 #' @return ggplot2 object
 #' @keywords internal
-create_heatmap_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizontal", title = NULL) {
+create_heatmap_gm <- function(analysis_data, what = "means", cutoff = 0.3, orientation = "horizontal", variable_order = "variance", top_k = Inf, centering = "none", title = NULL) {
+  # Validate what parameter
+  if (!what %in% c("means", "variances", "ratio")) {
+    cli::cli_abort("{.arg what} must be 'means', 'variances', or 'ratio', not {.val {what}}")
+  }
+
+  # Extract appropriate data matrix based on what parameter
+  if (what == "means") {
+    data_matrix <- analysis_data$means
+  } else if (what == "variances") {
+    data_matrix <- extract_variance_matrix(analysis_data)
+  } else {  # what == "ratio"
+    data_matrix <- extract_variance_ratio_matrix(analysis_data)
+  }
+
+  # Apply centering (only for means)
+  if (what == "means" && centering != "none") {
+    data_matrix <- apply_centering(data_matrix, centering)
+  }
+
   # Prepare data for plotting
-  means_df <- as.data.frame(analysis_data$means)
-  colnames(means_df) <- analysis_data$cluster_names
-  means_df$Variable <- analysis_data$variable_names
+  plot_df <- as.data.frame(data_matrix)
+  colnames(plot_df) <- analysis_data$cluster_names
+  plot_df$Variable <- analysis_data$variable_names
 
   # Reshape to long format
   plot_data <- tidyr::pivot_longer(
-    means_df,
+    plot_df,
     cols = -Variable,
     names_to = "Cluster",
-    values_to = "Mean"
+    values_to = "Value"
   )
 
   # Preserve cluster order by converting to factor with correct levels
   plot_data$Cluster <- factor(plot_data$Cluster, levels = analysis_data$cluster_names)
 
-  # Apply cutoff
-  plot_data$Significant <- abs(plot_data$Mean) >= cutoff
+  # Limit to top k variables if specified
+  if (analysis_data$n_variables > top_k) {
+    # Select top k most variable features
+    var_variances <- aggregate(Value ~ Variable, plot_data, var)
+    top_vars <- var_variances$Variable[order(var_variances[[2]], decreasing = TRUE)[1:top_k]]
+
+    # Filter plot_data to include only top variables
+    plot_data <- plot_data[plot_data$Variable %in% top_vars, ]
+
+    # Update variable_names list for ordering
+    analysis_data$variable_names <- top_vars
+
+    cli::cli_inform(
+      "Heatmap limited to top {top_k} most variable features for clarity"
+    )
+  }
+
+  # Validate variable_order parameter
+  valid_orders <- c("variance", "variance_reversed", "mean", "mean_reversed",
+                   "original", "original_reversed", "alphabetical", "alphabetical_reversed")
+  if (!variable_order %in% valid_orders) {
+    cli::cli_abort("{.arg variable_order} must be one of: {.val {valid_orders}}, not {.val {variable_order}}")
+  }
+
+  # Determine variable order
+  if (variable_order == "variance") {
+    # Order by variance across clusters (descending - most variable first)
+    var_importance <- aggregate(Value ~ Variable, plot_data, var)
+    var_levels <- var_importance$Variable[order(var_importance[[2]], decreasing = TRUE)]
+  } else if (variable_order == "variance_reversed") {
+    # Order by variance ascending (least variable first)
+    var_importance <- aggregate(Value ~ Variable, plot_data, var)
+    var_levels <- var_importance$Variable[order(var_importance[[2]], decreasing = FALSE)]
+  } else if (variable_order == "mean") {
+    # Order by mean value across clusters (ascending - lowest mean first)
+    var_means <- aggregate(Value ~ Variable, plot_data, mean)
+    var_levels <- var_means$Variable[order(var_means[[2]], decreasing = FALSE)]
+  } else if (variable_order == "mean_reversed") {
+    # Order by mean value descending (highest mean first)
+    var_means <- aggregate(Value ~ Variable, plot_data, mean)
+    var_levels <- var_means$Variable[order(var_means[[2]], decreasing = TRUE)]
+  } else if (variable_order == "alphabetical") {
+    var_levels <- sort(analysis_data$variable_names)
+  } else if (variable_order == "alphabetical_reversed") {
+    var_levels <- sort(analysis_data$variable_names, decreasing = TRUE)
+  } else if (variable_order == "original") {
+    var_levels <- analysis_data$variable_names
+  } else {
+    # "original_reversed" - reverse data order
+    var_levels <- rev(analysis_data$variable_names)
+  }
+
+  # Apply variable ordering
+  plot_data$Variable <- factor(plot_data$Variable, levels = var_levels)
+
+  # Apply cutoff based on what type
+  if (what == "means") {
+    plot_data$Significant <- abs(plot_data$Value) >= cutoff
+  } else {
+    # For variance and ratio, use absolute value cutoff
+    plot_data$Significant <- plot_data$Value >= cutoff
+  }
+
+  # Set up axis labels based on variable ordering
+  var_label_suffix <- switch(variable_order,
+    "variance" = " (by variance desc)",
+    "variance_reversed" = " (by variance asc)",
+    "mean" = " (by mean asc)",
+    "mean_reversed" = " (by mean desc)",
+    "alphabetical" = " (A-Z)",
+    "alphabetical_reversed" = " (Z-A)",
+    "original_reversed" = " (reversed)",
+    "original" = ""
+  )
 
   # Set up axes based on orientation
   if (orientation == "horizontal") {
     # Variables on x-axis (horizontal), clusters on y-axis
     x_var <- "Variable"
     y_var <- "Cluster"
-    x_lab <- "Variable"
+    x_lab <- paste0("Variable", var_label_suffix)
     y_lab <- "Cluster"
     x_angle <- 45
   } else {
@@ -178,31 +310,51 @@ create_heatmap_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizo
     x_var <- "Cluster"
     y_var <- "Variable"
     x_lab <- "Cluster"
-    y_lab <- "Variable"
+    y_lab <- paste0("Variable", var_label_suffix)
     x_angle <- 45
+  }
+
+  # Set up color scale and labels based on what parameter
+  if (what == "means") {
+    fill_scale <- ggplot2::scale_fill_gradient2(
+      low = psychinterpreter_colors("diverging")[1],
+      mid = "white",
+      high = psychinterpreter_colors("diverging")[3],
+      midpoint = 0,
+      limits = c(-max(abs(plot_data$Value)), max(abs(plot_data$Value))),
+      name = "Mean\nValue"
+    )
+    default_title <- "Cluster Profiles: Variable Means"
+  } else if (what == "variances") {
+    fill_scale <- ggplot2::scale_fill_gradient(
+      low = "white",
+      high = psychinterpreter_colors("diverging")[1],  # Blue
+      name = "Std Dev"
+    )
+    default_title <- "Cluster Profiles: Within-Cluster Variance"
+  } else {  # what == "ratio"
+    fill_scale <- ggplot2::scale_fill_gradient(
+      low = "white",
+      high = psychinterpreter_colors("diverging")[3],  # Orange
+      name = "Variance\nRatio"
+    )
+    default_title <- "Cluster Profiles: Discrimination Ratio"
   }
 
   # Create heatmap
   p <- ggplot2::ggplot(
     plot_data,
-    ggplot2::aes(x = .data[[x_var]], y = .data[[y_var]], fill = Mean)
+    ggplot2::aes(x = .data[[x_var]], y = .data[[y_var]], fill = Value)
   ) +
     ggplot2::geom_tile(color = "white", linewidth = 0.5) +
-    ggplot2::scale_fill_gradient2(
-      low = psychinterpreter_colors("diverging")[1],
-      mid = "white",
-      high = psychinterpreter_colors("diverging")[3],
-      midpoint = 0,
-      limits = c(-max(abs(plot_data$Mean)), max(abs(plot_data$Mean))),
-      name = "Mean\nValue"
-    ) +
+    fill_scale +
     theme_psychinterpreter() +
     ggplot2::theme(
       axis.text.x = ggplot2::element_text(angle = x_angle, hjust = 1),
       panel.grid = ggplot2::element_blank()
     ) +
     ggplot2::labs(
-      title = title %||% "Cluster Profiles: Variable Means",
+      title = title %||% default_title,
       subtitle = paste0("Gaussian Mixture Model with ", analysis_data$n_clusters, " clusters"),
       x = x_lab,
       y = y_lab
@@ -212,7 +364,7 @@ create_heatmap_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizo
   if (any(plot_data$Significant)) {
     p <- p + ggplot2::geom_text(
       data = plot_data[plot_data$Significant, ],
-      ggplot2::aes(label = round(Mean, 2)),
+      ggplot2::aes(label = round(Value, 2)),
       color = "black",
       size = 3
     )
@@ -223,84 +375,184 @@ create_heatmap_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizo
 
 #' Create Parallel Coordinates Plot for GM Clusters
 #'
-#' Creates a parallel coordinates plot showing cluster profiles.
+#' Creates a parallel coordinates plot showing cluster profiles (means, variance, or discrimination ratios).
 #'
 #' @param analysis_data Standardized GM analysis data
+#' @param what Character: "means" (cluster means, default), "variances" (within-cluster SDs),
+#'   or "ratio" (between/within variance ratio for discrimination)
 #' @param cutoff Threshold for highlighting
 #' @param orientation Character: "horizontal" (variables on x-axis, default) or "vertical" (variables on y-axis)
-#' @param cluster_order Character: "alphabetical" (default) sorts cluster names alphabetically,
-#'   "numerical" preserves original model order, "reverse" reverses the original model order
+#' @param variable_order Character: "variance" (default) orders by variance descending,
+#'   "variance_reversed" by variance ascending, "mean" orders by mean value ascending,
+#'   "mean_reversed" by mean descending, "original" preserves data order,
+#'   "original_reversed" reverses data order, "alphabetical" sorts alphabetically,
+#'   "alphabetical_reversed" reverse alphabetical
+#' @param top_k Integer: maximum number of variables to display (default: Inf, shows all).
+#'   If there are more variables, only the top k most variable features are shown.
+#' @param centering Character: "none" (default), "variable" (center by row mean), or "global" (center by grand mean).
+#'   Only applies when what="means".
 #' @param title Plot title (optional)
 #' @return ggplot2 object
 #' @keywords internal
-create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, orientation = "horizontal",
-                                     cluster_order = "alphabetical", title = NULL) {
-  # Validate cluster_order parameter
-  if (!cluster_order %in% c("alphabetical", "numerical", "reverse")) {
-    cli::cli_abort("{.arg cluster_order} must be 'alphabetical', 'numerical', or 'reverse', not {.val {cluster_order}}")
+create_parallel_plot_gm <- function(analysis_data, what = "means", cutoff = 0.3, orientation = "horizontal",
+                                     variable_order = "variance", top_k = Inf, centering = "none", title = NULL) {
+  # Validate what parameter
+  if (!what %in% c("means", "variances", "ratio")) {
+    cli::cli_abort("{.arg what} must be 'means', 'variances', or 'ratio', not {.val {what}}")
   }
 
-  # Determine cluster order
-  if (cluster_order == "alphabetical") {
-    cluster_levels <- sort(analysis_data$cluster_names)
-  } else if (cluster_order == "reverse") {
-    cluster_levels <- rev(analysis_data$cluster_names)
-  } else {
-    cluster_levels <- analysis_data$cluster_names
+  # Extract appropriate data matrix based on what parameter
+  if (what == "means") {
+    data_matrix <- analysis_data$means
+  } else if (what == "variances") {
+    data_matrix <- extract_variance_matrix(analysis_data)
+  } else {  # what == "ratio"
+    data_matrix <- extract_variance_ratio_matrix(analysis_data)
   }
+
+  # Apply centering (only for means)
+  if (what == "means" && centering != "none") {
+    data_matrix <- apply_centering(data_matrix, centering)
+  }
+
+  # Validate variable_order parameter
+  valid_orders <- c("variance", "variance_reversed", "mean", "mean_reversed",
+                   "original", "original_reversed", "alphabetical", "alphabetical_reversed")
+  if (!variable_order %in% valid_orders) {
+    cli::cli_abort("{.arg variable_order} must be one of: {.val {valid_orders}}, not {.val {variable_order}}")
+  }
+
+  # Limit to top k variables if specified
+  if (analysis_data$n_variables > top_k) {
+    # Select top k most variable features
+    var_variances <- apply(data_matrix, 1, var)
+    top_var_idx <- order(var_variances, decreasing = TRUE)[1:top_k]
+
+    # Filter to include only top variables
+    data_matrix <- data_matrix[top_var_idx, , drop = FALSE]
+    analysis_data$variable_names <- analysis_data$variable_names[top_var_idx]
+
+    cli::cli_inform(
+      "Parallel plot limited to top {top_k} most variable features for clarity"
+    )
+  }
+
+  # Cluster order is always fixed to model order (numerical)
+  cluster_levels <- analysis_data$cluster_names
 
   # Prepare data
-  means_df <- as.data.frame(t(analysis_data$means))
-  colnames(means_df) <- analysis_data$variable_names
-  means_df$Cluster <- factor(
+  data_df <- as.data.frame(t(data_matrix))
+  colnames(data_df) <- analysis_data$variable_names
+  data_df$Cluster <- factor(
     analysis_data$cluster_names,
     levels = cluster_levels
   )
 
   # Add cluster size information
   if (!is.null(analysis_data$proportions)) {
-    means_df$Size <- analysis_data$proportions
+    data_df$Size <- analysis_data$proportions
   } else {
-    means_df$Size <- 1 / analysis_data$n_clusters
+    data_df$Size <- 1 / analysis_data$n_clusters
   }
 
   # Reshape to long format
   plot_data <- tidyr::pivot_longer(
-    means_df,
+    data_df,
     cols = -c(Cluster, Size),
     names_to = "Variable",
     values_to = "Value"
   )
 
-  # Order variables by variance across clusters
-  var_importance <- aggregate(Value ~ Variable, plot_data, var)
-  var_order <- var_importance$Variable[order(var_importance$Value, decreasing = TRUE)]
-  plot_data$Variable <- factor(plot_data$Variable, levels = var_order)
+  # Determine variable order
+  if (variable_order == "variance") {
+    # Order by variance across clusters (descending - most variable first)
+    var_importance <- aggregate(Value ~ Variable, plot_data, var)
+    var_levels <- var_importance$Variable[order(var_importance[[2]], decreasing = TRUE)]
+  } else if (variable_order == "variance_reversed") {
+    # Order by variance ascending (least variable first)
+    var_importance <- aggregate(Value ~ Variable, plot_data, var)
+    var_levels <- var_importance$Variable[order(var_importance[[2]], decreasing = FALSE)]
+  } else if (variable_order == "mean") {
+    # Order by mean value across clusters (ascending - lowest mean first)
+    var_means <- aggregate(Value ~ Variable, plot_data, mean)
+    var_levels <- var_means$Variable[order(var_means[[2]], decreasing = FALSE)]
+  } else if (variable_order == "mean_reversed") {
+    # Order by mean value descending (highest mean first)
+    var_means <- aggregate(Value ~ Variable, plot_data, mean)
+    var_levels <- var_means$Variable[order(var_means[[2]], decreasing = TRUE)]
+  } else if (variable_order == "alphabetical") {
+    var_levels <- sort(analysis_data$variable_names)
+  } else if (variable_order == "alphabetical_reversed") {
+    var_levels <- sort(analysis_data$variable_names, decreasing = TRUE)
+  } else if (variable_order == "original") {
+    # Preserve data order
+    var_levels <- analysis_data$variable_names
+  } else {
+    # "original_reversed" - reverse data order
+    var_levels <- rev(analysis_data$variable_names)
+  }
+
+  plot_data$Variable <- factor(plot_data$Variable, levels = var_levels)
+
+  # Set up axis labels based on variable ordering
+  var_label_suffix <- switch(variable_order,
+    "variance" = " (by variance desc)",
+    "variance_reversed" = " (by variance asc)",
+    "mean" = " (by mean asc)",
+    "mean_reversed" = " (by mean desc)",
+    "alphabetical" = " (A-Z)",
+    "alphabetical_reversed" = " (Z-A)",
+    "original_reversed" = " (reversed)",
+    "original" = ""
+  )
+
+  # Set up value label based on what parameter
+  if (what == "means") {
+    value_label <- "Standardized Mean"
+    default_title <- "Cluster Profiles: Parallel Coordinates"
+    show_reference_lines <- TRUE
+  } else if (what == "variances") {
+    value_label <- "Std Dev"
+    default_title <- "Cluster Profiles: Within-Cluster Variance"
+    show_reference_lines <- FALSE  # No reference lines for variance
+  } else {  # what == "ratio"
+    value_label <- "Variance Ratio"
+    default_title <- "Cluster Profiles: Discrimination Ratio"
+    show_reference_lines <- FALSE  # No reference lines for ratio
+  }
 
   # Set up axes and reference lines based on orientation
   if (orientation == "horizontal") {
     # Variables on x-axis (standard parallel coordinates)
     aes_mapping <- ggplot2::aes(x = Variable, y = Value, group = Cluster, color = Cluster)
-    x_lab <- "Variable (ordered by variance)"
-    y_lab <- "Standardized Mean"
+    x_lab <- paste0("Variable", var_label_suffix)
+    y_lab <- value_label
     x_angle <- 45
-    ref_line_layer <- list(
-      ggplot2::geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5),
-      ggplot2::geom_hline(yintercept = c(-cutoff, cutoff), linetype = "dotted", alpha = 0.3)
-    )
+    if (show_reference_lines) {
+      ref_line_layer <- list(
+        ggplot2::geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5),
+        ggplot2::geom_hline(yintercept = c(-cutoff, cutoff), linetype = "dotted", alpha = 0.3)
+      )
+    } else {
+      ref_line_layer <- list()
+    }
   } else {
     # Variables on y-axis (rotated parallel coordinates)
     # Sort data by Cluster and Variable to ensure lines connect points correctly
     plot_data <- plot_data[order(plot_data$Cluster, plot_data$Variable), ]
 
     aes_mapping <- ggplot2::aes(x = Value, y = Variable, group = Cluster, color = Cluster)
-    x_lab <- "Standardized Mean"
-    y_lab <- "Variable (ordered by variance)"
+    x_lab <- value_label
+    y_lab <- paste0("Variable", var_label_suffix)
     x_angle <- 0
-    ref_line_layer <- list(
-      ggplot2::geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5),
-      ggplot2::geom_vline(xintercept = c(-cutoff, cutoff), linetype = "dotted", alpha = 0.3)
-    )
+    if (show_reference_lines) {
+      ref_line_layer <- list(
+        ggplot2::geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5),
+        ggplot2::geom_vline(xintercept = c(-cutoff, cutoff), linetype = "dotted", alpha = 0.3)
+      )
+    } else {
+      ref_line_layer <- list()
+    }
   }
 
   # Create parallel coordinates plot
@@ -327,7 +579,7 @@ create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, orientation = "
       legend.position = "right"
     ) +
     ggplot2::labs(
-      title = title %||% "Cluster Profiles: Parallel Coordinates",
+      title = title %||% default_title,
       subtitle = paste0("Line thickness represents cluster size"),
       x = x_lab,
       y = y_lab
@@ -339,34 +591,72 @@ create_parallel_plot_gm <- function(analysis_data, cutoff = 0.3, orientation = "
 
 #' Create Radar Plot for GM Clusters
 #'
-#' Creates a radar/spider plot showing cluster profiles using fmsb::radarchart.
+#' Creates a radar/spider plot showing cluster profiles (means, variance, or discrimination ratios) using fmsb::radarchart.
 #'
 #' @param analysis_data Standardized GM analysis data
+#' @param what Character: "means" (cluster means, default), "variances" (within-cluster SDs),
+#'   or "ratio" (between/within variance ratio for discrimination)
 #' @param cutoff Threshold for highlighting (not used in fmsb implementation)
+#' @param variable_order Character: how to order variables. Options: "variance" (by variance across clusters, descending),
+#'   "variance_reversed" (by variance, ascending), "mean" (by mean value, ascending), "mean_reversed" (by mean value, descending),
+#'   "alphabetical" (A-Z), "alphabetical_reversed" (Z-A), "original" (data order), "original_reversed" (reversed data order)
+#' @param top_k Integer: maximum number of variables to display (default: Inf, shows all variables).
+#'   If there are more variables than this limit, only the top k most variable features will be shown.
+#' @param centering Character: "none" (default), "variable" (center by row mean), or "global" (center by grand mean).
+#'   Only applies when what="means".
 #' @param title Plot title (optional)
 #' @param ... Additional arguments passed to fmsb::radarchart
 #' @return A recorded plot object (class "recordedplot")
 #' @keywords internal
-create_radar_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL, ...) {
+create_radar_plot_gm <- function(analysis_data, what = "means", cutoff = 0.3, variable_order = "variance", top_k = Inf, centering = "none", title = NULL, ...) {
   # Check if fmsb is available
   if (!requireNamespace("fmsb", quietly = TRUE)) {
     cli::cli_abort("Package {.pkg fmsb} is required for radar plots. Install it with: install.packages('fmsb')")
   }
 
-  # Limit to reasonable number of variables for radar plot
-  if (analysis_data$n_variables > 15) {
-    # Select top 15 most variable features
-    var_sds <- apply(analysis_data$means, 1, sd)
-    top_vars <- order(var_sds, decreasing = TRUE)[1:15]
+  # Validate what parameter
+  if (!what %in% c("means", "variances", "ratio")) {
+    cli::cli_abort("{.arg what} must be 'means', 'variances', or 'ratio', not {.val {what}}")
+  }
 
-    means_subset <- analysis_data$means[top_vars, , drop = FALSE]
+  # Extract appropriate data matrix based on what parameter
+  if (what == "means") {
+    data_matrix <- analysis_data$means
+    default_title <- "Cluster Profiles: Radar Plot"
+  } else if (what == "variances") {
+    data_matrix <- extract_variance_matrix(analysis_data)
+    default_title <- "Cluster Profiles: Within-Cluster Variance (Radar)"
+  } else {  # what == "ratio"
+    data_matrix <- extract_variance_ratio_matrix(analysis_data)
+    default_title <- "Cluster Profiles: Discrimination Ratio (Radar)"
+  }
+
+  # Apply centering (only for means)
+  if (what == "means" && centering != "none") {
+    data_matrix <- apply_centering(data_matrix, centering)
+  }
+
+  # Validate variable_order parameter
+  valid_orders <- c("variance", "variance_reversed", "mean", "mean_reversed",
+                   "original", "original_reversed", "alphabetical", "alphabetical_reversed")
+  if (!variable_order %in% valid_orders) {
+    cli::cli_abort("{.arg variable_order} must be one of: {.val {valid_orders}}, not {.val {variable_order}}")
+  }
+
+  # Limit to reasonable number of variables for radar plot
+  if (analysis_data$n_variables > top_k) {
+    # Select top k most variable features
+    var_sds <- apply(data_matrix, 1, sd)
+    top_vars <- order(var_sds, decreasing = TRUE)[1:top_k]
+
+    data_subset <- data_matrix[top_vars, , drop = FALSE]
     var_names_subset <- analysis_data$variable_names[top_vars]
 
     cli::cli_inform(
-      "Radar plot limited to top 15 most variable features for clarity"
+      "Radar plot limited to top {top_k} most variable features for clarity"
     )
   } else {
-    means_subset <- analysis_data$means
+    data_subset <- data_matrix
     var_names_subset <- analysis_data$variable_names
   }
 
@@ -377,14 +667,46 @@ create_radar_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL, ...)
     )
   }
 
+  # Apply variable ordering
+  if (variable_order == "variance") {
+    # Order by variance across clusters (descending - most variable first)
+    var_importance <- apply(data_subset, 1, var)
+    var_order_idx <- order(var_importance, decreasing = TRUE)
+  } else if (variable_order == "variance_reversed") {
+    # Order by variance ascending (least variable first)
+    var_importance <- apply(data_subset, 1, var)
+    var_order_idx <- order(var_importance, decreasing = FALSE)
+  } else if (variable_order == "mean") {
+    # Order by mean value across clusters (ascending - lowest mean first)
+    var_means <- apply(data_subset, 1, mean)
+    var_order_idx <- order(var_means, decreasing = FALSE)
+  } else if (variable_order == "mean_reversed") {
+    # Order by mean value descending (highest mean first)
+    var_means <- apply(data_subset, 1, mean)
+    var_order_idx <- order(var_means, decreasing = TRUE)
+  } else if (variable_order == "alphabetical") {
+    var_order_idx <- order(var_names_subset)
+  } else if (variable_order == "alphabetical_reversed") {
+    var_order_idx <- order(var_names_subset, decreasing = TRUE)
+  } else if (variable_order == "original") {
+    var_order_idx <- seq_along(var_names_subset)
+  } else {
+    # "original_reversed" - reverse data order
+    var_order_idx <- rev(seq_along(var_names_subset))
+  }
+
+  # Apply ordering to subset data
+  data_subset <- data_subset[var_order_idx, , drop = FALSE]
+  var_names_subset <- var_names_subset[var_order_idx]
+
   # Prepare data for fmsb::radarchart
   # Format: first row = max, second row = min, remaining rows = data
-  data_range <- range(means_subset)
+  data_range <- range(data_subset)
   max_val <- ceiling(data_range[2])
   min_val <- floor(data_range[1])
 
-  # Transpose means so variables are columns
-  radar_data <- as.data.frame(t(means_subset))
+  # Transpose data so variables are columns
+  radar_data <- as.data.frame(t(data_subset))
   colnames(radar_data) <- var_names_subset
   rownames(radar_data) <- analysis_data$cluster_names
 
@@ -415,7 +737,7 @@ create_radar_plot_gm <- function(analysis_data, cutoff = 0.3, title = NULL, ...)
     caxislabels = seq(min_val, max_val, length.out = 5),
     cglwd = 0.8,
     vlcex = 0.8,
-    title = title %||% "Cluster Profiles: Radar Plot"
+    title = title %||% default_title
   )
 
   # Merge with user-provided arguments
@@ -466,20 +788,118 @@ filter_variables_gm <- function(analysis_data, var_indices) {
   return(analysis_data)
 }
 
+#' Extract Variance Matrix from GM Analysis Data
+#'
+#' Extracts within-cluster standard deviations from covariance matrices.
+#'
+#' @param analysis_data Standardized GM analysis data containing covariances
+#' @return Matrix of standard deviations (n_variables x n_clusters)
+#' @keywords internal
+extract_variance_matrix <- function(analysis_data) {
+  if (is.null(analysis_data$covariances)) {
+    cli::cli_abort("Covariance matrices not available in analysis_data")
+  }
+
+  # Extract standard deviations (sqrt of diagonal) from each cluster's covariance matrix
+  sds_matrix <- matrix(
+    NA,
+    nrow = analysis_data$n_variables,
+    ncol = analysis_data$n_clusters
+  )
+
+  for (k in seq_len(analysis_data$n_clusters)) {
+    sds_matrix[, k] <- sqrt(diag(analysis_data$covariances[, , k]))
+  }
+
+  # Set row names to match variable names
+  rownames(sds_matrix) <- analysis_data$variable_names
+
+  return(sds_matrix)
+}
+
+#' Extract Variance Ratio Matrix from GM Analysis Data
+#'
+#' Calculates between-cluster to within-cluster variance ratios for each variable.
+#' Higher ratios indicate variables that better discriminate between clusters.
+#'
+#' @param analysis_data Standardized GM analysis data containing means and covariances
+#' @return Matrix of variance ratios (n_variables x n_clusters)
+#' @keywords internal
+extract_variance_ratio_matrix <- function(analysis_data) {
+  if (is.null(analysis_data$covariances)) {
+    cli::cli_abort("Covariance matrices not available in analysis_data")
+  }
+
+  # Calculate between-cluster variance (variance of means across clusters)
+  between_var <- apply(analysis_data$means, 1, var)
+
+  # Calculate within-cluster variance (average variance within clusters)
+  sds_matrix <- extract_variance_matrix(analysis_data)
+  within_var <- apply(sds_matrix^2, 1, mean)  # Average variance across clusters
+
+  # Calculate ratio: between / within (like F-ratio in ANOVA)
+  # Higher values = better discrimination
+  ratio_vector <- between_var / (within_var + 1e-10)  # Add small constant to avoid division by zero
+
+  # Create matrix by replicating ratio for each cluster (for consistent plotting interface)
+  ratio_matrix <- matrix(
+    rep(ratio_vector, analysis_data$n_clusters),
+    nrow = analysis_data$n_variables,
+    ncol = analysis_data$n_clusters
+  )
+
+  return(ratio_matrix)
+}
+
+#' Apply Centering to Data Matrix
+#'
+#' Centers the data matrix by variable mean, global mean, or not at all.
+#'
+#' @param data_matrix Numeric matrix (n_variables x n_clusters)
+#' @param centering Character: "none" (no centering), "variable" (center each variable
+#'   by its row mean), or "global" (center all values by grand mean)
+#' @return Centered data matrix with same dimensions
+#' @keywords internal
+apply_centering <- function(data_matrix, centering = "none") {
+  if (centering == "none") {
+    return(data_matrix)
+  } else if (centering == "variable") {
+    # Center each variable by its mean across clusters
+    row_means <- rowMeans(data_matrix)
+    centered_matrix <- data_matrix - row_means
+    return(centered_matrix)
+  } else if (centering == "global") {
+    # Center all values by the grand mean
+    grand_mean <- mean(data_matrix)
+    centered_matrix <- data_matrix - grand_mean
+    return(centered_matrix)
+  } else {
+    cli::cli_abort("{.arg centering} must be 'none', 'variable', or 'global', not {.val {centering}}")
+  }
+}
+
 #' Create Cluster Profile Plot
 #'
 #' Standalone function to create cluster profile visualizations.
+#' Note: This function only supports visualizing means. For variance and ratio
+#' visualizations, use plot.gm_interpretation() with a fitted model object.
 #'
 #' @param means Matrix of cluster means (variables x clusters)
 #' @param variable_names Character vector of variable names
 #' @param cluster_names Character vector of cluster names
 #' @param plot_type Type of plot: "heatmap", "parallel", or "radar"
+#' @param what Character: must be "means" (default and only supported value for standalone function)
 #' @param cutoff Threshold for highlighting important values
 #' @param orientation Character: "horizontal" (variables on x-axis, default) or
 #'   "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.
-#' @param cluster_order Character: "alphabetical" (default) sorts cluster names alphabetically
-#'   in parallel plots, "numerical" preserves original order, "reverse" reverses the original
-#'   order. Only affects parallel plots.
+#' @param variable_order Character: "variance" (default) orders by variance descending,
+#'   "variance_reversed" by variance ascending, "mean" orders by mean value ascending,
+#'   "mean_reversed" by mean value descending, "original" preserves data order,
+#'   "original_reversed" reverses data order, "alphabetical" sorts A-Z,
+#'   "alphabetical_reversed" sorts Z-A. Cluster order is always fixed to input order.
+#' @param top_k Integer: maximum number of variables to display (default: Inf, shows all variables).
+#'   If there are more variables than this limit, only the top k most variable features (by variance) will be shown.
+#'   Applies to all plot types.
 #' @param title Plot title
 #'
 #' @return For heatmap/parallel: a ggplot2 object. For radar: a recordedplot
@@ -513,9 +933,11 @@ create_cluster_profile_plot <- function(
     variable_names = NULL,
     cluster_names = NULL,
     plot_type = "heatmap",
+    what = "means",
     cutoff = 0.3,
     orientation = "horizontal",
-    cluster_order = "alphabetical",
+    variable_order = "variance",
+    top_k = Inf,
     title = NULL) {
 
   # Validate orientation parameter
@@ -523,9 +945,17 @@ create_cluster_profile_plot <- function(
     cli::cli_abort("orientation must be 'horizontal' or 'vertical'")
   }
 
-  # Validate cluster_order parameter
-  if (!cluster_order %in% c("alphabetical", "numerical", "reverse")) {
-    cli::cli_abort("{.arg cluster_order} must be 'alphabetical', 'numerical', or 'reverse', not {.val {cluster_order}}")
+  # Validate what parameter - only "means" supported in standalone function
+  if (what != "means") {
+    cli::cli_warn("Standalone function only supports what='means'. For variance/ratio visualizations, use plot.gm_interpretation() with a fitted model object.")
+    what <- "means"
+  }
+
+  # Validate variable_order parameter
+  valid_orders <- c("variance", "variance_reversed", "mean", "mean_reversed",
+                   "original", "original_reversed", "alphabetical", "alphabetical_reversed")
+  if (!variable_order %in% valid_orders) {
+    cli::cli_abort("{.arg variable_order} must be one of: {.val {valid_orders}}, not {.val {variable_order}}")
   }
 
   # Prepare analysis_data structure for plotting functions
@@ -547,11 +977,11 @@ create_cluster_profile_plot <- function(
 
   # Create appropriate plot
   if (plot_type == "heatmap") {
-    return(create_heatmap_gm(analysis_data, cutoff, orientation, title))
+    return(create_heatmap_gm(analysis_data, what, cutoff, orientation, variable_order, top_k, centering = "none", title))
   } else if (plot_type == "parallel") {
-    return(create_parallel_plot_gm(analysis_data, cutoff, orientation, cluster_order, title))
+    return(create_parallel_plot_gm(analysis_data, what, cutoff, orientation, variable_order, top_k, centering = "none", title))
   } else if (plot_type == "radar") {
-    return(create_radar_plot_gm(analysis_data, cutoff, title))
+    return(create_radar_plot_gm(analysis_data, what, cutoff, variable_order, top_k, centering = "none", title))
   } else {
     cli::cli_abort("Invalid plot_type: must be 'heatmap', 'parallel', or 'radar'")
   }

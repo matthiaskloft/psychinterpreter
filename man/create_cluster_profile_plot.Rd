@@ -9,9 +9,11 @@ create_cluster_profile_plot(
   variable_names = NULL,
   cluster_names = NULL,
   plot_type = "heatmap",
+  what = "means",
   cutoff = 0.3,
   orientation = "horizontal",
-  cluster_order = "alphabetical",
+  variable_order = "variance",
+  top_k = Inf,
   title = NULL
 )
 }
@@ -24,14 +26,22 @@ create_cluster_profile_plot(
 
 \item{plot_type}{Type of plot: "heatmap", "parallel", or "radar"}
 
+\item{what}{Character: must be "means" (default and only supported value for standalone function)}
+
 \item{cutoff}{Threshold for highlighting important values}
 
 \item{orientation}{Character: "horizontal" (variables on x-axis, default) or
 "vertical" (clusters/values on x-axis). Affects heatmap and parallel plots.}
 
-\item{cluster_order}{Character: "alphabetical" (default) sorts cluster names alphabetically
-in parallel plots, "numerical" preserves original order, "reverse" reverses the original
-order. Only affects parallel plots.}
+\item{variable_order}{Character: "variance" (default) orders by variance descending,
+"variance_reversed" by variance ascending, "mean" orders by mean value ascending,
+"mean_reversed" by mean value descending, "original" preserves data order,
+"original_reversed" reverses data order, "alphabetical" sorts A-Z,
+"alphabetical_reversed" sorts Z-A. Cluster order is always fixed to input order.}
+
+\item{top_k}{Integer: maximum number of variables to display (default: Inf, shows all variables).
+If there are more variables than this limit, only the top k most variable features (by variance) will be shown.
+Applies to all plot types.}
 
 \item{title}{Plot title}
 }
@@ -41,6 +51,8 @@ object (base R graphics created with fmsb::radarchart).
 }
 \description{
 Standalone function to create cluster profile visualizations.
+Note: This function only supports visualizing means. For variance and ratio
+visualizations, use plot.gm_interpretation() with a fitted model object.
 }
 \examples{
 \dontrun{

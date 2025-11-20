@@ -405,14 +405,15 @@ test_that("interpret_core handles malformed JSON gracefully with mock", {
   mock_chat <- mock_chat_session(analysis_type = "fa", response_type = "malformed_json")
 
   # Should handle malformed JSON - either return defaults or handle error
-  result <- tryCatch({
+  # Suppress expected warning from JSON parsing fallback
+  result <- suppressWarnings(tryCatch({
     psychinterpreter:::interpret_core(
       fit_results = fa_model,
       chat_session = mock_chat,
       variable_info = var_info,
       silent = 2
     )
-  }, error = function(e) NULL)
+  }, error = function(e) NULL))
 
   # If it returns a result, check it's valid
   if (!is.null(result)) {
@@ -435,11 +436,14 @@ test_that("interpret_core handles empty response with mock", {
   mock_chat <- mock_chat_session(analysis_type = "fa", response_type = "empty")
 
   # Should handle empty response gracefully
-  result <- psychinterpreter:::interpret_core(
-    fit_results = fa_model,
-    chat_session = mock_chat,
-    variable_info = var_info,
-    silent = 2
+  # Suppress expected warning from JSON parsing fallback
+  result <- suppressWarnings(
+    psychinterpreter:::interpret_core(
+      fit_results = fa_model,
+      chat_session = mock_chat,
+      variable_info = var_info,
+      silent = 2
+    )
   )
 
   # Should return an interpretation object with defaults
@@ -458,11 +462,14 @@ test_that("interpret_core handles partial response with mock", {
   mock_chat <- mock_chat_session(analysis_type = "fa", response_type = "partial")
 
   # Should handle partial response gracefully
-  result <- psychinterpreter:::interpret_core(
-    fit_results = fa_model,
-    chat_session = mock_chat,
-    variable_info = var_info,
-    silent = 2
+  # Suppress expected warning from JSON parsing fallback
+  result <- suppressWarnings(
+    psychinterpreter:::interpret_core(
+      fit_results = fa_model,
+      chat_session = mock_chat,
+      variable_info = var_info,
+      silent = 2
+    )
   )
 
   # Should return an interpretation object with some defaults

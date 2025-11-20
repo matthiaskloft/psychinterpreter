@@ -361,6 +361,39 @@ plot(gm_result, plot_type = "parallel")   # Parallel coordinates
 plot(gm_result, plot_type = "radar")      # Radar/spider plots
 plot(gm_result, plot_type = "all")        # All visualizations
 
+# Visualize cluster variances (NEW in 0.0.0.9000)
+# The 'what' parameter controls which data to visualize:
+# - "means" (default): Cluster means (standardized values)
+# - "variances": Within-cluster standard deviations
+# - "ratio": Between/within variance ratios (discrimination power)
+
+# Show within-cluster variability
+plot(gm_result, plot_type = "heatmap", what = "variances")    # Variance heatmap
+plot(gm_result, plot_type = "parallel", what = "variances")   # Variance parallel plot
+plot(gm_result, plot_type = "radar", what = "variances")      # Variance radar plot
+
+# Show discrimination power (which variables best separate clusters)
+plot(gm_result, plot_type = "heatmap", what = "ratio")       # Ratio heatmap
+plot(gm_result, plot_type = "parallel", what = "ratio")      # Ratio parallel plot
+plot(gm_result, plot_type = "radar", what = "ratio")         # Ratio radar plot
+
+# All visualizations for variance
+plot(gm_result, plot_type = "all", what = "variances")        # All variance plots
+
+# Data centering options (NEW in 0.0.0.9000)
+# The 'centering' parameter helps highlight cluster differences by removing baseline effects
+# Only applies when what="means" (not for variances or ratios)
+
+# Center each variable by its mean across clusters (removes variable-specific baselines)
+plot(gm_result, plot_type = "heatmap", centering = "variable")    # Variable-centered heatmap
+plot(gm_result, plot_type = "parallel", centering = "variable")   # Variable-centered parallel plot
+plot(gm_result, plot_type = "radar", centering = "variable")      # Variable-centered radar plot
+
+# Center all values by the grand mean (common reference point)
+plot(gm_result, plot_type = "heatmap", centering = "global")      # Global-centered heatmap
+plot(gm_result, plot_type = "parallel", centering = "global")     # Global-centered parallel plot
+plot(gm_result, plot_type = "radar", centering = "global")        # Global-centered radar plot
+
 # GM-specific parameters
 interpret(
   fit_results = gmm_model,
@@ -603,7 +636,9 @@ interpret(..., echo = "all")
 | `min_cluster_size` | 1-100 | 5 | Minimum meaningful cluster size |
 | `separation_threshold` | 0-1 | 0.3 | Overlap detection threshold |
 | `weight_by_uncertainty` | TRUE/FALSE | FALSE | Weight by assignment certainty |
-| `plot_type` | "auto", "heatmap", "parallel", "radar", "all" | "auto" | Visualization type |
+| `plot_type` | "auto", "heatmap", "parallel", "radar", "all" | "auto" | Visualization format |
+| `what` | "means", "variances", "ratio" | "means" | Data to visualize (means/variances/discrimination) |
+| `centering` | "none", "variable", "global" | "none" | Center data (variable-wise/grand mean, means only) |
 | `profile_variables` | character vector | NULL | Focus on specific variables |
 
 ## Package Files
@@ -687,9 +722,9 @@ Update the developer guide when making **architectural or implementation changes
 
 ---
 
-**Last Updated**: 2025-11-17
+**Last Updated**: 2025-11-20
 **Maintainer**: Update when making significant user-facing changes
-**Latest Change**: Added Gaussian Mixture (GM) model support with full S3 implementation
+**Latest Change**: Added variance visualizations (what="variances"/"ratio") and data centering (centering="variable"/"global") for GM models
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
 - use DT::datatable() for .Qmd articles
 - when adding or editing functions, remember to update the references in the pkgdown.yml
