@@ -1,6 +1,6 @@
 # Open Issues and Future Work
 
-**Last Updated**: 2025-11-18
+**Last Updated**: 2025-11-21
 
 This document tracks active issues and planned enhancements for the psychinterpreter package.
 
@@ -76,6 +76,63 @@ This document tracks active issues and planned enhancements for the psychinterpr
 - Single source of truth for all format-specific logic
 - Easy to extend for future model types (IRT, CDM)
 - Comprehensive test coverage ensures reliability
+
+### Gaussian Mixture Model (GM) Implementation
+**Status**: ✅ COMPLETED (2025-11-18)
+
+**What was done:**
+- Implemented all 8 required S3 methods for GM analysis type
+- Created 7 new R files (~2,750 lines total):
+  - `gm_model_data.R` (~750 lines) - Mclust extraction, structured list support
+  - `gm_prompt_builder.R` (~400 lines) - Cluster-based prompts
+  - `gm_json.R` (~300 lines) - JSON parsing for cluster interpretations
+  - `gm_diagnostics.R` (~350 lines) - Overlap detection, distinguishing variables
+  - `gm_report.R` (~635 lines) - Cluster profile report generation
+  - `gm_visualization.R` (~450 lines) - Heatmap, parallel, radar plots
+  - `gm_export.R` (~120 lines) - Export with cluster metadata
+  - `gm_utils.R` - Utility functions
+- Added comprehensive test coverage (test-13-integration-gm.R, test-14-gm-unit-tests.R)
+- Implemented multiple visualization types (heatmap, parallel, radar)
+- Added variance visualization options (what="means/variances/ratio")
+- Added data centering options (centering="none/variable/global")
+- Registered in all dispatch tables and parameter registry
+
+**Commits:**
+- 1c2c214 & d697712: "Add Gaussian Mixture Model (GM) support"
+- 1949ca1: "Add variance and centering options to GM visualizations"
+- 43428eb: "Add cluster_order option to parallel plot functions"
+- 9ed7a38: "Improve cluster key matching and heatmap cluster order"
+- 4f1fb4a: "Require and validate variable_info for GM models"
+
+**Benefits:**
+- Package now supports 2 analysis types (FA and GM)
+- Demonstrates extensibility of architecture
+- Provides second reference implementation for future model types
+- Complete feature parity with FA (visualization, export, documentation)
+
+### Roxygen Documentation Enhancements
+**Status**: ✅ COMPLETED (2025-11-21)
+
+**What was done:**
+- Added 46 @examples across 19 R files for key exported functions
+- Enhanced @return tags with detailed structure descriptions
+- Added comprehensive @details sections explaining technical concepts
+- Added @seealso cross-references connecting related functions
+- Fixed non-ASCII characters (em-dashes → hyphens, arrows → "->")
+- Fixed escaped curly braces in Rd files for R CMD check compliance
+- All 140 Rd files now pass tools::checkRd() with zero errors/warnings
+
+**Files modified:**
+- 19 R files with enhanced roxygen documentation
+- All man/*.Rd files regenerated
+- Fixed: class_chat_session.R, fa_utils.R, fa_export.R, gm_export.R, s3_json_parser.R, s3_parameter_extraction.R, gm_diagnostics.R, s3_export.R, shared_config.R
+
+**Benefits:**
+- All exported functions have comprehensive usage examples
+- Better IDE autocomplete and help system integration
+- Reduced onboarding time for new contributors
+- CRAN-ready documentation quality
+- No R CMD check warnings or errors
 
 ---
 

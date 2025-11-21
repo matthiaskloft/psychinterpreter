@@ -1,17 +1,18 @@
 # Testing Guidelines
 
-**Last Updated:** 2025-11-18 (Provider-specific integration tests added)
+**Last Updated:** 2025-11-21
 
 ## 📊 Current Test Suite Status
 
 **Performance:**
-- LLM tests: **15 tests (~6% of total)** - 53% reduction from original 32
+- LLM tests: **15-18 tests (~4% of total)** - 53% reduction from original 32
 - Test runtime (with LLM): **~50-70 seconds** (60-70% faster than original)
 - Test runtime (without LLM): **~10-20 seconds**
-- **Test Coverage**: ~92% (up from ~80% baseline)
+- **Test Coverage**: ~92% (maintained from Phase 4)
+- **Total test_that() calls**: ~417+
 
 **Organization:**
-- **23 test files** with numbered prefixes (0X=fast, 1X=integration, 2X=output/utilities, 3X=provider-specific, 99=performance)
+- **27 test files** with numbered prefixes (0X=fast, 1X=integration, 2X=output/utilities, 3X=provider-specific, 99=performance)
 - Fast tests: 11 files, NO LLM, ~10-20s
 - Integration tests: 3 files, WITH LLM, ~50-70s
 - Provider-specific: 1 file, WITH LLM (skips without API keys), 18 tests

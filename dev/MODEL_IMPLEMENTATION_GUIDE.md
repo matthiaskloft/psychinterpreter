@@ -2,20 +2,24 @@
 
 **Purpose**: Step-by-step guide for implementing new model types in the psychinterpreter package.
 
-**Last Updated**: 2025-11-16
+**Last Updated**: 2025-11-21
 
-**Status**: Template ready for GM, IRT, and CDM implementations. Dispatch table refactoring completed. Production-ready.
+**Status**: GM fully implemented (2025-11-18). Templates ready for IRT and CDM. Production-ready.
 
 ---
 
 ## Quick Start
 
-**Prefer code-first learning?** See [`/dev/templates/`](templates/) for ready-to-copy template files with placeholders. Use the templates together with this guide for best results:
+**Prefer code-first learning?**
+- **For GM reference implementation**: See `/R/gm_*.R` files (7 files, completed 2025-11-18)
+- **For IRT/CDM templates**: See [`/dev/templates/`](templates/) for ready-to-copy template files
 
-- **Templates** provide exact code to copy
+Use the templates together with this guide for best results:
+- **GM Implementation** provides working reference code
+- **Templates** provide exact code to copy for new types
 - **This Guide** provides conceptual background, troubleshooting, and common patterns
 
-**Recommended approach**: Skim this Overview section, then use templates with the implementation checklist, referring back to this guide for explanations and troubleshooting as needed.
+**Recommended approach**: Review GM implementation for patterns, then use templates with the implementation checklist, referring back to this guide for explanations and troubleshooting as needed.
 
 ---
 

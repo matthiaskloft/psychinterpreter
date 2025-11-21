@@ -1,9 +1,9 @@
 # psychinterpreter Developer Guide
 
-**Last Updated**: 2025-11-18
+**Last Updated**: 2025-11-21
 **Version**: 0.0.0.9000
 **Purpose**: Technical reference for package maintainers and contributors
-**Status**: Critical bugs fixed, production-ready
+**Status**: Production-ready. GM implementation completed. Documentation enhanced.
 
 **For usage/user-facing documentation**: See [CLAUDE.md](../CLAUDE.md)
 
@@ -102,12 +102,14 @@
 
 ## 1.3 Package Statistics
 
-- **R Files**: 22
-- **Lines of Code**: ~6,930
-- **Test Files**: 25
-- **Tests**: ~347+
+- **R Files**: 34 (FA: 7 files, GM: 7 files, Core: 20 files)
+- **Lines of Code**: ~12,820 (85% increase from initial FA-only implementation)
+- **Test Files**: 27
+- **Tests**: ~417+ test_that() calls
 - **Test Coverage**: ~92%
-- **LLM Tests**: 14-15 (~4% of total)
+- **LLM Tests**: 15-18 (~4% of total, with provider guards)
+- **NAMESPACE Exports**: 102 (functions + S3 methods)
+- **Documentation**: 46 @examples across 19 R files, all Rd files pass R CMD check
 
 ## 1.4 Development Workflow
 
@@ -938,10 +940,11 @@ Detailed explanation:
 - **Impact**: Minor abstraction leak, doesn't block functionality
 - **Plan**: Move to FA-specific files in v0.2.0 (optional refactoring)
 
-### Only FA Model Type Implemented
-- **Current Support**: Factor Analysis (FA) only
-- **Planned**: Gaussian Mixture (GM), Item Response Theory (IRT), Cognitive Diagnosis Models (CDM)
-- **Status**: Architecture ready for new model types (see section 2.5)
+### Model Type Support
+- **Implemented**: Factor Analysis (FA) ✓, Gaussian Mixture (GM) ✓ (added 2025-11-18)
+- **Planned**: Item Response Theory (IRT), Cognitive Diagnosis Models (CDM)
+- **Status**: Architecture ready for additional model types (see section 2.5)
+- **Reference**: GM implementation in `/R/gm_*.R` files (7 files, ~2,750 lines) serves as template for future types
 
 ## 5.7 Package Statistics
 
