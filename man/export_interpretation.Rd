@@ -44,3 +44,25 @@ This is an S3 generic function. Model-specific export methods are implemented as
 \item Future: \code{export_interpretation.cdm_interpretation()} for CDM
 }
 }
+\examples{
+\dontrun{
+# Run interpretation
+fa_result <- psych::fa(data, nfactors = 3)
+var_info <- data.frame(variable = names(data), description = paste("Variable", names(data)))
+interpretation <- interpret(fa_result, variable_info = var_info,
+                           llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+
+# Export to text file
+export_interpretation(interpretation, format = "txt", file = "results")
+
+# Export to markdown file
+export_interpretation(interpretation, format = "md", file = "results")
+
+# Export to specific directory
+export_interpretation(interpretation, format = "md", file = "output/analysis_results")
+}
+
+}
+\seealso{
+\code{\link[=interpret]{interpret()}} for generating interpretations
+}

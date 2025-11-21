@@ -9,12 +9,55 @@ find_distinguishing_variables_gm(analysis_data, top_n = 5)
 \arguments{
 \item{analysis_data}{Standardized GM analysis data}
 
-\item{top_n}{Number of top distinguishing variables per cluster}
+\item{top_n}{Number of top distinguishing variables per cluster (default = 5)}
 }
 \value{
-List with distinguishing variables for each cluster
+Named list with one element per cluster. Each element is a data frame with columns:
+\itemize{
+\item variable: Character. Variable name
+\item cluster_mean: Numeric. Mean value in this cluster
+\item overall_mean: Numeric. Overall mean across all clusters
+\item distinctiveness: Numeric. Combined distinctiveness score
+}
+Returns NULL if means are not available.
 }
 \description{
 Identifies variables that best distinguish each cluster from others.
+}
+\details{
+Distinctiveness is calculated by combining two measures:
+\enumerate{
+\item Deviation from overall mean across all clusters
+\item Deviation from average of other clusters
+}
+
+Variables with high distinctiveness scores are those that have notably
+different values in the target cluster compared to the overall population
+and other clusters. These are the key variables that define each cluster's
+unique profile.
+}
+\examples{
+\dontrun{
+# After running GM interpretation
+library(mclust)
+gmm_model <- Mclust(scale(data), G = 3)
+var_info <- data.frame(variable = names(data), description = names(data))
+interpretation <- interpret(gmm_model, variable_info = var_info,
+                           llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+
+# Find distinguishing variables for each cluster
+analysis_data <- interpretation$analysis_data
+distinguishing <- find_distinguishing_variables_gm(analysis_data, top_n = 5)
+
+# View results for first cluster
+print(distinguishing[[1]])
+
+# Find more variables
+distinguishing_extended <- find_distinguishing_variables_gm(analysis_data, top_n = 10)
+}
+
+}
+\seealso{
+\code{\link[=find_overlapping_clusters]{find_overlapping_clusters()}} for identifying cluster overlap
 }
 \keyword{internal}

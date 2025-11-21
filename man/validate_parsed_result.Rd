@@ -17,11 +17,28 @@ validate_parsed_result(parsed, analysis_type, ...)
 }}
 }
 \value{
-List with model-specific structure (e.g., \code{component_summaries} and
-\code{suggested_names} for FA/GM models), or NULL if validation fails
+List with model-specific structure, or NULL if validation fails. Structure by model:
+\itemize{
+\item FA: list(component_summaries = character vector of length n_factors,
+suggested_names = character vector of length n_factors)
+\item GM: list(component_summaries = character vector of length n_clusters,
+suggested_names = character vector of length n_clusters)
+}
 }
 \description{
 Model-specific validation of parsed JSON.
 Should return the validated result or NULL if validation fails.
+}
+\details{
+This function validates that parsed JSON contains all required fields with correct
+types and lengths. Validation checks include:
+\itemize{
+\item Presence of required fields (component_summaries, suggested_names)
+\item Correct data types (character vectors)
+\item Correct lengths (matching number of components/clusters)
+}
+}
+\seealso{
+\code{\link[=extract_by_pattern]{extract_by_pattern()}} for fallback extraction, \code{\link[=create_default_result]{create_default_result()}} for defaults
 }
 \keyword{internal}

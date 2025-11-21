@@ -23,6 +23,26 @@
 #' - Future: `export_interpretation.irt_interpretation()` for IRT
 #' - Future: `export_interpretation.cdm_interpretation()` for CDM
 #'
+#' @seealso [interpret()] for generating interpretations
+#'
+#' @examples
+#' \dontrun{
+#' # Run interpretation
+#' fa_result <- psych::fa(data, nfactors = 3)
+#' var_info <- data.frame(variable = names(data), description = paste("Variable", names(data)))
+#' interpretation <- interpret(fa_result, variable_info = var_info,
+#'                            llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+#'
+#' # Export to text file
+#' export_interpretation(interpretation, format = "txt", file = "results")
+#'
+#' # Export to markdown file
+#' export_interpretation(interpretation, format = "md", file = "results")
+#'
+#' # Export to specific directory
+#' export_interpretation(interpretation, format = "md", file = "output/analysis_results")
+#' }
+#'
 #' @export
 export_interpretation <- function(interpretation_results,
                                  format = "txt",

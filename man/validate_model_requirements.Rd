@@ -12,10 +12,25 @@ validate_model_requirements(analysis_type, ...)
 \item{...}{Model-specific data to validate (e.g., variable_info for FA)}
 }
 \value{
-Invisible NULL if validation passes, errors if not
+Invisible NULL if validation passes, throws error if validation fails
 }
 \description{
 S3 generic for validating that model-specific requirements are met.
 This includes checking for required data like variable_info for FA.
+}
+\details{
+This function validates model-specific requirements before interpretation:
+\itemize{
+\item FA: Requires variable_info data frame with 'variable' and 'description' columns
+\item GM: No strict requirements (variable_info recommended but optional)
+\item IRT/CDM: To be implemented
+}
+
+Validation failures throw informative errors via cli::cli_abort() with
+suggestions for fixing the issue.
+}
+\seealso{
+\code{\link[=extract_model_parameters]{extract_model_parameters()}} for parameter extraction,
+\code{\link[=interpret]{interpret()}} for the main interpretation function
 }
 \keyword{internal}

@@ -41,7 +41,7 @@
 #' counters (`total_input_tokens` / `total_output_tokens`).
 #'
 #' If you require a provider-specific view that includes system prompt tokens,
-#' call `chat$chat$get_tokens(include_system_prompt = TRUE)` directly — but note
+#' call `chat$chat$get_tokens(include_system_prompt = TRUE)` directly - but note
 #' that results may vary across providers.
 #'
 #' @examples
@@ -189,6 +189,21 @@ print.chat_session <- function(x, ...) {
 #' @param x Object to test
 #' @return Logical indicating if x is a chat_session object
 #'
+#' @seealso [chat_session()] for creating chat sessions
+#'
+#' @examples
+#' \dontrun{
+#' # Create a chat session
+#' chat <- chat_session("fa", "ollama", "gpt-oss:20b-cloud")
+#'
+#' # Check if it's a chat_session object
+#' is.chat_session(chat)  # TRUE
+#'
+#' # Check other objects
+#' is.chat_session(list())  # FALSE
+#' is.chat_session("text")  # FALSE
+#' }
+#'
 #' @export
 is.chat_session <- function(x) {
   inherits(x, "chat_session")
@@ -201,6 +216,24 @@ is.chat_session <- function(x) {
 #'
 #' @param chat_obj A chat_session object
 #' @return The chat_session object with reset conversation history
+#'
+#' @seealso [chat_session()] for creating chat sessions, [is.chat_session()] for checking session objects
+#'
+#' @examples
+#' \dontrun{
+#' # Create and use a chat session
+#' chat <- chat_session("fa", "ollama", "gpt-oss:20b-cloud")
+#' result1 <- interpret(fit_results = fa1, variable_info = var_info1, chat_session = chat)
+#'
+#' # Reset to clear conversation history but keep system prompt
+#' chat <- reset(chat)
+#'
+#' # Now use for a new analysis with fresh context
+#' result2 <- interpret(fit_results = fa2, variable_info = var_info2, chat_session = chat)
+#'
+#' # Check token usage (should only show new interpretation)
+#' print(chat)
+#' }
 #'
 #' @export
 reset.chat_session <- function(chat_obj) {

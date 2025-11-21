@@ -344,6 +344,25 @@ output_args <- function(format = NULL,
 #' Returns default output configuration. Useful for programmatic access.
 #'
 #' @return output_args object with default settings
+#'
+#' @seealso [output_args()] for custom output configuration, [interpret()] for using output settings
+#'
+#' @examples
+#' # Get default output settings
+#' defaults <- default_output_args()
+#' print(defaults)
+#'
+#' # Use in interpret() call
+#' \dontrun{
+#' interpretation <- interpret(
+#'   fit_results = fa_result,
+#'   variable_info = var_info,
+#'   output_args = default_output_args(),
+#'   llm_provider = "ollama",
+#'   llm_model = "gpt-oss:20b-cloud"
+#' )
+#' }
+#'
 #' @export
 default_output_args <- function() {
   output_args()

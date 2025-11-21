@@ -12,3 +12,23 @@ output_args object with default settings
 \description{
 Returns default output configuration. Useful for programmatic access.
 }
+\examples{
+# Get default output settings
+defaults <- default_output_args()
+print(defaults)
+
+# Use in interpret() call
+\dontrun{
+interpretation <- interpret(
+  fit_results = fa_result,
+  variable_info = var_info,
+  output_args = default_output_args(),
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+}
+
+}
+\seealso{
+\code{\link[=output_args]{output_args()}} for custom output configuration, \code{\link[=interpret]{interpret()}} for using output settings
+}

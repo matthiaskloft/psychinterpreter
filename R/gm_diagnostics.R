@@ -258,7 +258,43 @@ calculate_cluster_separation_gm <- function(analysis_data) {
 #' Identifies clusters with significant overlap based on separation threshold.
 #'
 #' @param analysis_data Standardized GM analysis data
-#' @return List of overlapping cluster pairs or NULL
+#' @return List of overlapping cluster pairs, or NULL if no overlaps detected.
+#'   Each list element contains:
+#'   \itemize{
+#'     \item cluster1: Character. Name of first cluster
+#'     \item cluster2: Character. Name of second cluster
+#'     \item distance: Numeric. Mahalanobis distance between clusters
+#'   }
+#'
+#' @details
+#' Clusters are considered overlapping if their Mahalanobis distance is below
+#' the threshold of 2.0. This indicates poor cluster separation and potential
+#' issues with the clustering solution.
+#'
+#' Mahalanobis distance accounts for both the distance between cluster centers
+#' and the covariance structure of the clusters, providing a more informative
+#' measure than Euclidean distance.
+#'
+#' @seealso [find_distinguishing_variables_gm()] for identifying key variables per cluster
+#'
+#' @examples
+#' \dontrun{
+#' # After running GM interpretation
+#' library(mclust)
+#' gmm_model <- Mclust(scale(data), G = 3)
+#' var_info <- data.frame(variable = names(data), description = names(data))
+#' interpretation <- interpret(gmm_model, variable_info = var_info,
+#'                            llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+#'
+#' # Check for overlapping clusters
+#' analysis_data <- interpretation$analysis_data
+#' overlaps <- find_overlapping_clusters(analysis_data)
+#' if (!is.null(overlaps)) {
+#'   print("Found overlapping cluster pairs:")
+#'   print(overlaps)
+#' }
+#' }
+#'
 #' @export
 #' @keywords internal
 find_overlapping_clusters <- function(analysis_data) {
@@ -296,8 +332,50 @@ find_overlapping_clusters <- function(analysis_data) {
 #' Identifies variables that best distinguish each cluster from others.
 #'
 #' @param analysis_data Standardized GM analysis data
-#' @param top_n Number of top distinguishing variables per cluster
-#' @return List with distinguishing variables for each cluster
+#' @param top_n Number of top distinguishing variables per cluster (default = 5)
+#' @return Named list with one element per cluster. Each element is a data frame with columns:
+#'   \itemize{
+#'     \item variable: Character. Variable name
+#'     \item cluster_mean: Numeric. Mean value in this cluster
+#'     \item overall_mean: Numeric. Overall mean across all clusters
+#'     \item distinctiveness: Numeric. Combined distinctiveness score
+#'   }
+#'   Returns NULL if means are not available.
+#'
+#' @details
+#' Distinctiveness is calculated by combining two measures:
+#' \enumerate{
+#'   \item Deviation from overall mean across all clusters
+#'   \item Deviation from average of other clusters
+#' }
+#'
+#' Variables with high distinctiveness scores are those that have notably
+#' different values in the target cluster compared to the overall population
+#' and other clusters. These are the key variables that define each cluster's
+#' unique profile.
+#'
+#' @seealso [find_overlapping_clusters()] for identifying cluster overlap
+#'
+#' @examples
+#' \dontrun{
+#' # After running GM interpretation
+#' library(mclust)
+#' gmm_model <- Mclust(scale(data), G = 3)
+#' var_info <- data.frame(variable = names(data), description = names(data))
+#' interpretation <- interpret(gmm_model, variable_info = var_info,
+#'                            llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+#'
+#' # Find distinguishing variables for each cluster
+#' analysis_data <- interpretation$analysis_data
+#' distinguishing <- find_distinguishing_variables_gm(analysis_data, top_n = 5)
+#'
+#' # View results for first cluster
+#' print(distinguishing[[1]])
+#'
+#' # Find more variables
+#' distinguishing_extended <- find_distinguishing_variables_gm(analysis_data, top_n = 10)
+#' }
+#'
 #' @export
 #' @keywords internal
 find_distinguishing_variables_gm <- function(analysis_data, top_n = 5) {

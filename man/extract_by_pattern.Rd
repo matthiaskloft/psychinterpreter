@@ -17,10 +17,26 @@ extract_by_pattern(response, analysis_type, ...)
 }}
 }
 \value{
-List with model-specific structure (e.g., \code{component_summaries} and
-\code{suggested_names}), or NULL if extraction failed
+List with model-specific structure, or NULL if extraction failed:
+\itemize{
+\item FA: list(component_summaries = character vector, suggested_names = character vector)
+\item GM: list(component_summaries = character vector, suggested_names = character vector)
+}
 }
 \description{
 Model-specific pattern-based extraction when JSON parsing fails.
+}
+\details{
+This is a fallback extraction method used when standard JSON parsing fails.
+It uses regex patterns to extract interpretations and names from unstructured
+LLM responses. Pattern extraction looks for common formats like:
+\itemize{
+\item "Factor 1:" or "Cluster 1:" followed by text
+\item Quoted names or labels
+\item Numbered lists
+}
+}
+\seealso{
+\code{\link[=validate_parsed_result]{validate_parsed_result()}} for primary parsing, \code{\link[=create_default_result]{create_default_result()}} for final fallback
 }
 \keyword{internal}

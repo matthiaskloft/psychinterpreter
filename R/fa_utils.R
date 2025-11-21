@@ -22,8 +22,8 @@ NULL
 #'
 #' @details
 #' Formatting rules:
-#' - Positive values: 0.456 → ".456"
-#' - Negative values: -0.456 → "-.456"
+#' - Positive values: 0.456 -> ".456"
+#' - Negative values: -0.456 -> "-.456"
 #' - Preserves sign and removes leading zero
 #' - Consistent decimal precision
 #'

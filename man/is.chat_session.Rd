@@ -15,3 +15,20 @@ Logical indicating if x is a chat_session object
 \description{
 Check if object is a chat_session
 }
+\examples{
+\dontrun{
+# Create a chat session
+chat <- chat_session("fa", "ollama", "gpt-oss:20b-cloud")
+
+# Check if it's a chat_session object
+is.chat_session(chat)  # TRUE
+
+# Check other objects
+is.chat_session(list())  # FALSE
+is.chat_session("text")  # FALSE
+}
+
+}
+\seealso{
+\code{\link[=chat_session]{chat_session()}} for creating chat sessions
+}

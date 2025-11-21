@@ -16,3 +16,23 @@ The chat_session object with reset conversation history
 Clears the conversation history while keeping the system prompt.
 Useful for starting fresh analyses while maintaining the same session.
 }
+\examples{
+\dontrun{
+# Create and use a chat session
+chat <- chat_session("fa", "ollama", "gpt-oss:20b-cloud")
+result1 <- interpret(fit_results = fa1, variable_info = var_info1, chat_session = chat)
+
+# Reset to clear conversation history but keep system prompt
+chat <- reset(chat)
+
+# Now use for a new analysis with fresh context
+result2 <- interpret(fit_results = fa2, variable_info = var_info2, chat_session = chat)
+
+# Check token usage (should only show new interpretation)
+print(chat)
+}
+
+}
+\seealso{
+\code{\link[=chat_session]{chat_session()}} for creating chat sessions, \code{\link[=is.chat_session]{is.chat_session()}} for checking session objects
+}

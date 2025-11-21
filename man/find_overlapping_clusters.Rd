@@ -10,9 +10,46 @@ find_overlapping_clusters(analysis_data)
 \item{analysis_data}{Standardized GM analysis data}
 }
 \value{
-List of overlapping cluster pairs or NULL
+List of overlapping cluster pairs, or NULL if no overlaps detected.
+Each list element contains:
+\itemize{
+\item cluster1: Character. Name of first cluster
+\item cluster2: Character. Name of second cluster
+\item distance: Numeric. Mahalanobis distance between clusters
+}
 }
 \description{
 Identifies clusters with significant overlap based on separation threshold.
+}
+\details{
+Clusters are considered overlapping if their Mahalanobis distance is below
+the threshold of 2.0. This indicates poor cluster separation and potential
+issues with the clustering solution.
+
+Mahalanobis distance accounts for both the distance between cluster centers
+and the covariance structure of the clusters, providing a more informative
+measure than Euclidean distance.
+}
+\examples{
+\dontrun{
+# After running GM interpretation
+library(mclust)
+gmm_model <- Mclust(scale(data), G = 3)
+var_info <- data.frame(variable = names(data), description = names(data))
+interpretation <- interpret(gmm_model, variable_info = var_info,
+                           llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud")
+
+# Check for overlapping clusters
+analysis_data <- interpretation$analysis_data
+overlaps <- find_overlapping_clusters(analysis_data)
+if (!is.null(overlaps)) {
+  print("Found overlapping cluster pairs:")
+  print(overlaps)
+}
+}
+
+}
+\seealso{
+\code{\link[=find_distinguishing_variables_gm]{find_distinguishing_variables_gm()}} for identifying key variables per cluster
 }
 \keyword{internal}

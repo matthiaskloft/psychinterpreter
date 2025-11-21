@@ -22,8 +22,8 @@ package for displaying factor loadings in prompts, reports, and diagnostics.
 \details{
 Formatting rules:
 \itemize{
-\item Positive values: 0.456 → ".456"
-\item Negative values: -0.456 → "-.456"
+\item Positive values: 0.456 -> ".456"
+\item Negative values: -0.456 -> "-.456"
 \item Preserves sign and removes leading zero
 \item Consistent decimal precision
 }

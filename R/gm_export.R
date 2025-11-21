@@ -32,7 +32,7 @@
 #' The function intelligently handles file extensions:
 #' - If you provide `file = "my_report"`, it becomes `"my_report.txt"` or `"my_report.md"`
 #' - If you provide `file = "my_report.txt"`, it stays `"my_report.txt"` for format="txt"
-#' - Directory paths are preserved: `"output/report"` → `"output/report.txt"`
+#' - Directory paths are preserved: `"output/report"` -> `"output/report.txt"`
 #'
 #' @return Invisible TRUE on success
 #'

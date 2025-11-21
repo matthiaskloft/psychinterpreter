@@ -14,11 +14,26 @@ extract_model_parameters(analysis_type, interpretation_args, ...)
 \item{...}{Additional arguments for specific implementations}
 }
 \value{
-Named list of extracted parameters
+Named list of extracted parameters. Structure depends on analysis_type:
+\itemize{
+\item FA: list(cutoff, n_emergency, hide_low_loadings, sort_loadings)
+\item GM: list(n_clusters, covariance_type, min_cluster_size, separation_threshold,
+weight_by_uncertainty, profile_variables, plot_type)
+\item Default: empty list()
+}
 }
 \description{
 S3 generic for extracting model-specific parameters from interpretation_args
 configuration objects. This allows each model type to define what parameters
 it needs without hardcoding them in core functions.
+}
+\details{
+This function uses S3 dispatch to delegate parameter extraction to model-specific
+methods. Each model type implements its own \code{extract_model_parameters.<type>()} method
+that knows which parameters to extract from interpretation_args.
+}
+\seealso{
+\code{\link[=interpretation_args]{interpretation_args()}} for creating configuration objects,
+\code{\link[=validate_model_requirements]{validate_model_requirements()}} for validating model-specific requirements
 }
 \keyword{internal}

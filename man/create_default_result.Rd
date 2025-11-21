@@ -15,10 +15,31 @@ create_default_result(analysis_type, ...)
 }}
 }
 \value{
-List with model-specific structure (e.g., \code{component_summaries} and
-\code{suggested_names}) containing generic default interpretations
+List with generic default values. Structure by model:
+\itemize{
+\item FA: list(component_summaries = "Factor \{i\} interpretation unavailable" for each factor,
+suggested_names = "Factor\{i\}" for each factor)
+\item GM: list(component_summaries = "Cluster \{i\} interpretation unavailable" for each cluster,
+suggested_names = "Cluster\{i\}" for each cluster)
+}
 }
 \description{
 Model-specific default result when all parsing methods fail.
+}
+\details{
+This is the final fallback when both JSON parsing and pattern extraction fail.
+It generates placeholder interpretations that ensure the package can still
+return a valid result object. The defaults are intentionally generic to
+signal to users that LLM interpretation was unsuccessful.
+
+Users seeing these defaults should consider:
+\itemize{
+\item Using a larger/better LLM model
+\item Checking LLM API connectivity
+\item Reviewing prompt construction (echo = "all")
+}
+}
+\seealso{
+\code{\link[=validate_parsed_result]{validate_parsed_result()}} for primary parsing, \code{\link[=extract_by_pattern]{extract_by_pattern()}} for pattern extraction
 }
 \keyword{internal}

@@ -130,8 +130,25 @@ parse_llm_response <- function(response, analysis_type, ...) {
 #' @param analysis_type Character. Model type
 #' @param ... Additional arguments for model-specific validation, including:
 #'   - \code{analysis_data}: Standardized model data (required by most implementations)
-#' @return List with model-specific structure (e.g., \code{component_summaries} and
-#'   \code{suggested_names} for FA/GM models), or NULL if validation fails
+#' @return List with model-specific structure, or NULL if validation fails. Structure by model:
+#'   \itemize{
+#'     \item FA: list(component_summaries = character vector of length n_factors,
+#'                    suggested_names = character vector of length n_factors)
+#'     \item GM: list(component_summaries = character vector of length n_clusters,
+#'                    suggested_names = character vector of length n_clusters)
+#'   }
+#'
+#' @details
+#' This function validates that parsed JSON contains all required fields with correct
+#' types and lengths. Validation checks include:
+#' \itemize{
+#'   \item Presence of required fields (component_summaries, suggested_names)
+#'   \item Correct data types (character vectors)
+#'   \item Correct lengths (matching number of components/clusters)
+#' }
+#'
+#' @seealso [extract_by_pattern()] for fallback extraction, [create_default_result()] for defaults
+#'
 #' @export
 #' @keywords internal
 validate_parsed_result <- function(parsed, analysis_type, ...) {
@@ -146,8 +163,24 @@ validate_parsed_result <- function(parsed, analysis_type, ...) {
 #' @param analysis_type Character. Model type
 #' @param ... Additional arguments for model-specific extraction, including:
 #'   - \code{analysis_data}: Standardized model data (required by most implementations)
-#' @return List with model-specific structure (e.g., \code{component_summaries} and
-#'   \code{suggested_names}), or NULL if extraction failed
+#' @return List with model-specific structure, or NULL if extraction failed:
+#'   \itemize{
+#'     \item FA: list(component_summaries = character vector, suggested_names = character vector)
+#'     \item GM: list(component_summaries = character vector, suggested_names = character vector)
+#'   }
+#'
+#' @details
+#' This is a fallback extraction method used when standard JSON parsing fails.
+#' It uses regex patterns to extract interpretations and names from unstructured
+#' LLM responses. Pattern extraction looks for common formats like:
+#' \itemize{
+#'   \item "Factor 1:" or "Cluster 1:" followed by text
+#'   \item Quoted names or labels
+#'   \item Numbered lists
+#' }
+#'
+#' @seealso [validate_parsed_result()] for primary parsing, [create_default_result()] for final fallback
+#'
 #' @export
 #' @keywords internal
 extract_by_pattern <- function(response, analysis_type, ...) {
@@ -161,8 +194,29 @@ extract_by_pattern <- function(response, analysis_type, ...) {
 #' @param analysis_type Character. Model type
 #' @param ... Additional arguments for model-specific defaults, including:
 #'   - \code{analysis_data}: Standardized model data (required by most implementations)
-#' @return List with model-specific structure (e.g., \code{component_summaries} and
-#'   \code{suggested_names}) containing generic default interpretations
+#' @return List with generic default values. Structure by model:
+#'   \itemize{
+#'     \item FA: list(component_summaries = "Factor \{i\} interpretation unavailable" for each factor,
+#'                    suggested_names = "Factor\{i\}" for each factor)
+#'     \item GM: list(component_summaries = "Cluster \{i\} interpretation unavailable" for each cluster,
+#'                    suggested_names = "Cluster\{i\}" for each cluster)
+#'   }
+#'
+#' @details
+#' This is the final fallback when both JSON parsing and pattern extraction fail.
+#' It generates placeholder interpretations that ensure the package can still
+#' return a valid result object. The defaults are intentionally generic to
+#' signal to users that LLM interpretation was unsuccessful.
+#'
+#' Users seeing these defaults should consider:
+#' \itemize{
+#'   \item Using a larger/better LLM model
+#'   \item Checking LLM API connectivity
+#'   \item Reviewing prompt construction (echo = "all")
+#' }
+#'
+#' @seealso [validate_parsed_result()] for primary parsing, [extract_by_pattern()] for pattern extraction
+#'
 #' @export
 #' @keywords internal
 create_default_result <- function(analysis_type, ...) {

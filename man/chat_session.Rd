@@ -66,7 +66,7 @@ does NOT include \code{system_prompt} tokens in the package-level cumulative
 counters (\code{total_input_tokens} / \code{total_output_tokens}).
 
 If you require a provider-specific view that includes system prompt tokens,
-call \code{chat$chat$get_tokens(include_system_prompt = TRUE)} directly — but note
+call \code{chat$chat$get_tokens(include_system_prompt = TRUE)} directly - but note
 that results may vary across providers.
 }
 \examples{

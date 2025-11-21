@@ -18,7 +18,22 @@ NULL
 #' @param interpretation_args List or config object with model parameters
 #' @param ... Additional arguments for specific implementations
 #'
-#' @return Named list of extracted parameters
+#' @return Named list of extracted parameters. Structure depends on analysis_type:
+#'   \itemize{
+#'     \item FA: list(cutoff, n_emergency, hide_low_loadings, sort_loadings)
+#'     \item GM: list(n_clusters, covariance_type, min_cluster_size, separation_threshold,
+#'                   weight_by_uncertainty, profile_variables, plot_type)
+#'     \item Default: empty list()
+#'   }
+#'
+#' @details
+#' This function uses S3 dispatch to delegate parameter extraction to model-specific
+#' methods. Each model type implements its own \code{extract_model_parameters.<type>()} method
+#' that knows which parameters to extract from interpretation_args.
+#'
+#' @seealso [interpretation_args()] for creating configuration objects,
+#'   [validate_model_requirements()] for validating model-specific requirements
+#'
 #' @export
 #' @keywords internal
 extract_model_parameters <- function(analysis_type, interpretation_args, ...) {
@@ -87,7 +102,22 @@ extract_model_parameters.fa <- function(analysis_type, interpretation_args, ...)
 #' @param analysis_type Object with model type class for S3 dispatch
 #' @param ... Model-specific data to validate (e.g., variable_info for FA)
 #'
-#' @return Invisible NULL if validation passes, errors if not
+#' @return Invisible NULL if validation passes, throws error if validation fails
+#'
+#' @details
+#' This function validates model-specific requirements before interpretation:
+#' \itemize{
+#'   \item FA: Requires variable_info data frame with 'variable' and 'description' columns
+#'   \item GM: No strict requirements (variable_info recommended but optional)
+#'   \item IRT/CDM: To be implemented
+#' }
+#'
+#' Validation failures throw informative errors via cli::cli_abort() with
+#' suggestions for fixing the issue.
+#'
+#' @seealso [extract_model_parameters()] for parameter extraction,
+#'   [interpret()] for the main interpretation function
+#'
 #' @export
 #' @keywords internal
 validate_model_requirements <- function(analysis_type, ...) {

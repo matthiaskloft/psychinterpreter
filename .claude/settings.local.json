@@ -102,7 +102,11 @@
       "WebFetch(domain:r-graph-gallery.com)",
       "Bash(do if grep -q \"\\examples{\" \"$file\")",
       "Bash(! grep -A 5 \"\\examples{\" \"$file\")",
-      "Bash(then basename \"$file\" .Rd)"
+      "Bash(then basename \"$file\" .Rd)",
+      "Bash(if [ -f \"/mnt/c/Users/Matze/Documents/GitHub/psychinterpreter.Rcheck/00check.log\" ])",
+      "Bash(then grep -E \"Status:|DONE\" /mnt/c/Users/Matze/Documents/GitHub/psychinterpreter.Rcheck/00check.log)",
+      "Bash(else echo \"Check still running or log not found\")",
+      "Bash(do Rscript -e \"r <- tools::checkRd(''''$f''''); if(length(r) > 0) cat(''''$f\\n'''')\")"
     ],
     "deny": [
       "Read(./.env*)",

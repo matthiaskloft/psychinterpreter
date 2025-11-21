@@ -54,7 +54,7 @@ The function intelligently handles file extensions:
 \itemize{
 \item If you provide \code{file = "my_report"}, it becomes \code{"my_report.txt"} or \code{"my_report.md"}
 \item If you provide \code{file = "my_report.txt"}, it stays \code{"my_report.txt"} for format="txt"
-\item Directory paths are preserved: \code{"output/report"} → \code{"output/report.txt"}
+\item Directory paths are preserved: \code{"output/report"} -> \code{"output/report.txt"}
 }
 }
 \examples{

@@ -243,7 +243,14 @@ result <- interpret(
 ```
 
 ```{r}
-plot(result, what = c("means"), plot_type = "all", orientation = "vertical", variable_order = "variance_reversed")
+plot(
+  result,
+  what = c("means"),
+  plot_type = "all",
+  centering = "variable",
+  orientation = "vertical",
+  variable_order = "variance_reversed"
+)
 ```
 
 
