@@ -19,3 +19,4 @@
 ^\.Rproj\.user/.*lock_file$
 ^\.lintr$
 ^check_output\.txt$
+^build\.log$
