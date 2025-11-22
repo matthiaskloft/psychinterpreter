@@ -81,10 +81,6 @@ head(variable_info) |> DT::datatable(options = list(scrollX = TRUE))
 ```
 
 ```{r}
-#ollamar::list_models()
-
-#show_interpret_args("fa")
-#Sys.setenv(ANTHROPIC_API_KEY = "")
 provider <- "anthropic"
 llm <- ellmer::models_anthropic()[1,"id"]
 ```

@@ -1,24 +1,24 @@
-# Factor Analysis Interpretation
+# FACTOR ANALYSIS INTERPRETATION
 
 **Number of factors:** 5  
 **Loading cutoff:** 0.3  
-**LLM used:** ollama - gpt-oss:20b-cloud  
+**LLM used:** anthropic - claude-haiku-4-5-20251001  
 **Tokens:**  
-  Input: 1780  
-  Output: 1750  
-**Elapsed time:** 13.4  
+  Input: 0  
+  Output: 0  
+**Elapsed time:** 11.7  
 
-## Suggested Factor Names
+## SUGGESTED FACTOR NAMES
 
-- **Factor 1 (9.6%):** *Negative Affect*
-- **Factor 2 (7.7%):** *Factor 2*
-- **Factor 3 (7.4%):** *Factor 3*
-- **Factor 4 (7.7%):** *Factor 4*
-- **Factor 5 (6.3%):** *Factor 5*
+- **Factor 1 (10%):** *Emotional Reactivity*
+- **Factor 2 (8.4%):** *Interpersonal Warmth*
+- **Factor 3 (8.3%):** *Social Introversion*
+- **Factor 4 (8.2%):** *Conscientiousness*
+- **Factor 5 (6.6%):** *Intellectual Engagement*
 
-**Total variance explained by all factors: 38.7%**
+**Total variance explained by all factors: 41.4%**
 
-## Factor Correlations
+## FACTOR CORRELATIONS
 
 - **ML2:** ML5 = -.03, ML1 = .23, ML3 = -.21,  
   ML4 = -.01
@@ -31,105 +31,114 @@
 - **ML4:** ML2 = -.01, ML5 = .23, ML1 = -.17,  
   ML3 = .20
 
-## Detailed Factor Interpretations
+## DETAILED FACTOR INTERPRETATIONS
 
-### Factor 1 (ML2): Negative Affect
+### Factor 1 (ML2): Emotional Reactivity
 
 **Number of significant loadings:** 5  
-**Variance explained:** 9.65%  
+**Variance explained:** 9.96%  
 **Factor Correlations:** ML5 = -.03, ML1 = .23, ML3 = -.21,    
 
 ML4 = -.01
 
 **Variables:**
 
-  1. N1, Get angry easily. (Positive, Very Strong, .852)
-  2. N2, Get irritated easily. (Positive, Very Strong, .817)
-  3. N3, Have frequent mood swings. (Positive, Strong, .665)
-  4. N5, Panic easily. (Positive, Moderate, .439)
-  5. N4, Often feel blue. (Positive, Moderate, .413)
+  1. N1-Anger_Proneness, Get angry easily. (Positive, Very Strong, .852)
+  2. N2-Irritability_Levels, Get irritated easily. (Positive, Very Strong, .817)
+  3. N3-Mood_Swing_Frequency, Have frequent mood swings. (Positive, Strong, .665)
+  4. N5-Panic_Response_Tendency, Panic easily. (Positive, Moderate, .439)
+  5. N4-Depressive_Mood_Episodes, Often feel blue. (Positive, Moderate, .413)
 
 **LLM Interpretation:**  
-ML2 is dominated by high positive loadings on N1 (.852), N2 (.817), N3 (.665), N4 (.413) and N5 (.439). These items capture rapid, intense mood disturbances – anger, irritability, mood swings, depressive feelings and panic – all hallmark features of the neuroticism dimension. The factor’s variance pattern reveals a coherent low‑level emotional regulation construct. Correlations with the other factors are modest (ranging from .23 to –.21), supporting discriminant validity. Convergent validity is strong because all high loadings belong to the same affective domain; they are consistently associated with each other and not with personality traits such as extraversion or conscientiousness. Thus, ML2 reliably measures a tendency toward negative emotional arousal and instability.
+ML2 captures emotional instability and negative affect. Anger proneness (.852) and irritability (.817) load most strongly, supported by mood swings (.665), panic responses (.439), and depressive episodes (.413). This factor measures proneness to emotional distress and dysregulation across multiple affective states. The construct reflects a general tendency toward emotional volatility independent of social engagement or conscientiousness. Notably, agreeableness variables load negatively or near-zero, indicating emotional reactivity operates orthogonally to interpersonal warmth, distinguishing it as a discrete neuroticism dimension representing trait negative emotionality.
 
-### Factor 2 (ML5): Factor 2
+### Factor 2 (ML5): Interpersonal Warmth
 
 **Number of significant loadings:** 7  
-**Variance explained:** 7.69%  
+**Variance explained:** 8.41%  
 **Factor Correlations:** ML2 = -.03, ML1 = -.31, ML3 = .20,    
 
 ML4 = .23
 
 **Variables:**
 
-  1. A3, Know how to comfort others. (Positive, Strong, .668)
-  2. A2, Inquire about others' well-being. (Positive, Strong, .603)
-  3. A5, Make people feel at ease. (Positive, Strong, .577)
-  4. A4, Love children. (Positive, Moderate, .456)
-  5. E4, Make friends easily. (Positive, Weak, .362)
-  6. A1, Am indifferent to the feelings of others. (Negative, Weak, -.360)
-  7. E3, Know how to captivate people. (Positive, Weak, .303)
+  1. A3-Comfort_Others_Effectively, Know how to comfort others. (Positive, Strong, .668)
+  2. A2-Inquire_About_Wellbeing, Inquire about others' well-being. (Positive, Strong, .603)
+  3. A5-Ease_Social_Tension, Make people feel at ease. (Positive, Strong, .577)
+  4. A4-Love_Children, Love children. (Positive, Moderate, .456)
+  5. E4-Easy_Friendship_Formation, Make friends easily. (Positive, Moderate, .362)
+  6. A1-Indifferent_To_Others, Am indifferent to the feelings of others. (Negative, Moderate, -.360)
+  7. E3-Captivate_Social_Audiences, Know how to captivate people. (Positive, Moderate, .303)
 
 **LLM Interpretation:**  
-Unable to extract from response
+ML5 represents genuine concern and social connectedness. Comfort provision (.668), inquiring about others' wellbeing (.603), and easing social tension (.577) define the core, with weaker support from affection toward children (.456) and social engagement (.362). This factor captures authentic empathy and prosocial motivation. The strong negative loading on indifference (-.360) emphasizes the construct's relational orientation. Secondary loadings on social ease variables suggest warmth facilitates friendship formation, though the factor primarily measures emotional attunement rather than assertiveness. Low correlation with emotional reactivity (-.03) establishes discriminant validity, confirming interpersonal warmth as conceptually distinct from emotional stability.
 
-### Factor 3 (ML1): Factor 3
+### Factor 3 (ML1): Social Introversion
 
 **Number of significant loadings:** 7  
-**Variance explained:** 7.36%  
+**Variance explained:** 8.28%  
 **Factor Correlations:** ML2 = .23, ML5 = -.31, ML3 = -.22,    
 
 ML4 = -.17
 
 **Variables:**
 
-  1. E2, Find it difficult to approach others. (Positive, Strong, .667)
-  2. E1, Don't talk a lot. (Positive, Strong, .565)
-  3. E4, Make friends easily. (Negative, Strong, -.527)
-  4. N4, Often feel blue. (Positive, Moderate, .420)
-  5. E5, Take charge. (Negative, Weak, -.394)
-  6. O4, Spend time reflecting on things. (Positive, Weak, .357)
-  7. E3, Know how to captivate people. (Negative, Weak, -.341)
+  1. E2-Difficulty_Approaching_Others, Find it difficult to approach others. (Positive, Strong, .667)
+  2. E1-Quiet_Communication_Style, Don't talk a lot. (Positive, Strong, .565)
+  3. E4-Easy_Friendship_Formation, Make friends easily. (Negative, Strong, -.527)
+  4. N4-Depressive_Mood_Episodes, Often feel blue. (Positive, Moderate, .420)
+  5. E5-Take_Charge_Naturally, Take charge. (Negative, Moderate, -.394)
+  6. O4-Reflective_Thinking_Time, Spend time reflecting on things. (Positive, Moderate, .357)
+  7. E3-Captivate_Social_Audiences, Know how to captivate people. (Negative, Moderate, -.341)
 
 **LLM Interpretation:**  
-Unable to extract from response
+ML1 characterizes social withdrawal and communication hesitation. Difficulty approaching others (.667) and quiet communication style (.565) form the primary structure, with strong negative loadings on social confidence: captivating audiences (-.341), friendship formation (-.527), and take-charge tendency (-.394). This factor represents introversion as communication avoidance rather than shyness-anxiety. Moderate depressive loading (.420) and reflective thinking (.357) suggest introverts may experience mood concerns and introspection. The negative correlation with warmth (-.31) indicates introverts score lower on proactive social engagement, yet the modest association permits independent variation, supporting both constructs as meaningful personality dimensions in this framework.
 
-### Factor 4 (ML3): Factor 4
+### Factor 4 (ML3): Conscientiousness
 
 **Number of significant loadings:** 5  
-**Variance explained:** 7.71%  
+**Variance explained:** 8.19%  
 **Factor Correlations:** ML2 = -.21, ML5 = .20, ML1 = -.22,    
 
 ML4 = .20
 
 **Variables:**
 
-  1. C4, Do things in a half-way manner. (Negative, Strong, -.643)
-  2. C2, Continue until everything is perfect. (Positive, Strong, .638)
-  3. C5, Waste my time. (Negative, Strong, -.570)
-  4. C3, Do things according to a plan. (Positive, Strong, .564)
-  5. C1, Am exacting in my work. (Positive, Strong, .532)
+  1. C4-Half-Hearted_Work_Effort, Do things in a half-way manner. (Negative, Strong, -.643)
+  2. C2-Perfectionist_Work_Approach, Continue until everything is perfect. (Positive, Strong, .638)
+  3. C5-Time_Wasteful_Habits, Waste my time. (Negative, Strong, -.570)
+  4. C3-Plan-Oriented_Behavior, Do things according to a plan. (Positive, Strong, .564)
+  5. C1-Exacting_Work_Standards, Am exacting in my work. (Positive, Strong, .532)
 
 **LLM Interpretation:**  
-Unable to extract from response
+ML3 robustly measures work discipline and organized behavior. Perfectionism (.638), planning orientation (.564), and exacting standards (.532) load positively, while half-hearted effort (-.643) and time wasting (-.570) load negatively, creating a coherent conscientiousness construct. This factor captures commitment to task completion and systematic approaches. The take-charge loading (.274) suggests organizational confidence accompanies conscientious behavior. Clean separation from other personality domains—near-zero loadings on agreeableness, emotional stability, and openness—provides excellent discriminant validity. Factor correlations remain weak (range -.22 to .20), confirming conscientiousness operates independently, validating its status as a fundamental personality dimension measuring dependability and self-discipline.
 
-### Factor 5 (ML4): Factor 5
+### Factor 5 (ML4): Intellectual Engagement
 
 **Number of significant loadings:** 6  
-**Variance explained:** 6.25%  
+**Variance explained:** 6.57%  
 **Factor Correlations:** ML2 = -.01, ML5 = .23, ML1 = -.17,    
 
 ML3 = .20
 
 **Variables:**
 
-  1. O3, Carry the conversation to a higher level. (Positive, Strong, .633)
-  2. O1, Am full of ideas. (Positive, Strong, .534)
-  3. O5, Will not probe deeply into a subject. (Negative, Strong, -.522)
-  4. O2, Avoid difficult reading material. (Negative, Moderate, -.441)
-  5. O4, Spend time reflecting on things. (Positive, Weak, .379)
-  6. E3, Know how to captivate people. (Positive, Weak, .315)
+  1. O3-Elevate_Conversation_Depth, Carry the conversation to a higher level. (Positive, Strong, .633)
+  2. O1-Generate_New_Ideas, Am full of ideas. (Positive, Strong, .534)
+  3. O5-Avoid_Deep_Exploration, Will not probe deeply into a subject. (Negative, Strong, -.522)
+  4. O2-Avoid_Complex_Reading, Avoid difficult reading material. (Negative, Moderate, -.441)
+  5. O4-Reflective_Thinking_Time, Spend time reflecting on things. (Positive, Moderate, .379)
+  6. E3-Captivate_Social_Audiences, Know how to captivate people. (Positive, Moderate, .315)
 
 **LLM Interpretation:**  
-Unable to extract from response
+ML4 captures cognitive curiosity and openness to complexity. Elevating conversation depth (.633) and idea generation (.534) load strongly, with reflective thinking (.379) providing support. Crucially, avoiding complex reading (-.441) and refusing deep exploration (-.522) load negatively, reinforcing the construct's intellectualism dimension. This factor measures preference for abstract thinking, analytical discussion, and intellectual challenge. Secondary loadings on social confidence (captivating audiences: .315; take-charge: .223) suggest intellectual confidence accompanies engagement. Weak correlations across other factors (range -.17 to .23) establish discriminant validity. The factor distinctly captures openness to experience, representing preference for cognitive stimulation independent of emotional, social, or motivational characteristics.
+
+## CROSS-LOADING VARIABLES
+
+Variables loading on multiple factors (>= 0.3):
+
+- **E3-Captivate_Social_Audiences**: ML5 (.303), ML1 (-.341), ML4 (.315)
+- **E4-Easy_Friendship_Formation**: ML5 (.362), ML1 (-.527)
+- **N4-Depressive_Mood_Episodes**: ML2 (.413), ML1 (.420)
+- **O4-Reflective_Thinking_Time**: ML1 (.357), ML4 (.379)
 
