@@ -18,11 +18,12 @@
 #'
 #' @param model_type Character. Model type identifier ("fa", "gm", "irt", "cdm")
 #' @param fit_results_list List. Structured list with model-specific components
+#' @param ... Additional arguments passed to model-specific methods (e.g., variable_info, interpretation_args)
 #'
 #' @return List containing extracted and validated components (model-specific structure)
 #' @export
 #' @keywords internal
-validate_list_structure <- function(model_type, fit_results_list) {
+validate_list_structure <- function(model_type, fit_results_list, ...) {
   # Create dispatch object with model_type class
   dispatch_obj <- structure(
     list(),
@@ -39,11 +40,12 @@ validate_list_structure <- function(model_type, fit_results_list) {
 #'
 #' @param model_type Dispatch object with model type class
 #' @param fit_results_list List. Structured list
+#' @param ... Additional arguments (ignored)
 #'
 #' @return Never returns - always errors
 #' @export
 #' @keywords internal
-validate_list_structure.default <- function(model_type, fit_results_list) {
+validate_list_structure.default <- function(model_type, fit_results_list, ...) {
   model_class <- class(model_type)[1]
 
   cli::cli_abort(
@@ -64,11 +66,12 @@ validate_list_structure.default <- function(model_type, fit_results_list) {
 #'
 #' @param model_type Character. Should be "fa"
 #' @param fit_results_list List. Must contain 'loadings' component
+#' @param ... Additional arguments (ignored for FA)
 #'
 #' @return List with components: loadings, factor_cor_mat
 #' @export
 #' @keywords internal
-validate_list_structure.fa <- function(model_type, fit_results_list) {
+validate_list_structure.fa <- function(model_type, fit_results_list, ...) {
   # Check that loadings is present (required)
   if (!"loadings" %in% names(fit_results_list)) {
     cli::cli_abort(
@@ -158,11 +161,11 @@ validate_list_structure.fa <- function(model_type, fit_results_list) {
 #' @export
 #' @keywords internal
 #' @seealso \code{\link{validate_list_structure.gm}} in gm_model_data.R for implementation
-validate_list_structure.gm <- function(model_type, fit_results_list) {
+validate_list_structure.gm <- function(model_type, fit_results_list, ...) {
   # Call the actual implementation from gm_model_data.R
   # Note: This is a wrapper to maintain consistency in s3_list_validation.R
   # The real implementation handles GM-specific validation
-  validate_list_structure_gm_impl(fit_results_list)
+  validate_list_structure_gm_impl(fit_results_list, ...)
 }
 
 
@@ -170,11 +173,12 @@ validate_list_structure.gm <- function(model_type, fit_results_list) {
 #'
 #' @param model_type Dispatch object with irt class
 #' @param fit_results_list List. Structured list with IRT components
+#' @param ... Additional arguments (ignored)
 #'
 #' @return Never returns - always errors with "not yet implemented" message
 #' @export
 #' @keywords internal
-validate_list_structure.irt <- function(model_type, fit_results_list) {
+validate_list_structure.irt <- function(model_type, fit_results_list, ...) {
   cli::cli_abort(
     c(
       "Item Response Theory (IRT) model interpretation is not yet implemented",
@@ -189,11 +193,12 @@ validate_list_structure.irt <- function(model_type, fit_results_list) {
 #'
 #' @param model_type Dispatch object with cdm class
 #' @param fit_results_list List. Structured list with CDM components
+#' @param ... Additional arguments (ignored)
 #'
 #' @return Never returns - always errors with "not yet implemented" message
 #' @export
 #' @keywords internal
-validate_list_structure.cdm <- function(model_type, fit_results_list) {
+validate_list_structure.cdm <- function(model_type, fit_results_list, ...) {
   cli::cli_abort(
     c(
       "Cognitive Diagnostic Model (CDM) interpretation is not yet implemented",

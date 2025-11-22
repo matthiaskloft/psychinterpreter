@@ -1,4 +1,30 @@
-# Template for {MODEL}_diagnostics.R
+# ==============================================================================
+# TEMPLATE: {MODEL}_diagnostics.R
+# ==============================================================================
+#
+# PURPOSE: Perform model-specific diagnostic checks for {MODEL} interpretation
+#
+# ARCHITECTURE: Implements Diagnostic Pattern (see dev/COMMON_ARCHITECTURE_PATTERNS.md)
+# - Section: "Diagnostic Pattern" (lines 462-510)
+# - Returns list with has_warnings, warnings, info
+# - Uses modular helper functions for each check
+#
+# PATTERN COMPLIANCE CHECKLIST:
+# [ ] Implements create_fit_summary.{model}() S3 method
+# [ ] Returns list(has_warnings, warnings, info)
+# [ ] Uses modular detect_*() helper functions
+# [ ] Formats warnings with sprintf() for clean output
+# [ ] Stores diagnostic details in info for post-processing
+#
+# SIDE-BY-SIDE COMPARISON:
+# FA: R/fa_diagnostics.R (cross-loadings, no-loadings checks)
+# GM: R/gm_diagnostics.R (overlap, small clusters, uncertainty checks)
+# Both use modular helper pattern with consistent return structure
+#
+# ==============================================================================
+# REPLACEMENT PLACEHOLDERS
+# ==============================================================================
+#
 # Replace all instances of {MODEL}, {model}, {COMPONENT}, etc. with your values
 
 #' Create fit summary for {MODEL} interpretation

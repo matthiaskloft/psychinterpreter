@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 
-**LLM-powered interpretation of factor and cluster analyses.**
+**LLM-powered interpretation of factor and cluster analyses, plus variable label generation.**
 
 
 **Disclaimer:**
@@ -32,6 +32,7 @@ Always review and validate LLM-generated interpretations.
 ## Features
 
 - 🤖 **LLM-Powered Interpretation**: Generate human-readable factor names and interpretations using state-of-the-art language models via the ['ellmer'](https://ellmer.tidyverse.org/) package
+- 🏷️ **Variable Label Generation**: Create short, descriptive labels from variable descriptions with extensive formatting options (case transformations, abbreviation, etc.)
 - 🔌 **Seamless Integration**: S3 methods for popular packages - just pass your fitted model objects directly
   - `psych::fa()` and `psych::principal()` results
   - `lavaan::cfa()`, `lavaan::sem()`, and `lavaan::efa()` results

@@ -13,8 +13,9 @@ NULL
 #'
 #' @param x An object of class "gm_interpretation"
 #' @param plot_type Character: "auto", "heatmap", "parallel", "radar", or "all"
-#' @param what Character: "means" (cluster means, default), "variances" (within-cluster SDs),
-#'   or "ratio" (between/within variance ratio for discrimination). Determines what data to visualize.
+#' @param what Character or character vector: "means" (cluster means, default), "variances" (within-cluster SDs),
+#'   or "ratio" (between/within variance ratio for discrimination). When a vector is provided (e.g., c("means", "variances")),
+#'   a faceted plot is created with panels for each data type, sharing the same variable axis labels for easy comparison.
 #' @param cutoff Numeric threshold for highlighting important values (default: 0.3)
 #' @param variables Character vector of variables to include (NULL for all)
 #' @param orientation Character: "horizontal" (variables on x-axis, default) or
@@ -23,17 +24,28 @@ NULL
 #'   "variance_reversed" by variance ascending, "mean" orders by mean value ascending,
 #'   "mean_reversed" by mean value descending, "original" preserves data order,
 #'   "original_reversed" reverses data order, "alphabetical" sorts A-Z,
-#'   "alphabetical_reversed" sorts Z-A. Cluster order is always fixed to the original model order.
+#'   "alphabetical_reversed" sorts Z-A. When `what` is a vector, variable ordering is determined
+#'   by the first value in `what` (e.g., for c("means", "variances"), ordering is based on means).
+#'   Cluster order is always fixed to the original model order.
 #' @param top_k Integer: maximum number of variables to display (default: Inf, shows all variables).
 #'   If there are more variables than this limit, only the top k most variable features (by variance) will be shown.
 #'   Applies to all plot types.
 #' @param centering Character: "none" (default, no centering), "variable" (center each variable
 #'   by its mean across clusters), or "global" (center all values by the grand mean).
 #'   Only applies when what="means". Centering helps highlight cluster differences.
+#' @param layout Character: "auto" (default), "horizontal", or "vertical". Controls how facets
+#'   are arranged when `what` is a vector. "horizontal" places facets side-by-side (1 row, multiple columns),
+#'   "vertical" stacks them (1 column, multiple rows), and "auto" uses horizontal layout (one row)
+#'   for all facet counts. Ignored if `facet_nrow` or `facet_ncol` is specified.
+#' @param facet_nrow Integer: Number of rows for facet layout (default: NULL). When specified, overrides
+#'   the `layout` parameter. Only applies when `what` is a vector.
+#' @param facet_ncol Integer: Number of columns for facet layout (default: NULL). When specified, overrides
+#'   the `layout` parameter. Only applies when `what` is a vector.
 #' @param ... Additional arguments passed to specific plot functions
 #'
-#' @return For heatmap/parallel: a ggplot2 object. For radar: a recordedplot object
-#'   (base R graphics). For plot_type="all": a list containing all three plot types.
+#' @return For single `what` value: a ggplot2 object (heatmap/parallel) or recordedplot object (radar).
+#'   For multiple `what` values: a faceted ggplot2 object with panels for each data type.
+#'   For plot_type="all": a list containing all three plot types.
 #' @export
 #'
 #' @examples
@@ -67,6 +79,21 @@ NULL
 #'
 #' # Focus on specific variables
 #' plot(gm_interpretation, variables = c("var1", "var2", "var3"))
+#'
+#' # Multiple what values with faceting (shares variable axis labels)
+#' plot(gm_interpretation, what = c("means", "variances"))  # Horizontal facets (side-by-side)
+#' plot(gm_interpretation, what = c("means", "variances", "ratio"), layout = "vertical")
+#'
+#' # Custom facet layout with nrow/ncol
+#' plot(gm_interpretation, what = c("means", "variances", "ratio"), facet_nrow = 1)  # Force 1 row
+#' plot(gm_interpretation, what = c("means", "variances", "ratio"), facet_ncol = 1)  # Force 1 column
+#' plot(gm_interpretation, what = c("means", "variances", "ratio", "ratio"), facet_nrow = 2)
+#'
+#' # Note: When what is a vector, variable ordering is based on the first type
+#' # For example, this orders by variance in the means:
+#' plot(gm_interpretation, what = c("means", "variances"), variable_order = "variance")
+#' # This orders by variance in the variances (swap order):
+#' plot(gm_interpretation, what = c("variances", "means"), variable_order = "variance")
 #' }
 plot.gm_interpretation <- function(
     x,
@@ -78,6 +105,9 @@ plot.gm_interpretation <- function(
     variable_order = "variance",
     top_k = Inf,
     centering = "none",
+    layout = "auto",
+    facet_nrow = NULL,
+    facet_ncol = NULL,
     ...) {
 
   # Extract analysis data
@@ -133,9 +163,10 @@ plot.gm_interpretation <- function(
     cli::cli_abort("orientation must be 'horizontal' or 'vertical'")
   }
 
-  # Validate what parameter
-  if (!what %in% c("means", "variances", "ratio")) {
-    cli::cli_abort("{.arg what} must be 'means', 'variances', or 'ratio', not {.val {what}}")
+  # Validate what parameter - can be a vector for multiple plots
+  if (!all(what %in% c("means", "variances", "ratio"))) {
+    invalid_vals <- what[!what %in% c("means", "variances", "ratio")]
+    cli::cli_abort("{.arg what} contains invalid value(s): {.val {invalid_vals}}. Must be 'means', 'variances', or 'ratio'")
   }
 
   # Validate centering parameter
@@ -143,9 +174,46 @@ plot.gm_interpretation <- function(
     cli::cli_abort("{.arg centering} must be 'none', 'variable', or 'global', not {.val {centering}}")
   }
 
-  # Validate that centering only applies to means
-  if (centering != "none" && what != "means") {
-    cli::cli_abort("{.arg centering} only applies when {.arg what} is 'means', not '{what}'")
+  # Validate layout parameter
+  if (!layout %in% c("auto", "horizontal", "vertical")) {
+    cli::cli_abort("{.arg layout} must be 'auto', 'horizontal', or 'vertical', not {.val {layout}}")
+  }
+
+  # Handle vector what parameter - create faceted plots
+  if (length(what) > 1) {
+    # Radar plots cannot be faceted
+    if (plot_type == "radar") {
+      cli::cli_abort("Radar plots cannot be faceted. Use plot_type = 'heatmap' or 'parallel', or provide a single value for {.arg what}.")
+    }
+
+    # plot_type="all" doesn't make sense with vector what
+    if (plot_type == "all") {
+      cli::cli_abort("{.arg plot_type} = 'all' cannot be combined with vector {.arg what}. Use a single plot type.")
+    }
+
+    # Inform user about centering for non-means plots
+    non_means <- what[what != "means"]
+    if (centering != "none" && length(non_means) > 0) {
+      cli::cli_inform("{.arg centering} only applies to 'means' plots, ignoring for: {.val {non_means}}")
+    }
+
+    # Determine which plot type to use
+    if (plot_type == "heatmap" || (plot_type %in% c("auto", NULL) && analysis_data$n_variables > 20)) {
+      return(create_heatmap_gm_faceted(analysis_data = analysis_data, what = what, cutoff = cutoff,
+                                        orientation = orientation, variable_order = variable_order,
+                                        top_k = top_k, centering = centering, layout = layout,
+                                        facet_nrow = facet_nrow, facet_ncol = facet_ncol, ...))
+    } else if (plot_type == "parallel" || (plot_type %in% c("auto", NULL) && analysis_data$n_variables <= 20)) {
+      return(create_parallel_plot_gm_faceted(analysis_data = analysis_data, what = what, cutoff = cutoff,
+                                              orientation = orientation, variable_order = variable_order,
+                                              top_k = top_k, centering = centering, layout = layout,
+                                              facet_nrow = facet_nrow, facet_ncol = facet_ncol, ...))
+    }
+  }
+
+  # Single what value - inform user about centering for non-means plots
+  if (length(what) == 1 && centering != "none" && what != "means") {
+    cli::cli_inform("{.arg centering} only applies when {.arg what} is 'means', ignoring for '{what}'")
   }
 
   # Create appropriate plot(s)
@@ -187,9 +255,9 @@ plot.gm_interpretation <- function(
 #' @return ggplot2 object
 #' @keywords internal
 create_heatmap_gm <- function(analysis_data, what = "means", cutoff = 0.3, orientation = "horizontal", variable_order = "variance", top_k = Inf, centering = "none", title = NULL) {
-  # Validate what parameter
-  if (!what %in% c("means", "variances", "ratio")) {
-    cli::cli_abort("{.arg what} must be 'means', 'variances', or 'ratio', not {.val {what}}")
+  # Validate what parameter (must be single value for this internal function)
+  if (length(what) != 1 || !what %in% c("means", "variances", "ratio")) {
+    cli::cli_abort("{.arg what} must be a single value: 'means', 'variances', or 'ratio', not {.val {what}}")
   }
 
   # Extract appropriate data matrix based on what parameter
@@ -396,9 +464,9 @@ create_heatmap_gm <- function(analysis_data, what = "means", cutoff = 0.3, orien
 #' @keywords internal
 create_parallel_plot_gm <- function(analysis_data, what = "means", cutoff = 0.3, orientation = "horizontal",
                                      variable_order = "variance", top_k = Inf, centering = "none", title = NULL) {
-  # Validate what parameter
-  if (!what %in% c("means", "variances", "ratio")) {
-    cli::cli_abort("{.arg what} must be 'means', 'variances', or 'ratio', not {.val {what}}")
+  # Validate what parameter (must be single value for this internal function)
+  if (length(what) != 1 || !what %in% c("means", "variances", "ratio")) {
+    cli::cli_abort("{.arg what} must be a single value: 'means', 'variances', or 'ratio', not {.val {what}}")
   }
 
   # Extract appropriate data matrix based on what parameter
@@ -614,9 +682,9 @@ create_radar_plot_gm <- function(analysis_data, what = "means", cutoff = 0.3, va
     cli::cli_abort("Package {.pkg fmsb} is required for radar plots. Install it with: install.packages('fmsb')")
   }
 
-  # Validate what parameter
-  if (!what %in% c("means", "variances", "ratio")) {
-    cli::cli_abort("{.arg what} must be 'means', 'variances', or 'ratio', not {.val {what}}")
+  # Validate what parameter (must be single value for this internal function)
+  if (length(what) != 1 || !what %in% c("means", "variances", "ratio")) {
+    cli::cli_abort("{.arg what} must be a single value: 'means', 'variances', or 'ratio', not {.val {what}}")
   }
 
   # Extract appropriate data matrix based on what parameter
@@ -763,6 +831,369 @@ create_radar_plot_gm <- function(analysis_data, what = "means", cutoff = 0.3, va
 
   # Record and return the plot
   p <- grDevices::recordPlot()
+  return(p)
+}
+
+#' Create Faceted Parallel Plot for Multiple What Values
+#'
+#' Creates a parallel coordinates plot with facets for different data types (means, variances, ratio).
+#'
+#' @param analysis_data Standardized GM analysis data
+#' @param what Character vector: values from c("means", "variances", "ratio")
+#' @param cutoff Threshold for highlighting
+#' @param orientation Character: "horizontal" or "vertical"
+#' @param variable_order Character: variable ordering method
+#' @param top_k Integer: maximum number of variables to display
+#' @param centering Character: centering method (only for means)
+#' @param layout Character: "auto", "horizontal", or "vertical" for facet layout
+#' @param title Plot title (optional)
+#' @return ggplot2 object with facets
+#' @keywords internal
+create_parallel_plot_gm_faceted <- function(analysis_data, what, cutoff = 0.3, orientation = "horizontal",
+                                             variable_order = "variance", top_k = Inf, centering = "none",
+                                             layout = "auto", facet_nrow = NULL, facet_ncol = NULL, title = NULL) {
+  # Combine data from all what values
+  data_list <- lapply(what, function(w) {
+    # Extract appropriate data matrix
+    if (w == "means") {
+      data_matrix <- analysis_data$means
+      if (centering != "none") {
+        data_matrix <- apply_centering(data_matrix, centering)
+      }
+    } else if (w == "variances") {
+      data_matrix <- extract_variance_matrix(analysis_data)
+    } else {  # w == "ratio"
+      data_matrix <- extract_variance_ratio_matrix(analysis_data)
+    }
+
+    # Limit to top k variables if needed
+    if (analysis_data$n_variables > top_k) {
+      var_variances <- apply(data_matrix, 1, var)
+      top_var_idx <- order(var_variances, decreasing = TRUE)[1:top_k]
+      data_matrix <- data_matrix[top_var_idx, , drop = FALSE]
+      var_names <- analysis_data$variable_names[top_var_idx]
+    } else {
+      var_names <- analysis_data$variable_names
+    }
+
+    # Prepare data
+    data_df <- as.data.frame(t(data_matrix))
+    colnames(data_df) <- var_names
+    data_df$Cluster <- factor(analysis_data$cluster_names, levels = analysis_data$cluster_names)
+
+    # Add cluster size information
+    if (!is.null(analysis_data$proportions)) {
+      data_df$Size <- analysis_data$proportions
+    } else {
+      data_df$Size <- 1 / analysis_data$n_clusters
+    }
+
+    # Reshape to long format
+    plot_data <- tidyr::pivot_longer(
+      data_df,
+      cols = -c(Cluster, Size),
+      names_to = "Variable",
+      values_to = "Value"
+    )
+
+    # Add what type
+    plot_data$Type <- w
+
+    return(plot_data)
+  })
+
+  # Combine all data
+  combined_data <- do.call(rbind, data_list)
+
+  # Apply variable ordering (using first 'what' type for ordering)
+  if (variable_order != "original") {
+    first_type_data <- combined_data[combined_data$Type == what[1], ]
+    if (variable_order == "variance") {
+      var_importance <- aggregate(Value ~ Variable, first_type_data, var)
+      var_levels <- var_importance$Variable[order(var_importance[[2]], decreasing = TRUE)]
+    } else if (variable_order == "variance_reversed") {
+      var_importance <- aggregate(Value ~ Variable, first_type_data, var)
+      var_levels <- var_importance$Variable[order(var_importance[[2]], decreasing = FALSE)]
+    } else if (variable_order == "mean") {
+      var_means <- aggregate(Value ~ Variable, first_type_data, mean)
+      var_levels <- var_means$Variable[order(var_means[[2]], decreasing = FALSE)]
+    } else if (variable_order == "mean_reversed") {
+      var_means <- aggregate(Value ~ Variable, first_type_data, mean)
+      var_levels <- var_means$Variable[order(var_means[[2]], decreasing = TRUE)]
+    } else if (variable_order == "alphabetical") {
+      var_levels <- sort(unique(combined_data$Variable))
+    } else if (variable_order == "alphabetical_reversed") {
+      var_levels <- sort(unique(combined_data$Variable), decreasing = TRUE)
+    } else {  # "original_reversed"
+      var_levels <- rev(unique(combined_data$Variable))
+    }
+    combined_data$Variable <- factor(combined_data$Variable, levels = var_levels)
+  }
+
+  # Create facet labels
+  type_labels <- c(
+    "means" = "Cluster Means",
+    "variances" = "Within-Cluster SD",
+    "ratio" = "Discrimination Ratio"
+  )
+  combined_data$Type <- factor(combined_data$Type, levels = what, labels = type_labels[what])
+
+  # Determine facet layout
+  if (layout == "auto") {
+    facet_layout <- "horizontal"  # Always horizontal (one row) for auto
+  } else {
+    facet_layout <- layout
+  }
+
+  # Set up axes based on orientation
+  if (orientation == "horizontal") {
+    aes_mapping <- ggplot2::aes(x = Variable, y = Value, group = Cluster, color = Cluster)
+    x_angle <- 45
+  } else {
+    # Sort data for proper line connections in vertical orientation
+    combined_data <- combined_data[order(combined_data$Cluster, combined_data$Variable), ]
+    aes_mapping <- ggplot2::aes(x = Value, y = Variable, group = Cluster, color = Cluster)
+    x_angle <- 0
+  }
+
+  # Create parallel coordinates plot with facets
+  if (orientation == "vertical") {
+    line_layer <- ggplot2::geom_path(ggplot2::aes(linewidth = Size), alpha = 0.7)
+  } else {
+    line_layer <- ggplot2::geom_line(ggplot2::aes(linewidth = Size), alpha = 0.7)
+  }
+
+  p <- ggplot2::ggplot(combined_data, aes_mapping) +
+    line_layer +
+    ggplot2::geom_point(size = 2) +
+    ggplot2::scale_color_manual(
+      values = psychinterpreter_colors("categorical")[1:analysis_data$n_clusters]
+    ) +
+    ggplot2::scale_linewidth_continuous(
+      range = c(0.5, 2),
+      guide = "none"
+    ) +
+    theme_psychinterpreter() +
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_text(angle = x_angle, hjust = 1),
+      legend.position = "right"
+    ) +
+    ggplot2::labs(
+      title = title %||% "Cluster Profiles: Parallel Coordinates (Faceted)",
+      subtitle = paste0("Line thickness represents cluster size"),
+      x = if (orientation == "horizontal") "Variable" else "Value",
+      y = if (orientation == "horizontal") "Value" else "Variable"
+    )
+
+  # Add facets with appropriate scale freedom based on orientation
+  if (orientation == "horizontal") {
+    # Variables on x-axis: keep x fixed (shared variable labels), free y (different value scales)
+    scales_setting <- "free_y"
+  } else {
+    # Variables on y-axis: keep y fixed (shared variable labels), free x (different value scales)
+    scales_setting <- "free_x"
+  }
+
+  # Apply faceting with user-specified nrow/ncol if provided
+  if (!is.null(facet_nrow) || !is.null(facet_ncol)) {
+    # User explicitly specified nrow or ncol - use those
+    p <- p + ggplot2::facet_wrap(~Type, nrow = facet_nrow, ncol = facet_ncol, scales = scales_setting)
+  } else {
+    # Use layout parameter to determine nrow/ncol
+    if (facet_layout == "horizontal") {
+      p <- p + ggplot2::facet_wrap(~Type, nrow = 1, scales = scales_setting)
+    } else {
+      p <- p + ggplot2::facet_wrap(~Type, ncol = 1, scales = scales_setting)
+    }
+  }
+
+  return(p)
+}
+
+#' Create Faceted Heatmap for Multiple What Values
+#'
+#' Creates a heatmap with facets for different data types (means, variances, ratio).
+#'
+#' @param analysis_data Standardized GM analysis data
+#' @param what Character vector: values from c("means", "variances", "ratio")
+#' @param cutoff Threshold for highlighting
+#' @param orientation Character: "horizontal" or "vertical"
+#' @param variable_order Character: variable ordering method
+#' @param top_k Integer: maximum number of variables to display
+#' @param centering Character: centering method (only for means)
+#' @param layout Character: "auto", "horizontal", or "vertical" for facet layout
+#' @param title Plot title (optional)
+#' @return ggplot2 object with facets
+#' @keywords internal
+create_heatmap_gm_faceted <- function(analysis_data, what, cutoff = 0.3, orientation = "horizontal",
+                                       variable_order = "variance", top_k = Inf, centering = "none",
+                                       layout = "auto", facet_nrow = NULL, facet_ncol = NULL, title = NULL) {
+  # Combine data from all what values
+  data_list <- lapply(what, function(w) {
+    # Extract appropriate data matrix
+    if (w == "means") {
+      data_matrix <- analysis_data$means
+      if (centering != "none") {
+        data_matrix <- apply_centering(data_matrix, centering)
+      }
+    } else if (w == "variances") {
+      data_matrix <- extract_variance_matrix(analysis_data)
+    } else {  # w == "ratio"
+      data_matrix <- extract_variance_ratio_matrix(analysis_data)
+    }
+
+    # Limit to top k variables if needed
+    if (analysis_data$n_variables > top_k) {
+      var_variances <- apply(data_matrix, 1, var)
+      top_var_idx <- order(var_variances, decreasing = TRUE)[1:top_k]
+      data_matrix <- data_matrix[top_var_idx, , drop = FALSE]
+      var_names <- analysis_data$variable_names[top_var_idx]
+    } else {
+      var_names <- analysis_data$variable_names
+    }
+
+    # Prepare data for plotting
+    plot_df <- as.data.frame(data_matrix)
+    colnames(plot_df) <- analysis_data$cluster_names
+    plot_df$Variable <- var_names
+
+    # Reshape to long format
+    plot_data <- tidyr::pivot_longer(
+      plot_df,
+      cols = -Variable,
+      names_to = "Cluster",
+      values_to = "Value"
+    )
+
+    # Preserve cluster order
+    plot_data$Cluster <- factor(plot_data$Cluster, levels = analysis_data$cluster_names)
+
+    # Add what type
+    plot_data$Type <- w
+
+    return(plot_data)
+  })
+
+  # Combine all data
+  combined_data <- do.call(rbind, data_list)
+
+  # Apply variable ordering (using first what type for ordering)
+  if (variable_order != "original") {
+    first_type_data <- combined_data[combined_data$Type == what[1], ]
+    if (variable_order == "variance") {
+      var_importance <- aggregate(Value ~ Variable, first_type_data, var)
+      var_levels <- var_importance$Variable[order(var_importance[[2]], decreasing = TRUE)]
+    } else if (variable_order == "variance_reversed") {
+      var_importance <- aggregate(Value ~ Variable, first_type_data, var)
+      var_levels <- var_importance$Variable[order(var_importance[[2]], decreasing = FALSE)]
+    } else if (variable_order == "mean") {
+      var_means <- aggregate(Value ~ Variable, first_type_data, mean)
+      var_levels <- var_means$Variable[order(var_means[[2]], decreasing = FALSE)]
+    } else if (variable_order == "mean_reversed") {
+      var_means <- aggregate(Value ~ Variable, first_type_data, mean)
+      var_levels <- var_means$Variable[order(var_means[[2]], decreasing = TRUE)]
+    } else if (variable_order == "alphabetical") {
+      var_levels <- sort(unique(combined_data$Variable))
+    } else if (variable_order == "alphabetical_reversed") {
+      var_levels <- sort(unique(combined_data$Variable), decreasing = TRUE)
+    } else {  # "original_reversed"
+      var_levels <- rev(unique(combined_data$Variable))
+    }
+    combined_data$Variable <- factor(combined_data$Variable, levels = var_levels)
+  }
+
+  # Create facet labels
+  type_labels <- c(
+    "means" = "Cluster Means",
+    "variances" = "Within-Cluster SD",
+    "ratio" = "Discrimination Ratio"
+  )
+  combined_data$Type <- factor(combined_data$Type, levels = what, labels = type_labels[what])
+
+  # Apply cutoff and determine significance
+  combined_data$Significant <- sapply(1:nrow(combined_data), function(i) {
+    if (combined_data$Type[i] == type_labels["means"]) {
+      abs(combined_data$Value[i]) >= cutoff
+    } else {
+      combined_data$Value[i] >= cutoff
+    }
+  })
+
+  # Determine facet layout
+  if (layout == "auto") {
+    facet_layout <- "horizontal"  # Always horizontal (one row) for auto
+  } else {
+    facet_layout <- layout
+  }
+
+  # Set up axes based on orientation
+  if (orientation == "horizontal") {
+    x_var <- "Variable"
+    y_var <- "Cluster"
+    x_angle <- 45
+  } else {
+    x_var <- "Cluster"
+    y_var <- "Variable"
+    x_angle <- 45
+  }
+
+  # Create heatmap with facets - use free scales for each facet
+  p <- ggplot2::ggplot(
+    combined_data,
+    ggplot2::aes(x = .data[[x_var]], y = .data[[y_var]], fill = Value)
+  ) +
+    ggplot2::geom_tile(color = "white", linewidth = 0.5) +
+    ggplot2::scale_fill_gradient2(
+      low = psychinterpreter_colors("diverging")[1],
+      mid = "white",
+      high = psychinterpreter_colors("diverging")[3],
+      midpoint = 0,
+      name = "Value"
+    ) +
+    theme_psychinterpreter() +
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_text(angle = x_angle, hjust = 1),
+      panel.grid = ggplot2::element_blank()
+    ) +
+    ggplot2::labs(
+      title = title %||% "Cluster Profiles: Heatmap (Faceted)",
+      subtitle = paste0("Gaussian Mixture Model with ", analysis_data$n_clusters, " clusters"),
+      x = if (orientation == "horizontal") "Variable" else "Cluster",
+      y = if (orientation == "horizontal") "Cluster" else "Variable"
+    )
+
+  # Add facets with appropriate scale freedom based on orientation
+  if (orientation == "horizontal") {
+    # Variables on x-axis: keep x fixed (shared variable labels), free y (different value scales)
+    scales_setting <- "free_y"
+  } else {
+    # Variables on y-axis: keep y fixed (shared variable labels), free x (different value scales)
+    scales_setting <- "free_x"
+  }
+
+  # Apply faceting with user-specified nrow/ncol if provided
+  if (!is.null(facet_nrow) || !is.null(facet_ncol)) {
+    # User explicitly specified nrow or ncol - use those
+    p <- p + ggplot2::facet_wrap(~Type, nrow = facet_nrow, ncol = facet_ncol, scales = scales_setting)
+  } else {
+    # Use layout parameter to determine nrow/ncol
+    if (facet_layout == "horizontal") {
+      p <- p + ggplot2::facet_wrap(~Type, nrow = 1, scales = scales_setting)
+    } else {
+      p <- p + ggplot2::facet_wrap(~Type, ncol = 1, scales = scales_setting)
+    }
+  }
+
+  # Add text for significant values
+  if (any(combined_data$Significant)) {
+    p <- p + ggplot2::geom_text(
+      data = combined_data[combined_data$Significant, ],
+      ggplot2::aes(label = round(Value, 2)),
+      color = "black",
+      size = 3
+    )
+  }
+
   return(p)
 }
 

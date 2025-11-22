@@ -4,12 +4,14 @@
 \alias{validate_list_structure.default}
 \title{Default Method for validate_list_structure}
 \usage{
-\method{validate_list_structure}{default}(model_type, fit_results_list)
+\method{validate_list_structure}{default}(model_type, fit_results_list, ...)
 }
 \arguments{
 \item{model_type}{Dispatch object with model type class}
 
 \item{fit_results_list}{List. Structured list}
+
+\item{...}{Additional arguments (ignored)}
 }
 \value{
 Never returns - always errors

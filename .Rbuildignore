@@ -20,3 +20,9 @@
 ^\.lintr$
 ^check_output\.txt$
 ^build\.log$
+^\.Renviron$
+^\.gitattributes$
+^\.\.Rcheck$
+^Rplots\.pdf$
+^test_.*\.png$
+^\.gitignore$

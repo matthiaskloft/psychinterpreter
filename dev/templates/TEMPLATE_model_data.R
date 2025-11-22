@@ -1,22 +1,57 @@
-# Template for {MODEL}_model_data.R
+# ==============================================================================
+# TEMPLATE: {MODEL}_model_data.R
+# ==============================================================================
+#
+# PURPOSE: Extract and validate data from fitted {MODEL} objects
+#
+# ARCHITECTURE: Implements Data Structure Pattern (see dev/COMMON_ARCHITECTURE_PATTERNS.md)
+# - Section: "Data Structure Pattern" (lines 88-156)
+# - Section: "Parameter Extraction Pattern" (lines 158-193)
+# - Section: "S3 Method Dispatch Pattern" (lines 36-86)
+#
+# PATTERN COMPLIANCE CHECKLIST:
+# [ ] Implements build_analysis_data.{CLASS}() S3 method
+# [ ] Implements build_{model}_analysis_data_internal() helper
+# [ ] Returns standardized analysis_data structure with 5 universal fields
+# [ ] Uses triple-tier parameter extraction pattern
+# [ ] Integrates with model dispatch table
+# [ ] Validates via parameter registry
+#
+# ==============================================================================
+# REPLACEMENT PLACEHOLDERS
+# ==============================================================================
+#
 # Replace all instances of {MODEL}, {model}, {CLASS}, {PARAM1}, etc. with your values
 #
 # ==============================================================================
 # EXAMPLE REPLACEMENTS BY MODEL TYPE
 # ==============================================================================
 #
-# Gaussian Mixture (GM):
+# Gaussian Mixture (GM) - Reference Implementation:
 #   {MODEL} -> Gaussian Mixture
 #   {model} -> gm
 #   {CLASS} -> Mclust
 #   {PACKAGE} -> mclust
-#   {PARAM1} -> covariance_type
-#   {PARAM2} -> n_clusters
+#   {PARAM1} -> min_cluster_size
+#   {PARAM2} -> separation_threshold
 #   {DATA_FIELD1} -> means
 #   {DATA_FIELD2} -> covariances
 #   {COMPONENTS} -> clusters
+#   See: R/gm_model_data.R for full implementation
 #
-# Item Response Theory (IRT):
+# Factor Analysis (FA) - Reference Implementation:
+#   {MODEL} -> Factor Analysis
+#   {model} -> fa
+#   {CLASS} -> psych
+#   {PACKAGE} -> psych
+#   {PARAM1} -> cutoff
+#   {PARAM2} -> n_emergency
+#   {DATA_FIELD1} -> loadings_df
+#   {DATA_FIELD2} -> factor_summaries
+#   {COMPONENTS} -> factors
+#   See: R/fa_model_data.R for full implementation
+#
+# Item Response Theory (IRT) - To Be Implemented:
 #   {MODEL} -> Item Response Theory
 #   {model} -> irt
 #   {CLASS} -> SingleGroupClass
@@ -27,7 +62,7 @@
 #   {DATA_FIELD2} -> ability_estimates
 #   {COMPONENTS} -> items
 #
-# Cognitive Diagnosis Models (CDM):
+# Cognitive Diagnosis Models (CDM) - To Be Implemented:
 #   {MODEL} -> Cognitive Diagnosis Model
 #   {model} -> cdm
 #   {CLASS} -> gdina
@@ -212,48 +247,61 @@ build_{model}_analysis_data_internal <- function(fit_results,
   # STEP 1: Extract model-specific parameters using parameter registry
   # ============================================================================
   #
-  # ARCHITECTURE NOTE: Parameter Registry System
-  # ---------------------------------------------
-  # The parameter registry (R/aaa_param_registry.R) provides centralized
-  # parameter definitions, defaults, and validation. This replaces manual
-  # validation scattered across files.
+  # ARCHITECTURE PATTERN: Triple-Tier Parameter Extraction
+  # (see dev/COMMON_ARCHITECTURE_PATTERNS.md - "Parameter Extraction Pattern")
   #
-  # Benefits:
-  # - Single source of truth for all parameter definitions
-  # - Consistent validation across the package
-  # - Easy to add new parameters or change defaults
-  # - Automatic validation via validate_params()
-  # - Integration with configuration objects (interpretation_args, llm_args, etc.)
+  # This pattern is IDENTICAL across FA and GM implementations:
+  # 1. Check interpretation_args (highest priority - user configuration object)
+  # 2. Fall back to ... (dots - direct parameter passing)
+  # 3. Fall back to get_param_default() (package defaults from registry)
   #
-  # Integration:
-  # - get_param_default("param_name") - Get default value from registry
-  # - validate_params(param_list) - Validate multiple parameters at once
-  # - interpretation_args() - Auto-populated from registry defaults
+  # WHY THIS PATTERN?
+  # - Allows users to pass parameters three different ways (flexibility)
+  # - Configuration objects enable reusable settings across analyses
+  # - Direct parameters enable quick one-off overrides
+  # - Registry defaults ensure consistent behavior when nothing specified
   #
-  # See R/core_parameter_registry.R for parameter registration
-  # See R/shared_config.R for configuration object builders
+  # SIDE-BY-SIDE COMPARISON:
   #
-  # Pattern from fa_model_data.R:26-48
+  # FA Example (R/fa_model_data.R:26-40):
+  #   cutoff <- if (!is.null(interpretation_args) && is.list(interpretation_args)) {
+  #     interpretation_args$cutoff
+  #   } else {
+  #     dots$cutoff
+  #   }
+  #   if (is.null(cutoff)) cutoff <- get_param_default("cutoff")  # Default: 0.3
+  #
+  # GM Example (R/gm_model_data.R:49-54):
+  #   min_cluster_size <- if (!is.null(interpretation_args) && is.list(interpretation_args)) {
+  #     interpretation_args$min_cluster_size
+  #   } else {
+  #     dots$min_cluster_size
+  #   }
+  #   if (is.null(min_cluster_size)) min_cluster_size <- get_param_default("min_cluster_size")  # Default: 5
+  #
+  # NOTE: The code structure is IDENTICAL - only parameter names differ!
 
   dots <- list(...)
 
-  # Extract from interpretation_args if provided
+  # TRIPLE-TIER EXTRACTION: Parameter 1
   {PARAM1} <- if (!is.null(interpretation_args) && is.list(interpretation_args)) {
-    interpretation_args${PARAM1}
+    interpretation_args${PARAM1}  # Tier 1: Configuration object
   } else {
-    dots${PARAM1}
+    dots${PARAM1}  # Tier 2: Direct parameter
   }
-  if (is.null({PARAM1})) {PARAM1} <- get_param_default("{PARAM1}")
+  if (is.null({PARAM1})) {PARAM1} <- get_param_default("{PARAM1}")  # Tier 3: Registry default
 
+  # TRIPLE-TIER EXTRACTION: Parameter 2
   {PARAM2} <- if (!is.null(interpretation_args) && is.list(interpretation_args)) {
-    interpretation_args${PARAM2}
+    interpretation_args${PARAM2}  # Tier 1: Configuration object
   } else {
-    dots${PARAM2}
+    dots${PARAM2}  # Tier 2: Direct parameter
   }
-  if (is.null({PARAM2})) {PARAM2} <- get_param_default("{PARAM2}")
+  if (is.null({PARAM2})) {PARAM2} <- get_param_default("{PARAM2}")  # Tier 3: Registry default
 
-  # TODO: Add additional parameter extractions as needed
-  # Follow the pattern: check interpretation_args first, then dots, then get_param_default()
+  # TODO: Add additional parameters following the EXACT same pattern
+  # IMPORTANT: All model-specific parameters MUST use this triple-tier pattern
+  # for consistency with FA and GM implementations
 
 
   # ============================================================================
@@ -411,22 +459,84 @@ build_{model}_analysis_data_internal <- function(fit_results,
   # ============================================================================
   # STEP 6: Return standardized structure
   # ============================================================================
-
-  # Pattern from fa_model_data.R:255-265
+  #
+  # ARCHITECTURE PATTERN: Standardized analysis_data Structure
+  # (see dev/COMMON_ARCHITECTURE_PATTERNS.md - "Data Structure Pattern")
+  #
+  # CRITICAL: The first 5 fields MUST be present in ALL models:
+  # 1. analysis_type  - Model type identifier ("fa", "gm", "irt", "cdm")
+  # 2. n_components   - Number of factors/clusters/items/attributes
+  # 3. n_variables    - Number of variables
+  # 4. variable_names - Character vector of variable names
+  # 5. component_names - Character vector of component names (Factor_1, Cluster_1, etc.)
+  #
+  # WHY THIS PATTERN?
+  # - Enables generic functions to work across all model types
+  # - S3 dispatch uses these fields for validation and formatting
+  # - Prompt builders rely on consistent metadata
+  # - Report generators expect these fields
+  #
+  # SIDE-BY-SIDE COMPARISON:
+  #
+  # FA Structure (R/fa_model_data.R:293-304):
+  #   list(
+  #     analysis_type = "fa",                    # 1. UNIVERSAL
+  #     loadings_df = loadings_df,               # Model-specific data
+  #     factor_summaries = factor_summaries,     # Model-specific data
+  #     factor_cols = factor_cols,               # Component names (Factor_1, Factor_2, ...)
+  #     n_factors = n_factors,                   # 2. UNIVERSAL (n_components)
+  #     n_variables = n_variables,               # 3. UNIVERSAL
+  #     factor_cor_mat = factor_cor_mat,         # Model-specific data (optional)
+  #     cutoff = cutoff,                         # Model-specific parameter
+  #     n_emergency = n_emergency,               # Model-specific parameter
+  #     hide_low_loadings = hide_low_loadings    # Model-specific parameter
+  #   )
+  #
+  # GM Structure (R/gm_model_data.R:125-151):
+  #   list(
+  #     means = means,                           # Model-specific data
+  #     covariances = covariances,               # Model-specific data
+  #     proportions = proportions,               # Model-specific data
+  #     memberships = memberships,               # Model-specific data
+  #     classification = classification,         # Model-specific data (optional)
+  #     uncertainty = uncertainty,               # Model-specific data (optional)
+  #     covariance_type = covariance_type,       # Model-specific metadata
+  #     n_clusters = n_clusters,                 # 2. UNIVERSAL (n_components)
+  #     n_variables = n_variables,               # 3. UNIVERSAL
+  #     n_observations = n_observations,         # Model-specific metadata
+  #     analysis_type = "gm",                    # 1. UNIVERSAL
+  #     variable_names = variable_names,         # 4. UNIVERSAL
+  #     cluster_names = cluster_names,           # 5. UNIVERSAL (component_names)
+  #     min_cluster_size = min_cluster_size,     # Model-specific parameter
+  #     separation_threshold = separation_threshold,  # Model-specific parameter
+  #     profile_variables = profile_variables,   # Model-specific parameter
+  #     weight_by_uncertainty = weight_by_uncertainty,  # Model-specific parameter
+  #     plot_type = plot_type                    # Model-specific parameter
+  #   )
+  #
+  # NOTICE:
+  # - Both have analysis_type, n_components, n_variables
+  # - Field order doesn't matter (but putting universal fields first is clearer)
+  # - Model-specific data and parameters are unique to each model
+  # - Class structure is consistent: c("{model}_analysis_data", "analysis_data", "list")
 
   structure(
     list(
-      # ---- Core model data (MODEL-SPECIFIC) ----
-      data_field1 = data_field1,  # TODO: Replace with actual field name (e.g., means, loadings, item_params)
-      data_field2 = data_field2,  # TODO: Replace with actual field name (e.g., covariances, Phi, ability_estimates)
+      # ==== UNIVERSAL METADATA (REQUIRED FOR ALL MODELS) ====
+      analysis_type = analysis_type,        # 1. Model type identifier
+      n_components = n_components,          # 2. Number of factors/clusters/items
+      n_variables = n_variables,            # 3. Number of variables
+      variable_names = variable_info$variable,  # 4. Variable names (character vector)
+      component_names = paste0("{COMPONENT}_", seq_len(n_components)),  # 5. Component names
+
+      # ==== MODEL-SPECIFIC DATA ====
+      # TODO: Replace with your actual field names and data structures
+      data_field1 = data_field1,  # e.g., loadings_df (FA), means (GM), item_params (IRT)
+      data_field2 = data_field2,  # e.g., factor_summaries (FA), covariances (GM), ability_estimates (IRT)
       processed_data = processed_data,  # Optional: any derived structures
 
-      # ---- Metadata ----
-      n_components = n_components,  # Number of clusters/factors/items
-      n_variables = n_variables,
-      analysis_type = analysis_type,
-
-      # ---- Model-specific parameters (used later in prompts) ----
+      # ==== MODEL-SPECIFIC PARAMETERS ====
+      # These parameters are stored here for use in prompts and reports
       {PARAM1} = {PARAM1},
       {PARAM2} = {PARAM2}
       # TODO: Add additional parameters as needed

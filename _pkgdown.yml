@@ -17,6 +17,20 @@ reference:
       Core functions for interpreting psychometric analysis results using LLMs.
     contents:
       - interpret
+      - show_interpret_args
+
+  - title: "Variable Labeling"
+    desc: >
+      Functions for generating concise, descriptive labels for variables based on their
+      descriptions using LLMs. Supports various label formats and extensive post-processing options.
+    contents:
+      - label_variables
+      - reformat_labels
+      - export_labels
+      - create_variable_labels
+      - format_label
+      - parse_label_response
+      - print.variable_labels
 
   - title: "Chat Session Management"
     desc: >
@@ -35,8 +49,21 @@ reference:
     contents:
       - llm_args
       - interpretation_args
+      - interpretation_args_gm
+      - labeling_args
       - output_args
       - default_output_args
+
+  - title: "Parameter Registry & Validation"
+    desc: >
+      Functions for accessing and validating parameter configurations from the centralized registry.
+    contents:
+      - PARAMETER_REGISTRY
+      - get_param_default
+      - get_params_by_group
+      - get_registry_param_names
+      - validate_param
+      - validate_params
 
   - title: "Visualization & Theming"
     desc: >
@@ -56,6 +83,7 @@ reference:
     contents:
       - export_interpretation
       - export_interpretation.fa_interpretation
+      - export_interpretation.gm_interpretation
 
   - title: "Utility Functions"
     desc: >
@@ -72,10 +100,12 @@ reference:
       S3 methods for displaying interpretation results, chat sessions, and configuration objects.
     contents:
       - print.fa_interpretation
+      - print.gm_interpretation
       - print.interpretation
       - print.chat_session
       - print.llm_args
       - print.interpretation_args
+      - print.labeling_args
       - print.output_args
 
   - title: "Internal S3 Generics"
@@ -87,6 +117,7 @@ reference:
       - build_system_prompt
       - build_main_prompt
       - build_report
+      - build_structured_list
       - create_default_result
       - create_fit_summary
       - extract_by_pattern
@@ -95,3 +126,16 @@ reference:
       - validate_list_structure
       - validate_model_requirements
       - interpret_model
+      - abbreviate_word
+
+articles:
+  - title: "Getting Started"
+    navbar: ~
+    contents:
+      - articles/01-Getting_Started
+
+  - title: "Tutorials"
+    navbar: ~
+    contents:
+      - articles/02-Usage_Patterns
+      - articles/04-Gaussian_Mixture

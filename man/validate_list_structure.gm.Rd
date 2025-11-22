@@ -4,7 +4,7 @@
 \alias{validate_list_structure.gm}
 \title{Validate GM Structured List (S3 Method)}
 \usage{
-\method{validate_list_structure}{gm}(model_type, fit_results_list)
+\method{validate_list_structure}{gm}(model_type, fit_results_list, ...)
 }
 \arguments{
 \item{model_type}{Dispatch object with gm class}

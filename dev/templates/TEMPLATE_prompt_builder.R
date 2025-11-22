@@ -1,5 +1,29 @@
-# Template for {MODEL}_prompt_builder.R
-# Replace all instances of {MODEL}, {model}, {COMPONENT}, etc. with your values
+# ==============================================================================
+# TEMPLATE: {MODEL}_prompt_builder.R
+# ==============================================================================
+#
+# PURPOSE: Build LLM system and user prompts for {MODEL} interpretation
+#
+# ARCHITECTURE: Implements Prompt Construction Pattern (see dev/COMMON_ARCHITECTURE_PATTERNS.md)
+# - Section: "Prompt Construction Pattern" (lines 195-289)
+# - 6-section user prompt structure (IDENTICAL across FA and GM)
+# - System prompt with expert persona and guidelines
+#
+# PATTERN COMPLIANCE CHECKLIST:
+# [ ] Implements build_system_prompt.{model}() S3 method
+# [ ] Implements build_main_prompt.{model}() S3 method
+# [ ] System prompt defines expert persona and interpretation rules
+# [ ] User prompt follows 6-section structure (guidelines → context → model info → variables → data → output)
+# [ ] Output format specifies exact JSON structure expected
+#
+# SIDE-BY-SIDE COMPARISON:
+# FA: R/fa_prompt_builder.R (6-section structure, lines 68-341)
+# GM: R/gm_prompt_builder.R (6-section structure, lines 72-394)
+# Both use IDENTICAL section ordering, only data formatting differs
+#
+# ==============================================================================
+# REPLACEMENT PLACEHOLDERS
+# ==============================================================================
 #
 # Example replacements for Gaussian Mixture:
 #   {MODEL} -> Gaussian Mixture

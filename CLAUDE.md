@@ -4,29 +4,33 @@
 
 **For technical/architectural details**: See [dev/DEVELOPER_GUIDE.md](dev/DEVELOPER_GUIDE.md)
 
-**Status**: Stable (2025-11-16) - Comprehensive test coverage and consistency improvements completed
+**Status**: Stable (2025-11-22) - Variable labeling functionality added
 
-**Current API** (as of 2025-11-16):
-- Main entry point: `interpret()` - Universal interpretation function
-- Configuration objects: `llm_args()`, `interpretation_args(analysis_type, ...)`, `output_args()`
-- Architecture: interpret() → interpret_model.{class}() → build_analysis_data.{class}()
+**Current API** (as of 2025-11-22):
+- Main entry points: `interpret()` (interpretations), `label_variables()` (variable labels)
+- Configuration objects: `llm_args()`, `interpretation_args()`, `labeling_args()`, `output_args()`
+- Architecture:
+  - Interpretations: interpret() → interpret_model.{class}() → build_analysis_data.{class}()
+  - Labels: label_variables() → build_system_prompt.label() → build_main_prompt.label()
 - S3 generics: build_analysis_data(), build_system_prompt(), build_main_prompt(), export_interpretation()
 - Parameter extraction: extract_model_parameters(), validate_model_requirements()
 
-**Recent Updates** (2025-11-16):
-- Test coverage increased from 80% to 92%
-- All exported functions now have comprehensive tests
-- Package consistency analysis completed (8.5/10 score)
-- Documentation updated to reflect new S3 generics
+**Recent Updates** (2025-11-22):
+- **NEW**: Variable labeling functionality with `label_variables()`, `reformat_labels()`, `export_labels()`
+- Two-phase architecture: Semantic Generation (LLM) → Format Processing (post-processing)
+- Supports short (1-3 words), phrase (4-7 words), acronym (3-5 chars), and custom labels
+- Extensive formatting options: case transformations, separators, abbreviation, article/preposition removal
+- Test coverage: 60+ tests for labeling functionality
 
 ---
 
 ## Quick Reference
 
-**What It Does**: Automates interpretation of exploratory factor analysis (EFA) results using Large Language Models via the `ellmer` package.
+**What It Does**: Automates interpretation of psychometric analysis results AND generates concise variable labels using Large Language Models via the `ellmer` package.
 
 **Main Entry Points**:
-- `interpret()` - Universal generic (ONLY public API for interpretations)
+- `interpret()` - Universal generic for interpreting psychometric models (FA, GM, etc.)
+- `label_variables()` - Generate short, descriptive labels from variable descriptions
 - `chat_session()` - Create persistent LLM session (saves ~40-60% tokens for multiple analyses)
 
 **Standards for Examples/Tests**:
@@ -107,6 +111,105 @@ result2 <- interpret(chat_session = chat, fit_results = fa2, variable_info = var
 result3 <- interpret(chat_session = chat, fit_results = fa3, variable_info = vars3)
 
 # Check cumulative token usage
+print(chat)
+```
+
+## Variable Labeling
+
+Generate short, descriptive labels for variables using LLMs.
+
+```r
+library(psychinterpreter)
+
+# 1. Prepare variable descriptions
+var_info <- data.frame(
+  variable = c("q1", "q2", "q3"),  # Optional - will auto-generate V1, V2, V3 if omitted
+  description = c(
+    "How satisfied are you with your job?",
+    "Rate your work-life balance",
+    "Years of experience in your field"
+  )
+)
+
+# 2. Generate labels (one-shot)
+labels <- label_variables(
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+  label_type = "short"  # 1-3 words (default)
+)
+
+# 3. View results
+print(labels)
+# ── Variable Labels Report ──
+#
+# ── Labeling Details ──
+# • Label type: short
+# • Variables labeled: 3
+#
+# ── Generated Labels ──
+# Variable  Label
+# --------  ----------------
+# q1        Job Satisfaction
+# q2        Work Balance
+# q3        Experience Years
+
+# 4. Reformat without calling LLM again
+labels_snake <- reformat_labels(labels, case = "snake")
+labels_camel <- reformat_labels(labels, case = "camel")
+labels_abbrev <- reformat_labels(labels, abbreviate = TRUE, max_words = 2)
+
+# 5. Export to file
+export_labels(labels, "variable_labels.csv")  # CSV (default)
+export_labels(labels, "variable_labels.xlsx", format = "xlsx")  # Excel
+```
+
+### Label Types
+
+- **short** (1-3 words): `"Job Satisfaction"`, `"Work Balance"` [default]
+- **phrase** (4-7 words): `"Satisfaction with Current Job Position"`
+- **acronym** (3-5 chars): `"JOBSAT"`, `"WRKBAL"`
+- **custom**: Use `max_words` parameter for exact control
+
+### Formatting Options
+
+```r
+labels <- label_variables(
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+  label_type = "short",
+
+  # Semantic generation (LLM instructions)
+  max_words = 2,              # Override label_type preset
+  style_hint = "technical",   # Guide LLM style (e.g., "simple", "academic")
+
+  # Format processing (post-processing)
+  case = "snake",             # "lower", "upper", "title", "snake", "camel", "constant"
+  sep = "_",                  # Separator between words
+  remove_articles = TRUE,     # Remove "a", "an", "the"
+  remove_prepositions = TRUE, # Remove "of", "in", "at", etc.
+  abbreviate = TRUE,          # Apply rule-based abbreviation
+  max_chars = 20              # Maximum character length
+)
+```
+
+### Token-Efficient Multi-Labeling
+
+```r
+# Create session for labeling
+chat <- chat_session(
+  analysis_type = "label",
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# Reuse for multiple label generation tasks
+labels1 <- label_variables(chat_session = chat, variable_info = vars1)
+labels2 <- label_variables(chat_session = chat, variable_info = vars2)
+labels3 <- label_variables(chat_session = chat, variable_info = vars3)
+
+# Check cumulative usage
 print(chat)
 ```
 
@@ -407,6 +510,67 @@ interpret(
 )
 ```
 
+## Working with Variable Labels
+
+```r
+# Generate labels with different formats
+var_info <- data.frame(
+  description = c(
+    "How satisfied are you with your job?",
+    "Rate your work-life balance",
+    "Years of experience"
+  )
+)
+
+# Short labels (1-3 words)
+labels_short <- label_variables(
+  var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+  label_type = "short"
+)
+
+# Snake case for programming
+labels_snake <- reformat_labels(labels_short, case = "snake")
+# Result: "job_satisfaction", "work_balance", "experience_years"
+
+# Abbreviated for plots
+labels_abbrev <- reformat_labels(
+  labels_short,
+  abbreviate = TRUE,
+  max_words = 2,
+  max_chars = 12
+)
+
+# Using configuration objects (dual-tier architecture)
+label_config <- labeling_args(
+  label_type = "short",
+  case = "snake",
+  remove_articles = TRUE
+)
+
+llm_config <- llm_args(
+  echo = "none"
+)
+
+labels <- label_variables(
+  var_info,
+  labeling_args = label_config,
+  llm_args = llm_config,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+
+# Direct parameters override config objects
+labels <- label_variables(
+  var_info,
+  labeling_args = label_config,  # says case = "snake"
+  case = "camel",                 # This takes precedence!
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud"
+)
+```
+
 ## API Configuration
 
 ```r
@@ -592,6 +756,9 @@ interpret(..., echo = "all")
 | Function | Purpose |
 |----------|----------|
 | `interpret()` | Universal interpretation function (recommended) |
+| `label_variables()` | Generate concise labels from variable descriptions |
+| `reformat_labels()` | Reapply formatting to existing labels without LLM call |
+| `export_labels()` | Export labels to CSV/Excel |
 | `chat_session()` | Create persistent LLM session |
 | `show_interpret_args()` | Show available parameters with defaults for interpret() |
 | `export_interpretation()` | Export to txt/md files |
@@ -607,6 +774,7 @@ interpret(..., echo = "all")
 | `find_distinguishing_variables_gm()` | Identify key variables per cluster (GM) |
 | `llm_args()` | Create LLM configuration object |
 | `interpretation_args()` | Create model-specific interpretation configuration |
+| `labeling_args()` | Create labeling configuration object |
 | `output_args()` | Create output configuration object |
 
 ## Key Parameters
@@ -641,18 +809,36 @@ interpret(..., echo = "all")
 | `centering` | "none", "variable", "global" | "none" | Center data (variable-wise/grand mean, means only) |
 | `profile_variables` | character vector | NULL | Focus on specific variables |
 
+### Labeling-Specific Parameters
+
+| Parameter | Values | Default | Description |
+|-----------|--------|---------|-------------|
+| **Semantic Generation (LLM Instructions)** ||||
+| `label_type` | "short", "phrase", "acronym", "custom" | "short" | Label style: short (1-3 words), phrase (4-7 words), acronym (3-5 chars) |
+| `max_words` | integer or NULL | NULL | Exact word count (overrides label_type) - LLM instruction |
+| `style_hint` | character or NULL | NULL | Style guidance (e.g., "technical", "simple", "academic") |
+| **Format Processing (Post-processing)** ||||
+| `sep` | character | " " | Separator between words (e.g., " ", "_", "") |
+| `case` | "original", "lower", "upper", "title", "sentence", "snake", "camel", "constant" | "original" | Case transformation |
+| `remove_articles` | TRUE/FALSE | FALSE | Remove "a", "an", "the" |
+| `remove_prepositions` | TRUE/FALSE | FALSE | Remove "of", "in", "at", etc. |
+| `abbreviate` | TRUE/FALSE | FALSE | Apply rule-based abbreviation to long words |
+| `max_chars` | integer or NULL | NULL | Maximum character length for labels |
+
 ## Package Files
 
 **See dev/DEVELOPER_GUIDE.md section 2.2 for detailed file structure**
 
 | Category | Key Files |
 |----------|-------------|
-| **Core** | core_interpret_dispatch.R, core_interpret.R, core_constants.R |
-| **S3 Generics** | s3_model_data.R, s3_prompt_builder.R, s3_json_parser.R, s3_export.R |
+| **Core** | core_interpret_dispatch.R, core_interpret.R, core_label_variables.R, core_constants.R |
+| **S3 Generics** | s3_model_data.R, s3_prompt_builder.R, s3_json_parser.R, s3_export.R, s3_label_builder.R, s3_label_parser.R |
 | **Classes** | class_chat_session.R, class_interpretation.R |
 | **Shared Utilities** | shared_config.R, shared_utils.R, shared_text.R, shared_visualization.R |
+| **Config Objects** | labeling_args.R (labeling configuration) |
 | **FA Implementation** | fa_model_data.R, fa_prompt_builder.R, fa_json.R, fa_diagnostics.R, fa_report.R, fa_visualization.R |
-| **Tests** | tests/testthat/ (25 test files, 347+ tests) |
+| **Label Implementation** | core_label_variables.R, s3_label_builder.R, s3_label_parser.R, label_utils.R, labeling_args.R |
+| **Tests** | tests/testthat/ (26 test files, 407+ tests) |
 
 ## Development Commands
 
@@ -722,9 +908,9 @@ Update the developer guide when making **architectural or implementation changes
 
 ---
 
-**Last Updated**: 2025-11-20
+**Last Updated**: 2025-11-22
 **Maintainer**: Update when making significant user-facing changes
-**Latest Change**: Added variance visualizations (what="variances"/"ratio") and data centering (centering="variable"/"global") for GM models
+**Latest Change**: Added `label_variables()` functionality for generating short, descriptive variable labels with LLMs. Includes two-phase architecture (Semantic Generation → Format Processing), multiple label types (short/phrase/acronym/custom), extensive formatting options (case transformations, separators, abbreviation, article/preposition removal), reformatting capability, and chat session support for token efficiency.
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
 - use DT::datatable() for .Qmd articles
 - when adding or editing functions, remember to update the references in the pkgdown.yml

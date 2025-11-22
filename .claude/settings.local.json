@@ -18,6 +18,9 @@
       "Bash(pkgbuild::*)",
       "Bash(testthat::*)",
       "Bash(rmarkdown::*)",
+      "Bash(sleep:*)",
+      "Bash(jobs)",
+      "Bash(pkill:*)",
       "Read(**/*.json)",
       "Read(**/*.js)",
       "Read(**/*.ts)",
@@ -106,7 +109,8 @@
       "Bash(if [ -f \"/mnt/c/Users/Matze/Documents/GitHub/psychinterpreter.Rcheck/00check.log\" ])",
       "Bash(then grep -E \"Status:|DONE\" /mnt/c/Users/Matze/Documents/GitHub/psychinterpreter.Rcheck/00check.log)",
       "Bash(else echo \"Check still running or log not found\")",
-      "Bash(do Rscript -e \"r <- tools::checkRd(''''$f''''); if(length(r) > 0) cat(''''$f\\n'''')\")"
+      "Bash(do Rscript -e \"r <- tools::checkRd(''''$f''''); if(length(r) > 0) cat(''''$f\\n'''')\")",
+      "Bash(if [ -f \"$file\" ])"
     ],
     "deny": [
       "Read(./.env*)",

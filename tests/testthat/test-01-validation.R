@@ -3,6 +3,9 @@
 # Extracted from test-interpret_fa.R as part of Phase 2 Test Reorganization
 # ==============================================================================
 
+library(testthat)
+library(psychinterpreter)
+
 test_that("interpret_fa validates input parameters", {
   loadings <- sample_loadings()
   var_info <- sample_variable_info()

@@ -6,6 +6,9 @@
 .RData
 .RDataTmp
 
+# R environment
+.Renviron
+
 # User-specific files
 .Ruserdata
 

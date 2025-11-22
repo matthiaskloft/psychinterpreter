@@ -1,0 +1,214 @@
+---
+title: "Cluster Analysis via Gaussian Mixture Models"
+author: 
+ - name: Matthias Kloft
+   orcid: 0000-0003-1845-6957
+date: "`r Sys.Date()`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    source: repo
+    code-tools: true
+    df-print: paged
+execute:
+  warning: true
+  message: true
+---
+
+## Overview
+This document demonstrates the Gaussian Mixture Model interpretation feature of the **psychinterpreter** package using the Big Five personality data from the `psych` package. The Big Five Inventory (BFI) is a widely-used personality assessment that measures five major dimensions of personality: Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism.
+
+It also covers the labeling of variables using large language models (LLMs) to create short labels for better interpretability.
+
+
+## Setup and Data Preparation
+
+```{r setup}
+packages <- c(
+  "psychinterpreter",
+  "ellmer",
+  "ollamar",
+  "psych",
+  "lavaan",
+  "mirt",
+  "mclust",
+  "dplyr",
+  "here",
+  "kableExtra",
+  "pander",
+  "patchwork"
+)
+# Load required packages using pacman
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(char = packages)
+
+# Load the BFI dataset and dictionary
+data("bfi")
+data("bfi.dictionary")
+```
+
+# Preparing the BFI Data
+
+Exclude demographic variables for factor analysis
+
+```{r}
+bfi <- bfi[,1:25]
+bfi.dictionary <- bfi.dictionary[1:25, ]
+```
+
+Show the first few rows of the BFI data:
+```{r data-exploration}
+head(bfi,10) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+Display the BFI dictionary showing item descriptions:
+```{r}
+bfi.dictionary |> select(Item) |> as.data.frame()|> DT::datatable(options = list(scrollX = TRUE))
+```
+
+# Create Short Labels
+Create variable information dataframe from BFI dictionary
+```{r test-basic-interpretation}
+variable_info <- data.frame(
+  variable = rownames(bfi.dictionary),
+  description = as.character(bfi.dictionary$Item),
+  stringsAsFactors = FALSE
+)
+
+head(variable_info) |> DT::datatable(options = list(scrollX = TRUE))
+```
+
+```{r}
+#ollamar::list_models()
+
+#show_interpret_args("fa")
+#Sys.setenv(ANTHROPIC_API_KEY = "")
+provider <- "anthropic"
+llm <- ellmer::models_anthropic()[1,"id"]
+```
+
+```{r}
+bfi_labels <- label_variables(
+  variable_info = variable_info,
+  llm_provider = provider,
+  llm_model = llm,
+  llm_args  = list(params(temperature = 0, seed = 42)),#
+  max_words = 3,
+  sep = "_",
+  case = "title"
+)
+```
+
+Replace variable names with short labels and update variable_info for later use
+```{r}
+labels <- paste(bfi_labels$labels_formatted$variable, bfi_labels$labels_formatted$label, sep = "-")
+colnames(bfi) <- labels
+variable_info$variable <- labels
+```
+
+
+## Cluster Analysis (Gaussian Mixture Model)
+
+Find Best Gaussian Mixture Model
+```{r}
+gmm_model <- mclustICL(ggplot2::remove_missing(bfi), G = 1:10, prior = priorControl())
+
+summary(gmm_model)
+plot(gmm_model)
+```
+
+Fit the Best Model
+```{r}
+best_model <- pickBIC(gmm_model)
+# extract model name from best_model$names
+model_name <- names(best_model)[1] |> stringr::str_extract("[A-Z]{3}")
+n_clusters <- names(best_model)[1] |> stringr::str_extract("[1-9]") |> as.integer()
+# Run mclust with automatic model and cluster selection
+gm_result <- mclust::Mclust(
+  ggplot2::remove_missing(bfi),
+  G = n_clusters,
+  modelNames = model_name,
+  warn = TRUE,
+  prior = priorControl()
+)
+
+summary(gm_result)
+```
+
+### LLM Interpretation
+```{r}
+# Get interpretation
+result <- interpret(
+  fit_results = gm_result,
+  variable_info = variable_info,
+  llm_provider = provider,
+  llm_model = llm,
+  weight_by_uncertainty = TRUE,
+  word_limit = 50
+)
+```
+
+
+### Visualization
+```{r fig.width=7, fig.height=7}
+plot(
+  result,
+  what = c("means", "variances"),
+  plot_type = "parallel",
+  centering = "global",
+  orientation = "vertical",
+  variable_order = "variance_reversed"
+) +
+  ggplot2::theme(legend.position = "top")
+```
+
+## Generic API
+
+We may also extract the mean vector, covariance matrix, mixing proportions, and membership grades from the model fit and provide it directly to interpret(). This is the appropriate workflow for models that are not directly supported by psychinterpreter.
+
+
+```{r}
+# Means
+gmm_means <- gm_result$parameters$mean
+
+# Covariance Matrix:
+gmm_covariances <- gm_result$parameters$variance$sigma
+
+# Mixing proportions
+gmm_proportions <- gm_result$parameters$pro
+
+# z matrix as the membership grades for every person
+gmm_z <- gm_result$z
+```
+
+
+Let's first take a look at the required arguments for the generic interpretation function:
+```{r}
+show_interpret_args("gm")
+```
+
+Interpretation with generic API
+```{r}
+generic_result <- interpret(
+  fit_results = list(
+    means = gmm_means,
+    covariances = gmm_covariances,
+    proportions = gmm_proportions,
+    z_matrix = gmm_z
+  ),
+  variable_info = variable_info,
+  analysis_type = "gm",
+  llm_provider = provider,
+  llm_model = llm,
+  weight_by_uncertainty = TRUE,
+  word_limit = 50
+)
+```
+
+# Session Info
+```{r}
+pander::pander(sessionInfo())
+```
+

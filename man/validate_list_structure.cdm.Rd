@@ -4,12 +4,14 @@
 \alias{validate_list_structure.cdm}
 \title{Validate List Structure for Cognitive Diagnostic Models (CDM) - Not Yet Implemented}
 \usage{
-\method{validate_list_structure}{cdm}(model_type, fit_results_list)
+\method{validate_list_structure}{cdm}(model_type, fit_results_list, ...)
 }
 \arguments{
 \item{model_type}{Dispatch object with cdm class}
 
 \item{fit_results_list}{List. Structured list with CDM components}
+
+\item{...}{Additional arguments (ignored)}
 }
 \value{
 Never returns - always errors with "not yet implemented" message

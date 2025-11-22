@@ -14,6 +14,9 @@
   variable_order = "variance",
   top_k = Inf,
   centering = "none",
+  layout = "auto",
+  facet_nrow = NULL,
+  facet_ncol = NULL,
   ...
 )
 }
@@ -22,8 +25,9 @@
 
 \item{plot_type}{Character: "auto", "heatmap", "parallel", "radar", or "all"}
 
-\item{what}{Character: "means" (cluster means, default), "variances" (within-cluster SDs),
-or "ratio" (between/within variance ratio for discrimination). Determines what data to visualize.}
+\item{what}{Character or character vector: "means" (cluster means, default), "variances" (within-cluster SDs),
+or "ratio" (between/within variance ratio for discrimination). When a vector is provided (e.g., c("means", "variances")),
+a faceted plot is created with panels for each data type, sharing the same variable axis labels for easy comparison.}
 
 \item{cutoff}{Numeric threshold for highlighting important values (default: 0.3)}
 
@@ -36,7 +40,9 @@ or "ratio" (between/within variance ratio for discrimination). Determines what d
 "variance_reversed" by variance ascending, "mean" orders by mean value ascending,
 "mean_reversed" by mean value descending, "original" preserves data order,
 "original_reversed" reverses data order, "alphabetical" sorts A-Z,
-"alphabetical_reversed" sorts Z-A. Cluster order is always fixed to the original model order.}
+"alphabetical_reversed" sorts Z-A. When \code{what} is a vector, variable ordering is determined
+by the first value in \code{what} (e.g., for c("means", "variances"), ordering is based on means).
+Cluster order is always fixed to the original model order.}
 
 \item{top_k}{Integer: maximum number of variables to display (default: Inf, shows all variables).
 If there are more variables than this limit, only the top k most variable features (by variance) will be shown.
@@ -46,11 +52,23 @@ Applies to all plot types.}
 by its mean across clusters), or "global" (center all values by the grand mean).
 Only applies when what="means". Centering helps highlight cluster differences.}
 
+\item{layout}{Character: "auto" (default), "horizontal", or "vertical". Controls how facets
+are arranged when \code{what} is a vector. "horizontal" places facets side-by-side (1 row, multiple columns),
+"vertical" stacks them (1 column, multiple rows), and "auto" uses horizontal layout (one row)
+for all facet counts. Ignored if \code{facet_nrow} or \code{facet_ncol} is specified.}
+
+\item{facet_nrow}{Integer: Number of rows for facet layout (default: NULL). When specified, overrides
+the \code{layout} parameter. Only applies when \code{what} is a vector.}
+
+\item{facet_ncol}{Integer: Number of columns for facet layout (default: NULL). When specified, overrides
+the \code{layout} parameter. Only applies when \code{what} is a vector.}
+
 \item{...}{Additional arguments passed to specific plot functions}
 }
 \value{
-For heatmap/parallel: a ggplot2 object. For radar: a recordedplot object
-(base R graphics). For plot_type="all": a list containing all three plot types.
+For single \code{what} value: a ggplot2 object (heatmap/parallel) or recordedplot object (radar).
+For multiple \code{what} values: a faceted ggplot2 object with panels for each data type.
+For plot_type="all": a list containing all three plot types.
 }
 \description{
 Creates visualizations of cluster profiles with multiple plot type options.
@@ -86,5 +104,20 @@ plots <- plot(gm_interpretation, plot_type = "all")
 
 # Focus on specific variables
 plot(gm_interpretation, variables = c("var1", "var2", "var3"))
+
+# Multiple what values with faceting (shares variable axis labels)
+plot(gm_interpretation, what = c("means", "variances"))  # Horizontal facets (side-by-side)
+plot(gm_interpretation, what = c("means", "variances", "ratio"), layout = "vertical")
+
+# Custom facet layout with nrow/ncol
+plot(gm_interpretation, what = c("means", "variances", "ratio"), facet_nrow = 1)  # Force 1 row
+plot(gm_interpretation, what = c("means", "variances", "ratio"), facet_ncol = 1)  # Force 1 column
+plot(gm_interpretation, what = c("means", "variances", "ratio", "ratio"), facet_nrow = 2)
+
+# Note: When what is a vector, variable ordering is based on the first type
+# For example, this orders by variance in the means:
+plot(gm_interpretation, what = c("means", "variances"), variable_order = "variance")
+# This orders by variance in the variances (swap order):
+plot(gm_interpretation, what = c("variances", "means"), variable_order = "variance")
 }
 }

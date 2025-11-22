@@ -269,11 +269,10 @@ validate_list_structure_gm_impl <- function(fit_results, interpretation_args = N
   memberships <- fit_results$memberships
   classification <- fit_results$classification
   uncertainty <- fit_results$uncertainty
-  covariance_type <- ifelse(
-    !is.null(fit_results$covariance_type),
-    fit_results$covariance_type,
-    "VVV"
-  )
+
+  # Only include covariance_type if explicitly provided
+  # (Don't default to "VVV" for generic lists - that's misleading)
+  covariance_type <- fit_results$covariance_type  # May be NULL
 
   # Variable names
   if (!is.null(rownames(means))) {

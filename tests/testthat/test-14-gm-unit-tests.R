@@ -743,7 +743,7 @@ test_that("create_heatmap_gm supports what parameter", {
   # Invalid what should error
   expect_error(
     psychinterpreter:::create_heatmap_gm(analysis_data, what = "invalid"),
-    "must be 'means', 'variances', or 'ratio'"
+    "must be a single value.*'means', 'variances', or 'ratio'"
   )
 })
 
@@ -768,7 +768,7 @@ test_that("create_parallel_plot_gm supports what parameter", {
   # Invalid what should error
   expect_error(
     psychinterpreter:::create_parallel_plot_gm(analysis_data, what = "invalid"),
-    "must be 'means', 'variances', or 'ratio'"
+    "must be a single value.*'means', 'variances', or 'ratio'"
   )
 })
 
@@ -793,7 +793,7 @@ test_that("create_radar_plot_gm supports what parameter", {
   # Invalid what should error
   expect_error(
     psychinterpreter:::create_radar_plot_gm(analysis_data, what = "invalid"),
-    "must be 'means', 'variances', or 'ratio'"
+    "must be a single value.*'means', 'variances', or 'ratio'"
   )
 })
 
@@ -820,7 +820,7 @@ test_that("plot.gm_interpretation dispatches what parameter correctly", {
   # Invalid what should error
   expect_error(
     plot(gm_interp, plot_type = "heatmap", what = "invalid"),
-    "must be 'means', 'variances', or 'ratio'"
+    "contains invalid value.*'means', 'variances', or 'ratio'"
   )
 })
 
@@ -912,14 +912,14 @@ test_that("centering only works with what='means'", {
     plot(gm_interp, plot_type = "heatmap", what = "means", centering = "variable")
   )
 
-  # Centering with variances should error
-  expect_error(
+  # Centering with variances should give informative message
+  expect_message(
     plot(gm_interp, plot_type = "heatmap", what = "variances", centering = "variable"),
     "centering.*only applies when.*what.*means"
   )
 
-  # Centering with ratio should error
-  expect_error(
+  # Centering with ratio should give informative message
+  expect_message(
     plot(gm_interp, plot_type = "heatmap", what = "ratio", centering = "global"),
     "centering.*only applies when.*what.*means"
   )
@@ -972,4 +972,112 @@ test_that("centering works correctly in all three plot types", {
   expect_s3_class(p_all$heatmap, "ggplot")
   expect_s3_class(p_all$parallel, "ggplot")
   expect_s3_class(p_all$radar, "recordedplot")
+})
+
+# =======================
+# Vector what Parameter Tests
+# =======================
+
+test_that("vector what parameter creates faceted plots", {
+  skip_if_not_installed("mclust")
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+  gm_interp <- create_test_gm_interpretation(analysis_data)
+
+  # Test with 2 values (horizontal layout by default)
+  p_two <- plot(gm_interp, what = c("means", "variances"), plot_type = "heatmap")
+  expect_s3_class(p_two, "ggplot")
+  # Check that plot has facets
+  expect_true(!is.null(p_two$facet))
+
+  # Test with 3 values (horizontal layout by default now)
+  p_three <- plot(gm_interp, what = c("means", "variances", "ratio"), plot_type = "parallel")
+  expect_s3_class(p_three, "ggplot")
+  expect_true(!is.null(p_three$facet))
+
+  # Test explicit horizontal layout
+  p_horiz <- plot(gm_interp, what = c("means", "variances"), plot_type = "heatmap", layout = "horizontal")
+  expect_s3_class(p_horiz, "ggplot")
+  expect_true(!is.null(p_horiz$facet))
+
+  # Test explicit vertical layout
+  p_vert <- plot(gm_interp, what = c("means", "variances"), plot_type = "heatmap", layout = "vertical")
+  expect_s3_class(p_vert, "ggplot")
+  expect_true(!is.null(p_vert$facet))
+})
+
+test_that("vector what parameter validates inputs correctly", {
+  skip_if_not_installed("mclust")
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+  gm_interp <- create_test_gm_interpretation(analysis_data)
+
+  # Invalid what values should error
+  expect_error(
+    plot(gm_interp, what = c("means", "invalid")),
+    "contains invalid value"
+  )
+
+  # Invalid layout should error
+  expect_error(
+    plot(gm_interp, what = c("means", "variances"), layout = "invalid"),
+    "layout.*must be"
+  )
+
+  # plot_type="all" with vector what should error
+  expect_error(
+    plot(gm_interp, what = c("means", "variances"), plot_type = "all"),
+    "cannot be combined"
+  )
+
+  # Radar plot with vector what should error
+  expect_error(
+    plot(gm_interp, what = c("means", "variances"), plot_type = "radar"),
+    "Radar plots cannot be faceted"
+  )
+})
+
+test_that("vector what parameter shows centering message correctly", {
+  skip_if_not_installed("mclust")
+  skip_if_not_installed("patchwork")
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+  gm_interp <- create_test_gm_interpretation(analysis_data)
+
+  # Should show message for non-means plots
+  expect_message(
+    plot(gm_interp, what = c("means", "variances"), plot_type = "heatmap", centering = "variable"),
+    "centering.*only applies.*means"
+  )
+
+  # Should show message listing non-means values
+  expect_message(
+    plot(gm_interp, what = c("variances", "ratio"), plot_type = "heatmap", centering = "variable"),
+    "variances.*ratio"
+  )
+
+  # Should not show message if centering is "none"
+  expect_silent(
+    suppressMessages(plot(gm_interp, what = c("means", "variances"), plot_type = "heatmap", centering = "none"))
+  )
+})
+
+test_that("vector what parameter with facet_nrow and facet_ncol", {
+  skip_if_not_installed("mclust")
+
+  analysis_data <- readRDS(test_path("fixtures/gm/sample_gm_analysis_data.rds"))
+  gm_interp <- create_test_gm_interpretation(analysis_data)
+
+  # Test with explicit facet_nrow
+  p_nrow <- plot(gm_interp, what = c("means", "variances", "ratio"), plot_type = "heatmap", facet_nrow = 1)
+  expect_s3_class(p_nrow, "ggplot")
+  expect_true(!is.null(p_nrow$facet))
+
+  # Test with explicit facet_ncol
+  p_ncol <- plot(gm_interp, what = c("means", "variances"), plot_type = "parallel", facet_ncol = 1)
+  expect_s3_class(p_ncol, "ggplot")
+  expect_true(!is.null(p_ncol$facet))
+
+  # Test that facet_nrow/ncol override layout parameter
+  p_override <- plot(gm_interp, what = c("means", "variances"), plot_type = "heatmap",
+                     layout = "vertical", facet_nrow = 1)  # nrow should override vertical layout
+  expect_s3_class(p_override, "ggplot")
+  expect_true(!is.null(p_override$facet))
 })

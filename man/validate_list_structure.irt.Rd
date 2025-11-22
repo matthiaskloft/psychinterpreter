@@ -4,12 +4,14 @@
 \alias{validate_list_structure.irt}
 \title{Validate List Structure for Item Response Theory (IRT) - Not Yet Implemented}
 \usage{
-\method{validate_list_structure}{irt}(model_type, fit_results_list)
+\method{validate_list_structure}{irt}(model_type, fit_results_list, ...)
 }
 \arguments{
 \item{model_type}{Dispatch object with irt class}
 
 \item{fit_results_list}{List. Structured list with IRT components}
+
+\item{...}{Additional arguments (ignored)}
 }
 \value{
 Never returns - always errors with "not yet implemented" message

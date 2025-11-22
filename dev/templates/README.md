@@ -2,19 +2,27 @@
 
 **Purpose**: Ready-to-use templates for implementing new model types in psychinterpreter.
 
-**Last Updated**: 2025-11-10
+**Last Updated**: 2025-11-22
 
 ---
 
 ## Need Help?
 
-**New to the package architecture?** See [`/dev/MODEL_IMPLEMENTATION_GUIDE.md`](../MODEL_IMPLEMENTATION_GUIDE.md) for:
-- Detailed explanations of how the system works
-- Common patterns and their rationale
-- Comprehensive troubleshooting guidance
-- Testing strategies and best practices
+**New to the package architecture?** Start with these resources:
 
-**Use both resources together**: Templates for code, Guide for understanding.
+1. **[`/dev/COMMON_ARCHITECTURE_PATTERNS.md`](../COMMON_ARCHITECTURE_PATTERNS.md)** - **NEW! Start here**
+   - Documented patterns from FA and GM implementations
+   - Common structures across all model types
+   - S3 dispatch patterns and data structures
+   - Integration points and checklist
+
+2. **[`/dev/MODEL_IMPLEMENTATION_GUIDE.md`](../MODEL_IMPLEMENTATION_GUIDE.md)** - Detailed guide
+   - Step-by-step implementation instructions
+   - Common patterns and their rationale
+   - Comprehensive troubleshooting guidance
+   - Testing strategies and best practices
+
+**Use all resources together**: Patterns for architecture → Templates for code → Guide for details.
 
 ---
 

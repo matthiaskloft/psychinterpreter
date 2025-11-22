@@ -1,9 +1,9 @@
 # psychinterpreter Developer Guide
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-11-22
 **Version**: 0.0.0.9000
 **Purpose**: Technical reference for package maintainers and contributors
-**Status**: Production-ready. GM implementation completed. Documentation enhanced.
+**Status**: Production-ready. GM and Label implementations completed. Documentation enhanced.
 
 **For usage/user-facing documentation**: See [CLAUDE.md](../CLAUDE.md)
 
@@ -28,9 +28,10 @@
 
 **Analysis Type**
 - String identifier used internally to route to appropriate S3 methods
-- Valid values: `"fa"`, `"gm"`, `"irt"`, `"cdm"`
-- Examples: `analysis_type = "fa"`, `interpretation_args(analysis_type = "fa")`
+- Valid values: `"fa"`, `"gm"`, `"irt"`, `"cdm"`, `"label"`
+- Examples: `analysis_type = "fa"`, `interpretation_args(analysis_type = "fa")`, `chat_session(analysis_type = "label")`
 - Used in: Function parameters, configuration objects, S3 method dispatch
+- Note: `"label"` is unique - it's not a psychometric model interpretation but variable label generation
 
 **Model Class**
 - R object class of fitted model objects from external packages
@@ -42,6 +43,12 @@
 - Configuration object created by `interpretation_args(analysis_type, ...)`
 - Contains analysis-specific settings (e.g., cutoff, n_emergency for FA)
 - Used to configure interpretation behavior for different analysis types
+
+**Labeling Args**
+- Configuration object created by `labeling_args(...)`
+- Contains label-specific settings (label_type, case, sep, remove_articles, abbreviate, etc.)
+- Used to configure label generation and formatting behavior
+- Separates semantic generation (LLM instructions) from format processing (post-processing)
 
 **Core Methods**
 - The 8 required S3 methods that every analysis type must implement
@@ -102,14 +109,14 @@
 
 ## 1.3 Package Statistics
 
-- **R Files**: 34 (FA: 7 files, GM: 7 files, Core: 20 files)
-- **Lines of Code**: ~12,820 (85% increase from initial FA-only implementation)
-- **Test Files**: 27
-- **Tests**: ~417+ test_that() calls
+- **R Files**: 38 (FA: 7 files, GM: 7 files, Label: 4 files, Core: 20 files)
+- **Lines of Code**: ~14,000+ (incorporating label generation functionality)
+- **Test Files**: 28
+- **Tests**: ~467+ test_that() calls (60+ for labeling)
 - **Test Coverage**: ~92%
-- **LLM Tests**: 15-18 (~4% of total, with provider guards)
-- **NAMESPACE Exports**: 102 (functions + S3 methods)
-- **Documentation**: 46 @examples across 19 R files, all Rd files pass R CMD check
+- **LLM Tests**: 18-20 (~4% of total, with provider guards)
+- **NAMESPACE Exports**: 106 (functions + S3 methods)
+- **Documentation**: 50+ @examples across 22+ R files, all Rd files pass R CMD check
 
 ## 1.4 Development Workflow
 
@@ -185,16 +192,17 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 
 ---
 
-### Core Infrastructure (4 files)
+### Core Infrastructure (5 files)
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `core_constants.R` | ~30 | Package constants (`VALID_ANALYSIS_TYPES`) and `validate_analysis_type()` |
+| `core_constants.R` | ~30 | Package constants (`VALID_ANALYSIS_TYPES`: fa, gm, irt, cdm, label) and `validate_analysis_type()` |
 | `core_interpret_dispatch.R` | ~760 | Main `interpret()` generic + routing to analysis-specific methods |
 | `core_interpret.R` | ~550 | Universal `interpret_core()` orchestrator (all analysis types) |
+| `core_label_variables.R` | ~440 | `label_variables()` function - LLM-based label generation with dual-tier architecture |
 | *(archive/)* | - | Legacy files (deprecated code) |
 
-### S3 Generic Definitions (6 files)
+### S3 Generic Definitions (8 files)
 
 **Purpose**: Define the interface that analysis-specific methods must implement
 
@@ -206,6 +214,8 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 | `s3_prompt_builder.R` | ~83 | Generics: `build_system_prompt()`, `build_main_prompt()` |
 | `s3_json_parser.R` | ~200 | Generics: `validate_parsed_result()`, `extract_by_pattern()`, `create_default_result()` |
 | `s3_export.R` | ~82 | Generic: `export_interpretation()` for export functionality |
+| `s3_label_builder.R` | ~110 | S3 methods: `build_system_prompt.label()`, `build_main_prompt.label()` for label generation prompts |
+| `s3_label_parser.R` | ~180 | Label response parsing: `parse_label_response()`, `validate_label_structure()`, fallback extraction |
 
 ### Class Definitions (2 files)
 
@@ -214,7 +224,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 | `class_chat_session.R` | ~287 | `chat_session` class (constructors, validators, print); uses environments for mutable state |
 | `class_interpretation.R` | ~92 | Base `interpretation` class infrastructure |
 
-### Shared Utilities (5 files)
+### Shared Utilities (6 files)
 
 **Purpose**: Regular utility functions used by all analysis types (not S3 methods)
 
@@ -222,6 +232,7 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 |------|-------|---------|
 | `aaa_shared_formatting.R` | ~356 | Centralized format dispatch system for report generation (loaded first via `aaa_` prefix) |
 | `shared_config.R` | ~580 | Config constructors: `llm_args()`, `interpretation_args()`, `output_args()`, builders |
+| `labeling_args.R` | ~150 | Config constructor: `labeling_args()` for label-specific configuration (label_type, case, formatting options) |
 | `shared_visualization.R` | ~250 | `psychinterpreter_colors()`, `theme_psychinterpreter()` (color palettes and ggplot2 theme) |
 | `shared_utils.R` | ~156 | Validation, routing, helper functions |
 | `shared_text.R` | ~107 | Text wrapping, word counting utilities |
@@ -269,6 +280,65 @@ All R files are organized in a **flat `R/` directory** (no subdirectories) follo
 | `gm_visualization.R` | ~450 | S3 method: `plot.gm_interpretation()`, multiple plot types (heatmap, parallel, radar) |
 
 **Note**: GM implementation includes LLM metadata tracking (tokens, elapsed time) and uses the shared formatting dispatch system for consistent report generation across formats.
+
+### Label Generation Implementation (4 files) - ✅ IMPLEMENTED
+
+**Purpose**: LLM-based variable label generation with two-phase architecture
+
+**Architecture**: Unlike `interpret()` which uses the interpret_core() → interpret_model.{class}() → build_analysis_data.{class}() pipeline, label_variables() has its own streamlined architecture focused on label generation and formatting.
+
+**Core Function**:
+| File | Lines | Purpose |
+|------|-------|---------|
+| `core_label_variables.R` | ~440 | Main `label_variables()` function with dual-tier parameter architecture, session management, LLM communication, and formatting coordination |
+
+**S3 Methods**:
+| File | Lines | Purpose |
+|------|-------|---------|
+| `s3_label_builder.R` | ~110 | S3 methods: `build_system_prompt.label()`, `build_main_prompt.label()` for label-specific prompts |
+| `s3_label_parser.R` | ~180 | JSON parsing: `parse_label_response()`, `validate_label_structure()`, multi-tier fallback extraction |
+
+**Utilities & Formatting**:
+| File | Lines | Purpose |
+|------|-------|---------|
+| `label_utils.R` | ~590 | Core utilities: `format_label()`, `reformat_labels()`, `export_labels()`, `create_variable_labels()`, `print.variable_labels()`, case transformations, abbreviation, article/preposition removal |
+| `labeling_args.R` | ~150 | Configuration: `labeling_args()` constructor with validation and print method |
+
+**Two-Phase Architecture**:
+1. **Semantic Generation** (LLM Phase):
+   - LLM generates natural language labels based on descriptions
+   - Parameters: `label_type` (short/phrase/acronym/custom), `max_words`, `style_hint`
+   - Prompts built via `build_system_prompt.label()` and `build_main_prompt.label()`
+
+2. **Format Processing** (Post-processing Phase):
+   - Apply formatting transformations without LLM call
+   - Parameters: `case`, `sep`, `remove_articles`, `remove_prepositions`, `abbreviate`, `max_chars`
+   - Enables `reformat_labels()` to change formatting without regenerating labels
+
+**Key Features**:
+- Dual-tier parameter architecture (config objects + direct parameters)
+- Chat session support for token efficiency (~40-60% savings)
+- Optional variable names (auto-generates V1, V2, ... if not provided)
+- Stores raw LLM response for reformatting
+- Rule-based abbreviation algorithm with suffix removal
+- Multiple label types: short (1-3 words), phrase (4-7 words), acronym (3-5 chars), custom
+- Export to CSV/Excel via `export_labels()`
+
+**Object Structure** (`variable_labels`):
+```r
+list(
+  labels_formatted = data.frame(variable, label),  # Post-formatted labels
+  labels_parsed = data.frame(variable, label),     # Raw LLM labels
+  variable_info = data.frame(variable, description), # Original input
+  llm_response = character,                        # Raw LLM text
+  metadata = list(
+    label_type, n_variables, timestamp, duration,
+    llm_provider, llm_model, tokens_used, formatting
+  )
+)
+```
+
+**Note**: Label implementation does NOT use the standard interpret() pipeline since it doesn't operate on fitted models. It has its own streamlined workflow optimized for label generation.
 
 ### Future Analysis Types (Planned)
 

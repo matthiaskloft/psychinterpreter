@@ -1,4 +1,31 @@
-# Template for {MODEL}_report.R
+# ==============================================================================
+# TEMPLATE: {MODEL}_report.R
+# ==============================================================================
+#
+# PURPOSE: Format {MODEL} interpretation results into user-facing reports
+#
+# ARCHITECTURE: Implements Report Generation Pattern (see dev/COMMON_ARCHITECTURE_PATTERNS.md)
+# - Section: "Report Generation Pattern" (lines 414-460)
+# - 5-section structure: header → info → summaries → diagnostics → tokens
+# - Supports both CLI and markdown formats
+#
+# PATTERN COMPLIANCE CHECKLIST:
+# [ ] Implements format_interpretation_report.{model}_interpretation() S3 method
+# [ ] Supports both "cli" and "markdown" output formats
+# [ ] Follows 5-section report structure
+# [ ] Uses cli:: functions for CLI format
+# [ ] Uses markdown syntax for markdown format
+# [ ] Includes component summaries and diagnostic information
+#
+# SIDE-BY-SIDE COMPARISON:
+# FA: R/fa_report.R (5-section structure, CLI and markdown support)
+# GM: R/gm_report.R (5-section structure, CLI and markdown support)
+# Both use IDENTICAL structure, formatting functions handle model-specific data
+#
+# ==============================================================================
+# REPLACEMENT PLACEHOLDERS
+# ==============================================================================
+#
 # Replace all instances of {MODEL}, {model}, {COMPONENT}, etc. with your values
 
 #' Build report for {MODEL} interpretation

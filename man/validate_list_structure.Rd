@@ -4,12 +4,14 @@
 \alias{validate_list_structure}
 \title{Validate and Extract Structured List Components (S3 Generic)}
 \usage{
-validate_list_structure(model_type, fit_results_list)
+validate_list_structure(model_type, fit_results_list, ...)
 }
 \arguments{
 \item{model_type}{Character. Model type identifier ("fa", "gm", "irt", "cdm")}
 
 \item{fit_results_list}{List. Structured list with model-specific components}
+
+\item{...}{Additional arguments passed to model-specific methods (e.g., variable_info, interpretation_args)}
 }
 \value{
 List containing extracted and validated components (model-specific structure)

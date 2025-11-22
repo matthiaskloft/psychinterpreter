@@ -1,18 +1,41 @@
 # ==============================================================================
-# TEMPLATE: Adding New Analysis Type Configuration
+# TEMPLATE: {MODEL}_config_additions.R
 # ==============================================================================
-# This template shows how to add configuration support for a new analysis type
-# (e.g., Gaussian Mixture "gm", IRT "irt", CDM "cdm") to the dispatch system.
+#
+# PURPOSE: Add configuration support for new {MODEL} analysis type
+#
+# ARCHITECTURE: Implements Integration Points (see dev/COMMON_ARCHITECTURE_PATTERNS.md)
+# - Section: "Integration Points" (lines 512-596)
+# - Registers in dispatch tables (shared_config.R)
+# - Creates interpretation_args_{model}() constructor
+# - Integrates with parameter registry
+#
+# PATTERN COMPLIANCE CHECKLIST:
+# [ ] Added to .ANALYSIS_TYPE_DISPLAY_NAMES dispatch table
+# [ ] Added to .VALID_INTERPRETATION_PARAMS dispatch table
+# [ ] Added to .INTERPRETATION_ARGS_DISPATCH dispatch table
+# [ ] Implemented interpretation_args_{model}() constructor
+# [ ] Registered parameters in aaa_param_registry.R
+# [ ] Added to model dispatch table in aaa_model_type_dispatch.R
+#
+# SIDE-BY-SIDE COMPARISON:
+# FA: R/shared_config.R (lines 130-180) - interpretation_args_fa()
+# GM: R/shared_config.R (lines 182-241) - interpretation_args_gm()
+# Both follow identical constructor pattern with parameter extraction
+#
+# ==============================================================================
+# REPLACEMENT PLACEHOLDERS
+# ==============================================================================
 #
 # IMPORTANT: Replace ALL instances of:
-#   {model}     -> analysis type code (e.g., "gm", "irt", "cdm")
-#   {MODEL}     -> capitalized analysis name (e.g., "Gaussian Mixture", "Item Response Theory")
-#   {PARAM1}    -> first parameter name (e.g., "n_components", "model_type")
-#   {PARAM2}    -> second parameter name (e.g., "covariance_type", "ability_method")
+#   {model}          -> analysis type code (e.g., "gm", "irt", "cdm")
+#   {MODEL}          -> capitalized analysis name (e.g., "Gaussian Mixture")
+#   {PARAM1}         -> first parameter name (e.g., "min_cluster_size")
+#   {PARAM2}         -> second parameter name (e.g., "separation_threshold")
 #   {param1_default} -> default value for PARAM1
 #   {param2_default} -> default value for PARAM2
 #
-# Last Updated: 2025-11-16 (Post-Dispatch Table Refactoring)
+# Last Updated: 2025-11-22 (Enhanced with Architecture Patterns)
 # ==============================================================================
 
 

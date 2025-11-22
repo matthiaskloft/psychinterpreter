@@ -13,13 +13,14 @@
 #' - "gm": Gaussian Mixture (not yet implemented)
 #' - "irt": Item Response Theory (not yet implemented)
 #' - "cdm": Cognitive Diagnostic Models (not yet implemented)
+#' - "label": Variable Labeling (LLM-based label generation)
 #'
 #' @keywords internal
 #' @noRd
-VALID_ANALYSIS_TYPES <- c("fa", "gm", "irt", "cdm")
+VALID_ANALYSIS_TYPES <- c("fa", "gm", "irt", "cdm", "label")
 
 # Analysis types with full implementation
-IMPLEMENTED_ANALYSIS_TYPES <- c("fa", "gm")
+IMPLEMENTED_ANALYSIS_TYPES <- c("fa", "gm", "label")
 
 
 #' Validate Analysis Type

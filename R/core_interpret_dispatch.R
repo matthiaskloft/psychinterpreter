@@ -368,10 +368,21 @@ interpret <- function(fit_results = NULL,
     }
 
     # Validate and extract list components (model-specific via S3 dispatch)
-    extracted <- validate_list_structure(
-      model_type = effective_analysis_type,
-      fit_results_list = fit_results
-    )
+    # For FA: only needs fit_results_list (returns loadings + factor_cor_mat)
+    # For GM: needs variable_info + interpretation_args (builds full analysis_data)
+    if (effective_analysis_type == "fa") {
+      extracted <- validate_list_structure(
+        model_type = effective_analysis_type,
+        fit_results_list = fit_results
+      )
+    } else {
+      extracted <- validate_list_structure(
+        model_type = effective_analysis_type,
+        fit_results_list = fit_results,
+        variable_info = variable_info,
+        interpretation_args = interpretation_cfg
+      )
+    }
 
     # For FA, extract loadings and factor_cor_mat for handle_raw_data_interpret
     # For other model types, the S3 method will return appropriate structure
@@ -389,13 +400,27 @@ interpret <- function(fit_results = NULL,
           ...  # variable_info passed through dots
         )
       )
+    } else if (effective_analysis_type == "gm") {
+      # For GM, extracted is already analysis_data - pass directly to interpret_core
+      return(
+        interpret_core(
+          analysis_data = extracted,
+          analysis_type = effective_analysis_type,
+          chat_session = chat_session,
+          llm_args = llm_cfg,
+          interpretation_args = interpretation_cfg,
+          output_args = out_cfg,
+          ...  # variable_info passed through dots
+        )
+      )
     } else {
-      # For future model types (gm, irt, cdm), handle their specific structure here
+      # For future model types (irt, cdm), handle their specific structure here
       cli::cli_abort(
         c(
           "Structured list routing not yet implemented for analysis_type: {.val {effective_analysis_type}}",
           "i" = "The list was validated successfully, but routing logic needs to be added",
-          "i" = "Implement handle_raw_data_interpret routing for {.val {effective_analysis_type}}"
+          "i" = "Supported: fa, gm",
+          "i" = "Not yet implemented: irt, cdm"
         )
       )
     }

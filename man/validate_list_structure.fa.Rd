@@ -4,12 +4,14 @@
 \alias{validate_list_structure.fa}
 \title{Validate FA Structured List (S3 Method)}
 \usage{
-\method{validate_list_structure}{fa}(model_type, fit_results_list)
+\method{validate_list_structure}{fa}(model_type, fit_results_list, ...)
 }
 \arguments{
 \item{model_type}{Character. Should be "fa"}
 
 \item{fit_results_list}{List. Must contain 'loadings' component}
+
+\item{...}{Additional arguments (ignored for FA)}
 }
 \value{
 List with components: loadings, factor_cor_mat

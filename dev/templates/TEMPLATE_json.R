@@ -1,4 +1,30 @@
-# Template for {MODEL}_json.R
+# ==============================================================================
+# TEMPLATE: {MODEL}_json.R
+# ==============================================================================
+#
+# PURPOSE: Parse and validate LLM JSON responses for {MODEL} interpretation
+#
+# ARCHITECTURE: Implements JSON Response and Validation Patterns (see dev/COMMON_ARCHITECTURE_PATTERNS.md)
+# - Section: "JSON Response Pattern" (lines 291-335)
+# - Section: "Validation and Fallback Pattern" (lines 337-412)
+# - Three-tier fallback: parse → pattern extraction → defaults
+#
+# PATTERN COMPLIANCE CHECKLIST:
+# [ ] Implements validate_parsed_result.{model}() - Tier 1 validation
+# [ ] Implements extract_by_pattern.{model}() - Tier 2 fallback
+# [ ] Implements create_default_result.{model}() - Tier 3 fallback
+# [ ] Expected JSON format: {Component_N: "interpretation text"}
+# [ ] Validates at least 50% of expected components present
+#
+# SIDE-BY-SIDE COMPARISON:
+# FA: R/fa_json.R (three-tier fallback, lines 22-247)
+# GM: R/gm_json.R (three-tier fallback, lines 20-234)
+# Both use IDENTICAL validation logic, only expected keys differ
+#
+# ==============================================================================
+# REPLACEMENT PLACEHOLDERS
+# ==============================================================================
+#
 # Replace all instances of {MODEL}, {model}, {COMPONENT}, etc. with your values
 
 #' Validate parsed JSON for {MODEL} results
