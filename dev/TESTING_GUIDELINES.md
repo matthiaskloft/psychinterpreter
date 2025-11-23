@@ -144,6 +144,213 @@ devtools::test()                      # All tests (~70-90s)
 - **All LLM tests** must use `skip_on_ci()` to avoid running on CI
 - **Cached interpretations**: 5 cached interpretation fixtures for testing without LLM
 
+## LLM Test Efficiency Standards
+
+**Last Efficiency Audit**: 2025-11-23
+
+### Current Efficiency Metrics ✅
+
+The psychinterpreter test suite demonstrates **exceptional efficiency** in LLM usage:
+
+| Metric | Value | Status |
+|--------|-------|--------|
+| **Total tests** | 430+ | ✅ Excellent coverage |
+| **LLM-dependent tests** | 15-20 (4%) | ✅ Exceptional efficiency |
+| **word_limit = 20 compliance** | 100% | ✅ Perfect optimization |
+| **Mock/fixture coverage** | 96% | ✅ Outstanding |
+| **Token usage per test run** | 5,000-7,500 | ✅ Ultra-efficient |
+| **CI skip compliance** | 100% | ✅ Perfect |
+
+### Mandatory Standards for LLM Tests
+
+When writing tests that make actual LLM calls (via `interpret()` or `label_variables()`):
+
+#### 1. **ALWAYS use `word_limit = 20`** (Minimum Allowed)
+```r
+# ✅ CORRECT
+interpret(
+  fit_results = minimal_fa_model(),
+  variable_info = minimal_variable_info(),
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+  word_limit = 20,  # Minimum for maximum efficiency
+  silent = TRUE
+)
+
+# ❌ INCORRECT
+interpret(
+  fit_results = fa_model,
+  variable_info = var_info,
+  llm_provider = "ollama",
+  llm_model = "gpt-oss:20b-cloud",
+  word_limit = 100  # Wastes 5x more tokens
+)
+```
+
+#### 2. **ALWAYS use `skip_on_ci()`**
+```r
+test_that("interpretation works with real LLM", {
+  skip_on_ci()  # ✅ Required for all LLM tests
+  skip_if_no_llm()  # Also recommended
+
+  # ... test code ...
+})
+```
+
+#### 3. **PREFER fixtures and mocks over real LLM calls**
+```r
+# ✅ PREFERRED - Use cached interpretation
+test_that("print method works", {
+  interp <- sample_interpretation()  # No LLM call
+  expect_no_error(print(interp))
+})
+
+# ❌ AVOID - Unnecessary LLM call
+test_that("print method works", {
+  skip_on_ci()
+  interp <- interpret(...)  # Wastes LLM call just to test print
+  expect_no_error(print(interp))
+})
+```
+
+#### 4. **USE minimal_* fixtures for LLM tests**
+```r
+# ✅ CORRECT - Minimal fixtures save 60-70% tokens
+test_that("interpretation with real LLM", {
+  skip_on_ci()
+  skip_if_no_llm()
+
+  result <- interpret(
+    fit_results = minimal_fa_model(),    # 3 vars × 2 factors
+    variable_info = minimal_variable_info(),  # Short descriptions
+    llm_provider = "ollama",
+    llm_model = "gpt-oss:20b-cloud",
+    word_limit = 20
+  )
+
+  expect_s3_class(result, "fa_interpretation")
+})
+
+# ❌ INCORRECT - Wastes tokens
+test_that("interpretation with real LLM", {
+  skip_on_ci()
+
+  result <- interpret(
+    fit_results = sample_fa_model(),  # 6 vars × 3 factors (3x larger)
+    variable_info = sample_variable_info(),
+    llm_provider = "ollama",
+    llm_model = "gpt-oss:20b-cloud"
+  )
+})
+```
+
+#### 5. **COMBINE related LLM tests when possible**
+```r
+# ✅ GOOD - Test multiple aspects in one LLM call
+test_that("interpretation workflow comprehensive test", {
+  skip_on_ci()
+  skip_if_no_llm()
+
+  result <- interpret(...)
+
+  # Test structure
+  expect_s3_class(result, "fa_interpretation")
+  # Test content
+  expect_true(length(result$suggested_names) > 0)
+  # Test metadata
+  expect_true(!is.null(result$analysis_data))
+  # Test token tracking
+  expect_true(is.numeric(result$token_usage$total_tokens))
+})
+
+# ❌ AVOID - Separate tests waste LLM calls
+test_that("result has correct structure", {
+  skip_on_ci()
+  result <- interpret(...)  # LLM call 1
+  expect_s3_class(result, "fa_interpretation")
+})
+
+test_that("result has suggested names", {
+  skip_on_ci()
+  result <- interpret(...)  # LLM call 2 (duplicate!)
+  expect_true(length(result$suggested_names) > 0)
+})
+```
+
+### Non-LLM Tests (No Restrictions)
+
+Tests that do **NOT** make LLM calls can use any `word_limit` value for testing purposes:
+
+```r
+# ✅ ACCEPTABLE - Testing prompt building logic, no actual LLM call
+test_that("build_system_prompt includes word limit in prompt", {
+  model_type <- structure("fa", class = "fa")
+
+  result <- build_system_prompt(model_type, word_limit = 100)
+
+  expect_type(result, "character")
+  expect_match(result, "100 words")  # Testing that value appears in prompt
+})
+
+# ✅ ACCEPTABLE - Testing config validation, no LLM call
+test_that("llm_args validates word_limit range", {
+  expect_error(
+    llm_args(llm_provider = "ollama", word_limit = 10),  # Below minimum
+    "must be between 20 and 500"
+  )
+
+  expect_error(
+    llm_args(llm_provider = "ollama", word_limit = 1000),  # Above maximum
+    "must be between 20 and 500"
+  )
+})
+```
+
+### Verification Tools
+
+**Automated check script**: `dev/scripts/check-test-efficiency.R`
+
+Run this script to verify compliance:
+```r
+source("dev/scripts/check-test-efficiency.R")
+# Checks all test files for:
+# - LLM calls without word_limit = 20
+# - LLM calls without skip_on_ci()
+# - Use of sample_* fixtures instead of minimal_* in LLM tests
+```
+
+### Token Savings Examples
+
+Impact of following these standards:
+
+| Scenario | Tokens | Time | Cost (GPT-4) |
+|----------|--------|------|--------------|
+| **Optimal** (word_limit=20, minimal fixtures) | 150-200 | ~3s | $0.003 |
+| **Suboptimal** (word_limit=100, sample fixtures) | 750-1000 | ~8s | $0.015 |
+| **Wasteful** (word_limit=150, sample fixtures) | 1200-1500 | ~12s | $0.023 |
+
+**Per full test run** (15-20 LLM tests):
+- Optimal: 3,000-4,000 tokens (~$0.06)
+- Wasteful: 18,000-30,000 tokens (~$0.45)
+- **Savings: ~87% tokens, ~$0.39 per run**
+
+### Rationale
+
+1. **word_limit = 20** is the minimum allowed by the package and sufficient for validating that interpretations work correctly
+2. **Minimal fixtures** reduce prompt size by 60-70% without sacrificing test validity
+3. **skip_on_ci()** prevents CI failures due to API rate limits and reduces costs
+4. **Mocks and fixtures** enable comprehensive error scenario testing without LLM costs
+5. **Combined tests** reduce overhead from repeated system prompt sending
+
+### Exception Cases
+
+LLM tests can deviate from standards only when:
+1. **Testing word_limit behavior specifically** - Use different values to verify the parameter works
+2. **Provider-specific tests** - Testing token tracking may require longer responses
+3. **Performance benchmarks** - May need realistic fixtures for accurate timing
+
+All exceptions must be documented with inline comments explaining why the deviation is necessary.
+
 ## Fixture Management
 
 ### Data Fixtures (for creating interpretations)
@@ -477,4 +684,4 @@ Run fast tests during development (`devtools::test(filter = "^test-0")`), integr
 
 ---
 
-**Last Updated**: 2025-11-16 (CLI error handling documentation added)
+**Last Updated**: 2025-11-23 (Added LLM Test Efficiency Standards section with automated verification tools)

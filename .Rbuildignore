@@ -3,7 +3,9 @@
 ^LICENSE\.md$
 ^dev/
 ^\.claude/
+^AGENT.md$
 ^CLAUDE.md$
+^GEMINI.md$
 ^exports/
 ^vignettes/articles/
 ^vignettes/\.quarto$

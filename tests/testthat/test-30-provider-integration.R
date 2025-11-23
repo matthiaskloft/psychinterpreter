@@ -329,6 +329,7 @@ test_that("Anthropic handles prompt caching for repeated system prompts", {
 
 test_that("Ollama provider works without API keys", {
   skip_on_cran()
+  skip_on_ci()
 
   # Ollama requires local installation, skip if not available
   ollama_available <- tryCatch({
@@ -360,6 +361,7 @@ test_that("Ollama provider works without API keys", {
 
 test_that("Ollama token tracking returns zero or NULL", {
   skip_on_cran()
+  skip_on_ci()
 
   # Ollama requires local installation
   ollama_available <- tryCatch({

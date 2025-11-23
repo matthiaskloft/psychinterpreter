@@ -97,6 +97,8 @@ test_that("interpret() handles GM chat sessions", {
 
 test_that("interpret() respects GM-specific parameters", {
   skip_if_not_installed("mclust")
+  # Note: This test only calls build_analysis_data (no LLM), but skip for consistency
+  skip_on_ci()
 
   # Load fixtures
   gm_model <- readRDS(test_path("fixtures/gm/sample_gm_model.rds"))

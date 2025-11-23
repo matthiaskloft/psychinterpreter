@@ -3,6 +3,7 @@
 # ==============================================================================
 
 test_that("chat_session complete lifecycle (create, use, reset)", {
+  skip_on_ci()
   skip_if_no_llm()
 
   llm_provider <- "ollama"

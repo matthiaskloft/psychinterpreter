@@ -105,7 +105,7 @@ variable_info$variable <- labels
 ```
 
 
-## Cluster Analysis (Gaussian Mixture Model)
+# Cluster Analysis (Gaussian Mixture Model)
 
 Find Best Gaussian Mixture Model
 ```{r}
@@ -133,7 +133,7 @@ gm_result <- mclust::Mclust(
 summary(gm_result)
 ```
 
-### LLM Interpretation
+## LLM Interpretation
 ```{r}
 # Get interpretation
 result <- interpret(
@@ -147,11 +147,11 @@ result <- interpret(
 ```
 
 
-### Visualization
+## Visualization
 ```{r fig.width=7, fig.height=7}
 plot(
   result,
-  what = c("means", "variances"),
+  what = c("means"),
   plot_type = "parallel",
   centering = "global",
   orientation = "vertical",

@@ -145,6 +145,7 @@ test_that("mixed config and direct parameters work together", {
 })
 
 test_that("NULL config objects use package defaults", {
+  skip_on_ci()
   skip_if_no_llm()
 
   # Don't provide any config objects, use all direct parameters
