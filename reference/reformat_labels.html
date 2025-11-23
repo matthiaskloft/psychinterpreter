@@ -28,6 +28,7 @@ This allows you to experiment with different formatting options efficiently."></
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="../articles/03-Variable_Labeling.html">Variable Labeling with LLMs</a></li>
     <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -49,7 +50,7 @@ This allows you to experiment with different formatting options efficiently."></
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Reformat Variable Labels</h1>
-      <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/R/label_utils.R"><code>R/label_utils.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/R/label_formatting.R"><code>R/label_formatting.R</code></a></small>
       <div class="d-none name"><code>reformat_labels.Rd</code></div>
     </div>
 
@@ -69,7 +70,7 @@ This allows you to experiment with different formatting options efficiently.</p>
 <span>  max_chars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  abbreviate <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  max_words <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  labeling_args <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  label_args <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -90,32 +91,41 @@ This allows you to experiment with different formatting options efficiently.</p>
 
 
 <dt id="arg-remove-articles">remove_articles<a class="anchor" aria-label="anchor" href="#arg-remove-articles"></a></dt>
-<dd><p>Logical. Remove articles</p></dd>
+<dd><p>Logical. Remove articles (a, an, the)</p></dd>
 
 
 <dt id="arg-remove-prepositions">remove_prepositions<a class="anchor" aria-label="anchor" href="#arg-remove-prepositions"></a></dt>
-<dd><p>Logical. Remove prepositions</p></dd>
+<dd><p>Logical. Remove prepositions (of, in, at, etc.)</p></dd>
 
 
 <dt id="arg-max-chars">max_chars<a class="anchor" aria-label="anchor" href="#arg-max-chars"></a></dt>
-<dd><p>Integer or NULL. Maximum character length</p></dd>
+<dd><p>Integer or NULL. Maximum character length (post-processing truncation).
+For better results, use in <code><a href="label_variables.html">label_variables()</a></code> instead to guide LLM.</p></dd>
 
 
 <dt id="arg-abbreviate">abbreviate<a class="anchor" aria-label="anchor" href="#arg-abbreviate"></a></dt>
-<dd><p>Logical. Apply abbreviation</p></dd>
+<dd><p>Logical. Apply rule-based abbreviation to long words</p></dd>
 
 
 <dt id="arg-max-words">max_words<a class="anchor" aria-label="anchor" href="#arg-max-words"></a></dt>
-<dd><p>Integer or NULL. Maximum word count</p></dd>
+<dd><p>Integer or NULL. Maximum word count (post-processing truncation).
+For better results, use in <code><a href="label_variables.html">label_variables()</a></code> instead to guide LLM.</p></dd>
 
 
-<dt id="arg-labeling-args">labeling_args<a class="anchor" aria-label="anchor" href="#arg-labeling-args"></a></dt>
-<dd><p>labeling_args object. Configuration (direct params take precedence)</p></dd>
+<dt id="arg-label-args">label_args<a class="anchor" aria-label="anchor" href="#arg-label-args"></a></dt>
+<dd><p>label_args object. Configuration (direct params take precedence)</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Updated variable_labels object with new formatting</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><strong>Note on max_words/max_chars:</strong> When used here, these parameters only perform
+post-processing truncation (cutting existing labels). For better results, use
+<code>max_words</code> and <code>max_chars</code> in <code><a href="label_variables.html">label_variables</a>()</code> to
+guide the LLM to generate appropriately-sized labels from the start.</p>
     </div>
 
     <div class="section level2">

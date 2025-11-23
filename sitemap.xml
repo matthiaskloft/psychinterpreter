@@ -1,12 +1,14 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/404.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/AGENT.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/articles/01-Getting_Started.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/articles/02-Usage_Patterns.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/articles/03-Variable_Labeling.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/articles/04-Gaussian_Mixture.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/articles/index.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/authors.html</loc></url>
-<url><loc>https://github.com/matthiaskloft/psychinterpreter/bfi_interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/CLAUDE.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/GEMINI.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/index.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/LICENSE-text.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/LICENSE.html</loc></url>
@@ -107,6 +109,7 @@
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/get_param_default.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/get_registry_param_names.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/gm_prompts.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/import_labels.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/index.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/interpret.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/interpretation.html</loc></url>
@@ -122,10 +125,11 @@
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/is.chat_session.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/is.interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/json_parser.html</loc></url>
-<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/labeling_args.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/label_args.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/label_export.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/label_formatting.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/label_parser.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/label_prompt_builder.html</loc></url>
-<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/label_utils.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/label_variables.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/llm_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/normalize_token_count.html</loc></url>
@@ -143,7 +147,7 @@
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.gm_interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.interpretation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.interpretation_args.html</loc></url>
-<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.labeling_args.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.label_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.llm_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.output_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.variable_labels.html</loc></url>

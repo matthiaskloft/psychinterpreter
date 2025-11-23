@@ -30,6 +30,7 @@ post-processing options."></head><body>
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="../articles/03-Variable_Labeling.html">Variable Labeling with LLMs</a></li>
     <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -51,7 +52,7 @@ post-processing options."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Generate Variable Labels Using LLM</h1>
-      <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/R/core_label_variables.R"><code>R/core_label_variables.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/R/label_main.R"><code>R/label_main.R</code></a></small>
       <div class="d-none name"><code>label_variables.Rd</code></div>
     </div>
 
@@ -77,7 +78,7 @@ post-processing options.</p>
 <span>  remove_prepositions <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  max_chars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  abbreviate <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  labeling_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  label_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  llm_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  echo <span class="op">=</span> <span class="st">"none"</span>,</span>
@@ -115,7 +116,9 @@ uses provider's default model</p></dd>
 
 
 <dt id="arg-max-words">max_words<a class="anchor" aria-label="anchor" href="#arg-max-words"></a></dt>
-<dd><p>Integer or NULL. Exact word count (overrides label_type preset)</p></dd>
+<dd><p>Integer or NULL. <strong>Influences LLM prompt</strong> to generate labels with this
+exact word count (overrides label_type preset). Also applies post-processing truncation
+if needed. More effective than using <code>max_words</code> in <code><a href="reformat_labels.html">reformat_labels()</a></code>.</p></dd>
 
 
 <dt id="arg-style-hint">style_hint<a class="anchor" aria-label="anchor" href="#arg-style-hint"></a></dt>
@@ -123,33 +126,40 @@ uses provider's default model</p></dd>
 
 
 <dt id="arg-sep">sep<a class="anchor" aria-label="anchor" href="#arg-sep"></a></dt>
-<dd><p>Character. Separator between words in final output (default = " ")</p></dd>
+<dd><p>Character. Separator between words in final output (default = " ").
+Post-processing only - does not affect LLM generation.</p></dd>
 
 
 <dt id="arg-case">case<a class="anchor" aria-label="anchor" href="#arg-case"></a></dt>
 <dd><p>Character. Case transformation: "original", "lower", "upper", "title",
-"sentence", "snake", "camel", "constant" (default = "original")</p></dd>
+"sentence", "snake", "camel", "constant" (default = "original").
+Post-processing only - does not affect LLM generation.</p></dd>
 
 
 <dt id="arg-remove-articles">remove_articles<a class="anchor" aria-label="anchor" href="#arg-remove-articles"></a></dt>
-<dd><p>Logical. Remove articles (a, an, the) from labels (default = FALSE)</p></dd>
+<dd><p>Logical. Remove articles (a, an, the) from labels (default = FALSE).
+Post-processing only - does not affect LLM generation.</p></dd>
 
 
 <dt id="arg-remove-prepositions">remove_prepositions<a class="anchor" aria-label="anchor" href="#arg-remove-prepositions"></a></dt>
-<dd><p>Logical. Remove prepositions (of, in, at, etc.) (default = FALSE)</p></dd>
+<dd><p>Logical. Remove prepositions (of, in, at, etc.) (default = FALSE).
+Post-processing only - does not affect LLM generation.</p></dd>
 
 
 <dt id="arg-max-chars">max_chars<a class="anchor" aria-label="anchor" href="#arg-max-chars"></a></dt>
-<dd><p>Integer or NULL. Maximum character length for labels</p></dd>
+<dd><p>Integer or NULL. <strong>Influences LLM prompt</strong> to generate labels within this
+character limit. Also applies post-processing truncation if needed. More effective than
+using <code>max_chars</code> in <code><a href="reformat_labels.html">reformat_labels()</a></code>.</p></dd>
 
 
 <dt id="arg-abbreviate">abbreviate<a class="anchor" aria-label="anchor" href="#arg-abbreviate"></a></dt>
-<dd><p>Logical. Apply rule-based abbreviation to long words (default = FALSE)</p></dd>
+<dd><p>Logical. Apply rule-based abbreviation to long words (default = FALSE).
+Post-processing only - does not affect LLM generation.</p></dd>
 
 
-<dt id="arg-labeling-args">labeling_args<a class="anchor" aria-label="anchor" href="#arg-labeling-args"></a></dt>
-<dd><p>List or labeling_args object. Labeling-specific configuration.
-Created with <code><a href="labeling_args.html">labeling_args</a></code>. Direct parameters take precedence.</p></dd>
+<dt id="arg-label-args">label_args<a class="anchor" aria-label="anchor" href="#arg-label-args"></a></dt>
+<dd><p>List or label_args object. Labeling-specific configuration.
+Created with <code><a href="label_args.html">label_args</a></code>. Direct parameters take precedence.</p></dd>
 
 
 <dt id="arg-llm-args">llm_args<a class="anchor" aria-label="anchor" href="#arg-llm-args"></a></dt>
@@ -187,6 +197,9 @@ Created with <code><a href="output_args.html">output_args</a></code>. Direct par
 
 <dt>metadata</dt>
 <dd><p>List with label_type, timestamp, and token usage</p></dd>
+
+<dt>chat_session</dt>
+<dd><p>Chat session object for reuse or inspection</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -229,7 +242,7 @@ Created with <code><a href="output_args.html">output_args</a></code>. Direct par
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Using configuration objects (dual-tier architecture)</span></span></span>
-<span class="r-in"><span><span class="va">label_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="labeling_args.html">labeling_args</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="va">label_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="label_args.html">label_args</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  label_type <span class="op">=</span> <span class="st">"short"</span>,</span></span>
 <span class="r-in"><span>  case <span class="op">=</span> <span class="st">"snake"</span>,</span></span>
 <span class="r-in"><span>  remove_articles <span class="op">=</span> <span class="cn">TRUE</span></span></span>
@@ -242,7 +255,7 @@ Created with <code><a href="output_args.html">output_args</a></code>. Direct par
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu">label_variables</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="va">variable_info</span>,</span></span>
-<span class="r-in"><span>  labeling_args <span class="op">=</span> <span class="va">label_config</span>,</span></span>
+<span class="r-in"><span>  label_args <span class="op">=</span> <span class="va">label_config</span>,</span></span>
 <span class="r-in"><span>  llm_args <span class="op">=</span> <span class="va">llm_config</span>,</span></span>
 <span class="r-in"><span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span></span>
 <span class="r-in"><span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span></span>
@@ -251,7 +264,7 @@ Created with <code><a href="output_args.html">output_args</a></code>. Direct par
 <span class="r-in"><span><span class="co"># Direct parameters override config objects</span></span></span>
 <span class="r-in"><span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu">label_variables</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="va">variable_info</span>,</span></span>
-<span class="r-in"><span>  labeling_args <span class="op">=</span> <span class="va">label_config</span>,  <span class="co"># says case = "snake"</span></span></span>
+<span class="r-in"><span>  label_args <span class="op">=</span> <span class="va">label_config</span>,  <span class="co"># says case = "snake"</span></span></span>
 <span class="r-in"><span>  case <span class="op">=</span> <span class="st">"camel"</span>,                 <span class="co"># This takes precedence!</span></span></span>
 <span class="r-in"><span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span></span>
 <span class="r-in"><span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span></span>

@@ -30,6 +30,7 @@ for efficient multi-analysis workflows."></head><body>
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="../articles/03-Variable_Labeling.html">Variable Labeling with LLMs</a></li>
     <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -82,8 +83,8 @@ for efficient multi-analysis workflows.</p>
 
 <dl><dt id="arg-fit-results">fit_results<a class="anchor" aria-label="anchor" href="#arg-fit-results"></a></dt>
 <dd><p>One of:</p><ul><li><p><strong>Fitted model object</strong>:</p><ul><li><p>psych package: <code><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">fa()</a></code>, <code><a href="https://rdrr.io/pkg/psych/man/principal.html" class="external-link">principal()</a></code></p></li>
-<li><p>lavaan package: <code><a href="https://rdrr.io/pkg/lavaan/man/cfa.html" class="external-link">cfa()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/sem.html" class="external-link">sem()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">efa()</a></code></p></li>
-<li><p>mirt package: <code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt()</a></code></p></li>
+<li><p>lavaan package: <code>cfa()</code>, <code>sem()</code>, <code>efa()</code></p></li>
+<li><p>mirt package: <code>mirt()</code></p></li>
 </ul></li>
 <li><p><strong>Structured list</strong> with model components:</p><ul><li><p>For FA: <code>list(loadings = matrix, factor_cor_mat = matrix)</code> or <code>list(loadings = matrix)</code>
 (both loadings and factor_cor_mat can be matrices or data.frames)</p></li>

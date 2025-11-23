@@ -44,6 +44,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="../articles/03-Variable_Labeling.html">Variable Labeling with LLMs</a></li>
     <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul>
 </li>
@@ -184,13 +185,13 @@ LLM used: anthropic - claude-sonnet-4-5
 Tokens:
   Input: 0
   Output: 0
-Elapsed time: 9.29
+Elapsed time: 6.31
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
 • Factor 1 (84.1%): Engine Power and Size
-• Factor 2 (1.7%): Horsepower-Displacement Balance (n.s.)
+• Factor 2 (1.7%): Power-to-Efficiency Residual (n.s.)
 
 Total variance explained: 85.8%
 
@@ -215,14 +216,14 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-This factor represents overall engine characteristics and vehicle power, capturing the strong relationship between
-cylinder count, displacement, horsepower, and fuel efficiency. Vehicles with larger engines (more cylinders, greater
-displacement, higher horsepower) consume more fuel, reflected in the negative mpg loading. Explains 84.1% of variance,
-representing the dominant dimension of engine performance.
+This factor represents overall engine specifications and vehicle size, with strong positive loadings on cylinders,
+displacement, and horsepower, and strong negative loading on fuel efficiency. Larger engines with more cylinders and
+displacement produce greater horsepower but consume more fuel, capturing the fundamental trade-off between power and
+efficiency in automotive design.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Horsepower-Displacement Balance (n.s.)
+Factor 2 (MR2) - Power-to-Efficiency Residual (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.72%
 Factor Correlations: MR1 = .03
@@ -235,10 +236,10 @@ Variables:
   2. disp, Displacement (Negative, Weak, -.172)
 
 LLM Interpretation:
-This factor captures residual variation in the horsepower-to-displacement relationship after accounting for general
-engine size. The positive horsepower loading contrasted with negative displacement suggests differentiation between
-power-efficient and displacement-heavy engines. Near-zero correlation with MR1 (.03) confirms discriminant validity,
-representing a distinct but minor (1.7% variance) performance efficiency dimension.
+This factor captures residual variance in horsepower after accounting for engine size, with minimal loadings across all
+variables and near-zero correlation with MR1. It represents subtle variations in engine performance optimization,
+possibly reflecting differences in engineering efficiency or tuning that affect horsepower independently of basic engine
+specifications.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -252,13 +253,13 @@ LLM used: anthropic - claude-sonnet-4-5
 Tokens:
   Input: 0
   Output: 0
-Elapsed time: 9.29
+Elapsed time: 6.31
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
 • Factor 1 (84.1%): Engine Power and Size
-• Factor 2 (1.7%): Horsepower-Displacement Balance (n.s.)
+• Factor 2 (1.7%): Power-to-Efficiency Residual (n.s.)
 
 Total variance explained: 85.8%
 
@@ -283,16 +284,15 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-This factor represents overall engine characteristics and vehicle power,
-capturing the strong relationship between cylinder count, displacement,
-horsepower, and fuel efficiency. Vehicles with larger engines (more cylinders,
-greater displacement, higher horsepower) consume more fuel, reflected in the
-negative mpg loading. Explains 84.1% of variance, representing the dominant
-dimension of engine performance.
+This factor represents overall engine specifications and vehicle size, with
+strong positive loadings on cylinders, displacement, and horsepower, and strong
+negative loading on fuel efficiency. Larger engines with more cylinders and
+displacement produce greater horsepower but consume more fuel, capturing the
+fundamental trade-off between power and efficiency in automotive design.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Horsepower-Displacement Balance (n.s.)
+Factor 2 (MR2) - Power-to-Efficiency Residual (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.72%
 Factor Correlations: MR1 = .03
@@ -305,12 +305,11 @@ Variables:
   2. disp, Displacement (Negative, Weak, -.172)
 
 LLM Interpretation:
-This factor captures residual variation in the horsepower-to-displacement
-relationship after accounting for general engine size. The positive horsepower
-loading contrasted with negative displacement suggests differentiation between
-power-efficient and displacement-heavy engines. Near-zero correlation with MR1
-(.03) confirms discriminant validity, representing a distinct but minor (1.7%
-variance) performance efficiency dimension.
+This factor captures residual variance in horsepower after accounting for engine
+size, with minimal loadings across all variables and near-zero correlation with
+MR1. It represents subtle variations in engine performance optimization,
+possibly reflecting differences in engineering efficiency or tuning that affect
+horsepower independently of basic engine specifications.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -367,12 +366,12 @@ LLM used: anthropic - claude-sonnet-4-5
 Tokens:
   Input: 0
   Output: 0
-Elapsed time: 6.98
+Elapsed time: 6.66
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Size and Power
+• Factor 1 (84%): Engine Power and Size
 • Factor 2 (1.7%): Horsepower-Displacement Balance (n.s.)
 
 Total variance explained: 85.7%
@@ -386,7 +385,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Size and Power
+Factor 1 (MR1) - Engine Power and Size
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -398,9 +397,10 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-This factor captures engine characteristics and performance capacity. Strong loadings from cylinders, displacement, and
-horsepower reflect mechanical power, while negative mpg loading indicates the fuel efficiency trade-off. Represents the
-fundamental relationship between engine size, power output, and fuel consumption in automotive design.
+This factor represents vehicle engine characteristics and performance capacity. Higher cylinders, displacement, and
+horsepower strongly load together while fuel efficiency (mpg) loads negatively, indicating that larger, more powerful
+engines consume more fuel. This factor captures 84% of variance, representing the primary dimension of engine capability
+versus economy.
 
 ════════════════════════════════════════════════════════════════════════════════
 
@@ -417,10 +417,10 @@ Variables:
   2. disp, Displacement (Negative, Weak, -.172)
 
 LLM Interpretation:
-This factor represents residual variation in power-to-displacement ratio after accounting for overall engine size.
-Positive horsepower loading with negative displacement loading suggests engines with efficient power generation relative
-to size. Near-zero correlation with MR1 confirms discriminant validity, capturing power efficiency independent of
-absolute engine size.
+This residual factor captures minor variance in the relationship between horsepower and displacement that isn't
+explained by overall engine size. The weak positive horsepower loading with slight negative displacement loading
+suggests subtle efficiency differences in how engines convert size to power. Near-zero correlation with MR1 confirms
+discriminant validity.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -434,12 +434,12 @@ LLM used: anthropic - claude-sonnet-4-5
 Tokens:
   Input: 0
   Output: 0
-Elapsed time: 6.98
+Elapsed time: 6.66
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Size and Power
+• Factor 1 (84%): Engine Power and Size
 • Factor 2 (1.7%): Horsepower-Displacement Balance (n.s.)
 
 Total variance explained: 85.7%
@@ -453,7 +453,7 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Size and Power
+Factor 1 (MR1) - Engine Power and Size
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
@@ -465,11 +465,11 @@ Variables:
   4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-This factor captures engine characteristics and performance capacity. Strong
-loadings from cylinders, displacement, and horsepower reflect mechanical power,
-while negative mpg loading indicates the fuel efficiency trade-off. Represents
-the fundamental relationship between engine size, power output, and fuel
-consumption in automotive design.
+This factor represents vehicle engine characteristics and performance capacity.
+Higher cylinders, displacement, and horsepower strongly load together while fuel
+efficiency (mpg) loads negatively, indicating that larger, more powerful engines
+consume more fuel. This factor captures 84% of variance, representing the
+primary dimension of engine capability versus economy.
 
 ════════════════════════════════════════════════════════════════════════════════
 
@@ -486,11 +486,11 @@ Variables:
   2. disp, Displacement (Negative, Weak, -.172)
 
 LLM Interpretation:
-This factor represents residual variation in power-to-displacement ratio after
-accounting for overall engine size. Positive horsepower loading with negative
-displacement loading suggests engines with efficient power generation relative
-to size. Near-zero correlation with MR1 confirms discriminant validity,
-capturing power efficiency independent of absolute engine size.
+This residual factor captures minor variance in the relationship between
+horsepower and displacement that isn't explained by overall engine size. The
+weak positive horsepower loading with slight negative displacement loading
+suggests subtle efficiency differences in how engines convert size to power.
+Near-zero correlation with MR1 confirms discriminant validity.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -569,7 +569,7 @@ capturing power efficiency independent of absolute engine size.
 <pre><code>Factor Analysis Chat Session
 Provider: anthropic
 Model: claude-sonnet-4-5
-Created: 2025-11-23 13:52:16.191813
+Created: 2025-11-23 23:44:46.158507
 Interpretations run: 2
 Total tokens - Input: 0 , Output: 0 </code></pre>
 </div>
