@@ -26,6 +26,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -54,12 +55,13 @@
 
 <p><strong>Purpose</strong>: Quick reference for Claude Code when helping users with the <strong>psychinterpreter</strong> R package.</p>
 <p><strong>For technical/architectural details</strong>: See <a href="dev/DEVELOPER_GUIDE.html">dev/DEVELOPER_GUIDE.md</a></p>
-<p><strong>Status</strong>: Stable (2025-11-15) - Namespace refactoring completed for clarity</p>
-<p><strong>Current API</strong> (as of 2025-11-15): - Main entry point: <code><a href="reference/interpret.html">interpret()</a></code> - Universal interpretation function - Configuration objects: <code><a href="reference/llm_args.html">llm_args()</a></code>, <code>interpretation_args(analysis_type, ...)</code>, <code><a href="reference/output_args.html">output_args()</a></code> - Architecture: interpret() → interpret_model.{class}() → build_analysis_data.{class}() - S3 generics: build_analysis_data(), build_system_prompt(), build_main_prompt(), export_interpretation()</p>
+<p><strong>Status</strong>: Stable (2025-11-22) - Variable labeling functionality added</p>
+<p><strong>Current API</strong> (as of 2025-11-22): - Main entry points: <code><a href="reference/interpret.html">interpret()</a></code> (interpretations), <code><a href="reference/label_variables.html">label_variables()</a></code> (variable labels) - Configuration objects: <code><a href="reference/llm_args.html">llm_args()</a></code>, <code><a href="reference/interpretation_args.html">interpretation_args()</a></code>, <code><a href="reference/labeling_args.html">labeling_args()</a></code>, <code><a href="reference/output_args.html">output_args()</a></code> - Architecture: - Interpretations: interpret() → interpret_model.{class}() → build_analysis_data.{class}() - Labels: label_variables() → build_system_prompt.label() → build_main_prompt.label() - S3 generics: build_analysis_data(), build_system_prompt(), build_main_prompt(), export_interpretation() - Parameter extraction: extract_model_parameters(), validate_model_requirements()</p>
+<p><strong>Recent Updates</strong> (2025-11-22): - <strong>NEW</strong>: Variable labeling functionality with <code><a href="reference/label_variables.html">label_variables()</a></code>, <code><a href="reference/reformat_labels.html">reformat_labels()</a></code>, <code><a href="reference/export_labels.html">export_labels()</a></code> - Two-phase architecture: Semantic Generation (LLM) → Format Processing (post-processing) - Supports short (1-3 words), phrase (4-7 words), acronym (3-5 chars), and custom labels - Extensive formatting options: case transformations, separators, abbreviation, article/preposition removal - Test coverage: 60+ tests for labeling functionality</p>
 <hr><div class="section level2">
 <h2 id="quick-reference">Quick Reference<a class="anchor" aria-label="anchor" href="#quick-reference"></a></h2>
-<p><strong>What It Does</strong>: Automates interpretation of exploratory factor analysis (EFA) results using Large Language Models via the <code>ellmer</code> package.</p>
-<p><strong>Main Entry Points</strong>: - <code><a href="reference/interpret.html">interpret()</a></code> - Universal generic (ONLY public API for interpretations) - <code><a href="reference/chat_session.html">chat_session()</a></code> - Create persistent LLM session (saves ~40-60% tokens for multiple analyses)</p>
+<p><strong>What It Does</strong>: Automates interpretation of psychometric analysis results AND generates concise variable labels using Large Language Models via the <code>ellmer</code> package.</p>
+<p><strong>Main Entry Points</strong>: - <code><a href="reference/interpret.html">interpret()</a></code> - Universal generic for interpreting psychometric models (FA, GM, etc.) - <code><a href="reference/label_variables.html">label_variables()</a></code> - Generate short, descriptive labels from variable descriptions - <code><a href="reference/chat_session.html">chat_session()</a></code> - Create persistent LLM session (saves ~40-60% tokens for multiple analyses)</p>
 <p><strong>Standards for Examples/Tests</strong>: - Always use <code>llm_provider = "ollama"</code> and <code>llm_model = "gpt-oss:20b-cloud"</code> - For LLM tests: <code>word_limit = 20</code> (minimum allowed) for token efficiency</p>
 <p><strong>Documentation Structure</strong>: - <strong>CLAUDE.md</strong> (this file): Usage guide and quick reference for Claude Code sessions - <strong>dev/DEVELOPER_GUIDE.md</strong>: Technical architecture and implementation details for maintainers - <strong>dev/TESTING_GUIDELINES.md</strong>: Testing standards and patterns - <strong>dev/templates/</strong>: Ready-to-copy code templates for implementing new model types (GM, IRT, CDM) - <strong>dev/MODEL_IMPLEMENTATION_GUIDE.md</strong>: Step-by-step guide for new model type implementation - <strong>dev/OPEN_ISSUES.md</strong>: Current issues, future work, and priorities</p>
 <hr></div>
@@ -125,14 +127,115 @@
 <span></span>
 <span><span class="co"># Check cumulative token usage</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="variable-labeling">Variable Labeling<a class="anchor" aria-label="anchor" href="#variable-labeling"></a></h2>
+<p>Generate short, descriptive labels for variables using LLMs.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://matthiaskloft.github.io/psychinterpreter/" class="external-link">psychinterpreter</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 1. Prepare variable descriptions</span></span>
+<span><span class="va">var_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"q1"</span>, <span class="st">"q2"</span>, <span class="st">"q3"</span><span class="op">)</span>,  <span class="co"># Optional - will auto-generate V1, V2, V3 if omitted</span></span>
+<span>  description <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"How satisfied are you with your job?"</span>,</span>
+<span>    <span class="st">"Rate your work-life balance"</span>,</span>
+<span>    <span class="st">"Years of experience in your field"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 2. Generate labels (one-shot)</span></span>
+<span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
+<span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  label_type <span class="op">=</span> <span class="st">"short"</span>  <span class="co"># 1-3 words (default)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 3. View results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">labels</span><span class="op">)</span></span>
+<span><span class="co"># ── Variable Labels Report ──</span></span>
+<span><span class="co">#</span></span>
+<span><span class="co"># ── Labeling Details ──</span></span>
+<span><span class="co"># • Label type: short</span></span>
+<span><span class="co"># • Variables labeled: 3</span></span>
+<span><span class="co">#</span></span>
+<span><span class="co"># ── Generated Labels ──</span></span>
+<span><span class="co"># Variable  Label</span></span>
+<span><span class="co"># --------  ----------------</span></span>
+<span><span class="co"># q1        Job Satisfaction</span></span>
+<span><span class="co"># q2        Work Balance</span></span>
+<span><span class="co"># q3        Experience Years</span></span>
+<span></span>
+<span><span class="co"># 4. Reformat without calling LLM again</span></span>
+<span><span class="va">labels_snake</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span><span class="va">labels</span>, case <span class="op">=</span> <span class="st">"snake"</span><span class="op">)</span></span>
+<span><span class="va">labels_camel</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span><span class="va">labels</span>, case <span class="op">=</span> <span class="st">"camel"</span><span class="op">)</span></span>
+<span><span class="va">labels_abbrev</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span><span class="va">labels</span>, abbreviate <span class="op">=</span> <span class="cn">TRUE</span>, max_words <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 5. Export to file</span></span>
+<span><span class="fu"><a href="reference/export_labels.html">export_labels</a></span><span class="op">(</span><span class="va">labels</span>, <span class="st">"variable_labels.csv"</span><span class="op">)</span>  <span class="co"># CSV (default)</span></span>
+<span><span class="fu"><a href="reference/export_labels.html">export_labels</a></span><span class="op">(</span><span class="va">labels</span>, <span class="st">"variable_labels.xlsx"</span>, format <span class="op">=</span> <span class="st">"xlsx"</span><span class="op">)</span>  <span class="co"># Excel</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="label-types">Label Types<a class="anchor" aria-label="anchor" href="#label-types"></a></h3>
+<ul><li>
+<strong>short</strong> (1-3 words): <code>"Job Satisfaction"</code>, <code>"Work Balance"</code> [default]</li>
+<li>
+<strong>phrase</strong> (4-7 words): <code>"Satisfaction with Current Job Position"</code>
+</li>
+<li>
+<strong>acronym</strong> (3-5 chars): <code>"JOBSAT"</code>, <code>"WRKBAL"</code>
+</li>
+<li>
+<strong>custom</strong>: Use <code>max_words</code> parameter for exact control</li>
+</ul></div>
+<div class="section level3">
+<h3 id="formatting-options">Formatting Options<a class="anchor" aria-label="anchor" href="#formatting-options"></a></h3>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
+<span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  label_type <span class="op">=</span> <span class="st">"short"</span>,</span>
+<span></span>
+<span>  <span class="co"># Semantic generation (LLM instructions)</span></span>
+<span>  max_words <span class="op">=</span> <span class="fl">2</span>,              <span class="co"># Override label_type preset</span></span>
+<span>  style_hint <span class="op">=</span> <span class="st">"technical"</span>,   <span class="co"># Guide LLM style (e.g., "simple", "academic")</span></span>
+<span></span>
+<span>  <span class="co"># Format processing (post-processing)</span></span>
+<span>  case <span class="op">=</span> <span class="st">"snake"</span>,             <span class="co"># "lower", "upper", "title", "snake", "camel", "constant"</span></span>
+<span>  sep <span class="op">=</span> <span class="st">"_"</span>,                  <span class="co"># Separator between words</span></span>
+<span>  remove_articles <span class="op">=</span> <span class="cn">TRUE</span>,     <span class="co"># Remove "a", "an", "the"</span></span>
+<span>  remove_prepositions <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Remove "of", "in", "at", etc.</span></span>
+<span>  abbreviate <span class="op">=</span> <span class="cn">TRUE</span>,          <span class="co"># Apply rule-based abbreviation</span></span>
+<span>  max_chars <span class="op">=</span> <span class="fl">20</span>              <span class="co"># Maximum character length</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="token-efficient-multi-labeling">Token-Efficient Multi-Labeling<a class="anchor" aria-label="anchor" href="#token-efficient-multi-labeling"></a></h3>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create session for labeling</span></span>
+<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_session.html">chat_session</a></span><span class="op">(</span></span>
+<span>  analysis_type <span class="op">=</span> <span class="st">"label"</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Reuse for multiple label generation tasks</span></span>
+<span><span class="va">labels1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/label_variables.html">label_variables</a></span><span class="op">(</span>chat_session <span class="op">=</span> <span class="va">chat</span>, variable_info <span class="op">=</span> <span class="va">vars1</span><span class="op">)</span></span>
+<span><span class="va">labels2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/label_variables.html">label_variables</a></span><span class="op">(</span>chat_session <span class="op">=</span> <span class="va">chat</span>, variable_info <span class="op">=</span> <span class="va">vars2</span><span class="op">)</span></span>
+<span><span class="va">labels3</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/label_variables.html">label_variables</a></span><span class="op">(</span>chat_session <span class="op">=</span> <span class="va">chat</span>, variable_info <span class="op">=</span> <span class="va">vars3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Check cumulative usage</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span></span></code></pre></div>
 <hr></div>
+</div>
 </div>
 <div class="section level1">
 <h1 id="usage-patterns">Usage Patterns<a class="anchor" aria-label="anchor" href="#usage-patterns"></a></h1>
 <p>The <code><a href="reference/interpret.html">interpret()</a></code> function accepts different input types. <strong>All arguments must be named</strong> to prevent confusion.</p>
 <div class="section level2">
 <h2 id="pattern-1-fitted-model-objects-recommended">Pattern 1: Fitted Model Objects (Recommended)<a class="anchor" aria-label="anchor" href="#pattern-1-fitted-model-objects-recommended"></a></h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Automatically extracts loadings from model objects</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="fu">psych</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">fa</a></span><span class="op">(</span><span class="va">...</span><span class="op">)</span>,        <span class="co"># Or lavaan::efa(), mirt::mirt(), etc.</span></span>
@@ -140,17 +243,17 @@
 <span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><strong>Supported model types</strong>: - <code><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">psych::fa()</a></code>, <code><a href="https://rdrr.io/pkg/psych/man/principal.html" class="external-link">psych::principal()</a></code> - <code><a href="https://rdrr.io/pkg/lavaan/man/cfa.html" class="external-link">lavaan::cfa()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/sem.html" class="external-link">lavaan::sem()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">lavaan::efa()</a></code> - <code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt::mirt()</a></code></p>
+<p><strong>Supported model types</strong>: - <strong>Factor Analysis</strong>: <code><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">psych::fa()</a></code>, <code><a href="https://rdrr.io/pkg/psych/man/principal.html" class="external-link">psych::principal()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">lavaan::efa()</a></code>, <code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt::mirt()</a></code> - <strong>SEM/CFA</strong>: <code><a href="https://rdrr.io/pkg/lavaan/man/cfa.html" class="external-link">lavaan::cfa()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/sem.html" class="external-link">lavaan::sem()</a></code> - <strong>Gaussian Mixture</strong>: <code><a href="https://mclust-org.github.io/mclust/reference/Mclust.html" class="external-link">mclust::Mclust()</a></code></p>
 </div>
 <div class="section level2">
 <h2 id="pattern-2-structured-list">Pattern 2: Structured List<a class="anchor" aria-label="anchor" href="#pattern-2-structured-list"></a></h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># For custom data structures</span></span>
-<span><span class="co"># Both loadings and Phi can be matrices or data.frames</span></span>
+<span><span class="co"># Both loadings and factor_cor_mat can be matrices or data.frames</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    loadings <span class="op">=</span> <span class="va">loadings_matrix</span>,</span>
-<span>    Phi <span class="op">=</span> <span class="va">correlation_matrix</span>          <span class="co"># Optional (for oblique rotations)</span></span>
+<span>    factor_cor_mat <span class="op">=</span> <span class="va">correlation_matrix</span>  <span class="co"># Optional (for oblique rotations)</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
 <span>  analysis_type <span class="op">=</span> <span class="st">"fa"</span>,               <span class="co"># REQUIRED for lists</span></span>
@@ -160,7 +263,7 @@
 </div>
 <div class="section level2">
 <h2 id="pattern-3-with-chat-session-token-efficient">Pattern 3: With Chat Session (Token-Efficient)<a class="anchor" aria-label="anchor" href="#pattern-3-with-chat-session-token-efficient"></a></h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create session once</span></span>
 <span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/chat_session.html">chat_session</a></span><span class="op">(</span>analysis_type <span class="op">=</span> <span class="st">"fa"</span>, llm_provider <span class="op">=</span> <span class="st">"ollama"</span>, llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
 <span></span>
@@ -171,7 +274,7 @@
 <div class="section level2">
 <h2 id="pattern-4-using-configuration-objects-advanced">Pattern 4: Using Configuration Objects (Advanced)<a class="anchor" aria-label="anchor" href="#pattern-4-using-configuration-objects-advanced"></a></h2>
 <p>The package supports a <strong>dual interface pattern</strong> for maximum flexibility: you can pass parameters either directly or through configuration objects.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create configuration objects for reusable settings</span></span>
 <span><span class="va">interp_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpretation_args.html">interpretation_args</a></span><span class="op">(</span></span>
 <span>  analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
@@ -186,7 +289,7 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">output_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/output_args.html">output_args</a></span><span class="op">(</span></span>
-<span>  output_format <span class="op">=</span> <span class="st">"markdown"</span>,</span>
+<span>  format <span class="op">=</span> <span class="st">"markdown"</span>,</span>
 <span>  silent <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -221,7 +324,7 @@
 <li>
 <strong>Package defaults as fallback</strong>: If neither is provided, uses package defaults</li>
 </ol><p><strong>Example</strong>:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># llm_config specifies word_limit = 100</span></span>
 <span><span class="va">llm_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/llm_args.html">llm_args</a></span><span class="op">(</span>word_limit <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span></span>
@@ -240,7 +343,7 @@
 <h1 id="common-workflows">Common Workflows<a class="anchor" aria-label="anchor" href="#common-workflows"></a></h1>
 <div class="section level2">
 <h2 id="debugging-llm-issues">Debugging LLM Issues<a class="anchor" aria-label="anchor" href="#debugging-llm-issues"></a></h2>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># View full prompts and responses</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, echo <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span>
 <span></span>
@@ -248,20 +351,38 @@
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, echo <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="discovering-available-parameters">Discovering Available Parameters<a class="anchor" aria-label="anchor" href="#discovering-available-parameters"></a></h2>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Show common parameters for all models (llm_args + output_args)</span></span>
+<span><span class="fu"><a href="reference/show_interpret_args.html">show_interpret_args</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Show all parameters for Factor Analysis (includes FA-specific interpretation_args)</span></span>
+<span><span class="fu"><a href="reference/show_interpret_args.html">show_interpret_args</a></span><span class="op">(</span><span class="st">"fa"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Show all parameters for Gaussian Mixture Models (includes GM-specific interpretation_args)</span></span>
+<span><span class="fu"><a href="reference/show_interpret_args.html">show_interpret_args</a></span><span class="op">(</span><span class="st">"gm"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Capture parameter data programmatically</span></span>
+<span><span class="va">params_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/show_interpret_args.html">show_interpret_args</a></span><span class="op">(</span><span class="st">"fa"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">params_df</span><span class="op">)</span></span></code></pre></div>
+<p>The function displays CLI-formatted output with: - <strong>Parameter name</strong> and type (character, integer, numeric, logical) - <strong>Default value</strong> from the centralized parameter registry - <strong>Valid range</strong> (for numeric) or <strong>allowed values</strong> (for categorical) - <strong>Description</strong> of what the parameter controls</p>
+<p>Parameters are organized by configuration group (llm_args, output_args, interpretation_args).</p>
+</div>
+<div class="section level2">
 <h2 id="customizing-output">Customizing Output<a class="anchor" aria-label="anchor" href="#customizing-output"></a></h2>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Control verbosity</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, silent <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>  <span class="co"># Show report + messages (default)</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, silent <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>  <span class="co"># Messages only, no report</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, silent <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>  <span class="co"># Completely silent</span></span>
 <span></span>
-<span><span class="co"># Output formats</span></span>
-<span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, output_format <span class="op">=</span> <span class="st">"text"</span><span class="op">)</span>      <span class="co"># Default: plain text</span></span>
-<span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, output_format <span class="op">=</span> <span class="st">"markdown"</span><span class="op">)</span>  <span class="co"># Markdown format</span></span></code></pre></div>
+<span><span class="co"># Output formats (use format parameter in output_args or directly)</span></span>
+<span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, output_args <span class="op">=</span> <span class="fu"><a href="reference/output_args.html">output_args</a></span><span class="op">(</span>format <span class="op">=</span> <span class="st">"cli"</span><span class="op">)</span><span class="op">)</span>       <span class="co"># Default: CLI-formatted text</span></span>
+<span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, output_args <span class="op">=</span> <span class="fu"><a href="reference/output_args.html">output_args</a></span><span class="op">(</span>format <span class="op">=</span> <span class="st">"markdown"</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Markdown format</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="creating-visualizations">Creating Visualizations<a class="anchor" aria-label="anchor" href="#creating-visualizations"></a></h2>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create color-blind friendly heatmap</span></span>
 <span><span class="va">interpretation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">interpretation</span><span class="op">)</span>  <span class="co"># Uses blue-orange diverging scale</span></span>
@@ -289,8 +410,8 @@
 <span><span class="va">cat_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/psychinterpreter_colors.html">psychinterpreter_colors</a></span><span class="op">(</span><span class="st">"categorical"</span><span class="op">)</span> <span class="co"># Okabe-Ito palette</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="working-with-weak-factors">Working with Weak Factors<a class="anchor" aria-label="anchor" href="#working-with-weak-factors"></a></h2>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<h2 id="working-with-weak-factors-fa">Working with Weak Factors (FA)<a class="anchor" aria-label="anchor" href="#working-with-weak-factors-fa"></a></h2>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Emergency rule: use top N loadings if none exceed cutoff</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, n_emergency <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>  <span class="co"># Use top 2 loadings (default)</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, n_emergency <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>  <span class="co"># Label weak factors as "undefined"</span></span>
@@ -299,8 +420,138 @@
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, hide_low_loadings <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="working-with-gaussian-mixture-models-gm">Working with Gaussian Mixture Models (GM)<a class="anchor" aria-label="anchor" href="#working-with-gaussian-mixture-models-gm"></a></h2>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mclust-org.github.io/mclust/" class="external-link">mclust</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fit Gaussian Mixture Model</span></span>
+<span><span class="va">data_scaled</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
+<span><span class="va">gmm_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mclust-org.github.io/mclust/reference/Mclust.html" class="external-link">Mclust</a></span><span class="op">(</span><span class="va">data_scaled</span>, G <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Get interpretation</span></span>
+<span><span class="va">gm_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
+<span>  fit_results <span class="op">=</span> <span class="va">gmm_model</span>,</span>
+<span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  weight_by_uncertainty <span class="op">=</span> <span class="cn">TRUE</span>,  <span class="co"># Weight by assignment certainty</span></span>
+<span>  plot_type <span class="op">=</span> <span class="st">"auto"</span>              <span class="co"># Auto-select visualization</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Multiple visualization types</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"heatmap"</span><span class="op">)</span>    <span class="co"># Cluster means heatmap</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"parallel"</span><span class="op">)</span>   <span class="co"># Parallel coordinates</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"radar"</span><span class="op">)</span>      <span class="co"># Radar/spider plots</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span>        <span class="co"># All visualizations</span></span>
+<span></span>
+<span><span class="co"># Visualize cluster variances (NEW in 0.0.0.9000)</span></span>
+<span><span class="co"># The 'what' parameter controls which data to visualize:</span></span>
+<span><span class="co"># - "means" (default): Cluster means (standardized values)</span></span>
+<span><span class="co"># - "variances": Within-cluster standard deviations</span></span>
+<span><span class="co"># - "ratio": Between/within variance ratios (discrimination power)</span></span>
+<span></span>
+<span><span class="co"># Show within-cluster variability</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"heatmap"</span>, what <span class="op">=</span> <span class="st">"variances"</span><span class="op">)</span>    <span class="co"># Variance heatmap</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"parallel"</span>, what <span class="op">=</span> <span class="st">"variances"</span><span class="op">)</span>   <span class="co"># Variance parallel plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"radar"</span>, what <span class="op">=</span> <span class="st">"variances"</span><span class="op">)</span>      <span class="co"># Variance radar plot</span></span>
+<span></span>
+<span><span class="co"># Show discrimination power (which variables best separate clusters)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"heatmap"</span>, what <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span>       <span class="co"># Ratio heatmap</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"parallel"</span>, what <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span>      <span class="co"># Ratio parallel plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"radar"</span>, what <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span>         <span class="co"># Ratio radar plot</span></span>
+<span></span>
+<span><span class="co"># All visualizations for variance</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"all"</span>, what <span class="op">=</span> <span class="st">"variances"</span><span class="op">)</span>        <span class="co"># All variance plots</span></span>
+<span></span>
+<span><span class="co"># Data centering options (NEW in 0.0.0.9000)</span></span>
+<span><span class="co"># The 'centering' parameter helps highlight cluster differences by removing baseline effects</span></span>
+<span><span class="co"># Only applies when what="means" (not for variances or ratios)</span></span>
+<span></span>
+<span><span class="co"># Center each variable by its mean across clusters (removes variable-specific baselines)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"heatmap"</span>, centering <span class="op">=</span> <span class="st">"variable"</span><span class="op">)</span>    <span class="co"># Variable-centered heatmap</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"parallel"</span>, centering <span class="op">=</span> <span class="st">"variable"</span><span class="op">)</span>   <span class="co"># Variable-centered parallel plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"radar"</span>, centering <span class="op">=</span> <span class="st">"variable"</span><span class="op">)</span>      <span class="co"># Variable-centered radar plot</span></span>
+<span></span>
+<span><span class="co"># Center all values by the grand mean (common reference point)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"heatmap"</span>, centering <span class="op">=</span> <span class="st">"global"</span><span class="op">)</span>      <span class="co"># Global-centered heatmap</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"parallel"</span>, centering <span class="op">=</span> <span class="st">"global"</span><span class="op">)</span>     <span class="co"># Global-centered parallel plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gm_result</span>, plot_type <span class="op">=</span> <span class="st">"radar"</span>, centering <span class="op">=</span> <span class="st">"global"</span><span class="op">)</span>        <span class="co"># Global-centered radar plot</span></span>
+<span></span>
+<span><span class="co"># GM-specific parameters</span></span>
+<span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
+<span>  fit_results <span class="op">=</span> <span class="va">gmm_model</span>,</span>
+<span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  min_cluster_size <span class="op">=</span> <span class="fl">10</span>,              <span class="co"># Minimum viable cluster size</span></span>
+<span>  separation_threshold <span class="op">=</span> <span class="fl">0.4</span>,         <span class="co"># Overlap detection threshold</span></span>
+<span>  profile_variables <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"var1"</span>, <span class="st">"var2"</span>, <span class="st">"var3"</span><span class="op">)</span>,  <span class="co"># Focus on subset</span></span>
+<span>  weight_by_uncertainty <span class="op">=</span> <span class="cn">TRUE</span>        <span class="co"># Consider assignment uncertainty</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="working-with-variable-labels">Working with Variable Labels<a class="anchor" aria-label="anchor" href="#working-with-variable-labels"></a></h2>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Generate labels with different formats</span></span>
+<span><span class="va">var_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  description <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"How satisfied are you with your job?"</span>,</span>
+<span>    <span class="st">"Rate your work-life balance"</span>,</span>
+<span>    <span class="st">"Years of experience"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Short labels (1-3 words)</span></span>
+<span><span class="va">labels_short</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
+<span>  <span class="va">var_info</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  label_type <span class="op">=</span> <span class="st">"short"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Snake case for programming</span></span>
+<span><span class="va">labels_snake</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span><span class="va">labels_short</span>, case <span class="op">=</span> <span class="st">"snake"</span><span class="op">)</span></span>
+<span><span class="co"># Result: "job_satisfaction", "work_balance", "experience_years"</span></span>
+<span></span>
+<span><span class="co"># Abbreviated for plots</span></span>
+<span><span class="va">labels_abbrev</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
+<span>  <span class="va">labels_short</span>,</span>
+<span>  abbreviate <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  max_words <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  max_chars <span class="op">=</span> <span class="fl">12</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Using configuration objects (dual-tier architecture)</span></span>
+<span><span class="va">label_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/labeling_args.html">labeling_args</a></span><span class="op">(</span></span>
+<span>  label_type <span class="op">=</span> <span class="st">"short"</span>,</span>
+<span>  case <span class="op">=</span> <span class="st">"snake"</span>,</span>
+<span>  remove_articles <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">llm_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/llm_args.html">llm_args</a></span><span class="op">(</span></span>
+<span>  echo <span class="op">=</span> <span class="st">"none"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
+<span>  <span class="va">var_info</span>,</span>
+<span>  labeling_args <span class="op">=</span> <span class="va">label_config</span>,</span>
+<span>  llm_args <span class="op">=</span> <span class="va">llm_config</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Direct parameters override config objects</span></span>
+<span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
+<span>  <span class="va">var_info</span>,</span>
+<span>  labeling_args <span class="op">=</span> <span class="va">label_config</span>,  <span class="co"># says case = "snake"</span></span>
+<span>  case <span class="op">=</span> <span class="st">"camel"</span>,                 <span class="co"># This takes precedence!</span></span>
+<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="api-configuration">API Configuration<a class="anchor" aria-label="anchor" href="#api-configuration"></a></h2>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Set API keys as environment variables</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>OPENAI_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span>      <span class="co"># OpenAI</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>ANTHROPIC_API_KEY <span class="op">=</span> <span class="st">"your-key"</span><span class="op">)</span>   <span class="co"># Anthropic</span></span>
@@ -311,7 +562,7 @@
 <h1 id="common-pitfalls">Common Pitfalls<a class="anchor" aria-label="anchor" href="#common-pitfalls"></a></h1>
 <div class="section level2">
 <h2 id="id_1-positional-vs-named-arguments">1. Positional vs Named Arguments<a class="anchor" aria-label="anchor" href="#id_1-positional-vs-named-arguments"></a></h2>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ INCORRECT - positional arguments</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">chat</span>, <span class="va">loadings</span>, <span class="va">var_info</span><span class="op">)</span></span>
 <span></span>
@@ -320,7 +571,7 @@
 </div>
 <div class="section level2">
 <h2 id="id_2-missing-analysis_type-for-structured-lists">2. Missing analysis_type for Structured Lists<a class="anchor" aria-label="anchor" href="#id_2-missing-analysis_type-for-structured-lists"></a></h2>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ INCORRECT</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings_matrix</span><span class="op">)</span>,</span>
@@ -336,7 +587,7 @@
 </div>
 <div class="section level2">
 <h2 id="id_3-not-reusing-chat-sessions">3. Not Reusing Chat Sessions<a class="anchor" aria-label="anchor" href="#id_3-not-reusing-chat-sessions"></a></h2>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ INEFFICIENT - creates new session each time (~2x token cost)</span></span>
 <span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span>fit_results <span class="op">=</span> <span class="va">fa1</span>, variable_info <span class="op">=</span> <span class="va">vars1</span>, llm_provider <span class="op">=</span> <span class="st">"ollama"</span>, llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
 <span><span class="va">result2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span>fit_results <span class="op">=</span> <span class="va">fa2</span>, variable_info <span class="op">=</span> <span class="va">vars2</span>, llm_provider <span class="op">=</span> <span class="st">"ollama"</span>, llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
@@ -348,7 +599,7 @@
 </div>
 <div class="section level2">
 <h2 id="id_4-wrong-pipe-operator-in-package-code">4. Wrong Pipe Operator in Package Code<a class="anchor" aria-label="anchor" href="#id_4-wrong-pipe-operator-in-package-code"></a></h2>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ INCORRECT - magrittr pipe</span></span>
 <span><span class="va">data</span> <span class="op">%&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">x</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
@@ -357,7 +608,7 @@
 </div>
 <div class="section level2">
 <h2 id="id_5-additional_info-parameter-location">5. additional_info Parameter Location<a class="anchor" aria-label="anchor" href="#id_5-additional_info-parameter-location"></a></h2>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ INCORRECT - additional_info inside fit_results list</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings</span>, additional_info <span class="op">=</span> <span class="st">"Context"</span><span class="op">)</span>,</span>
@@ -374,13 +625,13 @@
 </div>
 <div class="section level2">
 <h2 id="id_6-forgetting-documentation-regeneration">6. Forgetting Documentation Regeneration<a class="anchor" aria-label="anchor" href="#id_6-forgetting-documentation-regeneration"></a></h2>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># After modifying roxygen2 comments in R files:</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">document</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># ✅ ALWAYS run this</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="id_7-high-word_limit-in-tests">7. High word_limit in Tests<a class="anchor" aria-label="anchor" href="#id_7-high-word_limit-in-tests"></a></h2>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ INEFFICIENT</span></span>
 <span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span>fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings</span><span class="op">)</span>, variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
 <span>          analysis_type <span class="op">=</span> <span class="st">"fa"</span>, llm_provider <span class="op">=</span> <span class="st">"ollama"</span>, word_limit <span class="op">=</span> <span class="fl">150</span><span class="op">)</span>  <span class="co"># Default, wastes tokens</span></span>
@@ -396,7 +647,7 @@
 <h2 id="error-analysis_type-must-be-specified">“Error: analysis_type must be specified”<a class="anchor" aria-label="anchor" href="#error-analysis_type-must-be-specified"></a></h2>
 <p><strong>Cause</strong>: Using structured list without specifying analysis_type</p>
 <p><strong>Solution</strong>:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings_matrix</span><span class="op">)</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
@@ -407,7 +658,7 @@
 <h2 id="error-documented-arguments-not-in-usage">“Error: Documented arguments not in usage”<a class="anchor" aria-label="anchor" href="#error-documented-arguments-not-in-usage"></a></h2>
 <p><strong>Cause</strong>: Roxygen2 documentation out of sync</p>
 <p><strong>Solution</strong>:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">document</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -419,7 +670,7 @@
 <p><strong>Cause</strong>: LLM returned malformed JSON</p>
 <p><strong>Package handles automatically</strong> via multi-tier fallback: 1. Cleaned JSON parsing 2. Pattern-based extraction 3. Default values</p>
 <p><strong>To debug</strong>: Use <code>echo = "all"</code> to see raw LLM response</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">...</span>, echo <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -436,7 +687,8 @@
 <div class="section level1">
 <h1 id="active-todos">Active TODOs<a class="anchor" aria-label="anchor" href="#active-todos"></a></h1>
 <ul><li><p><strong>Optimize tests further</strong>: coverage and efficiency</p></li>
-<li><p><strong>Implement gaussian_mixture class</strong> - Requires 8 S3 methods + 2 optional methods (see dev/DEVELOPER_GUIDE.md)</p></li>
+<li><p><strong>Implement IRT class</strong> - Item Response Theory models (see dev/DEVELOPER_GUIDE.md)</p></li>
+<li><p><strong>Implement CDM class</strong> - Cognitive Diagnostic Models (see dev/DEVELOPER_GUIDE.md)</p></li>
 </ul><hr></div>
 <div class="section level1">
 <h1 id="quick-reference-tables">Quick Reference Tables<a class="anchor" aria-label="anchor" href="#quick-reference-tables"></a></h1>
@@ -446,31 +698,51 @@
 <th>Purpose</th>
 </tr></thead><tbody><tr><td><code><a href="reference/interpret.html">interpret()</a></code></td>
 <td>Universal interpretation function (recommended)</td>
+</tr><tr><td><code><a href="reference/label_variables.html">label_variables()</a></code></td>
+<td>Generate concise labels from variable descriptions</td>
+</tr><tr><td><code><a href="reference/reformat_labels.html">reformat_labels()</a></code></td>
+<td>Reapply formatting to existing labels without LLM call</td>
+</tr><tr><td><code><a href="reference/export_labels.html">export_labels()</a></code></td>
+<td>Export labels to CSV/Excel</td>
 </tr><tr><td><code><a href="reference/chat_session.html">chat_session()</a></code></td>
 <td>Create persistent LLM session</td>
+</tr><tr><td><code><a href="reference/show_interpret_args.html">show_interpret_args()</a></code></td>
+<td>Show available parameters with defaults for interpret()</td>
 </tr><tr><td><code><a href="reference/export_interpretation.html">export_interpretation()</a></code></td>
 <td>Export to txt/md files</td>
 </tr><tr><td><code><a href="reference/plot.fa_interpretation.html">plot.fa_interpretation()</a></code></td>
 <td>Visualize factor loadings with color-blind friendly palette</td>
+</tr><tr><td><code><a href="reference/plot.gm_interpretation.html">plot.gm_interpretation()</a></code></td>
+<td>Visualize cluster profiles (heatmap/parallel/radar)</td>
 </tr><tr><td><code><a href="reference/create_factor_plot.html">create_factor_plot()</a></code></td>
 <td>Create factor loading heatmap (standalone wrapper)</td>
+</tr><tr><td><code><a href="reference/create_cluster_profile_plot.html">create_cluster_profile_plot()</a></code></td>
+<td>Create cluster profile plot (standalone wrapper)</td>
 </tr><tr><td><code><a href="reference/theme_psychinterpreter.html">theme_psychinterpreter()</a></code></td>
 <td>Custom ggplot2 theme for publication-ready plots</td>
 </tr><tr><td><code><a href="reference/psychinterpreter_colors.html">psychinterpreter_colors()</a></code></td>
 <td>Get color-blind friendly palettes</td>
 </tr><tr><td><code><a href="reference/find_cross_loadings.html">find_cross_loadings()</a></code></td>
-<td>Identify cross-loading variables</td>
+<td>Identify cross-loading variables (FA)</td>
 </tr><tr><td><code><a href="reference/find_no_loadings.html">find_no_loadings()</a></code></td>
-<td>Identify orphaned variables</td>
+<td>Identify orphaned variables (FA)</td>
+</tr><tr><td><code><a href="reference/find_overlapping_clusters.html">find_overlapping_clusters()</a></code></td>
+<td>Identify overlapping clusters (GM)</td>
+</tr><tr><td><code><a href="reference/find_distinguishing_variables_gm.html">find_distinguishing_variables_gm()</a></code></td>
+<td>Identify key variables per cluster (GM)</td>
 </tr><tr><td><code><a href="reference/llm_args.html">llm_args()</a></code></td>
 <td>Create LLM configuration object</td>
 </tr><tr><td><code><a href="reference/interpretation_args.html">interpretation_args()</a></code></td>
 <td>Create model-specific interpretation configuration</td>
+</tr><tr><td><code><a href="reference/labeling_args.html">labeling_args()</a></code></td>
+<td>Create labeling configuration object</td>
 </tr><tr><td><code><a href="reference/output_args.html">output_args()</a></code></td>
 <td>Create output configuration object</td>
 </tr></tbody></table></div>
 <div class="section level2">
 <h2 id="key-parameters">Key Parameters<a class="anchor" aria-label="anchor" href="#key-parameters"></a></h2>
+<div class="section level3">
+<h3 id="common-parameters">Common Parameters<a class="anchor" aria-label="anchor" href="#common-parameters"></a></h3>
 <table class="table"><colgroup><col width="26%"><col width="19%"><col width="21%"><col width="31%"></colgroup><thead><tr><th>Parameter</th>
 <th>Values</th>
 <th>Default</th>
@@ -479,14 +751,29 @@
 <td>0, 1, 2</td>
 <td>0</td>
 <td>0=report+messages, 1=messages only, 2=silent</td>
-</tr><tr><td><code>output_format</code></td>
-<td>“text”, “markdown”</td>
-<td>“text”</td>
-<td>Report format</td>
+</tr><tr><td><code>format</code></td>
+<td>“cli”, “markdown”</td>
+<td>“cli”</td>
+<td>Report format (in output_args)</td>
 </tr><tr><td><code>word_limit</code></td>
 <td>20-500</td>
 <td>150</td>
-<td>Max words per factor interpretation</td>
+<td>Max words per interpretation</td>
+</tr><tr><td><code>echo</code></td>
+<td>“all”, “none”</td>
+<td>“none”</td>
+<td>Show LLM prompts/responses</td>
+</tr></tbody></table></div>
+<div class="section level3">
+<h3 id="fa-specific-parameters">FA-Specific Parameters<a class="anchor" aria-label="anchor" href="#fa-specific-parameters"></a></h3>
+<table class="table"><colgroup><col width="26%"><col width="19%"><col width="21%"><col width="31%"></colgroup><thead><tr><th>Parameter</th>
+<th>Values</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead><tbody><tr><td><code>cutoff</code></td>
+<td>0-1</td>
+<td>0.3</td>
+<td>Minimum loading threshold</td>
 </tr><tr><td><code>n_emergency</code></td>
 <td>0-10</td>
 <td>2</td>
@@ -495,32 +782,123 @@
 <td>TRUE/FALSE</td>
 <td>FALSE</td>
 <td>Hide non-significant loadings in prompt</td>
-</tr><tr><td><code>echo</code></td>
-<td>“all”, “none”</td>
-<td>“none”</td>
-<td>Show LLM prompts/responses</td>
+</tr><tr><td><code>sort_loadings</code></td>
+<td>TRUE/FALSE</td>
+<td>TRUE</td>
+<td>Sort variables by loading strength</td>
 </tr></tbody></table></div>
+<div class="section level3">
+<h3 id="gm-specific-parameters">GM-Specific Parameters<a class="anchor" aria-label="anchor" href="#gm-specific-parameters"></a></h3>
+<table class="table"><colgroup><col width="26%"><col width="19%"><col width="21%"><col width="31%"></colgroup><thead><tr><th>Parameter</th>
+<th>Values</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead><tbody><tr><td><code>min_cluster_size</code></td>
+<td>1-100</td>
+<td>5</td>
+<td>Minimum meaningful cluster size</td>
+</tr><tr><td><code>separation_threshold</code></td>
+<td>0-1</td>
+<td>0.3</td>
+<td>Overlap detection threshold</td>
+</tr><tr><td><code>weight_by_uncertainty</code></td>
+<td>TRUE/FALSE</td>
+<td>FALSE</td>
+<td>Weight by assignment certainty</td>
+</tr><tr><td><code>plot_type</code></td>
+<td>“auto”, “heatmap”, “parallel”, “radar”, “all”</td>
+<td>“auto”</td>
+<td>Visualization format</td>
+</tr><tr><td><code>what</code></td>
+<td>“means”, “variances”, “ratio”</td>
+<td>“means”</td>
+<td>Data to visualize (means/variances/discrimination)</td>
+</tr><tr><td><code>centering</code></td>
+<td>“none”, “variable”, “global”</td>
+<td>“none”</td>
+<td>Center data (variable-wise/grand mean, means only)</td>
+</tr><tr><td><code>profile_variables</code></td>
+<td>character vector</td>
+<td>NULL</td>
+<td>Focus on specific variables</td>
+</tr></tbody></table></div>
+<div class="section level3">
+<h3 id="labeling-specific-parameters">Labeling-Specific Parameters<a class="anchor" aria-label="anchor" href="#labeling-specific-parameters"></a></h3>
+<table class="table"><colgroup><col width="26%"><col width="19%"><col width="21%"><col width="31%"></colgroup><thead><tr><th>Parameter</th>
+<th>Values</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead><tbody><tr><td><strong>Semantic Generation (LLM Instructions)</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr><tr><td><code>label_type</code></td>
+<td>“short”, “phrase”, “acronym”, “custom”</td>
+<td>“short”</td>
+<td>Label style: short (1-3 words), phrase (4-7 words), acronym (3-5 chars)</td>
+</tr><tr><td><code>max_words</code></td>
+<td>integer or NULL</td>
+<td>NULL</td>
+<td>Exact word count (overrides label_type) - LLM instruction</td>
+</tr><tr><td><code>style_hint</code></td>
+<td>character or NULL</td>
+<td>NULL</td>
+<td>Style guidance (e.g., “technical”, “simple”, “academic”)</td>
+</tr><tr><td><strong>Format Processing (Post-processing)</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr><tr><td><code>sep</code></td>
+<td>character</td>
+<td>” ”</td>
+<td>Separator between words (e.g., ” “,”_“,”“)</td>
+</tr><tr><td><code>case</code></td>
+<td>“original”, “lower”, “upper”, “title”, “sentence”, “snake”, “camel”, “constant”</td>
+<td>“original”</td>
+<td>Case transformation</td>
+</tr><tr><td><code>remove_articles</code></td>
+<td>TRUE/FALSE</td>
+<td>FALSE</td>
+<td>Remove “a”, “an”, “the”</td>
+</tr><tr><td><code>remove_prepositions</code></td>
+<td>TRUE/FALSE</td>
+<td>FALSE</td>
+<td>Remove “of”, “in”, “at”, etc.</td>
+</tr><tr><td><code>abbreviate</code></td>
+<td>TRUE/FALSE</td>
+<td>FALSE</td>
+<td>Apply rule-based abbreviation to long words</td>
+</tr><tr><td><code>max_chars</code></td>
+<td>integer or NULL</td>
+<td>NULL</td>
+<td>Maximum character length for labels</td>
+</tr></tbody></table></div>
+</div>
 <div class="section level2">
 <h2 id="package-files">Package Files<a class="anchor" aria-label="anchor" href="#package-files"></a></h2>
 <p><strong>See dev/DEVELOPER_GUIDE.md section 2.2 for detailed file structure</strong></p>
 <table class="table"><colgroup><col width="43%"><col width="56%"></colgroup><thead><tr><th>Category</th>
 <th>Key Files</th>
 </tr></thead><tbody><tr><td><strong>Core</strong></td>
-<td>core_interpret_dispatch.R, core_interpret.R, core_constants.R</td>
+<td>core_interpret_dispatch.R, core_interpret.R, core_label_variables.R, core_constants.R</td>
 </tr><tr><td><strong>S3 Generics</strong></td>
-<td>s3_model_data.R, s3_prompt_builder.R, s3_json_parser.R, s3_export.R</td>
+<td>s3_model_data.R, s3_prompt_builder.R, s3_json_parser.R, s3_export.R, s3_label_builder.R, s3_label_parser.R</td>
 </tr><tr><td><strong>Classes</strong></td>
 <td>class_chat_session.R, class_interpretation.R</td>
 </tr><tr><td><strong>Shared Utilities</strong></td>
 <td>shared_config.R, shared_utils.R, shared_text.R, shared_visualization.R</td>
+</tr><tr><td><strong>Config Objects</strong></td>
+<td>labeling_args.R (labeling configuration)</td>
 </tr><tr><td><strong>FA Implementation</strong></td>
 <td>fa_model_data.R, fa_prompt_builder.R, fa_json.R, fa_diagnostics.R, fa_report.R, fa_visualization.R</td>
+</tr><tr><td><strong>Label Implementation</strong></td>
+<td>core_label_variables.R, s3_label_builder.R, s3_label_parser.R, label_utils.R, labeling_args.R</td>
 </tr><tr><td><strong>Tests</strong></td>
-<td>tests/testthat/ (25 test files, 347+ tests)</td>
+<td>tests/testthat/ (26 test files, 407+ tests)</td>
 </tr></tbody></table></div>
 <div class="section level2">
 <h2 id="development-commands">Development Commands<a class="anchor" aria-label="anchor" href="#development-commands"></a></h2>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">document</a></span><span class="op">(</span><span class="op">)</span>                                      <span class="co"># Regenerate documentation</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">test</a></span><span class="op">(</span><span class="op">)</span>                                          <span class="co"># Run all tests</span></span>
 <span><span class="fu">testthat</span><span class="fu">::</span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_file.html" class="external-link">test_file</a></span><span class="op">(</span><span class="st">"tests/testthat/test-interpret_fa.R"</span><span class="op">)</span> <span class="co"># Run single test file</span></span>
@@ -574,7 +952,7 @@
 <strong>Keep current</strong>: Delete obsolete sections, update examples to match current API</li>
 <li>
 <strong>Documentation over history</strong>: Focus on current state rather than historical changes</li>
-</ol><hr><p><strong>Last Updated</strong>: 2025-11-15 <strong>Maintainer</strong>: Update when making significant user-facing changes - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released - use DT::datatable() for .Qmd articles - when adding or editing functions, remember to update the references in the pkgdown.yml</p>
+</ol><hr><p><strong>Last Updated</strong>: 2025-11-22 <strong>Maintainer</strong>: Update when making significant user-facing changes <strong>Latest Change</strong>: Added <code><a href="reference/label_variables.html">label_variables()</a></code> functionality for generating short, descriptive variable labels with LLMs. Includes two-phase architecture (Semantic Generation → Format Processing), multiple label types (short/phrase/acronym/custom), extensive formatting options (case transformations, separators, abbreviation, article/preposition removal), reformatting capability, and chat session support for token efficiency. - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released - use DT::datatable() for .Qmd articles - when adding or editing functions, remember to update the references in the pkgdown.yml - whenever it is feasible and may save time, use subagents</p>
 </div>
 </div>
 

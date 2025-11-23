@@ -26,6 +26,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -68,12 +69,30 @@
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments for model-specific defaults</p></dd>
+<dd><p>Additional arguments for model-specific defaults, including:</p><ul><li><p><code>analysis_data</code>: Standardized model data (required by most implementations)</p></li>
+</ul></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>List. Default result structure</p>
+    <p>List with generic default values. Structure by model:</p><ul><li><p>FA: list(component_summaries = "Factor {i} interpretation unavailable" for each factor,
+suggested_names = "Factor{i}" for each factor)</p></li>
+<li><p>GM: list(component_summaries = "Cluster {i} interpretation unavailable" for each cluster,
+suggested_names = "Cluster{i}" for each cluster)</p></li>
+</ul></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>This is the final fallback when both JSON parsing and pattern extraction fail.
+It generates placeholder interpretations that ensure the package can still
+return a valid result object. The defaults are intentionally generic to
+signal to users that LLM interpretation was unsuccessful.</p>
+<p>Users seeing these defaults should consider:</p><ul><li><p>Using a larger/better LLM model</p></li>
+<li><p>Checking LLM API connectivity</p></li>
+<li><p>Reviewing prompt construction (echo = "all")</p></li>
+</ul></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="validate_parsed_result.html">validate_parsed_result()</a></code> for primary parsing, <code><a href="extract_by_pattern.html">extract_by_pattern()</a></code> for pattern extraction</p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

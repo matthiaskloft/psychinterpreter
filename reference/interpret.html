@@ -30,6 +30,7 @@ for efficient multi-analysis workflows."></head><body>
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -81,12 +82,12 @@ for efficient multi-analysis workflows.</p>
 
 <dl><dt id="arg-fit-results">fit_results<a class="anchor" aria-label="anchor" href="#arg-fit-results"></a></dt>
 <dd><p>One of:</p><ul><li><p><strong>Fitted model object</strong>:</p><ul><li><p>psych package: <code><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">fa()</a></code>, <code><a href="https://rdrr.io/pkg/psych/man/principal.html" class="external-link">principal()</a></code></p></li>
-<li><p>lavaan package: <code>cfa()</code>, <code>sem()</code>, <code>efa()</code></p></li>
-<li><p>mirt package: <code>mirt()</code></p></li>
+<li><p>lavaan package: <code><a href="https://rdrr.io/pkg/lavaan/man/cfa.html" class="external-link">cfa()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/sem.html" class="external-link">sem()</a></code>, <code><a href="https://rdrr.io/pkg/lavaan/man/efa.html" class="external-link">efa()</a></code></p></li>
+<li><p>mirt package: <code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt()</a></code></p></li>
 </ul></li>
 <li><p><strong>Structured list</strong> with model components:</p><ul><li><p>For FA: <code>list(loadings = matrix, factor_cor_mat = matrix)</code> or <code>list(loadings = matrix)</code>
 (both loadings and factor_cor_mat can be matrices or data.frames)</p></li>
-<li><p>For GM: Not yet implemented</p></li>
+<li><p>For GM: <code>list(means = matrix, covariances = array, proportions = numeric, z = matrix)</code></p></li>
 <li><p>For IRT: Not yet implemented</p></li>
 <li><p>For CDM: Not yet implemented</p></li>
 </ul></li>
@@ -123,7 +124,7 @@ they override values in llm_args (default = NULL).</p></dd>
 <dt id="arg-interpretation-args">interpretation_args<a class="anchor" aria-label="anchor" href="#arg-interpretation-args"></a></dt>
 <dd><p>List or interpretation_args object. Model-specific interpretation configuration.
 Can be created with <code><a href="interpretation_args.html">interpretation_args</a></code> or passed as a plain list. Contents vary by model type.
-For FA: cutoff, n_emergency, hide_low_loadings, sort_loadings, factor_cor_mat (default = NULL).</p></dd>
+For FA: cutoff, n_emergency, hide_low_loadings, sort_loadings (default = NULL).</p></dd>
 
 
 <dt id="arg-output-args">output_args<a class="anchor" aria-label="anchor" href="#arg-output-args"></a></dt>
@@ -140,7 +141,8 @@ suppress_heading, max_line_length, silent (default = NULL).</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Model-specific interpretation object:</p><ul><li><p>FA: <code>fa_interpretation</code> (see <code>interpret</code>)</p></li>
-<li><p>Future: <code>gm_interpretation</code>, <code>irt_interpretation</code>, etc.</p></li>
+<li><p>GM: <code>gm_interpretation</code> with cluster profiles and interpretations</p></li>
+<li><p>Future: <code>irt_interpretation</code>, <code>cdm_interpretation</code></p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -211,10 +213,28 @@ you're using based on which arguments are provided.</p><div class="section">
 </div>
 
 <div class="section">
+<h3 id="discovering-available-parameters">Discovering Available Parameters<a class="anchor" aria-label="anchor" href="#discovering-available-parameters"></a></h3>
+
+
+<p>To see all available parameters with their defaults, types, and valid ranges,
+use <code><a href="show_interpret_args.html">show_interpret_args</a></code>:</p>
+<div class="sourceCode"><pre><code><span></span>
+<span><span class="co"># Show common parameters (llm_args + output_args)</span></span>
+<span><span class="fu"><a href="../reference/show_interpret_args.html">show_interpret_args</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Show all parameters for Factor Analysis</span></span>
+<span><span class="fu"><a href="../reference/show_interpret_args.html">show_interpret_args</a></span><span class="op">(</span><span class="st">"fa"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Show all parameters for Gaussian Mixture Models</span></span>
+<span><span class="fu"><a href="../reference/show_interpret_args.html">show_interpret_args</a></span><span class="op">(</span><span class="st">"gm"</span><span class="op">)</span></span></code></pre></div>
+
+</div>
+
+<div class="section">
 <h3 id="supported-model-types">Supported Model Types<a class="anchor" aria-label="anchor" href="#supported-model-types"></a></h3>
 
 <ul><li><p><strong>fa</strong> (Factor Analysis): psych::fa(), psych::principal(), lavaan::cfa/efa(), mirt::mirt()</p></li>
-<li><p><strong>gm</strong> (Gaussian Mixture): Not yet implemented</p></li>
+<li><p><strong>gm</strong> (Gaussian Mixture): mclust::Mclust()</p></li>
 <li><p><strong>irt</strong> (Item Response Theory): Not yet implemented</p></li>
 <li><p><strong>cdm</strong> (Cognitive Diagnosis Models): Not yet implemented</p></li>
 </ul></div>
@@ -229,7 +249,7 @@ signature clean while maintaining flexibility</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code>interpret</code>, <code><a href="chat_session.html">chat_session</a></code></p></div>
+    <div class="dont-index"><p><code>interpret</code>, <code><a href="chat_session.html">chat_session</a></code>, <code><a href="show_interpret_args.html">show_interpret_args</a></code></p></div>
     </div>
 
     <div class="section level2">

@@ -44,6 +44,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -74,7 +75,7 @@
 <code>interpret()</code> Usage Patterns</h1>
 
       <p class="author">Matthias Kloft</p>
-      <p class="date">2025-11-16</p>
+      <p class="date">2025-11-23</p>
 
       <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/vignettes/articles/02-Usage_Patterns.qmd"><code>vignettes/articles/02-Usage_Patterns.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -115,46 +116,10 @@
 <code class="sourceCode R"><span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html" class="external-link">p_load</a></span><span class="op">(</span>char <span class="op">=</span> <span class="va">packages</span><span class="op">)</span></span></code></pre></div>
 </details>
 </div>
-</section><section class="level3"><h4 id="llm-setup">LLM Setup<a class="anchor" aria-label="anchor" href="#llm-setup"></a>
-</h4>
-<p>We use Ollama, so we need to make sure the Ollama server is running before executing this document.</p>
-<div>
-<blockquote>
-<p><strong>Note</strong></p>
-<p><strong>Starting Ollama</strong></p>
-<p>Make sure Ollama is running before rendering this document. You can start it with:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> serve</span></code></pre></div>
-</blockquote>
-</div>
-<p>Test the connection:</p>
-<div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Test the connection to the Ollama server</span></span>
-<span><span class="fu">ollamar</span><span class="fu">::</span><span class="fu"><a href="https://hauselin.github.io/ollama-r/reference/test_connection.html" class="external-link">test_connection</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-</details><div class="cell-output cell-output-stderr">
-<pre><code>Ollama local server running</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;httr2_response&gt;
-GET http://localhost:11434/
-Status: 200 OK
-Content-Type: text/plain
-Body: In memory (17 bytes)</code></pre>
-</div>
-</div>
-<p>We will use the model “gpt-oss:20b-cloud”, which needs to be installed. Since this is a cloud-powered model, you need an account with Ollama and be logged in to run this model.</p>
-<div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># pull the model from ollama if it is not already installed</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="st">"gpt-oss:20b-cloud"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu">ollamar</span><span class="fu">::</span><span class="fu"><a href="https://hauselin.github.io/ollama-r/reference/list_models.html" class="external-link">list_models</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">name</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu">ollamar</span><span class="fu">::</span><span class="fu"><a href="https://hauselin.github.io/ollama-r/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-</details>
-</div>
 </section></section><section class="section level3"><h3 id="run-factor-analysis">Run Factor Analysis<a class="anchor" aria-label="anchor" href="#run-factor-analysis"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fa_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/psych/man/fa.html" class="external-link">fa</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, nfactors <span class="op">=</span> <span class="fl">2</span>, rotate <span class="op">=</span> <span class="st">"oblimin"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">var_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -167,14 +132,21 @@ Body: In memory (17 bytes)</code></pre>
 </h3>
 <section class="level3"><h4 id="pattern-1-fitted-model-object">Pattern 1: Fitted Model Object<a class="anchor" aria-label="anchor" href="#pattern-1-fitted-model-object"></a>
 </h4>
+<p>Set provider and model:</p>
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">provider</span> <span class="op">&lt;-</span> <span class="st">"anthropic"</span></span>
+<span><span class="va">llm</span> <span class="op">&lt;-</span> <span class="st">"claude-sonnet-4-5"</span></span></code></pre></div>
+</details>
+</div>
 <p>Automatically extracts model components from fitted objects.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="va">fa_model</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
-<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">50</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stderr">
@@ -208,19 +180,19 @@ FACTOR ANALYSIS INTERPRETATION
 
 Number of factors: 2
 Loading cutoff: 0.3
-LLM used: ollama - gpt-oss:20b-cloud
+LLM used: anthropic - claude-sonnet-4-5
 Tokens:
-  Input: 826
-  Output: 1850
-Elapsed time: 10.2
+  Input: 0
+  Output: 0
+Elapsed time: 6.72
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Power Efficiency
-• Factor 2 (1.7%): Low‑Power Displacement (n.s.)
+• Factor 1 (84.1%): Engine Size and Power
+• Factor 2 (1.7%): Horsepower Residual Variance (n.s.)
 
-Total variance explained: 85.7%
+Total variance explained: 85.8%
 
 FACTOR CORRELATIONS
 ────────────────────────────────────────────────────────────────────────────────
@@ -231,40 +203,42 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Power Efficiency
+Factor 1 (MR1) - Engine Size and Power
 Number of significant loadings: 4
-Variance explained: 84.03%
+Variance explained: 84.05%
 Factor Correlations: MR2 = .03
 
 Variables:
-  1. disp, Displacement (, , .955)
-  2. cyl, Cylinders (, , .953)
-  3. mpg, Miles per gallon (, , -.893)
-  4. hp, Horsepower (, , .862)
+  1. disp, Displacement (Positive, Very Strong, .955)
+  2. cyl, Cylinders (Positive, Very Strong, .953)
+  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
+  4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-MR1 captures engine power through cylinder count, displacement, and horsepower, inversely linked to fuel efficiency. It
-explains 84% of variance, representing a robust power dimension largely decoupled from the weaker, almost unrelated
-factor MR2. This factor also aligns closely with overall vehicle performance expectations.
+This factor represents engine characteristics and vehicle power, with strong positive loadings on cylinders,
+displacement, and horsepower, and strong negative loading on fuel efficiency. Larger, more powerful engines with more
+cylinders consume more fuel, creating a clear inverse relationship between power capabilities and miles per gallon
+performance.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Low‑Power Displacement (n.s.)
+Factor 2 (MR2) - Horsepower Residual Variance (n.s.)
 Number of significant loadings: 0
-Variance explained: 1.7%
+Variance explained: 1.72%
 Factor Correlations: MR1 = .03
 
 WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top 2 variable(s) below cutoff for
 interpretation.
 
 Variables:
-  1. hp, Horsepower (, , .195)
-  2. disp, Displacement (, , -.172)
+  1. hp, Horsepower (Positive, Weak, .195)
+  2. disp, Displacement (Negative, Weak, -.172)
 
 LLM Interpretation:
-MR2, with modest loadings on horsepower and displacement, captures a subdued engine dimension that is essentially
-unrelated to MR1's dominant power factor. It explains minimal variance (1.7%) and serves as a near‑baseline, low‑powered
-category. This factor offers a contrastive benchmark for low‑efficiency models.
+This factor captures horsepower variance independent of engine size, explaining minimal total variance. The weak
+positive horsepower loading and near-zero correlation with MR1 suggest this represents horsepower efficiency or
+power-to-displacement ratio differences not explained by basic engine size metrics, though its practical significance is
+limited.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -274,19 +248,19 @@ category. This factor offers a contrastive benchmark for low‑efficiency models
 
 Number of factors: 2
 Loading cutoff: 0.3
-LLM used: ollama - gpt-oss:20b-cloud
+LLM used: anthropic - claude-sonnet-4-5
 Tokens:
-  Input: 826
-  Output: 1850
-Elapsed time: 10.2
+  Input: 0
+  Output: 0
+Elapsed time: 6.72
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Power Efficiency
-• Factor 2 (1.7%): Low‑Power Displacement (n.s.)
+• Factor 1 (84.1%): Engine Size and Power
+• Factor 2 (1.7%): Horsepower Residual Variance (n.s.)
 
-Total variance explained: 85.7%
+Total variance explained: 85.8%
 
 FACTOR CORRELATIONS
 ────────────────────────────────────────────────────────────────────────────────
@@ -297,43 +271,44 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Power Efficiency
+Factor 1 (MR1) - Engine Size and Power
 Number of significant loadings: 4
-Variance explained: 84.03%
+Variance explained: 84.05%
 Factor Correlations: MR2 = .03
 
 Variables:
-  1. disp, Displacement (, , .955)
-  2. cyl, Cylinders (, , .953)
-  3. mpg, Miles per gallon (, , -.893)
-  4. hp, Horsepower (, , .862)
+  1. disp, Displacement (Positive, Very Strong, .955)
+  2. cyl, Cylinders (Positive, Very Strong, .953)
+  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
+  4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-MR1 captures engine power through cylinder count, displacement, and horsepower,
-inversely linked to fuel efficiency. It explains 84% of variance, representing a
-robust power dimension largely decoupled from the weaker, almost unrelated
-factor MR2. This factor also aligns closely with overall vehicle performance
-expectations.
+This factor represents engine characteristics and vehicle power, with strong
+positive loadings on cylinders, displacement, and horsepower, and strong
+negative loading on fuel efficiency. Larger, more powerful engines with more
+cylinders consume more fuel, creating a clear inverse relationship between power
+capabilities and miles per gallon performance.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Low‑Power Displacement (n.s.)
+Factor 2 (MR2) - Horsepower Residual Variance (n.s.)
 Number of significant loadings: 0
-Variance explained: 1.7%
+Variance explained: 1.72%
 Factor Correlations: MR1 = .03
 
 WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
 2 variable(s) below cutoff for interpretation.
 
 Variables:
-  1. hp, Horsepower (, , .195)
-  2. disp, Displacement (, , -.172)
+  1. hp, Horsepower (Positive, Weak, .195)
+  2. disp, Displacement (Negative, Weak, -.172)
 
 LLM Interpretation:
-MR2, with modest loadings on horsepower and displacement, captures a subdued
-engine dimension that is essentially unrelated to MR1's dominant power factor.
-It explains minimal variance (1.7%) and serves as a near‑baseline, low‑powered
-category. This factor offers a contrastive benchmark for low‑efficiency models.
+This factor captures horsepower variance independent of engine size, explaining
+minimal total variance. The weak positive horsepower loading and near-zero
+correlation with MR1 suggest this represents horsepower efficiency or
+power-to-displacement ratio differences not explained by basic engine size
+metrics, though its practical significance is limited.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -343,7 +318,7 @@ category. This factor offers a contrastive benchmark for low‑efficiency models
 <p>For custom data structures or manual extraction.</p>
 <p>For FA, provide loadings (required) and optionally factor_cor_mat:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loadings_matrix</span> <span class="op">&lt;-</span> <span class="va">fa_model</span><span class="op">$</span><span class="va">loadings</span></span>
 <span><span class="va">factor_cor_mat</span> <span class="op">&lt;-</span> <span class="va">fa_model</span><span class="op">$</span><span class="va">Phi</span></span>
 <span></span>
@@ -351,8 +326,8 @@ category. This factor offers a contrastive benchmark for low‑efficiency models
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings_matrix</span>, factor_cor_mat <span class="op">=</span> <span class="va">factor_cor_mat</span><span class="op">)</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
 <span>  analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
-<span>  llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>  llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">50</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stderr">
@@ -386,17 +361,17 @@ FACTOR ANALYSIS INTERPRETATION
 
 Number of factors: 2
 Loading cutoff: 0.3
-LLM used: ollama - gpt-oss:20b-cloud
+LLM used: anthropic - claude-sonnet-4-5
 Tokens:
-  Input: 826
-  Output: 1206
-Elapsed time: 6.73
+  Input: 0
+  Output: 0
+Elapsed time: 6.58
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Power and Economy
-• Factor 2 (1.7%): Residual Power Displacement (n.s.)
+• Factor 1 (84%): Engine Power and Size
+• Factor 2 (1.7%): Fuel Efficiency Residual (n.s.)
 
 Total variance explained: 85.7%
 
@@ -409,25 +384,26 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Power and Economy
+Factor 1 (MR1) - Engine Power and Size
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
 
 Variables:
-  1. disp, Displacement (, , .955)
-  2. cyl, Cylinders (, , .953)
-  3. mpg, Miles per gallon (, , -.893)
-  4. hp, Horsepower (, , .862)
+  1. disp, Displacement (Positive, Very Strong, .955)
+  2. cyl, Cylinders (Positive, Very Strong, .953)
+  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
+  4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-MR1 aggregates high displacement, cylinder count and horsepower while inversely loading on mpg. It captures overall
-engine size and power driving low fuel economy. The 84% variance indicates it dominates vehicle characteristics, with
-negligible interrelation to MR2 (r≈0.03) across models.
+This factor represents overall engine characteristics and vehicle powertrain capabilities. Strong loadings from
+cylinders, displacement, and horsepower reflect engine size and power output, while negative mpg loading indicates the
+fuel efficiency trade-off. Together, these variables capture the fundamental mechanical specifications defining vehicle
+performance capacity and energy consumption.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Power Displacement (n.s.)
+Factor 2 (MR2) - Fuel Efficiency Residual (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 Factor Correlations: MR1 = .03
@@ -436,13 +412,14 @@ WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
 interpretation.
 
 Variables:
-  1. hp, Horsepower (, , .195)
-  2. disp, Displacement (, , -.172)
+  1. hp, Horsepower (Positive, Weak, .195)
+  2. disp, Displacement (Negative, Weak, -.172)
 
 LLM Interpretation:
-MR2 loads weakly on horsepower and displacement, reflecting minor variations beyond the dominant engine‑power factor.
-With 1.7% variance, it captures subtle residual power dynamics. Its near‑zero correlation with MR1 confirms distinct,
-low‑consequence influence on overall vehicle traits independently across models.
+This weak factor captures minimal unique variance (1.7%) in horsepower not explained by general engine size. The
+near-zero correlation with MR1 and negligible loadings suggest this represents statistical artifact or measurement error
+rather than a meaningful construct. It lacks discriminant validity as a substantive dimension of vehicle
+characteristics.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -452,17 +429,17 @@ low‑consequence influence on overall vehicle traits independently across model
 
 Number of factors: 2
 Loading cutoff: 0.3
-LLM used: ollama - gpt-oss:20b-cloud
+LLM used: anthropic - claude-sonnet-4-5
 Tokens:
-  Input: 826
-  Output: 1206
-Elapsed time: 6.73
+  Input: 0
+  Output: 0
+Elapsed time: 6.58
 
 SUGGESTED FACTOR NAMES
 ────────────────────────────────────────────────────────────────────────────────
 
-• Factor 1 (84%): Engine Power and Economy
-• Factor 2 (1.7%): Residual Power Displacement (n.s.)
+• Factor 1 (84%): Engine Power and Size
+• Factor 2 (1.7%): Fuel Efficiency Residual (n.s.)
 
 Total variance explained: 85.7%
 
@@ -475,26 +452,28 @@ MR2: MR1 = .03
 DETAILED FACTOR INTERPRETATIONS
 ────────────────────────────────────────────────────────────────────────────────
 
-Factor 1 (MR1) - Engine Power and Economy
+Factor 1 (MR1) - Engine Power and Size
 Number of significant loadings: 4
 Variance explained: 84.03%
 Factor Correlations: MR2 = .03
 
 Variables:
-  1. disp, Displacement (, , .955)
-  2. cyl, Cylinders (, , .953)
-  3. mpg, Miles per gallon (, , -.893)
-  4. hp, Horsepower (, , .862)
+  1. disp, Displacement (Positive, Very Strong, .955)
+  2. cyl, Cylinders (Positive, Very Strong, .953)
+  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
+  4. hp, Horsepower (Positive, Very Strong, .862)
 
 LLM Interpretation:
-MR1 aggregates high displacement, cylinder count and horsepower while inversely
-loading on mpg. It captures overall engine size and power driving low fuel
-economy. The 84% variance indicates it dominates vehicle characteristics, with
-negligible interrelation to MR2 (r≈0.03) across models.
+This factor represents overall engine characteristics and vehicle powertrain
+capabilities. Strong loadings from cylinders, displacement, and horsepower
+reflect engine size and power output, while negative mpg loading indicates the
+fuel efficiency trade-off. Together, these variables capture the fundamental
+mechanical specifications defining vehicle performance capacity and energy
+consumption.
 
 ════════════════════════════════════════════════════════════════════════════════
 
-Factor 2 (MR2) - Residual Power Displacement (n.s.)
+Factor 2 (MR2) - Fuel Efficiency Residual (n.s.)
 Number of significant loadings: 0
 Variance explained: 1.7%
 Factor Correlations: MR1 = .03
@@ -503,14 +482,15 @@ WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
 2 variable(s) below cutoff for interpretation.
 
 Variables:
-  1. hp, Horsepower (, , .195)
-  2. disp, Displacement (, , -.172)
+  1. hp, Horsepower (Positive, Weak, .195)
+  2. disp, Displacement (Negative, Weak, -.172)
 
 LLM Interpretation:
-MR2 loads weakly on horsepower and displacement, reflecting minor variations
-beyond the dominant engine‑power factor. With 1.7% variance, it captures subtle
-residual power dynamics. Its near‑zero correlation with MR1 confirms distinct,
-low‑consequence influence on overall vehicle traits independently across models.
+This weak factor captures minimal unique variance (1.7%) in horsepower not
+explained by general engine size. The near-zero correlation with MR1 and
+negligible loadings suggest this represents statistical artifact or measurement
+error rather than a meaningful construct. It lacks discriminant validity as a
+substantive dimension of vehicle characteristics.
 
 ════════════════════════════════════════════════════════════════════════════════</code></pre>
 </div>
@@ -519,10 +499,10 @@ low‑consequence influence on overall vehicle traits independently across model
 </h4>
 <p>Reuse chat session across analyses to save tokens.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb32"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/chat_session.html">chat_session</a></span><span class="op">(</span>analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
-<span>                     llm_provider <span class="op">=</span> <span class="st">"ollama"</span>,</span>
-<span>                     llm_model <span class="op">=</span> <span class="st">"gpt-oss:20b-cloud"</span><span class="op">)</span></span>
+<span>                     llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
+<span>                     llm_model <span class="op">=</span> <span class="va">llm</span><span class="op">)</span></span>
 <span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  chat_session <span class="op">=</span> <span class="va">chat</span>,</span>
 <span>  fit_results <span class="op">=</span> <span class="va">fa_model</span>,</span>
@@ -551,7 +531,7 @@ low‑consequence influence on overall vehicle traits independently across model
 <div class="cell-output cell-output-stderr">
 <pre><code>✔ Interpretation complete!</code></pre>
 </div>
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb40"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  chat_session <span class="op">=</span> <span class="va">chat</span>,</span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings_matrix</span>, factor_cor_mat <span class="op">=</span> <span class="va">factor_cor_mat</span><span class="op">)</span>,</span>
@@ -583,29 +563,29 @@ low‑consequence influence on overall vehicle traits independently across model
 </div>
 <p>We can check the total global token usage:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb48"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>Factor Analysis Chat Session
-Provider: ollama
-Model: gpt-oss:20b-cloud
-Created: 2025-11-16 00:25:18.07864
+Provider: anthropic
+Model: claude-sonnet-4-5
+Created: 2025-11-23 02:39:51.10667
 Interpretations run: 2
-Total tokens - Input: 1652 , Output: 2312 </code></pre>
+Total tokens - Input: 0 , Output: 0 </code></pre>
 </div>
 </div>
 </section></section><section class="section level2"><h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb50"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pander</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pander/man/pander.html" class="external-link">pander</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
 <p><strong>R version 4.5.2 (2025-10-31 ucrt)</strong></p>
 <p><strong>Platform:</strong> x86_64-w64-mingw32/x64</p>
 <p><strong>locale:</strong> <em>LC_COLLATE=German_Germany.utf8</em>, <em>LC_CTYPE=German_Germany.utf8</em>, <em>LC_MONETARY=German_Germany.utf8</em>, <em>LC_NUMERIC=C</em> and <em>LC_TIME=German_Germany.utf8</em></p>
 <p><strong>attached base packages:</strong> <em>stats4</em>, <em>stats</em>, <em>graphics</em>, <em>grDevices</em>, <em>utils</em>, <em>datasets</em>, <em>methods</em> and <em>base</em></p>
-<p><strong>other attached packages:</strong> <em>pander(v.0.6.6)</em>, <em>DT(v.0.34.0)</em>, <em>here(v.1.0.2)</em>, <em>dplyr(v.1.1.4)</em>, <em>mirt(v.1.45.1)</em>, <em>lattice(v.0.22-7)</em>, <em>lavaan(v.0.6-20)</em>, <em>psych(v.2.5.6)</em>, <em>ollamar(v.1.2.2)</em>, <em>ellmer(v.0.3.2)</em>, <em>psychinterpreter(v.0.0.0.9000)</em> and <em>pacman(v.0.5.1)</em></p>
-<p><strong>loaded via a namespace (and not attached):</strong> <em>gtable(v.0.3.6)</em>, <em>xfun(v.0.53)</em>, <em>ggplot2(v.4.0.0)</em>, <em>httr2(v.1.2.1)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>quadprog(v.1.5-8)</em>, <em>vctrs(v.0.6.5)</em>, <em>tools(v.4.5.2)</em>, <em>generics(v.0.1.4)</em>, <em>curl(v.7.0.0)</em>, <em>parallel(v.4.5.2)</em>, <em>tibble(v.3.3.0)</em>, <em>cluster(v.2.1.8.1)</em>, <em>pkgconfig(v.2.0.3)</em>, <em>R.oo(v.1.27.1)</em>, <em>Matrix(v.1.7-4)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>S7(v.0.2.0)</em>, <em>lifecycle(v.1.0.4)</em>, <em>compiler(v.4.5.2)</em>, <em>farver(v.2.1.2)</em>, <em>GPArotation(v.2025.3-1)</em>, <em>brio(v.1.1.5)</em>, <em>mnormt(v.2.1.1)</em>, <em>codetools(v.0.2-20)</em>, <em>permute(v.0.9-8)</em>, <em>dcurver(v.0.9.3)</em>, <em>htmltools(v.0.5.8.1)</em>, <em>yaml(v.2.3.10)</em>, <em>pillar(v.1.11.1)</em>, <em>crayon(v.1.5.3)</em>, <em>tidyr(v.1.3.1)</em>, <em>MASS(v.7.3-65)</em>, <em>R.utils(v.2.13.0)</em>, <em>vegan(v.2.7-2)</em>, <em>sessioninfo(v.1.2.3)</em>, <em>parallelly(v.1.45.1)</em>, <em>nlme(v.3.1-168)</em>, <em>Deriv(v.4.2.0)</em>, <em>tidyselect(v.1.2.1)</em>, <em>digest(v.0.6.37)</em>, <em>future(v.1.67.0)</em>, <em>listenv(v.0.9.1)</em>, <em>purrr(v.1.0.4)</em>, <em>splines(v.4.5.2)</em>, <em>rprojroot(v.2.1.1)</em>, <em>fastmap(v.1.2.0)</em>, <em>grid(v.4.5.2)</em>, <em>cli(v.3.6.5)</em>, <em>beepr(v.2.0)</em>, <em>magrittr(v.2.0.3)</em>, <em>future.apply(v.1.20.0)</em>, <em>pbivnorm(v.0.6.0)</em>, <em>withr(v.3.0.2)</em>, <em>clipr(v.0.8.0)</em>, <em>SimDesign(v.2.21)</em>, <em>scales(v.1.4.0)</em>, <em>rappdirs(v.0.3.3)</em>, <em>rmarkdown(v.2.30)</em>, <em>globals(v.0.18.0)</em>, <em>audio(v.0.1-11)</em>, <em>gridExtra(v.2.3)</em>, <em>progressr(v.0.17.0)</em>, <em>R.methodsS3(v.1.8.2)</em>, <em>pbapply(v.1.7-4)</em>, <em>evaluate(v.1.0.5)</em>, <em>knitr(v.1.50)</em>, <em>testthat(v.3.2.3)</em>, <em>mgcv(v.1.9-3)</em>, <em>rlang(v.1.1.6)</em>, <em>Rcpp(v.1.1.0)</em>, <em>glue(v.1.8.0)</em>, <em>coro(v.1.1.0)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>jsonlite(v.2.0.0)</em> and <em>R6(v.2.6.1)</em></p>
+<p><strong>other attached packages:</strong> <em>pander(v.0.6.6)</em>, <em>DT(v.0.34.0)</em>, <em>here(v.1.0.2)</em>, <em>dplyr(v.1.1.4)</em>, <em>mirt(v.1.45.1)</em>, <em>lattice(v.0.22-7)</em>, <em>lavaan(v.0.6-20)</em>, <em>psych(v.2.5.6)</em>, <em>ollamar(v.1.2.2)</em>, <em>ellmer(v.0.4.0)</em>, <em>psychinterpreter(v.0.0.0.9000)</em> and <em>pacman(v.0.5.1)</em></p>
+<p><strong>loaded via a namespace (and not attached):</strong> <em>gtable(v.0.3.6)</em>, <em>xfun(v.0.53)</em>, <em>ggplot2(v.4.0.1)</em>, <em>httr2(v.1.2.1)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>quadprog(v.1.5-8)</em>, <em>vctrs(v.0.6.5)</em>, <em>tools(v.4.5.2)</em>, <em>generics(v.0.1.4)</em>, <em>curl(v.7.0.0)</em>, <em>parallel(v.4.5.2)</em>, <em>tibble(v.3.3.0)</em>, <em>cluster(v.2.1.8.1)</em>, <em>pkgconfig(v.2.0.3)</em>, <em>R.oo(v.1.27.1)</em>, <em>Matrix(v.1.7-4)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>S7(v.0.2.0)</em>, <em>lifecycle(v.1.0.4)</em>, <em>compiler(v.4.5.2)</em>, <em>farver(v.2.1.2)</em>, <em>GPArotation(v.2025.3-1)</em>, <em>brio(v.1.1.5)</em>, <em>mnormt(v.2.1.1)</em>, <em>codetools(v.0.2-20)</em>, <em>permute(v.0.9-8)</em>, <em>dcurver(v.0.9.3)</em>, <em>htmltools(v.0.5.8.1)</em>, <em>yaml(v.2.3.10)</em>, <em>pillar(v.1.11.1)</em>, <em>crayon(v.1.5.3)</em>, <em>tidyr(v.1.3.1)</em>, <em>MASS(v.7.3-65)</em>, <em>R.utils(v.2.13.0)</em>, <em>vegan(v.2.7-2)</em>, <em>sessioninfo(v.1.2.3)</em>, <em>parallelly(v.1.45.1)</em>, <em>nlme(v.3.1-168)</em>, <em>Deriv(v.4.2.0)</em>, <em>tidyselect(v.1.2.1)</em>, <em>digest(v.0.6.37)</em>, <em>future(v.1.67.0)</em>, <em>listenv(v.0.9.1)</em>, <em>purrr(v.1.0.4)</em>, <em>splines(v.4.5.2)</em>, <em>rprojroot(v.2.1.1)</em>, <em>fastmap(v.1.2.0)</em>, <em>grid(v.4.5.2)</em>, <em>cli(v.3.6.5)</em>, <em>beepr(v.2.0)</em>, <em>magrittr(v.2.0.3)</em>, <em>future.apply(v.1.20.0)</em>, <em>pbivnorm(v.0.6.0)</em>, <em>withr(v.3.0.2)</em>, <em>clipr(v.0.8.0)</em>, <em>SimDesign(v.2.21)</em>, <em>scales(v.1.4.0)</em>, <em>rappdirs(v.0.3.3)</em>, <em>rmarkdown(v.2.30)</em>, <em>globals(v.0.18.0)</em>, <em>audio(v.0.1-11)</em>, <em>gridExtra(v.2.3)</em>, <em>progressr(v.0.17.0)</em>, <em>R.methodsS3(v.1.8.2)</em>, <em>pbapply(v.1.7-4)</em>, <em>evaluate(v.1.0.5)</em>, <em>knitr(v.1.50)</em>, <em>testthat(v.3.2.3)</em>, <em>mgcv(v.1.9-3)</em>, <em>rlang(v.1.1.6)</em>, <em>Rcpp(v.1.1.0)</em>, <em>glue(v.1.8.0)</em>, <em>coro(v.1.1.0)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>jsonlite(v.2.0.0)</em> and <em>R6(v.2.6.1)</em></p>
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">

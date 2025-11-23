@@ -26,6 +26,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -65,6 +66,65 @@
 
         </dt>
         <dd>Interpret Psychometric Analysis Results</dd>
+      </dl><dl><dt>
+
+          <code><a href="show_interpret_args.html">show_interpret_args()</a></code>
+
+        </dt>
+        <dd>Show Available Parameters for interpret()</dd>
+      </dl></div><div class="section level2">
+      <h2 id="variable-labeling">Variable Labeling<a class="anchor" aria-label="anchor" href="#variable-labeling"></a></h2>
+
+      <div class="section-desc"><p>Functions for generating concise, descriptive labels for variables based on their descriptions using LLMs. Supports various label formats and extensive post-processing options.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="label_variables.html">label_variables()</a></code>
+
+        </dt>
+        <dd>Generate Variable Labels Using LLM</dd>
+      </dl><dl><dt>
+
+          <code><a href="reformat_labels.html">reformat_labels()</a></code>
+
+        </dt>
+        <dd>Reformat Variable Labels</dd>
+      </dl><dl><dt>
+
+          <code><a href="export_labels.html">export_labels()</a></code>
+
+        </dt>
+        <dd>Export Variable Labels</dd>
+      </dl><dl><dt>
+
+          <code><a href="create_variable_labels.html">create_variable_labels()</a></code>
+
+        </dt>
+        <dd>Create Variable Labels Object</dd>
+      </dl><dl><dt>
+
+          <code><a href="format_label.html">format_label()</a></code>
+
+        </dt>
+        <dd>Format Label with Post-Processing</dd>
+      </dl><dl><dt>
+
+          <code><a href="parse_label_response.html">parse_label_response()</a></code>
+
+        </dt>
+        <dd>Parse Label Response from LLM</dd>
+      </dl><dl><dt>
+
+          <code><a href="print.variable_labels.html">print(<i>&lt;variable_labels&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print Variable Labels Object</dd>
       </dl></div><div class="section level2">
       <h2 id="chat-session-management">Chat Session Management<a class="anchor" aria-label="anchor" href="#chat-session-management"></a></h2>
 
@@ -119,6 +179,18 @@
         <dd>Create Model-Specific Interpretation Configuration</dd>
       </dl><dl><dt>
 
+          <code><a href="interpretation_args_gm.html">interpretation_args_gm()</a></code>
+
+        </dt>
+        <dd>Create Interpretation Arguments for Gaussian Mixture Models</dd>
+      </dl><dl><dt>
+
+          <code><a href="labeling_args.html">labeling_args()</a></code>
+
+        </dt>
+        <dd>Create Labeling Arguments Configuration</dd>
+      </dl><dl><dt>
+
           <code><a href="output_args.html">output_args()</a></code>
 
         </dt>
@@ -129,6 +201,53 @@
 
         </dt>
         <dd>Get Default Output Config</dd>
+      </dl></div><div class="section level2">
+      <h2 id="parameter-registry-validation">Parameter Registry &amp; Validation<a class="anchor" aria-label="anchor" href="#parameter-registry-validation"></a></h2>
+
+      <div class="section-desc"><p>Functions for accessing and validating parameter configurations from the centralized registry.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="PARAMETER_REGISTRY.html">PARAMETER_REGISTRY</a></code>
+
+        </dt>
+        <dd>Parameter Registry</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_param_default.html">get_param_default()</a></code>
+
+        </dt>
+        <dd>Get Parameter Default Value</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_params_by_group.html">get_params_by_group()</a></code>
+
+        </dt>
+        <dd>Get Parameters by Configuration Group</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_registry_param_names.html">get_registry_param_names()</a></code>
+
+        </dt>
+        <dd>Get Registry Parameter Names</dd>
+      </dl><dl><dt>
+
+          <code><a href="validate_param.html">validate_param()</a></code>
+
+        </dt>
+        <dd>Validate Single Parameter</dd>
+      </dl><dl><dt>
+
+          <code><a href="validate_params.html">validate_params()</a></code>
+
+        </dt>
+        <dd>Validate Multiple Parameters</dd>
       </dl></div><div class="section level2">
       <h2 id="visualization-theming">Visualization &amp; Theming<a class="anchor" aria-label="anchor" href="#visualization-theming"></a></h2>
 
@@ -148,6 +267,12 @@
         <dd>Plot Factor Analysis Interpretation Results</dd>
       </dl><dl><dt>
 
+          <code><a href="plot.gm_interpretation.html">plot(<i>&lt;gm_interpretation&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot GM Interpretation</dd>
+      </dl><dl><dt>
+
           <code><a href="plot.interpretation.html">plot(<i>&lt;interpretation&gt;</i>)</a></code>
 
         </dt>
@@ -158,6 +283,12 @@
 
         </dt>
         <dd>Create a visual representation of factor loadings</dd>
+      </dl><dl><dt>
+
+          <code><a href="create_cluster_profile_plot.html">create_cluster_profile_plot()</a></code>
+
+        </dt>
+        <dd>Create Cluster Profile Plot</dd>
       </dl><dl><dt>
 
           <code><a href="theme_psychinterpreter.html">theme_psychinterpreter()</a></code>
@@ -193,10 +324,16 @@
 
         </dt>
         <dd>Export Factor Analysis Interpretation Report</dd>
+      </dl><dl><dt>
+
+          <code><a href="export_interpretation.gm_interpretation.html">export_interpretation(<i>&lt;gm_interpretation&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Export Gaussian Mixture Interpretation Report</dd>
       </dl></div><div class="section level2">
       <h2 id="utility-functions">Utility Functions<a class="anchor" aria-label="anchor" href="#utility-functions"></a></h2>
 
-      <div class="section-desc"><p>Helper functions for analyzing factor loading patterns and checking object types.</p></div>
+      <div class="section-desc"><p>Helper functions for analyzing patterns and checking object types.</p></div>
 
 
     </div><div class="section level2">
@@ -216,6 +353,18 @@
 
         </dt>
         <dd>Find Variables with No Loadings Above Cutoff</dd>
+      </dl><dl><dt>
+
+          <code><a href="find_overlapping_clusters.html">find_overlapping_clusters()</a></code>
+
+        </dt>
+        <dd>Find Overlapping Clusters</dd>
+      </dl><dl><dt>
+
+          <code><a href="find_distinguishing_variables_gm.html">find_distinguishing_variables_gm()</a></code>
+
+        </dt>
+        <dd>Find Distinguishing Variables for Clusters</dd>
       </dl><dl><dt>
 
           <code><a href="is.interpretation.html">is.interpretation()</a></code>
@@ -241,6 +390,12 @@
         <dd>Print Factor Analysis Interpretation Results</dd>
       </dl><dl><dt>
 
+          <code><a href="print.gm_interpretation.html">print(<i>&lt;gm_interpretation&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print Method for GM Interpretation Objects</dd>
+      </dl><dl><dt>
+
           <code><a href="print.interpretation.html">print(<i>&lt;interpretation&gt;</i>)</a></code>
 
         </dt>
@@ -263,6 +418,12 @@
 
         </dt>
         <dd>Print method for interpretation_args</dd>
+      </dl><dl><dt>
+
+          <code><a href="print.labeling_args.html">print(<i>&lt;labeling_args&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print Labeling Arguments</dd>
       </dl><dl><dt>
 
           <code><a href="print.output_args.html">print(<i>&lt;output_args&gt;</i>)</a></code>
@@ -306,6 +467,12 @@
         <dd>Build Report (S3 Generic)</dd>
       </dl><dl><dt>
 
+          <code><a href="build_structured_list.html">build_structured_list()</a></code>
+
+        </dt>
+        <dd>Build Structured List for Interpretation</dd>
+      </dl><dl><dt>
+
           <code><a href="create_default_result.html">create_default_result()</a></code>
 
         </dt>
@@ -324,6 +491,12 @@
         <dd>Extract by Pattern (S3 Generic)</dd>
       </dl><dl><dt>
 
+          <code><a href="extract_model_parameters.html">extract_model_parameters()</a></code>
+
+        </dt>
+        <dd>Extract Model-Specific Parameters from Config Objects</dd>
+      </dl><dl><dt>
+
           <code><a href="validate_parsed_result.html">validate_parsed_result()</a></code>
 
         </dt>
@@ -336,10 +509,22 @@
         <dd>Validate and Extract Structured List Components (S3 Generic)</dd>
       </dl><dl><dt>
 
+          <code><a href="validate_model_requirements.html">validate_model_requirements()</a></code>
+
+        </dt>
+        <dd>Validate Model-Specific Requirements</dd>
+      </dl><dl><dt>
+
           <code><a href="interpret_model.html">interpret_model()</a></code>
 
         </dt>
         <dd>Internal S3 Generic for Interpreting Fitted Model Objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="abbreviate_word.html">abbreviate_word()</a></code>
+
+        </dt>
+        <dd>Abbreviate Word Using Rules</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

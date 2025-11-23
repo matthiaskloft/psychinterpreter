@@ -30,6 +30,7 @@ package for displaying factor loadings in prompts, reports, and diagnostics."></
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/01-Getting_Started.html">Getting Started with psychinterpreter</a></li>
     <li><a class="dropdown-item" href="../articles/02-Usage_Patterns.html">`interpret()` Usage Patterns</a></li>
+    <li><a class="dropdown-item" href="../articles/04-Gaussian_Mixture.html">Cluster Analysis via Gaussian Mixture Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -50,7 +51,7 @@ package for displaying factor loadings in prompts, reports, and diagnostics."></
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Format Loading Value with Consistent Precision</h1>
-      <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/R/shared_text.R"><code>R/shared_text.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/R/fa_utils.R"><code>R/fa_utils.R</code></a></small>
       <div class="d-none name"><code>format_loading.Rd</code></div>
     </div>
 
@@ -83,8 +84,8 @@ package for displaying factor loadings in prompts, reports, and diagnostics.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Formatting rules:</p><ul><li><p>Positive values: 0.456 → ".456"</p></li>
-<li><p>Negative values: -0.456 → "-.456"</p></li>
+    <p>Formatting rules:</p><ul><li><p>Positive values: 0.456 -&gt; ".456"</p></li>
+<li><p>Negative values: -0.456 -&gt; "-.456"</p></li>
 <li><p>Preserves sign and removes leading zero</p></li>
 <li><p>Consistent decimal precision</p></li>
 </ul></div>
