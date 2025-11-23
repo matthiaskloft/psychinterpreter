@@ -5,7 +5,7 @@ articles:
   articles/01-Getting_Started: 01-Getting_Started.html
   articles/02-Usage_Patterns: 02-Usage_Patterns.html
   articles/04-Gaussian_Mixture: 04-Gaussian_Mixture.html
-last_built: 2025-11-23T12:23Z
+last_built: 2025-11-23T12:50Z
 urls:
   reference: https://github.com/matthiaskloft/psychinterpreter/reference
   article: https://github.com/matthiaskloft/psychinterpreter/articles

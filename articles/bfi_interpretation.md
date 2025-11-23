@@ -6,15 +6,15 @@
 **Tokens:**  
   Input: 0  
   Output: 0  
-**Elapsed time:** 10  
+**Elapsed time:** 9.59  
 
 ## SUGGESTED FACTOR NAMES
 
 - **Factor 1 (10%):** *Emotional Reactivity*
-- **Factor 2 (8.4%):** *Interpersonal Warmth*
-- **Factor 3 (8.3%):** *Social Introversion*
-- **Factor 4 (8.2%):** *Conscientious Diligence*
-- **Factor 5 (6.6%):** *Intellectual Curiosity*
+- **Factor 2 (8.4%):** *Empathic Warmth*
+- **Factor 3 (8.3%):** *Social Withdrawal*
+- **Factor 4 (8.2%):** *Conscientious Perfectionism*
+- **Factor 5 (6.6%):** *Intellectual Engagement*
 
 **Total variance explained by all factors: 41.4%**
 
@@ -43,16 +43,16 @@ ML4 = -.01
 
 **Variables:**
 
-  1. N1-Anger_Easily_Provoked, Get angry easily. (Positive, Very Strong, .852)
+  1. N1-Anger_Proneness, Get angry easily. (Positive, Very Strong, .852)
   2. N2-Irritability_Easily_Triggered, Get irritated easily. (Positive, Very Strong, .817)
-  3. N3-Frequent_Mood_Fluctuations, Have frequent mood swings. (Positive, Strong, .665)
-  4. N5-Panic_Easily_Onset, Panic easily. (Positive, Moderate, .439)
-  5. N4-Often_Feel_Depressed, Often feel blue. (Positive, Moderate, .413)
+  3. N3-Frequent_Mood_Swings, Have frequent mood swings. (Positive, Strong, .665)
+  4. N5-Panic_Easily_Occurs, Panic easily. (Positive, Moderate, .439)
+  5. N4-Often_Feels_Sad, Often feel blue. (Positive, Moderate, .413)
 
 **LLM Interpretation:**  
-This factor captures neuroticism through proneness to negative emotions. Strong loadings on anger (0.852), irritability (0.817), and mood fluctuations (0.665) indicate individuals who experience frequent emotional disturbances. Moderate loadings on panic (0.439) and depression (0.413) extend the construct to anxiety-related states. The factor demonstrates convergent validity as all significant loadings reflect emotional instability. Notably absent are agreeableness and conscientiousness indicators, establishing discriminant validity. This construct represents trait-level emotional dysregulation independent of social competence or work habits, explaining 10% of total variance—the largest single factor.
+ML2 captures emotional instability and negative affectivity. Strong positive loadings on Anger_Proneness (.852), Irritability_Easily_Triggered (.817), and Frequent_Mood_Swings (.665) indicate a propensity for emotional dysregulation. Secondary loadings on Panic_Easily_Occurs (.439) and Often_Feels_Sad (.413) extend this construct to anxiety and depressive symptoms. The factor demonstrates convergent validity through intercorrelated negative emotional states. Weak loadings on agreeableness and conscientiousness items confirm discriminant validity, showing this represents a distinct emotional temperament dimension independent of interpersonal warmth or task orientation.
 
-### Factor 2 (ML5): Interpersonal Warmth
+### Factor 2 (ML5): Empathic Warmth
 
 **Number of significant loadings:** 7  
 **Variance explained:** 8.41%  
@@ -64,16 +64,16 @@ ML4 = .23
 
   1. A3-Comfort_Others_Effectively, Know how to comfort others. (Positive, Strong, .668)
   2. A2-Inquire_About_Wellbeing, Inquire about others' well-being. (Positive, Strong, .603)
-  3. A5-Ease_Interpersonal_Tension, Make people feel at ease. (Positive, Strong, .577)
-  4. A4-Love_Children_Strongly, Love children. (Positive, Moderate, .456)
-  5. E4-Make_Friends_Readily, Make friends easily. (Positive, Moderate, .362)
+  3. A5-Puts_Others_At, Make people feel at ease. (Positive, Strong, .577)
+  4. A4-Love_Children, Love children. (Positive, Moderate, .456)
+  5. E4-Makes_Friends_Easily, Make friends easily. (Positive, Moderate, .362)
   6. A1-Indifferent_To_Others, Am indifferent to the feelings of others. (Negative, Moderate, -.360)
-  7. E3-Captivate_People_Easily, Know how to captivate people. (Positive, Moderate, .303)
+  7. E3-Captivates_People_Easily, Know how to captivate people. (Positive, Moderate, .303)
 
 **LLM Interpretation:**  
-This factor represents genuine concern and empathic engagement with others. Primary loadings include comfort effectiveness (0.668), inquiring about wellbeing (0.603), and easing interpersonal tension (0.577), establishing convergent validity through shared prosocial orientation. The inverse loading on indifference (-0.360) further strengthens this interpretation. Secondary loadings on making friends readily (0.362) and captivating people (0.303) suggest social competence accompanies warmth. Absence of conscientiousness or neuroticism loadings ensures discriminant validity. This distinct agreeableness dimension captures genuine care and empathic accuracy, complementing rather than overlapping with other personality dimensions.
+ML5 represents interpersonal sensitivity and compassionate concern for others. Strong positive loadings on Comfort_Others_Effectively (.668), Inquire_About_Wellbeing (.603), and Puts_Others_At_Ease (.577) demonstrate genuine caring behaviors. Secondary loadings on Makes_Friends_Easily (.362) and Captivates_People_Easily (.303) indicate social competence. The strong negative loading on Indifferent_To_Others (-.360) provides inverse validation. This factor exhibits high convergent validity through compassion-related variables and discriminant validity from other dimensions. The mild positive correlation with ML3 suggests conscientiousness facilitates empathic expression.
 
-### Factor 3 (ML1): Social Introversion
+### Factor 3 (ML1): Social Withdrawal
 
 **Number of significant loadings:** 7  
 **Variance explained:** 8.28%  
@@ -84,17 +84,17 @@ ML4 = -.17
 **Variables:**
 
   1. E2-Difficulty_Approaching_Others, Find it difficult to approach others. (Positive, Strong, .667)
-  2. E1-Quiet_Conversational_Style, Don't talk a lot. (Positive, Strong, .565)
-  3. E4-Make_Friends_Readily, Make friends easily. (Negative, Strong, -.527)
-  4. N4-Often_Feel_Depressed, Often feel blue. (Positive, Moderate, .420)
-  5. E5-Take_Charge_Naturally, Take charge. (Negative, Moderate, -.394)
-  6. O4-Reflect_On_Things, Spend time reflecting on things. (Positive, Moderate, .357)
-  7. E3-Captivate_People_Easily, Know how to captivate people. (Negative, Moderate, -.341)
+  2. E1-Quiet_Speech_Patterns, Don't talk a lot. (Positive, Strong, .565)
+  3. E4-Makes_Friends_Easily, Make friends easily. (Negative, Strong, -.527)
+  4. N4-Often_Feels_Sad, Often feel blue. (Positive, Moderate, .420)
+  5. E5-Takes_Charge_Naturally, Take charge. (Negative, Moderate, -.394)
+  6. O4-Reflects_On_Things, Spend time reflecting on things. (Positive, Moderate, .357)
+  7. E3-Captivates_People_Easily, Know how to captivate people. (Negative, Moderate, -.341)
 
 **LLM Interpretation:**  
-This factor reflects tendency toward social withdrawal and difficulty with interpersonal engagement. Strongest loadings appear on difficulty approaching others (0.667) and quiet conversational style (0.565), establishing convergent validity through shared social inhibition. Inverse loadings on making friends readily (-0.527), taking charge naturally (-0.394), and captivating people (-0.341) reinforce social avoidance. Secondary loadings on depression (0.420) and reflectiveness (0.357) suggest introspection accompanies social withdrawal. Clean separation from other factors ensures discriminant validity. This introversion dimension captures behavioral shyness and social anxiety distinct from emotional reactivity or warmth, representing 8.3% of variance.
+ML1 represents introversion and social inhibition. Dominant positive loadings on Quiet_Speech_Patterns (.565) and Difficulty_Approaching_Others (.667) define reserved social engagement. Strong negative loadings on Makes_Friends_Easily (-.527), Captivates_People_Easily (-.341), and Takes_Charge_Naturally (-.394) indicate social assertiveness deficits. Secondary loadings on Often_Feels_Sad (.420) and Reflects_On_Things (.357) suggest introspective tendencies. Convergent validity is demonstrated through consistent social avoidance indicators. Moderate positive correlation with ML2 indicates withdrawn individuals experience elevated emotional reactivity, while negative correlation with ML5 shows social withdrawal opposes empathic engagement.
 
-### Factor 4 (ML3): Conscientious Diligence
+### Factor 4 (ML3): Conscientious Perfectionism
 
 **Number of significant loadings:** 5  
 **Variance explained:** 8.19%  
@@ -104,16 +104,16 @@ ML4 = .20
 
 **Variables:**
 
-  1. C4-Halfhearted_Work_Approach, Do things in a half-way manner. (Negative, Strong, -.643)
-  2. C2-Pursue_Perfect_Completion, Continue until everything is perfect. (Positive, Strong, .638)
-  3. C5-Waste_Time_Frequently, Waste my time. (Negative, Strong, -.570)
-  4. C3-Plan-Based_Task_Execution, Do things according to a plan. (Positive, Strong, .564)
-  5. C1-Exacting_Work_Standards, Am exacting in my work. (Positive, Strong, .532)
+  1. C4-Half-Way_Task_Completion, Do things in a half-way manner. (Negative, Strong, -.643)
+  2. C2-Pursue_Perfect_Standards, Continue until everything is perfect. (Positive, Strong, .638)
+  3. C5-Wastes_Time, Waste my time. (Negative, Strong, -.570)
+  4. C3-Plan_Oriented_Work, Do things according to a plan. (Positive, Strong, .564)
+  5. C1-Exacting_In_Work, Am exacting in my work. (Positive, Strong, .532)
 
 **LLM Interpretation:**  
-This factor embodies work-oriented conscientiousness through disciplined task completion. Significant positive loadings on pursuing perfect completion (0.638), plan-based execution (0.564), and exacting standards (0.532) demonstrate convergent validity around goal-directed behavior. Strong inverse loadings on halfhearted approach (-0.643) and time wasting (-0.570) reinforce commitment to quality work. The positive loading on taking charge (0.274) suggests leadership emerges from conscientiousness. Absence of emotional, social, and openness variables ensures discriminant validity. This factor isolates the productive, organized dimension of personality independent of emotional state or social functioning, accounting for 8.2% of variance.
+ML3 captures organized, standards-driven work behavior. Strong positive loadings on Pursue_Perfect_Standards (.638), Plan_Oriented_Work (.564), and Exacting_In_Work (.532) define meticulous task engagement. Strong negative loadings on Half-Way_Task_Completion (-.643) and Wastes_Time (-.570) confirm commitment to quality completion. Secondary positive loading on Takes_Charge_Naturally (.274) suggests decisive responsibility-taking. This factor demonstrates excellent convergent validity through intercorrelated conscientiousness indicators and discriminant validity from emotional and social factors. The small positive correlation with ML5 suggests conscientious individuals may extend their diligence to relationship maintenance.
 
-### Factor 5 (ML4): Intellectual Curiosity
+### Factor 5 (ML4): Intellectual Engagement
 
 **Number of significant loadings:** 6  
 **Variance explained:** 6.57%  
@@ -123,22 +123,22 @@ ML3 = .20
 
 **Variables:**
 
-  1. O3-Elevate_Conversational_Depth, Carry the conversation to a higher level. (Positive, Strong, .633)
+  1. O3-Elevates_Conversation_Level, Carry the conversation to a higher level. (Positive, Strong, .633)
   2. O1-Full_Of_Ideas, Am full of ideas. (Positive, Strong, .534)
-  3. O5-Avoid_Deep_Exploration, Will not probe deeply into a subject. (Negative, Strong, -.522)
-  4. O2-Avoid_Difficult_Material, Avoid difficult reading material. (Negative, Moderate, -.441)
-  5. O4-Reflect_On_Things, Spend time reflecting on things. (Positive, Moderate, .379)
-  6. E3-Captivate_People_Easily, Know how to captivate people. (Positive, Moderate, .315)
+  3. O5-Avoids_Deep_Probing, Will not probe deeply into a subject. (Negative, Strong, -.522)
+  4. O2-Avoids_Difficult_Material, Avoid difficult reading material. (Negative, Moderate, -.441)
+  5. O4-Reflects_On_Things, Spend time reflecting on things. (Positive, Moderate, .379)
+  6. E3-Captivates_People_Easily, Know how to captivate people. (Positive, Moderate, .315)
 
 **LLM Interpretation:**  
-This factor captures openness through engagement with complex ideas and intellectual depth. Primary loadings include elevating conversational depth (0.633), being full of ideas (0.534), and reflectiveness (0.379), establishing convergent validity around cognitive engagement. Strong inverse loadings on avoiding difficult material (-0.441) and avoiding deep exploration (-0.522) strengthen this interpretation by representing intellectual avoidance inversely. Secondary loadings on captivating people (0.315) suggest eloquence accompanies ideation. Minimal loadings on agreeableness, conscientiousness, and neuroticism ensure discriminant validity. This openness dimension represents intellectual engagement and reflective thinking, distinct from personality factors related to emotion, sociability, or work discipline.
+ML4 represents cognitive curiosity and intellectual depth. Strong positive loadings on Elevates_Conversation_Level (.633), Full_Of_Ideas (.534), and Reflects_On_Things (.379) indicate active intellectual pursuit. Strong negative loadings on Avoids_Deep_Probing (-.522) and Avoids_Difficult_Material (-.441) confirm preference for cognitive challenge. Secondary loading on Captivates_People_Easily (.315) suggests intellectuals communicate engagingly. This factor demonstrates convergent validity through openness-to-experience variables and discriminant validity from personality dimensions. Weak positive correlations with ML5 and ML3 suggest intellectually engaged individuals balance depth-seeking with interpersonal warmth and organizational thoroughness.
 
 ## CROSS-LOADING VARIABLES
 
 Variables loading on multiple factors (>= 0.3):
 
-- **E3-Captivate_People_Easily**: ML5 (.303), ML1 (-.341), ML4 (.315)
-- **E4-Make_Friends_Readily**: ML5 (.362), ML1 (-.527)
-- **N4-Often_Feel_Depressed**: ML2 (.413), ML1 (.420)
-- **O4-Reflect_On_Things**: ML1 (.357), ML4 (.379)
+- **E3-Captivates_People_Easily**: ML5 (.303), ML1 (-.341), ML4 (.315)
+- **E4-Makes_Friends_Easily**: ML5 (.362), ML1 (-.527)
+- **N4-Often_Feels_Sad**: ML2 (.413), ML1 (.420)
+- **O4-Reflects_On_Things**: ML1 (.357), ML4 (.379)
 
