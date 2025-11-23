@@ -1,57 +1,57 @@
----
-output: github_document
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
-
 
 # psychinterpreter <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
+
 [![R-CMD-check](https://github.com/matthiaskloft/psychinterpreter/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/matthiaskloft/psychinterpreter/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/matthiaskloft/psychinterpreter/graph/badge.svg)](https://app.codecov.io/gh/matthiaskloft/psychinterpreter)
+[![Codecov test
+coverage](https://codecov.io/gh/matthiaskloft/psychinterpreter/graph/badge.svg)](https://app.codecov.io/gh/matthiaskloft/psychinterpreter)
 <!-- badges: end -->
 
+**LLM-powered interpretation of factor and cluster analyses, plus
+variable label generation.**
 
-**LLM-powered interpretation of factor and cluster analyses, plus variable label generation.**
-
-
-**Disclaimer:**
-This package is in early development and should be used with caution.
-Always review and validate LLM-generated interpretations.
-
+**Disclaimer:** This package is in early development and should be used
+with caution. Always review and validate LLM-generated interpretations.
 
 ## Features
 
-- 🤖 **LLM-Powered Interpretation**: Generate human-readable factor names and interpretations using state-of-the-art language models via the ['ellmer'](https://ellmer.tidyverse.org/) package
-- 🏷️ **Variable Label Generation**: Create short, descriptive labels from variable descriptions with extensive formatting options (case transformations, abbreviation, etc.)
-- 🔌 **Seamless Integration**: S3 methods for popular packages - just pass your fitted model objects directly
+- 🤖 **LLM-Powered Interpretation**: Generate human-readable factor
+  names and interpretations using state-of-the-art language models via
+  the [‘ellmer’](https://ellmer.tidyverse.org/) package
+- 🏷️ **Variable Label Generation**: Create short, descriptive labels
+  from variable descriptions with extensive formatting options (case
+  transformations, abbreviation, etc.)
+- 🔌 **Seamless Integration**: S3 methods for popular packages - just
+  pass your fitted model objects directly
   - `psych::fa()` and `psych::principal()` results
   - `lavaan::cfa()`, `lavaan::sem()`, and `lavaan::efa()` results
   - `mirt::mirt()` multidimensional IRT results
   - Auto-extracts loadings and factor correlations
-- 📊 **Comprehensive Reports**: Automatically generate detailed reports in text or markdown format
-- 📈 **Visualizations**: Create publication-ready heatmaps of factor loadings with suggested factor names
+- 📊 **Comprehensive Reports**: Automatically generate detailed reports
+  in text or markdown format
+- 📈 **Visualizations**: Create publication-ready heatmaps of factor
+  loadings with suggested factor names
 - 💾 **Multi-Format Export**: Export results to TXT and MD formats
-- 🎯 **Provider Agnostic**: Works with OpenAI, Anthropic, Google Gemini, Azure, Ollama, and more via ['ellmer'](https://ellmer.tidyverse.org/)
-- 🔄 **Persistent Chat Sessions**: Reuse LLM sessions across multiple analyses to save tokens and reduce costs
+- 🎯 **Provider Agnostic**: Works with OpenAI, Anthropic, Google Gemini,
+  Azure, Ollama, and more via [‘ellmer’](https://ellmer.tidyverse.org/)
+- 🔄 **Persistent Chat Sessions**: Reuse LLM sessions across multiple
+  analyses to save tokens and reduce costs
 
 ## Installation
 
 You can install the development version of psychinterpreter from GitHub:
-
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("https://github.com/matthiaskloft/psychinterpreter")
 ```
 
-
 ## Quick Start
 
 ### Simple S3 Method (Recommended)
-
 
 ``` r
 library(psychinterpreter)
@@ -73,11 +73,9 @@ results <- interpret(
 )
 ```
 
-
 ### Manual Approach
 
 For more control or custom loadings matrices:
-
 
 ``` r
 # Extract loadings manually
@@ -93,11 +91,10 @@ results <- interpret(
 )
 ```
 
-
 ### Efficient Multi-Analysis Workflows
 
-Use persistent chat sessions to save tokens when analyzing multiple datasets:
-
+Use persistent chat sessions to save tokens when analyzing multiple
+datasets:
 
 ``` r
 # Create reusable chat session
@@ -129,28 +126,28 @@ result3 <- interpret(
 print(chat)
 ```
 
-
 ## Documentation
 
-- **Website:** [https://matthiaskloft.github.io/psychinterpreter/](https://matthiaskloft.github.io/psychinterpreter/)
+- **Website:** <https://matthiaskloft.github.io/psychinterpreter/>
 
 - **Articles:**
-  - [Getting Started Guide](https://matthiaskloft.github.io/psychinterpreter/articles/01-Getting_Started.html)
-  - [Usage Patterns for `interpret()`](https://matthiaskloft.github.io/psychinterpreter/articles/02-Usage_Patterns.html)
 
+  - [Getting Started
+    Guide](https://matthiaskloft.github.io/psychinterpreter/articles/01-Getting_Started.html)
+  - [Usage Patterns for
+    `interpret()`](https://matthiaskloft.github.io/psychinterpreter/articles/02-Usage_Patterns.html)
+  - [Cluster Analysis via Gaussian Mixture
+    Models](https://matthiaskloft.github.io/psychinterpreter/articles/04-Gaussian_Mixture.html)
 
 ## Contributing
 
-- [Open an Issue](https://github.com/matthiaskloft/psychinterpreter/issues): Basic usage of the package
-
+- [Open an
+  Issue](https://github.com/matthiaskloft/psychinterpreter/issues):
+  Basic usage of the package
 
 ## Citation
 
 If you use psychinterpreter in your research, please cite:
 
-Kloft, M. (2025). psychinterpreter: LLM-powered interpretation of factor and cluster analyses.
-R package version 0.0.0.9000. \url{https://github.com/matthiaskloft/psychinterpreter}
-
-
-
-
+Kloft, M. (2025). psychinterpreter: LLM-powered interpretation of factor
+and cluster analyses. R package version 0.0.0.9000.
