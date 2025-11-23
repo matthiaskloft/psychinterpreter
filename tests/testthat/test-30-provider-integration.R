@@ -44,12 +44,24 @@ create_minimal_fa_fixture <- function() {
 # =============================================================================
 
 skip_if_no_openai_key <- function() {
+  # Check if LLM tests are explicitly enabled
+  run_llm_tests <- Sys.getenv("RUN_LLM_TESTS", unset = "false")
+  if (!identical(tolower(run_llm_tests), "true")) {
+    skip("LLM tests disabled by default (set RUN_LLM_TESTS=true to enable)")
+  }
+
   if (Sys.getenv("OPENAI_API_KEY") == "") {
     skip("OpenAI API key not available (set OPENAI_API_KEY env var)")
   }
 }
 
 skip_if_no_anthropic_key <- function() {
+  # Check if LLM tests are explicitly enabled
+  run_llm_tests <- Sys.getenv("RUN_LLM_TESTS", unset = "false")
+  if (!identical(tolower(run_llm_tests), "true")) {
+    skip("LLM tests disabled by default (set RUN_LLM_TESTS=true to enable)")
+  }
+
   if (Sys.getenv("ANTHROPIC_API_KEY") == "") {
     skip("Anthropic API key not available (set ANTHROPIC_API_KEY env var)")
   }

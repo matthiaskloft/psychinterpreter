@@ -408,3 +408,44 @@ validate_variable_matching <- function(model_variables, variable_info, analysis_
 }
 
 
+#' Extract Full Error Message from LLM Request Errors
+#'
+#' Internal helper to extract detailed error messages from httr2/ellmer errors.
+#' This captures provider-specific error details (e.g., billing issues, rate limits)
+#' that may be hidden in the HTTP response body.
+#'
+#' @param e Error object from tryCatch
+#'
+#' @return Character vector of error messages suitable for cli::cli_abort
+#' @keywords internal
+#' @noRd
+extract_llm_error_details <- function(e) {
+  # Start with the base error message
+  error_msgs <- c("LLM request failed")
+
+  # Try to extract detailed message from httr2 errors
+  if (inherits(e, "httr2_error")) {
+    # Get the full error message which may include provider-specific details
+    full_msg <- conditionMessage(e)
+
+    # Split multi-line messages into separate bullet points
+    msg_lines <- strsplit(full_msg, "\n")[[1]]
+    msg_lines <- trimws(msg_lines)
+    msg_lines <- msg_lines[nzchar(msg_lines)]
+
+    # Add each line as an informational bullet
+    for (line in msg_lines) {
+      error_msgs <- c(error_msgs, "i" = line)
+    }
+  } else {
+    # For non-httr2 errors, just show the message
+    error_msgs <- c(error_msgs, "x" = paste("Error:", e$message))
+  }
+
+  # Add general troubleshooting hint if not already covered
+  if (!any(grepl("credit|billing|API key|credentials", error_msgs, ignore.case = TRUE))) {
+    error_msgs <- c(error_msgs, "i" = "Check your API credentials and model availability")
+  }
+
+  return(error_msgs)
+}

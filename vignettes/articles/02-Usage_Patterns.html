@@ -1,0 +1,695 @@
+<html lang="en"><head>
+<script src="02-Usage_Patterns_files/libs/quarto-html/popper.min.js"></script>
+<script src="02-Usage_Patterns_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="02-Usage_Patterns_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="02-Usage_Patterns_files/libs/quarto-html/light-border.css" rel="stylesheet"><title>interpret() Usage Patterns</title>
+  <!-- Needed for testing but not used in final output -->
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+      }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+  </style>
+  <link href="02-Usage_Patterns_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+
+  <script src="02-Usage_Patterns_files/libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+</head>
+<body>
+
+<div class="includes-before">
+</div>
+
+<div class="meta">
+  <h1><code>interpret()</code> Usage Patterns</h1>
+
+
+  <p class="author">Matthias Kloft</p>
+
+  <p class="date">2025-11-23</p>
+
+
+</div>
+
+<main>
+<section id="overview" class="level2">
+<h2>Overview</h2>
+<p>This document demonstrates the different usage patterns for <code>interpret()</code>. The <code>interpret()</code> function is the main function of the <strong>psychinterpreter</strong> package and can be used in multiple ways. It will automatically detect the type of input provided and run the appropriate method for interpretation.</p>
+</section>
+<section id="setup" class="level2">
+<h2>Setup</h2>
+<section id="packages" class="level3">
+<h3>Packages</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psychinterpreter"</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ellmer"</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ollamar"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"psych"</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lavaan"</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mirt"</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"here"</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"DT"</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pander"</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: pacman</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(<span class="at">char =</span> packages)</span></code></pre></div>
+</details>
+</div>
+</section>
+</section>
+<section id="run-factor-analysis" class="level2">
+<h2>Run Factor Analysis</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fa_model <span class="ot">&lt;-</span> <span class="fu">fa</span>(mtcars[,<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>], <span class="at">nfactors =</span> <span class="dv">2</span>, <span class="at">rotate =</span> <span class="st">"oblimin"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>var_info <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">c</span>(<span class="st">"mpg"</span>, <span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">description =</span> <span class="fu">c</span>(<span class="st">"Miles per gallon"</span>, <span class="st">"Cylinders"</span>, <span class="st">"Displacement"</span>, <span class="st">"Horsepower"</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+</details>
+</div>
+</section>
+<section id="usage-patterns" class="level2">
+<h2>Usage Patterns</h2>
+<section id="pattern-1-fitted-model-object" class="level3">
+<h3>Pattern 1: Fitted Model Object</h3>
+<p>Set provider and model:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>provider <span class="ot">&lt;-</span> <span class="st">"anthropic"</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>llm <span class="ot">&lt;-</span> <span class="st">"claude-sonnet-4-5"</span></span></code></pre></div>
+</details>
+</div>
+<p>Automatically extracts model components from fitted objects.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">interpret</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">fit_results =</span> fa_model,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_provider =</span> provider,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_model =</span> llm,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Starting fa interpretation...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Creating temporary chat session...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Building prompt...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Querying LLM...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Parsing LLM response...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Creating fit summary...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Building report...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>✔ Interpretation complete!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+FACTOR ANALYSIS INTERPRETATION
+────────────────────────────────────────────────────────────────────────────────
+
+Number of factors: 2
+Loading cutoff: 0.3
+LLM used: anthropic - claude-sonnet-4-5
+Tokens:
+  Input: 0
+  Output: 0
+Elapsed time: 6.31
+
+SUGGESTED FACTOR NAMES
+────────────────────────────────────────────────────────────────────────────────
+
+• Factor 1 (84.1%): Engine Power and Size
+• Factor 2 (1.7%): Power-to-Efficiency Residual (n.s.)
+
+Total variance explained: 85.8%
+
+FACTOR CORRELATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+MR1: MR2 = .03
+MR2: MR1 = .03
+
+DETAILED FACTOR INTERPRETATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+Factor 1 (MR1) - Engine Power and Size
+Number of significant loadings: 4
+Variance explained: 84.05%
+Factor Correlations: MR2 = .03
+
+Variables:
+  1. disp, Displacement (Positive, Very Strong, .955)
+  2. cyl, Cylinders (Positive, Very Strong, .953)
+  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
+  4. hp, Horsepower (Positive, Very Strong, .862)
+
+LLM Interpretation:
+This factor represents overall engine specifications and vehicle size, with strong positive loadings on cylinders,
+displacement, and horsepower, and strong negative loading on fuel efficiency. Larger engines with more cylinders and
+displacement produce greater horsepower but consume more fuel, capturing the fundamental trade-off between power and
+efficiency in automotive design.
+
+════════════════════════════════════════════════════════════════════════════════
+
+Factor 2 (MR2) - Power-to-Efficiency Residual (n.s.)
+Number of significant loadings: 0
+Variance explained: 1.72%
+Factor Correlations: MR1 = .03
+
+WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top 2 variable(s) below cutoff for
+interpretation.
+
+Variables:
+  1. hp, Horsepower (Positive, Weak, .195)
+  2. disp, Displacement (Negative, Weak, -.172)
+
+LLM Interpretation:
+This factor captures residual variance in horsepower after accounting for engine size, with minimal loadings across all
+variables and near-zero correlation with MR1. It represents subtle variations in engine performance optimization,
+possibly reflecting differences in engineering efficiency or tuning that affect horsepower independently of basic engine
+specifications.
+
+════════════════════════════════════════════════════════════════════════════════</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>FACTOR ANALYSIS INTERPRETATION
+────────────────────────────────────────────────────────────────────────────────
+
+Number of factors: 2
+Loading cutoff: 0.3
+LLM used: anthropic - claude-sonnet-4-5
+Tokens:
+  Input: 0
+  Output: 0
+Elapsed time: 6.31
+
+SUGGESTED FACTOR NAMES
+────────────────────────────────────────────────────────────────────────────────
+
+• Factor 1 (84.1%): Engine Power and Size
+• Factor 2 (1.7%): Power-to-Efficiency Residual (n.s.)
+
+Total variance explained: 85.8%
+
+FACTOR CORRELATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+MR1: MR2 = .03
+MR2: MR1 = .03
+
+DETAILED FACTOR INTERPRETATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+Factor 1 (MR1) - Engine Power and Size
+Number of significant loadings: 4
+Variance explained: 84.05%
+Factor Correlations: MR2 = .03
+
+Variables:
+  1. disp, Displacement (Positive, Very Strong, .955)
+  2. cyl, Cylinders (Positive, Very Strong, .953)
+  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
+  4. hp, Horsepower (Positive, Very Strong, .862)
+
+LLM Interpretation:
+This factor represents overall engine specifications and vehicle size, with
+strong positive loadings on cylinders, displacement, and horsepower, and strong
+negative loading on fuel efficiency. Larger engines with more cylinders and
+displacement produce greater horsepower but consume more fuel, capturing the
+fundamental trade-off between power and efficiency in automotive design.
+
+════════════════════════════════════════════════════════════════════════════════
+
+Factor 2 (MR2) - Power-to-Efficiency Residual (n.s.)
+Number of significant loadings: 0
+Variance explained: 1.72%
+Factor Correlations: MR1 = .03
+
+WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
+2 variable(s) below cutoff for interpretation.
+
+Variables:
+  1. hp, Horsepower (Positive, Weak, .195)
+  2. disp, Displacement (Negative, Weak, -.172)
+
+LLM Interpretation:
+This factor captures residual variance in horsepower after accounting for engine
+size, with minimal loadings across all variables and near-zero correlation with
+MR1. It represents subtle variations in engine performance optimization,
+possibly reflecting differences in engineering efficiency or tuning that affect
+horsepower independently of basic engine specifications.
+
+════════════════════════════════════════════════════════════════════════════════</code></pre>
+</div>
+</div>
+</section>
+<section id="pattern-2-structured-list" class="level3">
+<h3>Pattern 2: Structured List</h3>
+<p>For custom data structures or manual extraction.</p>
+<p>For FA, provide loadings (required) and optionally factor_cor_mat:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>loadings_matrix <span class="ot">&lt;-</span> fa_model<span class="sc">$</span>loadings</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>factor_cor_mat <span class="ot">&lt;-</span> fa_model<span class="sc">$</span>Phi</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">interpret</span>(</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">fit_results =</span> <span class="fu">list</span>(<span class="at">loadings =</span> loadings_matrix, <span class="at">factor_cor_mat =</span> factor_cor_mat),</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">analysis_type =</span> <span class="st">"fa"</span>,</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_provider =</span> provider,</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">llm_model =</span> llm,</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Starting fa interpretation...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Creating temporary chat session...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Building prompt...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Querying LLM...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Parsing LLM response...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Creating fit summary...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Building report...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>✔ Interpretation complete!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+FACTOR ANALYSIS INTERPRETATION
+────────────────────────────────────────────────────────────────────────────────
+
+Number of factors: 2
+Loading cutoff: 0.3
+LLM used: anthropic - claude-sonnet-4-5
+Tokens:
+  Input: 0
+  Output: 0
+Elapsed time: 6.66
+
+SUGGESTED FACTOR NAMES
+────────────────────────────────────────────────────────────────────────────────
+
+• Factor 1 (84%): Engine Power and Size
+• Factor 2 (1.7%): Horsepower-Displacement Balance (n.s.)
+
+Total variance explained: 85.7%
+
+FACTOR CORRELATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+MR1: MR2 = .03
+MR2: MR1 = .03
+
+DETAILED FACTOR INTERPRETATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+Factor 1 (MR1) - Engine Power and Size
+Number of significant loadings: 4
+Variance explained: 84.03%
+Factor Correlations: MR2 = .03
+
+Variables:
+  1. disp, Displacement (Positive, Very Strong, .955)
+  2. cyl, Cylinders (Positive, Very Strong, .953)
+  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
+  4. hp, Horsepower (Positive, Very Strong, .862)
+
+LLM Interpretation:
+This factor represents vehicle engine characteristics and performance capacity. Higher cylinders, displacement, and
+horsepower strongly load together while fuel efficiency (mpg) loads negatively, indicating that larger, more powerful
+engines consume more fuel. This factor captures 84% of variance, representing the primary dimension of engine capability
+versus economy.
+
+════════════════════════════════════════════════════════════════════════════════
+
+Factor 2 (MR2) - Horsepower-Displacement Balance (n.s.)
+Number of significant loadings: 0
+Variance explained: 1.7%
+Factor Correlations: MR1 = .03
+
+WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top 2 variable(s) below cutoff for
+interpretation.
+
+Variables:
+  1. hp, Horsepower (Positive, Weak, .195)
+  2. disp, Displacement (Negative, Weak, -.172)
+
+LLM Interpretation:
+This residual factor captures minor variance in the relationship between horsepower and displacement that isn't
+explained by overall engine size. The weak positive horsepower loading with slight negative displacement loading
+suggests subtle efficiency differences in how engines convert size to power. Near-zero correlation with MR1 confirms
+discriminant validity.
+
+════════════════════════════════════════════════════════════════════════════════</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>FACTOR ANALYSIS INTERPRETATION
+────────────────────────────────────────────────────────────────────────────────
+
+Number of factors: 2
+Loading cutoff: 0.3
+LLM used: anthropic - claude-sonnet-4-5
+Tokens:
+  Input: 0
+  Output: 0
+Elapsed time: 6.66
+
+SUGGESTED FACTOR NAMES
+────────────────────────────────────────────────────────────────────────────────
+
+• Factor 1 (84%): Engine Power and Size
+• Factor 2 (1.7%): Horsepower-Displacement Balance (n.s.)
+
+Total variance explained: 85.7%
+
+FACTOR CORRELATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+MR1: MR2 = .03
+MR2: MR1 = .03
+
+DETAILED FACTOR INTERPRETATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+Factor 1 (MR1) - Engine Power and Size
+Number of significant loadings: 4
+Variance explained: 84.03%
+Factor Correlations: MR2 = .03
+
+Variables:
+  1. disp, Displacement (Positive, Very Strong, .955)
+  2. cyl, Cylinders (Positive, Very Strong, .953)
+  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
+  4. hp, Horsepower (Positive, Very Strong, .862)
+
+LLM Interpretation:
+This factor represents vehicle engine characteristics and performance capacity.
+Higher cylinders, displacement, and horsepower strongly load together while fuel
+efficiency (mpg) loads negatively, indicating that larger, more powerful engines
+consume more fuel. This factor captures 84% of variance, representing the
+primary dimension of engine capability versus economy.
+
+════════════════════════════════════════════════════════════════════════════════
+
+Factor 2 (MR2) - Horsepower-Displacement Balance (n.s.)
+Number of significant loadings: 0
+Variance explained: 1.7%
+Factor Correlations: MR1 = .03
+
+WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
+2 variable(s) below cutoff for interpretation.
+
+Variables:
+  1. hp, Horsepower (Positive, Weak, .195)
+  2. disp, Displacement (Negative, Weak, -.172)
+
+LLM Interpretation:
+This residual factor captures minor variance in the relationship between
+horsepower and displacement that isn't explained by overall engine size. The
+weak positive horsepower loading with slight negative displacement loading
+suggests subtle efficiency differences in how engines convert size to power.
+Near-zero correlation with MR1 confirms discriminant validity.
+
+════════════════════════════════════════════════════════════════════════════════</code></pre>
+</div>
+</div>
+</section>
+<section id="pattern-3-chat-session-token-efficient" class="level3">
+<h3>Pattern 3: Chat Session (Token-Efficient)</h3>
+<p>Reuse chat session across analyses to save tokens.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>chat <span class="ot">&lt;-</span> <span class="fu">chat_session</span>(<span class="at">analysis_type =</span> <span class="st">"fa"</span>,</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">llm_provider =</span> provider,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">llm_model =</span> llm)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>result1 <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">fit_results =</span> fa_model,</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span>,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="dv">1</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Starting fa interpretation...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Building prompt...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Querying LLM...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Parsing LLM response...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Creating fit summary...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Building report...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>✔ Interpretation complete!</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>result2 <span class="ot">&lt;-</span> <span class="fu">interpret</span>(</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">chat_session =</span> chat,</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">fit_results =</span> <span class="fu">list</span>(<span class="at">loadings =</span> loadings_matrix, <span class="at">factor_cor_mat =</span> factor_cor_mat),</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable_info =</span> var_info,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_limit =</span> <span class="dv">50</span>,</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="dv">1</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Starting fa interpretation...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Building prompt...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Querying LLM...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Parsing LLM response...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Creating fit summary...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Building report...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>✔ Interpretation complete!</code></pre>
+</div>
+</div>
+<p>We can check the total global token usage:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(chat)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Factor Analysis Chat Session
+Provider: anthropic 
+Model: claude-sonnet-4-5 
+Created: 2025-11-23 23:44:46.158507 
+Interpretations run: 2 
+Total tokens - Input: 0 , Output: 0 </code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="session-info" class="level1">
+<h1>Session Info</h1>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>pander<span class="sc">::</span><span class="fu">pander</span>(<span class="fu">sessionInfo</span>())</span></code></pre></div>
+</details>
+<div class="cell-output-display">
+<p><strong>R version 4.5.2 (2025-10-31 ucrt)</strong></p>
+<p><strong>Platform:</strong> x86_64-w64-mingw32/x64</p>
+<p><strong>locale:</strong> <em>LC_COLLATE=German_Germany.utf8</em>, <em>LC_CTYPE=German_Germany.utf8</em>, <em>LC_MONETARY=German_Germany.utf8</em>, <em>LC_NUMERIC=C</em> and <em>LC_TIME=German_Germany.utf8</em></p>
+<p><strong>attached base packages:</strong> <em>stats4</em>, <em>stats</em>, <em>graphics</em>, <em>grDevices</em>, <em>utils</em>, <em>datasets</em>, <em>methods</em> and <em>base</em></p>
+<p><strong>other attached packages:</strong> <em>pander(v.0.6.6)</em>, <em>DT(v.0.34.0)</em>, <em>here(v.1.0.2)</em>, <em>dplyr(v.1.1.4)</em>, <em>mirt(v.1.45.1)</em>, <em>lattice(v.0.22-7)</em>, <em>lavaan(v.0.6-20)</em>, <em>psych(v.2.5.6)</em>, <em>ollamar(v.1.2.2)</em>, <em>ellmer(v.0.4.0)</em>, <em>psychinterpreter(v.0.0.0.9000)</em> and <em>pacman(v.0.5.1)</em></p>
+<p><strong>loaded via a namespace (and not attached):</strong> <em>gtable(v.0.3.6)</em>, <em>xfun(v.0.53)</em>, <em>ggplot2(v.4.0.1)</em>, <em>httr2(v.1.2.1)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>quadprog(v.1.5-8)</em>, <em>vctrs(v.0.6.5)</em>, <em>tools(v.4.5.2)</em>, <em>generics(v.0.1.4)</em>, <em>curl(v.7.0.0)</em>, <em>parallel(v.4.5.2)</em>, <em>tibble(v.3.3.0)</em>, <em>cluster(v.2.1.8.1)</em>, <em>pkgconfig(v.2.0.3)</em>, <em>R.oo(v.1.27.1)</em>, <em>Matrix(v.1.7-4)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>S7(v.0.2.0)</em>, <em>lifecycle(v.1.0.4)</em>, <em>compiler(v.4.5.2)</em>, <em>farver(v.2.1.2)</em>, <em>GPArotation(v.2025.3-1)</em>, <em>brio(v.1.1.5)</em>, <em>mnormt(v.2.1.1)</em>, <em>codetools(v.0.2-20)</em>, <em>permute(v.0.9-8)</em>, <em>dcurver(v.0.9.3)</em>, <em>htmltools(v.0.5.8.1)</em>, <em>yaml(v.2.3.10)</em>, <em>pillar(v.1.11.1)</em>, <em>crayon(v.1.5.3)</em>, <em>tidyr(v.1.3.1)</em>, <em>MASS(v.7.3-65)</em>, <em>R.utils(v.2.13.0)</em>, <em>vegan(v.2.7-2)</em>, <em>sessioninfo(v.1.2.3)</em>, <em>parallelly(v.1.45.1)</em>, <em>nlme(v.3.1-168)</em>, <em>Deriv(v.4.2.0)</em>, <em>tidyselect(v.1.2.1)</em>, <em>digest(v.0.6.37)</em>, <em>future(v.1.67.0)</em>, <em>listenv(v.0.9.1)</em>, <em>purrr(v.1.0.4)</em>, <em>splines(v.4.5.2)</em>, <em>rprojroot(v.2.1.1)</em>, <em>fastmap(v.1.2.0)</em>, <em>grid(v.4.5.2)</em>, <em>cli(v.3.6.5)</em>, <em>beepr(v.2.0)</em>, <em>magrittr(v.2.0.3)</em>, <em>future.apply(v.1.20.0)</em>, <em>pbivnorm(v.0.6.0)</em>, <em>withr(v.3.0.2)</em>, <em>clipr(v.0.8.0)</em>, <em>SimDesign(v.2.21)</em>, <em>scales(v.1.4.0)</em>, <em>rappdirs(v.0.3.3)</em>, <em>rmarkdown(v.2.30)</em>, <em>globals(v.0.18.0)</em>, <em>audio(v.0.1-11)</em>, <em>gridExtra(v.2.3)</em>, <em>progressr(v.0.17.0)</em>, <em>R.methodsS3(v.1.8.2)</em>, <em>pbapply(v.1.7-4)</em>, <em>evaluate(v.1.0.5)</em>, <em>knitr(v.1.50)</em>, <em>testthat(v.3.2.3)</em>, <em>mgcv(v.1.9-3)</em>, <em>rlang(v.1.1.6)</em>, <em>Rcpp(v.1.1.0)</em>, <em>glue(v.1.8.0)</em>, <em>coro(v.1.1.0)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>jsonlite(v.2.0.0)</em> and <em>R6(v.2.6.1)</em></p>
+</div>
+</div>
+</section>
+</main>
+
+<div class="includes-after">
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'light-border',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div>
+
+
+
+</body></html>

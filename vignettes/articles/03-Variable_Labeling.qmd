@@ -1,0 +1,461 @@
+---
+title: "Variable Labeling with LLMs"
+subtitle: "Generate Clean Variable Labels from Descriptions"
+author:
+ - name: Matthias Kloft
+   orcid: 0000-0003-1845-6957
+date: "`r Sys.Date()`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    source: repo
+    code-tools: true
+    df-print: paged
+execute:
+  warning: false
+  message: false
+---
+
+## Overview
+
+The `label_variables()` function uses Large Language Models to generate short, descriptive labels from variable descriptions. This is especially useful for:
+
+- **Psychometric data** with cryptic item codes (e.g., `A1`, `C2`, `E3`)
+- **Survey data** with generic names (e.g., `q1`, `q2`, `item_01`)
+- **Any dataset** where variable names need to be more descriptive
+
+The function works in **two phases**:
+
+1. **Semantic Generation**: LLM creates meaningful labels from descriptions
+2. **Format Processing**: Apply transformations (case, separators, abbreviations, etc.)
+
+This separation allows you to **reformat labels without calling the LLM again**, saving time and API costs.
+
+## Setup
+
+```{r setup}
+# Load packages
+if (!require("pacman")) install.packages("pacman")
+
+pacman::p_load(
+  "psychinterpreter",  # This package
+  "psych",             # For BFI data
+  "DT"                 # For nice tables
+)
+```
+
+## Example Data: Big Five Inventory
+
+The BFI dataset contains 25 personality items with cryptic codes like `A1`, `C2`, `E3`:
+
+```{r load-data}
+# Load Big Five Inventory data
+data("bfi", package = "psych")
+data("bfi.dictionary", package = "psych")
+
+# Extract first 10 items as examples
+bfi_subset <- bfi[, 1:10]
+bfi_dict <- bfi.dictionary[1:10, ]
+
+# Create variable_info data frame
+variable_info <- data.frame(
+  variable = rownames(bfi_dict),
+  description = as.character(bfi_dict$Item),
+  stringsAsFactors = FALSE
+)
+
+# Show the data
+DT::datatable(variable_info, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+These cryptic codes (`A1`, `A2`, etc.) are not very readable. Let's generate descriptive labels!
+
+## Basic Labeling
+
+```{r}
+# Set provider and model
+provider <- "anthropic"
+llm <- ellmer::models_anthropic()[1, "id"]
+```
+
+### Short Labels (1-3 words)
+
+```{r basic-short}
+labels_short <- label_variables(
+  variable_info = variable_info,
+  llm_provider = provider,
+  llm_model = llm,
+  label_type = "short",  # 1-3 words
+  case = "title"         # Title Case
+)
+
+# View results
+labels_short$labels_formatted |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+### Phrase Labels (4-7 words)
+
+```{r basic-phrase}
+labels_phrase <- label_variables(
+  variable_info = variable_info,
+  llm_provider = provider,
+  llm_model = llm,
+  label_type = "phrase",  # 4-7 words
+  case = "sentence"       # Sentence case
+)
+
+labels_phrase$labels_formatted |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+### Acronym Labels (3-5 characters)
+
+```{r basic-acronym}
+labels_acronym <- label_variables(
+  variable_info = variable_info,
+  llm_provider = provider,
+  llm_model = llm,
+  label_type = "acronym",  # 3-5 character acronyms
+  case = "upper"           # UPPERCASE
+)
+
+labels_acronym$labels_formatted |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+### Custom Word/Character Limits (LLM-Guided)
+
+When you specify `max_words` or `max_chars` in `label_variables()`, they **influence the LLM prompt** to generate labels within those constraints. This is more effective than post-processing truncation:
+
+```{r basic-custom-limits}
+# Tell the LLM to generate exactly 2-word labels
+labels_two_words <- label_variables(
+  variable_info = variable_info,
+  llm_provider = provider,
+  llm_model = llm,
+  label_type = "custom",  # custom allows max_words to override
+  max_words = 2,          # LLM will aim for exactly 2 words
+  case = "title"
+)
+
+labels_two_words$labels_formatted |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+```{r basic-custom-chars}
+# Tell the LLM to generate labels under 12 characters
+labels_short_chars <- label_variables(
+  variable_info = variable_info,
+  llm_provider = provider,
+  llm_model = llm,
+  label_type = "custom",
+  max_chars = 12,         # LLM will aim for ≤12 characters
+  case = "snake"
+)
+
+labels_short_chars$labels_formatted |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+**Key difference:**
+- `max_words`/`max_chars` in `label_variables()`: Guides LLM to generate appropriate labels
+- `max_words`/`max_chars` in `reformat_labels()`: Truncates existing labels (less intelligent)
+
+## Case Transformations
+
+The same semantic labels can be formatted in different styles without re-calling the LLM:
+
+### Snake Case (for R variable names)
+
+```{r case-snake}
+labels_snake <- reformat_labels(
+  labels_short,
+  case = "snake"  # Automatically sets sep = "_" and lowercase
+)
+
+labels_snake$labels_formatted |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+### Camel Case (for programming)
+
+```{r case-camel}
+labels_camel <- reformat_labels(
+  labels_short,
+  case = "camel"  # firstWordLowerRestTitle
+)
+
+labels_camel$labels_formatted |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+### Constant Case (for constants)
+
+```{r case-constant}
+labels_constant <- reformat_labels(
+  labels_short,
+  case = "constant"  # UPPER_CASE_WITH_UNDERSCORES
+)
+
+labels_constant$labels_formatted |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+### Custom Separator
+
+```{r case-custom-sep}
+labels_custom_sep <- reformat_labels(
+  labels_short,
+  sep = "-",      # Use hyphens
+  case = "lower"  # all lowercase
+)
+
+labels_custom_sep$labels_formatted |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+## Post-Processing Options
+
+### Remove Articles and Prepositions
+
+```{r postproc-remove}
+labels_simplified <- reformat_labels(
+  labels_phrase,
+  remove_articles = TRUE,       # Remove: a, an, the
+  remove_prepositions = TRUE,   # Remove: of, in, at, etc.
+  case = "snake"
+)
+
+# Compare original phrase vs simplified
+comparison <- data.frame(
+  variable = labels_phrase$labels_formatted$variable,
+  original = labels_phrase$labels_formatted$label,
+  simplified = labels_simplified$labels_formatted$label
+)
+
+DT::datatable(comparison, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+### Abbreviate Long Words
+
+```{r postproc-abbreviate}
+labels_abbreviated <- reformat_labels(
+  labels_phrase,
+  abbreviate = TRUE,  # Apply rule-based abbreviation
+  case = "snake"
+)
+
+comparison_abbrev <- data.frame(
+  variable = labels_phrase$labels_formatted$variable,
+  original = labels_phrase$labels_formatted$label,
+  abbreviated = labels_abbreviated$labels_formatted$label
+)
+
+DT::datatable(comparison_abbrev, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+### Maximum Character Limit (Post-Processing)
+
+**Note:** When possible, prefer using `max_chars` in `label_variables()` (shown above) to guide the LLM. This post-processing approach simply truncates existing labels:
+
+```{r postproc-maxchars}
+labels_short_max <- reformat_labels(
+  labels_phrase,
+  max_chars = 15,  # Truncate to 15 characters (simple truncation)
+  case = "snake"
+)
+
+comparison_max <- data.frame(
+  variable = labels_phrase$labels_formatted$variable,
+  original = labels_phrase$labels_formatted$label,
+  truncated = labels_short_max$labels_formatted$label
+)
+
+DT::datatable(comparison_max, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+### Maximum Word Count (Post-Processing)
+
+**Note:** When possible, prefer using `max_words` in `label_variables()` (shown above) to guide the LLM. This post-processing approach simply truncates existing labels:
+
+```{r postproc-maxwords}
+labels_limited_words <- reformat_labels(
+  labels_phrase,
+  max_words = 2,   # Keep only first 2 words (simple truncation)
+  case = "title"
+)
+
+comparison_words <- data.frame(
+  variable = labels_phrase$labels_formatted$variable,
+  original = labels_phrase$labels_formatted$label,
+  limited = labels_limited_words$labels_formatted$label
+)
+
+DT::datatable(comparison_words, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+## Combining Multiple Transformations
+
+You can combine multiple post-processing options for maximum control:
+
+```{r combine-all}
+labels_kitchen_sink <- reformat_labels(
+  labels_phrase,
+  remove_articles = TRUE,
+  remove_prepositions = TRUE,
+  max_words = 3,
+  abbreviate = TRUE,
+  max_chars = 20,
+  case = "snake"
+)
+
+comparison_combined <- data.frame(
+  variable = labels_phrase$labels_formatted$variable,
+  original = labels_phrase$labels_formatted$label,
+  processed = labels_kitchen_sink$labels_formatted$label
+)
+
+DT::datatable(comparison_combined, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+```
+
+## Export Labels
+
+Save your labels for use in other tools:
+
+```{r export}
+#| eval: false
+
+# Export to CSV (comma-separated, most common)
+export_labels(labels_snake, "bfi_labels.csv", format = "csv")
+
+# Export to CSV2 (semicolon-separated, common in Europe)
+export_labels(labels_snake, "bfi_labels.csv", format = "csv2")
+
+# Export to TXT (tab-separated)
+export_labels(labels_snake, "bfi_labels.txt", format = "txt")
+
+# Export to Excel
+export_labels(labels_snake, "bfi_labels.xlsx", format = "xlsx")
+```
+
+All formats create a table with `variable` and `label` columns that can be imported into other software.
+
+## Using Labels in Analysis
+
+Apply the generated labels to your data:
+
+```{r apply-labels}
+# Extract labels as named vector
+label_vector <- setNames(
+  labels_snake$labels_formatted$label,
+  labels_snake$labels_formatted$variable
+)
+
+# Apply to column names
+colnames(bfi_subset) <- label_vector[colnames(bfi_subset)]
+
+# Show result
+head(bfi_subset, 5) |>
+  DT::datatable(options = list(scrollX = TRUE))
+```
+
+Now your data has readable variable names!
+
+## Configuration Objects
+
+For repeated labeling tasks, use configuration objects:
+
+```{r config-objects}
+#| eval: false
+
+# Define your preferred formatting style
+my_label_config <- labeling_args(
+  label_type = "short",
+  case = "snake",
+  remove_articles = TRUE,
+  max_words = 3
+)
+
+# Use across multiple datasets
+labels_1 <- label_variables(
+  dataset1_info,
+  labeling_args = my_label_config,
+  llm_provider = provider,
+  llm_model = llm
+)
+
+labels_2 <- label_variables(
+  dataset2_info,
+  labeling_args = my_label_config,
+  llm_provider = provider,
+  llm_model = llm
+)
+
+# Direct parameters override config
+labels_3 <- label_variables(
+  dataset3_info,
+  labeling_args = my_label_config,
+  case = "camel",  # Override the snake_case from config
+  llm_provider = provider,
+  llm_model = llm
+)
+```
+
+## Reusing Chat Sessions
+
+For efficiency when labeling multiple datasets:
+
+```{r reuse-session}
+#| eval: false
+
+# Create persistent chat session
+chat <- chat_session(
+  analysis_type = "label",
+  llm_provider = provider,
+  llm_model = llm
+)
+
+# Reuse session for multiple labeling calls
+labels_1 <- label_variables(dataset1_info, chat_session = chat)
+labels_2 <- label_variables(dataset2_info, chat_session = chat)
+labels_3 <- label_variables(dataset3_info, chat_session = chat)
+
+# Check total token usage
+cat("Total tokens used:",
+    chat$total_input_tokens + chat$total_output_tokens, "\n")
+```
+
+## Summary
+
+The `label_variables()` function provides:
+
+- **Semantic understanding**: LLMs generate meaningful labels from descriptions
+- **Flexible formatting**: Multiple case styles, separators, and transformations
+- **Efficient workflow**: Reformat without re-calling the LLM
+- **Multiple export options**: CSV, JSON, R scripts
+- **Configuration reuse**: Define once, apply many times
+
+**Key parameters:**
+
+| Parameter | Options | LLM-Guided? | Purpose |
+|-----------|---------|-------------|---------|
+| `label_type` | `"short"`, `"phrase"`, `"acronym"`, `"custom"` | ✓ Yes | Control label length via prompt |
+| `max_words` | Integer | ✓ Yes (in `label_variables()`) | Tell LLM exact word count to generate |
+| `max_chars` | Integer | ✓ Yes (in `label_variables()`) | Tell LLM max character length |
+| `style_hint` | Character | ✓ Yes | Provide style guidance to LLM |
+| `case` | `"snake"`, `"camel"`, `"title"`, `"upper"`, etc. | Post-process | Case transformation |
+| `sep` | `" "`, `"_"`, `"-"`, `""` | Post-process | Word separator |
+| `remove_articles` | `TRUE`/`FALSE` | Post-process | Remove a, an, the |
+| `remove_prepositions` | `TRUE`/`FALSE` | Post-process | Remove of, in, at, etc. |
+| `abbreviate` | `TRUE`/`FALSE` | Post-process | Apply abbreviation rules |
+
+**Important:** Parameters marked "LLM-Guided" influence what the model generates when used in `label_variables()`. All parameters can also be used in `reformat_labels()` for post-processing without calling the LLM again.
+
+## Session Info
+
+```{r session-info}
+pander::pander(sessionInfo())
+```

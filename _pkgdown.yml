@@ -27,6 +27,7 @@ reference:
       - label_variables
       - reformat_labels
       - export_labels
+      - import_labels
       - create_variable_labels
       - format_label
       - parse_label_response
@@ -50,7 +51,7 @@ reference:
       - llm_args
       - interpretation_args
       - interpretation_args_gm
-      - labeling_args
+      - label_args
       - output_args
       - default_output_args
 
@@ -105,7 +106,7 @@ reference:
       - print.chat_session
       - print.llm_args
       - print.interpretation_args
-      - print.labeling_args
+      - print.label_args
       - print.output_args
 
   - title: "Internal S3 Generics"
@@ -138,4 +139,5 @@ articles:
     navbar: ~
     contents:
       - articles/02-Usage_Patterns
+      - articles/03-Variable_Labeling
       - articles/04-Gaussian_Mixture

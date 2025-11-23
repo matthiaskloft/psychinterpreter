@@ -17,6 +17,7 @@
 ^\.github$
 ^tests/testthat/fixtures/make-fixtures\.R$
 ^tests/testthat/fixtures/README\.md$
+^tests/test_config\.R$
 ^README\.Rmd$
 ^\.Rproj\.user/.*lock_file$
 ^\.lintr$

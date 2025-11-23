@@ -1,6 +1,6 @@
 # Generic Guidance
 
-Read AGENT.md for all a quick reference for a generic agent when helping users with the **psychinterpreter** R package. 
+When starting a new session, always read AGENT.md for all a quick reference for a generic agent when helping users with the **psychinterpreter** R package. 
 There you will find the contents you would typically find in GEMINI.md.
 
 # Gemini-Specific Guidance

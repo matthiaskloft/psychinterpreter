@@ -401,13 +401,7 @@ interpret_core <- function(analysis_data = NULL,
   response <- tryCatch({
     chat_local$chat(main_prompt, echo = echo)
   }, error = function(e) {
-    cli::cli_abort(
-      c(
-        "LLM request failed",
-        "x" = "Error: {e$message}",
-        "i" = "Check your API credentials and model availability"
-      )
-    )
+    cli::cli_abort(extract_llm_error_details(e))
   })
 
   # ==========================================================================

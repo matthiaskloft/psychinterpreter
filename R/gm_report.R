@@ -68,20 +68,86 @@ build_report_header_gm <- function(interpretation,
     )
   }
 
-  # Model fit
+  # Model fit and selection criteria
   if (!is.null(fit_summary$statistics)) {
+    # Model selection criteria section
+    has_criteria <- FALSE
+
     if (!is.null(fit_summary$statistics$bic)) {
       bic_value <- format(round(fit_summary$statistics$bic, 2), nsmall = 2)
       report <- paste0(
         report,
         fmt_keyval(format, "BIC", bic_value, "gm")
       )
+      has_criteria <- TRUE
     }
+
+    if (!is.null(fit_summary$statistics$aic)) {
+      aic_value <- format(round(fit_summary$statistics$aic, 2), nsmall = 2)
+      report <- paste0(
+        report,
+        fmt_keyval(format, "AIC", aic_value, "gm")
+      )
+      has_criteria <- TRUE
+    }
+
+    if (!is.null(fit_summary$statistics$icl)) {
+      icl_value <- format(round(fit_summary$statistics$icl, 2), nsmall = 2)
+      report <- paste0(
+        report,
+        fmt_keyval(format, "ICL", icl_value, "gm")
+      )
+      has_criteria <- TRUE
+    }
+
+    if (!is.null(fit_summary$statistics$loglik)) {
+      loglik_value <- format(round(fit_summary$statistics$loglik, 2), nsmall = 2)
+      report <- paste0(
+        report,
+        fmt_keyval(format, "Log-likelihood", loglik_value, "gm")
+      )
+    }
+
+    # Model complexity
+    if (!is.null(fit_summary$statistics$n_parameters)) {
+      report <- paste0(
+        report,
+        fmt_keyval(format, "Number of parameters", as.character(fit_summary$statistics$n_parameters), "gm")
+      )
+    }
+
+    # Entropy measures
+    if (!is.null(fit_summary$statistics$entropy)) {
+      entropy_value <- format(round(fit_summary$statistics$entropy, 3), nsmall = 3)
+      report <- paste0(
+        report,
+        fmt_keyval(format, "Entropy", entropy_value, "gm")
+      )
+    }
+
+    if (!is.null(fit_summary$statistics$normalized_entropy)) {
+      norm_entropy_value <- format(round(fit_summary$statistics$normalized_entropy, 4), nsmall = 4)
+      report <- paste0(
+        report,
+        fmt_keyval(format, "Normalized entropy", norm_entropy_value, "gm")
+      )
+    }
+
+    # Clustering quality
     if (!is.null(fit_summary$statistics$min_separation)) {
       sep_value <- format(round(fit_summary$statistics$min_separation, 3), nsmall = 3)
       report <- paste0(
         report,
         fmt_keyval(format, "Minimum cluster separation", sep_value, "gm")
+      )
+    }
+
+    # Convergence status
+    if (!is.null(fit_summary$statistics$converged)) {
+      converged_text <- ifelse(fit_summary$statistics$converged, "Yes", "No")
+      report <- paste0(
+        report,
+        fmt_keyval(format, "Converged", converged_text, "gm")
       )
     }
   }

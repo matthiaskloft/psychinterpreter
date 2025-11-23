@@ -402,10 +402,21 @@ has_ollama <- function() {
 #' Skip test if Ollama/ellmer not available
 #'
 #' Skips the current test if:
+#' - RUN_LLM_TESTS environment variable is not set to "true" (default behavior)
 #' - Running in CI environment
 #' - ellmer package is not available
 #' - Ollama service is not running or not responding
+#'
+#' To enable LLM tests, set the environment variable:
+#' Sys.setenv(RUN_LLM_TESTS = "true")
+#' Or add to .Renviron: RUN_LLM_TESTS=true
 skip_if_no_llm <- function() {
+  # Check if LLM tests are explicitly enabled
+  run_llm_tests <- Sys.getenv("RUN_LLM_TESTS", unset = "false")
+  if (!identical(tolower(run_llm_tests), "true")) {
+    testthat::skip("LLM tests disabled by default (set RUN_LLM_TESTS=true to enable)")
+  }
+
   if (!has_ollama()) {
     testthat::skip("Ollama LLM not available (either ellmer package missing or service not responding)")
   }

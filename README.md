@@ -136,6 +136,8 @@ print(chat)
     Guide](https://matthiaskloft.github.io/psychinterpreter/articles/01-Getting_Started.html)
   - [Usage Patterns for
     `interpret()`](https://matthiaskloft.github.io/psychinterpreter/articles/02-Usage_Patterns.html)
+  - [Variable Labeling with
+    LLMs](https://matthiaskloft.github.io/psychinterpreter/articles/03-Variable_Labeling.html)
   - [Cluster Analysis via Gaussian Mixture
     Models](https://matthiaskloft.github.io/psychinterpreter/articles/04-Gaussian_Mixture.html)
 

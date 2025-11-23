@@ -32,8 +32,35 @@ create_fit_summary.gm <- function(analysis_type, analysis_data, ...) {
   if (!is.null(analysis_data$loglik)) {
     fit_summary$statistics$loglik <- round(analysis_data$loglik, 2)
   }
-  if (!is.null(analysis_data$icl)) {
+  if (!is.null(analysis_data$icl) && !is.na(analysis_data$icl)) {
     fit_summary$statistics$icl <- round(analysis_data$icl, 2)
+  }
+  if (!is.null(analysis_data$aic) && !is.na(analysis_data$aic)) {
+    fit_summary$statistics$aic <- round(analysis_data$aic, 2)
+  }
+
+  # Add entropy measures
+  if (!is.null(analysis_data$entropy) && !is.na(analysis_data$entropy)) {
+    fit_summary$statistics$entropy <- round(analysis_data$entropy, 3)
+  }
+  if (!is.null(analysis_data$normalized_entropy) && !is.na(analysis_data$normalized_entropy)) {
+    fit_summary$statistics$normalized_entropy <- round(analysis_data$normalized_entropy, 4)
+  }
+
+  # Add model complexity
+  if (!is.null(analysis_data$n_parameters)) {
+    fit_summary$statistics$n_parameters <- analysis_data$n_parameters
+  }
+
+  # Add convergence information
+  if (!is.null(analysis_data$converged)) {
+    fit_summary$statistics$converged <- analysis_data$converged
+  }
+  if (!is.null(analysis_data$convergence_tol) && !is.na(analysis_data$convergence_tol)) {
+    fit_summary$statistics$convergence_tol <- analysis_data$convergence_tol
+  }
+  if (!is.null(analysis_data$max_iterations) && !is.na(analysis_data$max_iterations)) {
+    fit_summary$statistics$max_iterations <- analysis_data$max_iterations
   }
 
   # Check cluster sizes

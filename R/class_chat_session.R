@@ -113,14 +113,16 @@ chat_session <- function(analysis_type = "fa",
       echo = echo
     )
   }, error = function(e) {
-    cli::cli_abort(
-      c(
-        "Failed to initialize LLM chat",
-        "x" = "Provider: {.val {llm_provider}}, Model: {.val {llm_model %||% 'default'}}",
-        "i" = "Error: {e$message}",
-        "i" = "Check your API credentials and model availability"
-      )
+    # Get detailed error messages
+    error_msgs <- extract_llm_error_details(e)
+    # Prepend provider/model info
+    error_msgs[1] <- "Failed to initialize LLM chat"
+    error_msgs <- c(
+      error_msgs[1],
+      "x" = "Provider: {.val {llm_provider}}, Model: {.val {llm_model %||% 'default'}}",
+      error_msgs[-1]
     )
+    cli::cli_abort(error_msgs)
   })
 
   # Create chat_session object using environment for reference semantics

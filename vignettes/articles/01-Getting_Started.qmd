@@ -296,6 +296,8 @@ This plot shows which variables load strongly on each factor, making it easy to 
 Save your interpretation to a file:
 
 ```{r export}
+#| eval: false
+
 # Export as markdown
 export_interpretation(
   interpretation,

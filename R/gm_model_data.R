@@ -155,6 +155,48 @@ build_analysis_data.Mclust <- function(fit_results, analysis_type = NULL, interp
   analysis_data$bic <- fit_results$bic
   analysis_data$icl <- ifelse(!is.null(fit_results$icl), fit_results$icl, NA)
 
+  # Calculate AIC
+  analysis_data$aic <- if (!is.null(fit_results$loglik) && !is.null(fit_results$df)) {
+    -2 * fit_results$loglik + 2 * fit_results$df
+  } else {
+    NA
+  }
+
+  # Calculate entropy from soft assignments
+  analysis_data$entropy <- if (!is.null(fit_results$z)) {
+    -sum(fit_results$z * log(fit_results$z + 1e-10), na.rm = TRUE)
+  } else {
+    NA
+  }
+
+  # Calculate normalized entropy (0-1 scale)
+  analysis_data$normalized_entropy <- if (!is.null(fit_results$z) && !is.null(fit_results$n) && !is.null(fit_results$G)) {
+    max_entropy <- fit_results$n * log(fit_results$G)
+    if (max_entropy > 0) {
+      analysis_data$entropy / max_entropy
+    } else {
+      NA
+    }
+  } else {
+    NA
+  }
+
+  # Add model complexity information
+  analysis_data$n_parameters <- fit_results$df
+
+  # Convergence information
+  analysis_data$converged <- !is.null(fit_results$loglik)
+
+  # Note: Actual iteration count is not stored by default in Mclust objects
+  # but we can check for control parameters
+  if (!is.null(fit_results$control)) {
+    analysis_data$convergence_tol <- fit_results$control$tol
+    analysis_data$max_iterations <- fit_results$control$itmax
+  } else {
+    analysis_data$convergence_tol <- NA
+    analysis_data$max_iterations <- NA
+  }
+
   return(analysis_data)
 }
 
