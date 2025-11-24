@@ -102,362 +102,350 @@ and parameter specifications. It's particularly useful for:</p><ul><li><p>Discov
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Showing common parameters for `interpret()`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Specify `analysis_type = 'fa'` or `analysis_type = 'gm'` to see model-specific `interpretation_args`</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Llm args (llm_args)</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">additional_info</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Additional context for LLM</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Llm args (llm_args) ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"\"none\""</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "none", "output", "all"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Echo level: 'none', 'output', 'all'</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • additional_info (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Additional context for LLM</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">interpretation_guidelines</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Custom interpretation guidelines for LLM</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • echo (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: "none"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "none", "output", "all"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Echo level: 'none', 'output', 'all'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">llm_model</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   LLM model name (e.g., 'gpt-4o-mini', 'claude-3-5-sonnet-20241022')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • interpretation_guidelines (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Custom interpretation guidelines for LLM</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">llm_provider</span> <span style="font-style: italic;">(character (required))</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   LLM provider name (e.g., 'anthropic', 'openai', 'ollama')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • llm_model (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     LLM model name (e.g., 'gpt-4o-mini', 'claude-3-5-sonnet-20241022')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">params</span> <span style="font-style: italic;">(list)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   ellmer params object (created via ellmer::params())</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • llm_provider (character (required))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     LLM provider name (e.g., 'anthropic', 'openai', 'ollama')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">system_prompt</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Custom system prompt to override default</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • params (list)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ellmer params object (created via ellmer::params())</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">word_limit</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"150"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 20-500</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Maximum words for LLM interpretations</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • system_prompt (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Custom system prompt to override default</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Output args (output_args)</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • word_limit (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 20-500</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Maximum words for LLM interpretations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">format</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"\"cli\""</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "cli", "markdown"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Output format: 'cli' or 'markdown'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">heading_level</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"1"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 1-6</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Markdown heading level (1-6)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Output args (output_args) ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">max_line_length</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"80"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 40-300</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Maximum line length for text wrapping (40-300)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • format (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: "cli"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "cli", "markdown"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Output format: 'cli' or 'markdown'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">silent</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"0"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 0-2</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • heading_level (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 1-6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Markdown heading level (1-6)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">suppress_heading</span> <span style="font-style: italic;">(logical)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"FALSE"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Suppress main heading in output</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • max_line_length (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 40-300</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Maximum line length for text wrapping (40-300)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • silent (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 0-2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • suppress_heading (logical)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Suppress main heading in output</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co"># Show all parameters for Factor Analysis</span></span></span>
 <span class="r-in"><span><span class="fu">show_interpret_args</span><span class="op">(</span><span class="st">"fa"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Llm args (llm_args)</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">additional_info</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Additional context for LLM</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Llm args (llm_args) ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"\"none\""</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "none", "output", "all"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Echo level: 'none', 'output', 'all'</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • additional_info (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Additional context for LLM</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">interpretation_guidelines</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Custom interpretation guidelines for LLM</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • echo (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: "none"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "none", "output", "all"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Echo level: 'none', 'output', 'all'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">llm_model</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   LLM model name (e.g., 'gpt-4o-mini', 'claude-3-5-sonnet-20241022')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • interpretation_guidelines (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Custom interpretation guidelines for LLM</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">llm_provider</span> <span style="font-style: italic;">(character (required))</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   LLM provider name (e.g., 'anthropic', 'openai', 'ollama')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • llm_model (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     LLM model name (e.g., 'gpt-4o-mini', 'claude-3-5-sonnet-20241022')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">params</span> <span style="font-style: italic;">(list)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   ellmer params object (created via ellmer::params())</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • llm_provider (character (required))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     LLM provider name (e.g., 'anthropic', 'openai', 'ollama')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">system_prompt</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Custom system prompt to override default</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • params (list)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ellmer params object (created via ellmer::params())</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">word_limit</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"150"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 20-500</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Maximum words for LLM interpretations</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • system_prompt (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Custom system prompt to override default</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Output args (output_args)</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • word_limit (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 20-500</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Maximum words for LLM interpretations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">format</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"\"cli\""</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "cli", "markdown"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Output format: 'cli' or 'markdown'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">heading_level</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"1"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 1-6</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Markdown heading level (1-6)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Output args (output_args) ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">max_line_length</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"80"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 40-300</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Maximum line length for text wrapping (40-300)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • format (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: "cli"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "cli", "markdown"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Output format: 'cli' or 'markdown'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">silent</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"0"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 0-2</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • heading_level (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 1-6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Markdown heading level (1-6)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">suppress_heading</span> <span style="font-style: italic;">(logical)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"FALSE"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Suppress main heading in output</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • max_line_length (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 40-300</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Maximum line length for text wrapping (40-300)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Interpretation args (interpretation_args) - FA specific</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • silent (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 0-2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">cutoff</span> <span style="font-style: italic;">(numeric)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"0.3"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 0-1</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Minimum loading value to consider significant (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • suppress_heading (logical)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Suppress main heading in output</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">hide_low_loadings</span> <span style="font-style: italic;">(logical)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"FALSE"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Hide non-significant loadings in LLM prompt (FA only)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">n_emergency</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"2"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 0+</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Top N loadings to use when none exceed cutoff (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Interpretation args (interpretation_args) - FA specific ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">sort_loadings</span> <span style="font-style: italic;">(logical)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"TRUE"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Sort variables by loading strength within factors (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • cutoff (numeric)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 0.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 0-1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Minimum loading value to consider significant (FA only)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • hide_low_loadings (logical)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Hide non-significant loadings in LLM prompt (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • n_emergency (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 0+</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Top N loadings to use when none exceed cutoff (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • sort_loadings (logical)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Sort variables by loading strength within factors (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Show all parameters for Gaussian Mixture Models</span></span></span>
 <span class="r-in"><span><span class="fu">show_interpret_args</span><span class="op">(</span><span class="st">"gm"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Llm args (llm_args)</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">additional_info</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Additional context for LLM</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Llm args (llm_args) ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"\"none\""</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "none", "output", "all"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Echo level: 'none', 'output', 'all'</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • additional_info (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Additional context for LLM</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">interpretation_guidelines</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Custom interpretation guidelines for LLM</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • echo (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: "none"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "none", "output", "all"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Echo level: 'none', 'output', 'all'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">llm_model</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   LLM model name (e.g., 'gpt-4o-mini', 'claude-3-5-sonnet-20241022')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • interpretation_guidelines (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Custom interpretation guidelines for LLM</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">llm_provider</span> <span style="font-style: italic;">(character (required))</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   LLM provider name (e.g., 'anthropic', 'openai', 'ollama')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • llm_model (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     LLM model name (e.g., 'gpt-4o-mini', 'claude-3-5-sonnet-20241022')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">params</span> <span style="font-style: italic;">(list)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   ellmer params object (created via ellmer::params())</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • llm_provider (character (required))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     LLM provider name (e.g., 'anthropic', 'openai', 'ollama')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">system_prompt</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Custom system prompt to override default</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • params (list)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ellmer params object (created via ellmer::params())</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">word_limit</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"150"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 20-500</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Maximum words for LLM interpretations</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • system_prompt (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Custom system prompt to override default</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Output args (output_args)</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • word_limit (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 20-500</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Maximum words for LLM interpretations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">format</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"\"cli\""</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "cli", "markdown"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Output format: 'cli' or 'markdown'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">heading_level</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"1"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 1-6</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Markdown heading level (1-6)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Output args (output_args) ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">max_line_length</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"80"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 40-300</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Maximum line length for text wrapping (40-300)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • format (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: "cli"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "cli", "markdown"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Output format: 'cli' or 'markdown'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">silent</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"0"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 0-2</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • heading_level (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 1-6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Markdown heading level (1-6)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">suppress_heading</span> <span style="font-style: italic;">(logical)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"FALSE"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Suppress main heading in output</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • max_line_length (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 40-300</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Maximum line length for text wrapping (40-300)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Interpretation args (interpretation_args) - GM specific</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • silent (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 0-2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">covariance_type</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "EII", "VII", "EEI", "VEI", "EVI", "VVI", "EEE", "VEE", "EVE",</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   "VVE", "EEV", "VEV", "EVV", "VVV"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Covariance structure for mclust models (GM only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • suppress_heading (logical)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Suppress main heading in output</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">min_cluster_size</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"5"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 1-100</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Minimum meaningful cluster size for diagnostics (GM only)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">n_clusters</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 1-100</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Number of clusters (GM only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Interpretation args (interpretation_args) - GM specific ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">plot_type</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"\"auto\""</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "auto", "heatmap", "parallel", "radar", "all"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Visualization type for cluster profiles (GM only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • covariance_type (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "EII", "VII", "EEI", "VEI", "EVI", "VVI", "EEE", "VEE", "EVE", "VVE", "EEV", "VEV", "EVV", "VVV"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Covariance structure for mclust models (GM only)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">profile_variables</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Subset of variables to focus on for interpretation (GM only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • min_cluster_size (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 1-100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Minimum meaningful cluster size for diagnostics (GM only)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">separation_threshold</span> <span style="font-style: italic;">(numeric)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"0.3"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 0-1</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Overlap threshold for cluster separation diagnostics (GM only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • n_clusters (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 1-100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Number of clusters (GM only)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">weight_by_uncertainty</span> <span style="font-style: italic;">(logical)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"FALSE"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Weight interpretations by cluster assignment certainty (GM only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • plot_type (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: "auto"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "auto", "heatmap", "parallel", "radar", "all"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Visualization type for cluster profiles (GM only)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • profile_variables (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Subset of variables to focus on for interpretation (GM only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • separation_threshold (numeric)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 0.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 0-1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Overlap threshold for cluster separation diagnostics (GM only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • weight_by_uncertainty (logical)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Weight interpretations by cluster assignment certainty (GM only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Capture parameter data programmatically</span></span></span>
 <span class="r-in"><span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu">show_interpret_args</span><span class="op">(</span><span class="st">"fa"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Llm args (llm_args)</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">additional_info</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Additional context for LLM</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Llm args (llm_args) ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"\"none\""</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "none", "output", "all"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Echo level: 'none', 'output', 'all'</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • additional_info (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Additional context for LLM</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">interpretation_guidelines</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Custom interpretation guidelines for LLM</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • echo (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: "none"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "none", "output", "all"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Echo level: 'none', 'output', 'all'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">llm_model</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   LLM model name (e.g., 'gpt-4o-mini', 'claude-3-5-sonnet-20241022')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • interpretation_guidelines (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Custom interpretation guidelines for LLM</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">llm_provider</span> <span style="font-style: italic;">(character (required))</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   LLM provider name (e.g., 'anthropic', 'openai', 'ollama')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • llm_model (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     LLM model name (e.g., 'gpt-4o-mini', 'claude-3-5-sonnet-20241022')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">params</span> <span style="font-style: italic;">(list)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   ellmer params object (created via ellmer::params())</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • llm_provider (character (required))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     LLM provider name (e.g., 'anthropic', 'openai', 'ollama')</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">system_prompt</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"NULL"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Custom system prompt to override default</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • params (list)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ellmer params object (created via ellmer::params())</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">word_limit</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"150"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 20-500</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Maximum words for LLM interpretations</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • system_prompt (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Custom system prompt to override default</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Output args (output_args)</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • word_limit (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 20-500</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Maximum words for LLM interpretations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">format</span> <span style="font-style: italic;">(character)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"\"cli\""</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Allowed: "cli", "markdown"</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Output format: 'cli' or 'markdown'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">heading_level</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"1"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 1-6</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Markdown heading level (1-6)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Output args (output_args) ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">max_line_length</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"80"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 40-300</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Maximum line length for text wrapping (40-300)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • format (character)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: "cli"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Allowed: "cli", "markdown"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Output format: 'cli' or 'markdown'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">silent</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"0"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 0-2</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • heading_level (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 1-6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Markdown heading level (1-6)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">suppress_heading</span> <span style="font-style: italic;">(logical)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"FALSE"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Suppress main heading in output</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • max_line_length (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 40-300</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Maximum line length for text wrapping (40-300)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Interpretation args (interpretation_args) - FA specific</span> ──</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • silent (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 0-2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">cutoff</span> <span style="font-style: italic;">(numeric)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"0.3"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 0-1</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Minimum loading value to consider significant (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • suppress_heading (logical)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Suppress main heading in output</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">hide_low_loadings</span> <span style="font-style: italic;">(logical)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"FALSE"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Hide non-significant loadings in LLM prompt (FA only)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">n_emergency</span> <span style="font-style: italic;">(integer)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"2"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Range: 0+</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Top N loadings to use when none exceed cutoff (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Interpretation args (interpretation_args) - FA specific ──</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="font-weight: bold;">sort_loadings</span> <span style="font-style: italic;">(logical)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Default: <span style="color: #0000BB;">"TRUE"</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Sort variables by loading strength within factors (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • cutoff (numeric)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 0.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 0-1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Minimum loading value to consider significant (FA only)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • hide_low_loadings (logical)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Hide non-significant loadings in LLM prompt (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • n_emergency (integer)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Range: 0+</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Top N loadings to use when none exceed cutoff (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • sort_loadings (logical)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Default: TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Sort variables by loading strength within factors (FA only)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">params</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                    parameter default      type         range_or_values</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1               llm_provider    NULL character                       -</span>

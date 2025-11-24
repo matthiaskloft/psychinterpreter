@@ -116,13 +116,15 @@ uses provider's default model</p></dd>
 
 
 <dt id="arg-max-words">max_words<a class="anchor" aria-label="anchor" href="#arg-max-words"></a></dt>
-<dd><p>Integer or NULL. <strong>Influences LLM prompt</strong> to generate labels with this
-exact word count (overrides label_type preset). Also applies post-processing truncation
-if needed. More effective than using <code>max_words</code> in <code><a href="reformat_labels.html">reformat_labels()</a></code>.</p></dd>
+<dd><p>Integer or NULL. <strong>Sets upper limit for word count</strong> (overrides label_type
+presets EXCEPT for "acronym"). Instructs the LLM to generate labels with up to this many
+words. Also applies post-processing truncation if needed. More effective than using
+<code>max_words</code> in <code><a href="reformat_labels.html">reformat_labels()</a></code>. Ignored when label_type = "acronym".</p></dd>
 
 
 <dt id="arg-style-hint">style_hint<a class="anchor" aria-label="anchor" href="#arg-style-hint"></a></dt>
-<dd><p>Character or NULL. Style guidance for LLM (e.g., "technical", "simple")</p></dd>
+<dd><p>Character or NULL. Style guidance for LLM (e.g., "technical", "simple",
+"academic"). Influences the LLM's choice of terminology and phrasing.</p></dd>
 
 
 <dt id="arg-sep">sep<a class="anchor" aria-label="anchor" href="#arg-sep"></a></dt>
@@ -147,9 +149,10 @@ Post-processing only - does not affect LLM generation.</p></dd>
 
 
 <dt id="arg-max-chars">max_chars<a class="anchor" aria-label="anchor" href="#arg-max-chars"></a></dt>
-<dd><p>Integer or NULL. <strong>Influences LLM prompt</strong> to generate labels within this
-character limit. Also applies post-processing truncation if needed. More effective than
-using <code>max_chars</code> in <code><a href="reformat_labels.html">reformat_labels()</a></code>.</p></dd>
+<dd><p>Integer or NULL. <strong>Sets upper limit for character count</strong>. Instructs the LLM
+to generate labels within this character limit. Works with ALL label types including
+"acronym" (where it controls the acronym length). Also applies post-processing truncation
+if needed. More effective than using <code>max_chars</code> in <code><a href="reformat_labels.html">reformat_labels()</a></code>.</p></dd>
 
 
 <dt id="arg-abbreviate">abbreviate<a class="anchor" aria-label="anchor" href="#arg-abbreviate"></a></dt>
@@ -209,6 +212,16 @@ Created with <code><a href="output_args.html">output_args</a></code>. Direct par
 </ol><p>Special case behaviors:</p><ul><li><p><code>case = "snake"</code> automatically sets <code>sep = "_"</code> and lowercase</p></li>
 <li><p><code>case = "camel"</code> automatically sets <code>sep = ""</code> and applies camelCase</p></li>
 <li><p><code>case = "constant"</code> automatically sets <code>sep = "_"</code> and uppercase</p></li>
+</ul></div>
+    <div class="section level2">
+    <h2 id="parameter-organization">Parameter Organization<a class="anchor" aria-label="anchor" href="#parameter-organization"></a></h2>
+
+
+<p>Parameters are organized into groups:</p><ul><li><p><strong>Core</strong>: variable_info, chat_session, llm_provider, llm_model</p></li>
+<li><p><strong>Semantic Generation (LLM-facing)</strong>: label_type, max_words, max_chars, style_hint</p></li>
+<li><p><strong>Format Processing (post-processing)</strong>: case, sep, remove_articles, remove_prepositions, abbreviate</p></li>
+<li><p><strong>Configuration Objects</strong>: labeling_args, llm_args, output_args</p></li>
+<li><p><strong>Control</strong>: echo, silent</p></li>
 </ul></div>
 
     <div class="section level2">

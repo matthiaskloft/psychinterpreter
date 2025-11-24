@@ -18,12 +18,9 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="03-Variable_Labeling_files/libs/quarto-html/popper.min.js"></script><script src="03-Variable_Labeling_files/libs/quarto-html/tippy.umd.min.js"></script><link href="03-Variable_Labeling_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="03-Variable_Labeling_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="03-Variable_Labeling_files/libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
-<script src="03-Variable_Labeling_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><link href="03-Variable_Labeling_files/libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
-<script src="03-Variable_Labeling_files/libs/datatables-binding-0.34.0/datatables.js"></script><link href="03-Variable_Labeling_files/libs/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
-<link href="03-Variable_Labeling_files/libs/dt-core-1.13.6/css/jquery.dataTables.extra.css" rel="stylesheet">
-<link href="03-Variable_Labeling_files/libs/crosstalk-1.2.2/css/crosstalk.min.css" rel="stylesheet">
-<script src="03-Variable_Labeling_files/libs/crosstalk-1.2.2/js/crosstalk.min.js"></script><link href="03-Variable_Labeling_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="03-Variable_Labeling_files/libs/core-js-2.5.3/shim.min.js"></script><script src="03-Variable_Labeling_files/libs/react-18.2.0/react.min.js"></script><script src="03-Variable_Labeling_files/libs/react-18.2.0/react-dom.min.js"></script><script src="03-Variable_Labeling_files/libs/reactwidget-2.0.0/react-tools.js"></script><link href="03-Variable_Labeling_files/libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="03-Variable_Labeling_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><link href="03-Variable_Labeling_files/libs/reactable-0.4.4/reactable.css" rel="stylesheet">
+<script src="03-Variable_Labeling_files/libs/reactable-binding-0.4.4/reactable.js"></script><link href="03-Variable_Labeling_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
 <script src="03-Variable_Labeling_files/libs/pagedtable-1.1/js/pagedtable.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Variable Labeling with LLMs">
 </head>
 <body>
@@ -80,7 +77,7 @@
       <h1>Variable Labeling with LLMs</h1>
       <p class="subtitle">Generate Clean Variable Labels from Descriptions</p>
       <p class="author">Matthias Kloft</p>
-      <p class="date">2025-11-23</p>
+      <p class="date">2025-11-24</p>
 
       <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/vignettes/articles/03-Variable_Labeling.qmd"><code>vignettes/articles/03-Variable_Labeling.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -120,7 +117,7 @@
 <span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html" class="external-link">p_load</a></span><span class="op">(</span></span>
 <span>  <span class="st">"psychinterpreter"</span>,  <span class="co"># This package</span></span>
 <span>  <span class="st">"psych"</span>,             <span class="co"># For BFI data</span></span>
-<span>  <span class="st">"DT"</span>                 <span class="co"># For nice tables</span></span>
+<span>  <span class="st">"reactable"</span>          <span class="co"># For nice tables</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details>
 </div>
@@ -145,10 +142,10 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Show the data</span></span>
-<span><span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span><span class="va">variable_info</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">reactable</span><span class="op">(</span><span class="va">variable_info</span>, striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-1236f1423065264ba2a4" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-1236f1423065264ba2a4">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Am indifferent to the feelings of others.","Inquire about others' well-being.","Know how to comfort others.","Love children.","Make people feel at ease.","Am exacting in my work.","Continue until everything is perfect.","Do things according to a plan.","Do things in a half-way manner.","Waste my time."]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>description<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"description","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-d9ad3fe2f2dcb4ceb639" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-d9ad3fe2f2dcb4ceb639">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"description":["Am indifferent to the feelings of others.","Inquire about others' well-being.","Know how to comfort others.","Love children.","Make people feel at ease.","Am exacting in my work.","Continue until everything is perfect.","Do things according to a plan.","Do things in a half-way manner.","Waste my time."]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"description","name":"description","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"dataKey":"fe2beeb9783cb57c310dc922a97838ce"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p>These cryptic codes (<code>A1</code>, <code>A2</code>, etc.) are not very readable. Let’s generate descriptive labels!</p>
@@ -169,153 +166,200 @@
 <span>  variable_info <span class="op">=</span> <span class="va">variable_info</span>,</span>
 <span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
+<span>  max_words <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  max_chars <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  label_type <span class="op">=</span> <span class="st">"short"</span>,  <span class="co"># 1-3 words</span></span>
-<span>  case <span class="op">=</span> <span class="st">"title"</span>         <span class="co"># Title Case</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View results</span></span>
+<span>  case <span class="op">=</span> <span class="st">"title"</span>,        <span class="co"># Title Case</span></span>
+<span>  silent <span class="op">=</span> <span class="fl">1</span>             <span class="co"># Suppress automatic print</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</details>
+</div>
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># View results</span></span>
 <span><span class="va">labels_short</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-81d17d6c6da24a5f434e" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-81d17d6c6da24a5f434e">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Indifferent To Others","Ask About Well-Being","Comfort Others","Love Children","Put Others At Ease","Exacting Work Standards","Pursue Perfection","Plan-Oriented","Half-Way Effort","Waste Time"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>label<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"label","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-a1d50575065f0855e1f9" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-a1d50575065f0855e1f9">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["Indifferent","Inquisitive","Comforting","Nurturing","Reassuring","Exacting","Perfectionist","Organized","Careless","Procrastinating"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"1ad0fb31fd9179ee3d0ef0c38d53e0a9"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level3"><h3 id="phrase-labels-4-7-words">Phrase Labels (4-7 words)<a class="anchor" aria-label="anchor" href="#phrase-labels-4-7-words"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_phrase</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
 <span>  variable_info <span class="op">=</span> <span class="va">variable_info</span>,</span>
 <span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
 <span>  label_type <span class="op">=</span> <span class="st">"phrase"</span>,  <span class="co"># 4-7 words</span></span>
-<span>  case <span class="op">=</span> <span class="st">"sentence"</span>       <span class="co"># Sentence case</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">labels_phrase</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  case <span class="op">=</span> <span class="st">"sentence"</span>,      <span class="co"># Sentence case</span></span>
+<span>  silent <span class="op">=</span> <span class="fl">1</span>              <span class="co"># Suppress automatic print</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</details>
+</div>
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">labels_phrase</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-74e2867cdcb8e6aa04ea" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-74e2867cdcb8e6aa04ea">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Indifference to others","Tendency to ask about others","Ability to provide comfort to others","Affinity for and enjoyment of children","Skill in making others feel comfortable","Demands high standards in work quality","Pursues perfection in all tasks","Preference for planned and organized approaches","Tendency to complete tasks incompletely","Likelihood of wasting available time"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>label<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"label","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-864f020b6badc5206cbd" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-864f020b6badc5206cbd">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["Indifference to others","Tendency to inquire about others","Knowledge of how to comfort others","Affection and fondness for children","Ability to make people feel at ease","Exactingness and precision in work","Persistence until work is perfect","Tendency to plan and organize work","Inclination to do things half-heartedly","Tendency to waste personal time"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"89a2620bab8b0258331317448f6484fd"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level3"><h3 id="acronym-labels-3-5-characters">Acronym Labels (3-5 characters)<a class="anchor" aria-label="anchor" href="#acronym-labels-3-5-characters"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_acronym</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
 <span>  variable_info <span class="op">=</span> <span class="va">variable_info</span>,</span>
 <span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
 <span>  label_type <span class="op">=</span> <span class="st">"acronym"</span>,  <span class="co"># 3-5 character acronyms</span></span>
-<span>  case <span class="op">=</span> <span class="st">"upper"</span>           <span class="co"># UPPERCASE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">labels_acronym</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  case <span class="op">=</span> <span class="st">"upper"</span>,          <span class="co"># UPPERCASE</span></span>
+<span>  silent <span class="op">=</span> <span class="fl">1</span>               <span class="co"># Suppress automatic print</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</details>
+</div>
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">labels_acronym</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-b116e75509e9c5a8e8dc" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-b116e75509e9c5a8e8dc">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["INDF","INQR","CMFT","CHLD","EASE","EXCT","PERF","PLAN","HALF","WAST"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>label<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"label","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-17568ab4466db8047f30" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-17568ab4466db8047f30">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["INDI","INQW","COMB","CHLD","EASE","EXAC","PERF","PLAN","HALF","WAST"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"f2c2ce0d536b9c41b1e7f6663a5dfecd"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level3"><h3 id="custom-wordcharacter-limits-llm-guided">Custom Word/Character Limits (LLM-Guided)<a class="anchor" aria-label="anchor" href="#custom-wordcharacter-limits-llm-guided"></a>
 </h3>
-<p>When you specify <code>max_words</code> or <code>max_chars</code> in <code><a href="../reference/label_variables.html">label_variables()</a></code>, they <strong>influence the LLM prompt</strong> to generate labels within those constraints. This is more effective than post-processing truncation:</p>
+<p>When you specify <code>max_words</code> or <code>max_chars</code> in <code><a href="../reference/label_variables.html">label_variables()</a></code>, they <strong>influence the LLM prompt</strong> to generate labels within those constraints. This is more effective than post-processing truncation.</p>
+<p><strong>Important:</strong> <code>max_words</code> and <code>max_chars</code> override the <code>label_type</code> presets <strong>except for “acronym”</strong>. For acronyms, only <code>max_chars</code> is used (controlling acronym length), while <code>max_words</code> is ignored.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Tell the LLM to generate exactly 2-word labels</span></span>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># max_words overrides "short" preset (1-3 words) to generate up to 2 words</span></span>
 <span><span class="va">labels_two_words</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
 <span>  variable_info <span class="op">=</span> <span class="va">variable_info</span>,</span>
 <span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
-<span>  label_type <span class="op">=</span> <span class="st">"custom"</span>,  <span class="co"># custom allows max_words to override</span></span>
-<span>  max_words <span class="op">=</span> <span class="fl">2</span>,          <span class="co"># LLM will aim for exactly 2 words</span></span>
-<span>  case <span class="op">=</span> <span class="st">"title"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">labels_two_words</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  label_type <span class="op">=</span> <span class="st">"short"</span>,   <span class="co"># Would normally be 1-3 words</span></span>
+<span>  max_words <span class="op">=</span> <span class="fl">2</span>,          <span class="co"># But max_words limits to up to 2 words</span></span>
+<span>  case <span class="op">=</span> <span class="st">"title"</span>,</span>
+<span>  silent <span class="op">=</span> <span class="fl">1</span>              <span class="co"># Suppress automatic print</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</details>
+</div>
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">labels_two_words</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-92c90e8dc363ef959611" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-92c90e8dc363ef959611">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Emotional Indifference","Wellbeing Inquiry","Comfort Skills","Children Affinity","Ease Creation","Work Precision","Perfection Pursuit","Plan Adherence","Half-Way Completion","Time Wastage"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>label<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"label","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-5817b1c2b9f6954ba23d" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-5817b1c2b9f6954ba23d">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["Emotional Indifference","Well-Being Inquiry","Comfort Ability","Child Affinity","Social Ease","Work Precision","Perfectionist Tendency","Planned Action","Half-Hearted Effort","Time Wastage"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"19ccafe7a9161405f9d3b08696817c32"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Tell the LLM to generate labels under 12 characters</span></span>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># max_chars works with all label types, including acronyms</span></span>
 <span><span class="va">labels_short_chars</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
 <span>  variable_info <span class="op">=</span> <span class="va">variable_info</span>,</span>
 <span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
-<span>  label_type <span class="op">=</span> <span class="st">"custom"</span>,</span>
-<span>  max_chars <span class="op">=</span> <span class="fl">12</span>,         <span class="co"># LLM will aim for ≤12 characters</span></span>
-<span>  case <span class="op">=</span> <span class="st">"snake"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">labels_short_chars</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  label_type <span class="op">=</span> <span class="st">"short"</span>,   <span class="co"># Would normally be 1-3 words</span></span>
+<span>  max_chars <span class="op">=</span> <span class="fl">12</span>,         <span class="co"># Adds character limit constraint</span></span>
+<span>  case <span class="op">=</span> <span class="st">"snake"</span>,</span>
+<span>  silent <span class="op">=</span> <span class="fl">1</span>              <span class="co"># Suppress automatic print</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</details>
+</div>
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">labels_short_chars</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-e7aea2a1d5cc72c619d2" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-e7aea2a1d5cc72c619d2">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["indifference","concern_for_","ability_to_c","affection_fo","ability_to_p","work_exactin","pursuit_of_p","planning_and","half-way_tas","time_wastage"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>label<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"label","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-59b28fc8749e299abd15" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-59b28fc8749e299abd15">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["indifferent_","inquire_well","comfort_othe","love_childre","put_at_ease","exacting_wor","perfectionis","plan_oriente","half-way_eff","time_wasting"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"895a3ddcea3a4eb7c874c5ce69396fc1"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
-<p><strong>Key difference:</strong> - <code>max_words</code>/<code>max_chars</code> in <code><a href="../reference/label_variables.html">label_variables()</a></code>: Guides LLM to generate appropriate labels - <code>max_words</code>/<code>max_chars</code> in <code><a href="../reference/reformat_labels.html">reformat_labels()</a></code>: Truncates existing labels (less intelligent)</p>
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># For acronyms, max_chars controls the acronym length (max_words is ignored)</span></span>
+<span><span class="va">labels_long_acronym</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/label_variables.html">label_variables</a></span><span class="op">(</span></span>
+<span>  variable_info <span class="op">=</span> <span class="va">variable_info</span>,</span>
+<span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
+<span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
+<span>  label_type <span class="op">=</span> <span class="st">"acronym"</span>,</span>
+<span>  max_chars <span class="op">=</span> <span class="fl">8</span>,          <span class="co"># Acronyms up to 8 characters (instead of default 3-5)</span></span>
+<span>  max_words <span class="op">=</span> <span class="fl">2</span>,          <span class="co"># This is IGNORED for acronyms</span></span>
+<span>  case <span class="op">=</span> <span class="st">"upper"</span>,</span>
+<span>  silent <span class="op">=</span> <span class="fl">1</span>              <span class="co"># Suppress automatic print</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</details>
+</div>
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">labels_long_acronym</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
+</details><div class="cell-output-display">
+<div class="reactable html-widget html-fill-item" id="htmlwidget-63ac962ff5272b6f627e" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-63ac962ff5272b6f627e">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["INDIFF","INQUIRE","COMFORT","LOVEKID","EASE","EXACT","PERFECT","PLAN","HALFWAY","WASTE"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"41cf1b726e072add793d5cd89de21d6b"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p><strong>Key differences:</strong> - <code>max_words</code>/<code>max_chars</code> in <code><a href="../reference/label_variables.html">label_variables()</a></code>: Guides LLM to generate appropriate labels (upper limits) - <code>max_words</code>/<code>max_chars</code> in <code><a href="../reference/reformat_labels.html">reformat_labels()</a></code>: Truncates existing labels (less intelligent) - <strong>Exception:</strong> <code>max_words</code> is ignored when <code>label_type = "acronym"</code> (use <code>max_chars</code> instead)</p>
 </section></section><section class="level2"><h2 id="case-transformations">Case Transformations<a class="anchor" aria-label="anchor" href="#case-transformations"></a>
 </h2>
 <p>The same semantic labels can be formatted in different styles without re-calling the LLM:</p>
 <section class="level3"><h3 id="snake-case-for-r-variable-names">Snake Case (for R variable names)<a class="anchor" aria-label="anchor" href="#snake-case-for-r-variable-names"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_snake</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_short</span>,</span>
 <span>  case <span class="op">=</span> <span class="st">"snake"</span>  <span class="co"># Automatically sets sep = "_" and lowercase</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">labels_snake</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-d3c37ab7c6fb1da9fc10" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-d3c37ab7c6fb1da9fc10">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["indifferent_to_others","ask_about_well-being","comfort_others","love_children","put_others_at_ease","exacting_work_standards","pursue_perfection","plan-oriented","half-way_effort","waste_time"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>label<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"label","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-fb5b0119510169759ddb" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-fb5b0119510169759ddb">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["indifferent","inquisitive","comforting","nurturing","reassuring","exacting","perfectionist","organized","careless","procrastinating"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"79e1c7b98dadebe3a1fb7c2005c43b4b"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level3"><h3 id="camel-case-for-programming">Camel Case (for programming)<a class="anchor" aria-label="anchor" href="#camel-case-for-programming"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_camel</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_short</span>,</span>
 <span>  case <span class="op">=</span> <span class="st">"camel"</span>  <span class="co"># firstWordLowerRestTitle</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">labels_camel</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-34d03f60d50f76584909" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-34d03f60d50f76584909">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["indifferentToOthers","askAboutWell-being","comfortOthers","loveChildren","putOthersAtEase","exactingWorkStandards","pursuePerfection","plan-oriented","half-wayEffort","wasteTime"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>label<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"label","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-d74521fa59f5ceb7a9c8" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-d74521fa59f5ceb7a9c8">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["indifferent","inquisitive","comforting","nurturing","reassuring","exacting","perfectionist","organized","careless","procrastinating"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"79e1c7b98dadebe3a1fb7c2005c43b4b"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level3"><h3 id="constant-case-for-constants">Constant Case (for constants)<a class="anchor" aria-label="anchor" href="#constant-case-for-constants"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_constant</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_short</span>,</span>
 <span>  case <span class="op">=</span> <span class="st">"constant"</span>  <span class="co"># UPPER_CASE_WITH_UNDERSCORES</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">labels_constant</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-feee1a8afd9ee263613f" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-feee1a8afd9ee263613f">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["INDIFFERENT_TO_OTHERS","ASK_ABOUT_WELL-BEING","COMFORT_OTHERS","LOVE_CHILDREN","PUT_OTHERS_AT_EASE","EXACTING_WORK_STANDARDS","PURSUE_PERFECTION","PLAN-ORIENTED","HALF-WAY_EFFORT","WASTE_TIME"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>label<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"label","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-b1e889bec21acf9d624b" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-b1e889bec21acf9d624b">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["INDIFFERENT","INQUISITIVE","COMFORTING","NURTURING","REASSURING","EXACTING","PERFECTIONIST","ORGANIZED","CARELESS","PROCRASTINATING"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"166d63d44f85b33888e6b562d6be147c"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level3"><h3 id="custom-separator">Custom Separator<a class="anchor" aria-label="anchor" href="#custom-separator"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_custom_sep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_short</span>,</span>
 <span>  sep <span class="op">=</span> <span class="st">"-"</span>,      <span class="co"># Use hyphens</span></span>
@@ -323,10 +367,10 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">labels_custom_sep</span><span class="op">$</span><span class="va">labels_formatted</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-dce45bdf2bde011922a0" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-dce45bdf2bde011922a0">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["indifferent-to-others","ask-about-well-being","comfort-others","love-children","put-others-at-ease","exacting-work-standards","pursue-perfection","plan-oriented","half-way-effort","waste-time"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>label<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"label","targets":1}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-9c3abffa0d2afa8b25e1" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-9c3abffa0d2afa8b25e1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"label":["indifferent","inquisitive","comforting","nurturing","reassuring","exacting","perfectionist","organized","careless","procrastinating"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"label","name":"label","type":"character"}],"defaultPageSize":10,"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"79e1c7b98dadebe3a1fb7c2005c43b4b"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section></section><section class="level2"><h2 id="post-processing-options">Post-Processing Options<a class="anchor" aria-label="anchor" href="#post-processing-options"></a>
@@ -334,7 +378,7 @@
 <section class="level3"><h3 id="remove-articles-and-prepositions">Remove Articles and Prepositions<a class="anchor" aria-label="anchor" href="#remove-articles-and-prepositions"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_simplified</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_phrase</span>,</span>
 <span>  remove_articles <span class="op">=</span> <span class="cn">TRUE</span>,       <span class="co"># Remove: a, an, the</span></span>
@@ -349,16 +393,16 @@
 <span>  simplified <span class="op">=</span> <span class="va">labels_simplified</span><span class="op">$</span><span class="va">labels_formatted</span><span class="op">$</span><span class="va">label</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span><span class="va">comparison</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">reactable</span><span class="fu">::</span><span class="fu"><a href="https://glin.github.io/reactable/reference/reactable.html" class="external-link">reactable</a></span><span class="op">(</span><span class="va">comparison</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-5cd33d98edfe06ae3485" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-5cd33d98edfe06ae3485">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Indifference to others","Tendency to ask about others","Ability to provide comfort to others","Affinity for and enjoyment of children","Skill in making others feel comfortable","Demands high standards in work quality","Pursues perfection in all tasks","Preference for planned and organized approaches","Tendency to complete tasks incompletely","Likelihood of wasting available time"],["indifference_others","tendency_ask_others","ability_provide_comfort_others","affinity_and_enjoyment_children","skill_making_others_feel_comfortable","demands_high_standards_work_quality","pursues_perfection_all_tasks","preference_planned_and_organized_approaches","tendency_complete_tasks_incompletely","likelihood_wasting_available_time"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>original<\/th>\n      <th>simplified<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"original","targets":1},{"name":"simplified","targets":2}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-62a74f5aac9bc0c09971" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-62a74f5aac9bc0c09971">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"original":["Indifference to others","Tendency to inquire about others","Knowledge of how to comfort others","Affection and fondness for children","Ability to make people feel at ease","Exactingness and precision in work","Persistence until work is perfect","Tendency to plan and organize work","Inclination to do things half-heartedly","Tendency to waste personal time"],"simplified":["indifference_others","tendency_inquire_others","knowledge_how_comfort_others","affection_and_fondness_children","ability_make_people_feel_ease","exactingness_and_precision_work","persistence_until_work_is_perfect","tendency_plan_and_organize_work","inclination_do_things_half-heartedly","tendency_waste_personal_time"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"original","name":"original","type":"character"},{"id":"simplified","name":"simplified","type":"character"}],"defaultPageSize":10,"dataKey":"45094459fce7ce59ea4490832a88d31f"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level3"><h3 id="abbreviate-long-words">Abbreviate Long Words<a class="anchor" aria-label="anchor" href="#abbreviate-long-words"></a>
 </h3>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_abbreviated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_phrase</span>,</span>
 <span>  abbreviate <span class="op">=</span> <span class="cn">TRUE</span>,  <span class="co"># Apply rule-based abbreviation</span></span>
@@ -371,17 +415,17 @@
 <span>  abbreviated <span class="op">=</span> <span class="va">labels_abbreviated</span><span class="op">$</span><span class="va">labels_formatted</span><span class="op">$</span><span class="va">label</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span><span class="va">comparison_abbrev</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">reactable</span><span class="fu">::</span><span class="fu"><a href="https://glin.github.io/reactable/reference/reactable.html" class="external-link">reactable</a></span><span class="op">(</span><span class="va">comparison_abbrev</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-f391089da91780c58c97" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-f391089da91780c58c97">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Indifference to others","Tendency to ask about others","Ability to provide comfort to others","Affinity for and enjoyment of children","Skill in making others feel comfortable","Demands high standards in work quality","Pursues perfection in all tasks","Preference for planned and organized approaches","Tendency to complete tasks incompletely","Likelihood of wasting available time"],["indi_to_others","tend_to_ask_about_others","ability_to_provide_comfort_to_others","affi_for_and_enjo_of_chil","skill_in_making_others_feel_comf","demands_high_stan_in_work_quality","pursues_perf_in_all_tasks","pref_for_planned_and_orga_appr","tend_to_comp_tasks_inco","like_of_wasting_avai_time"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>original<\/th>\n      <th>abbreviated<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"original","targets":1},{"name":"abbreviated","targets":2}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-db328c79fc7703f42111" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-db328c79fc7703f42111">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"original":["Indifference to others","Tendency to inquire about others","Knowledge of how to comfort others","Affection and fondness for children","Ability to make people feel at ease","Exactingness and precision in work","Persistence until work is perfect","Tendency to plan and organize work","Inclination to do things half-heartedly","Tendency to waste personal time"],"abbreviated":["indi_to_others","tend_to_inquire_about_others","know_of_how_to_comfort_others","affe_and_fond_for_chil","ability_to_make_people_feel_at_ease","exac_and_prec_in_work","pers_until_work_is_perfect","tend_to_plan_and_orga_work","incl_to_do_things_half","tend_to_waste_pers_time"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"original","name":"original","type":"character"},{"id":"abbreviated","name":"abbreviated","type":"character"}],"defaultPageSize":10,"dataKey":"ebfebcd23aec8d25b7d508afd2b2dcd9"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level3"><h3 id="maximum-character-limit-post-processing">Maximum Character Limit (Post-Processing)<a class="anchor" aria-label="anchor" href="#maximum-character-limit-post-processing"></a>
 </h3>
 <p><strong>Note:</strong> When possible, prefer using <code>max_chars</code> in <code><a href="../reference/label_variables.html">label_variables()</a></code> (shown above) to guide the LLM. This post-processing approach simply truncates existing labels:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_short_max</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_phrase</span>,</span>
 <span>  max_chars <span class="op">=</span> <span class="fl">15</span>,  <span class="co"># Truncate to 15 characters (simple truncation)</span></span>
@@ -394,17 +438,17 @@
 <span>  truncated <span class="op">=</span> <span class="va">labels_short_max</span><span class="op">$</span><span class="va">labels_formatted</span><span class="op">$</span><span class="va">label</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span><span class="va">comparison_max</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">reactable</span><span class="fu">::</span><span class="fu"><a href="https://glin.github.io/reactable/reference/reactable.html" class="external-link">reactable</a></span><span class="op">(</span><span class="va">comparison_max</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-39573d49cb253b5ef5b5" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-39573d49cb253b5ef5b5">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Indifference to others","Tendency to ask about others","Ability to provide comfort to others","Affinity for and enjoyment of children","Skill in making others feel comfortable","Demands high standards in work quality","Pursues perfection in all tasks","Preference for planned and organized approaches","Tendency to complete tasks incompletely","Likelihood of wasting available time"],["indifference_to","tendency_to_ask","ability_to_prov","affinity_for_an","skill_in_making","demands_high_st","pursues_perfect","preference_for_","tendency_to_com","likelihood_of_w"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>original<\/th>\n      <th>truncated<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"original","targets":1},{"name":"truncated","targets":2}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-7e9094124f89cc5d8074" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-7e9094124f89cc5d8074">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"original":["Indifference to others","Tendency to inquire about others","Knowledge of how to comfort others","Affection and fondness for children","Ability to make people feel at ease","Exactingness and precision in work","Persistence until work is perfect","Tendency to plan and organize work","Inclination to do things half-heartedly","Tendency to waste personal time"],"truncated":["indifference_to","tendency_to_inq","knowledge_of_ho","affection_and_f","ability_to_make","exactingness_an","persistence_unt","tendency_to_pla","inclination_to_","tendency_to_was"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"original","name":"original","type":"character"},{"id":"truncated","name":"truncated","type":"character"}],"defaultPageSize":10,"dataKey":"087696a325834e0c2c1d36d99f2ff4c8"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level3"><h3 id="maximum-word-count-post-processing">Maximum Word Count (Post-Processing)<a class="anchor" aria-label="anchor" href="#maximum-word-count-post-processing"></a>
 </h3>
 <p><strong>Note:</strong> When possible, prefer using <code>max_words</code> in <code><a href="../reference/label_variables.html">label_variables()</a></code> (shown above) to guide the LLM. This post-processing approach simply truncates existing labels:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb16"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_limited_words</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_phrase</span>,</span>
 <span>  max_words <span class="op">=</span> <span class="fl">2</span>,   <span class="co"># Keep only first 2 words (simple truncation)</span></span>
@@ -417,17 +461,17 @@
 <span>  limited <span class="op">=</span> <span class="va">labels_limited_words</span><span class="op">$</span><span class="va">labels_formatted</span><span class="op">$</span><span class="va">label</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span><span class="va">comparison_words</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">reactable</span><span class="fu">::</span><span class="fu"><a href="https://glin.github.io/reactable/reference/reactable.html" class="external-link">reactable</a></span><span class="op">(</span><span class="va">comparison_words</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-6ee430446bfaaea5331f" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-6ee430446bfaaea5331f">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Indifference to others","Tendency to ask about others","Ability to provide comfort to others","Affinity for and enjoyment of children","Skill in making others feel comfortable","Demands high standards in work quality","Pursues perfection in all tasks","Preference for planned and organized approaches","Tendency to complete tasks incompletely","Likelihood of wasting available time"],["Indifference To","Tendency To","Ability To","Affinity For","Skill In","Demands High","Pursues Perfection","Preference For","Tendency To","Likelihood Of"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>original<\/th>\n      <th>limited<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"original","targets":1},{"name":"limited","targets":2}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-0bdaa3094c1ca3014f2d" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-0bdaa3094c1ca3014f2d">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"original":["Indifference to others","Tendency to inquire about others","Knowledge of how to comfort others","Affection and fondness for children","Ability to make people feel at ease","Exactingness and precision in work","Persistence until work is perfect","Tendency to plan and organize work","Inclination to do things half-heartedly","Tendency to waste personal time"],"limited":["Indifference To","Tendency To","Knowledge Of","Affection And","Ability To","Exactingness And","Persistence until","Tendency To","Inclination To","Tendency To"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"original","name":"original","type":"character"},{"id":"limited","name":"limited","type":"character"}],"defaultPageSize":10,"dataKey":"1cdf4059cf5320581de1431bf5eb39bf"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section></section><section class="level2"><h2 id="combining-multiple-transformations">Combining Multiple Transformations<a class="anchor" aria-label="anchor" href="#combining-multiple-transformations"></a>
 </h2>
 <p>You can combine multiple post-processing options for maximum control:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">labels_kitchen_sink</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reformat_labels.html">reformat_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_phrase</span>,</span>
 <span>  remove_articles <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -444,17 +488,17 @@
 <span>  processed <span class="op">=</span> <span class="va">labels_kitchen_sink</span><span class="op">$</span><span class="va">labels_formatted</span><span class="op">$</span><span class="va">label</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span><span class="va">comparison_combined</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span>, pageLength <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">reactable</span><span class="fu">::</span><span class="fu"><a href="https://glin.github.io/reactable/reference/reactable.html" class="external-link">reactable</a></span><span class="op">(</span><span class="va">comparison_combined</span>, defaultPageSize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-6f2bc6b6f3494be54ce2" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-6f2bc6b6f3494be54ce2">{"x":{"filter":"none","vertical":false,"data":[["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],["Indifference to others","Tendency to ask about others","Ability to provide comfort to others","Affinity for and enjoyment of children","Skill in making others feel comfortable","Demands high standards in work quality","Pursues perfection in all tasks","Preference for planned and organized approaches","Tendency to complete tasks incompletely","Likelihood of wasting available time"],["indi_others","tend_ask_others","ability_provide_comf","affi_and_enjo","skill_making_others","demands_high_stan","pursues_perf_all","pref_planned_and","tend_comp_tasks","like_wasting_avai"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>variable<\/th>\n      <th>original<\/th>\n      <th>processed<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"variable","targets":0},{"name":"original","targets":1},{"name":"processed","targets":2}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-a498f8786749f7c2de5d" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-a498f8786749f7c2de5d">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"variable":["A1","A2","A3","A4","A5","C1","C2","C3","C4","C5"],"original":["Indifference to others","Tendency to inquire about others","Knowledge of how to comfort others","Affection and fondness for children","Ability to make people feel at ease","Exactingness and precision in work","Persistence until work is perfect","Tendency to plan and organize work","Inclination to do things half-heartedly","Tendency to waste personal time"],"processed":["indi_others","tend_inquire_others","know_how_comfort","affe_and_fond","ability_make_people","exac_and_prec","pers_until_work","tend_plan_and","incl_do_things","tend_waste_pers"]},"columns":[{"id":"variable","name":"variable","type":"character"},{"id":"original","name":"original","type":"character"},{"id":"processed","name":"processed","type":"character"}],"defaultPageSize":10,"dataKey":"92fa794567f142f3eaa7e329661e623b"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section class="level2"><h2 id="export-labels">Export Labels<a class="anchor" aria-label="anchor" href="#export-labels"></a>
 </h2>
 <p>Save your labels for use in other tools:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Export to CSV (comma-separated, most common)</span></span>
 <span><span class="fu"><a href="../reference/export_labels.html">export_labels</a></span><span class="op">(</span><span class="va">labels_snake</span>, <span class="st">"bfi_labels.csv"</span>, format <span class="op">=</span> <span class="st">"csv"</span><span class="op">)</span></span>
 <span></span>
@@ -473,7 +517,7 @@
 </h2>
 <p>Apply the generated labels to your data:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb19"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract labels as named vector</span></span>
 <span><span class="va">label_vector</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span></span>
 <span>  <span class="va">labels_snake</span><span class="op">$</span><span class="va">labels_formatted</span><span class="op">$</span><span class="va">label</span>,</span>
@@ -485,10 +529,10 @@
 <span></span>
 <span><span class="co"># Show result</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">bfi_subset</span>, <span class="fl">5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span>options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scrollX <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">reactable</span><span class="op">(</span>striped <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="cn">TRUE</span>, bordered <span class="op">=</span> <span class="cn">TRUE</span>, compact <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-ca62cc128009ba6a517f" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-ca62cc128009ba6a517f">{"x":{"filter":"none","vertical":false,"data":[["61617","61618","61620","61621","61622"],[2,2,5,4,2],[4,4,4,4,3],[3,5,5,6,3],[4,2,4,5,4],[4,5,4,5,5],[2,5,4,4,4],[3,4,5,4,4],[3,4,4,3,5],[4,3,2,5,3],[4,4,5,5,2]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>indifferent_to_others<\/th>\n      <th>ask_about_well-being<\/th>\n      <th>comfort_others<\/th>\n      <th>love_children<\/th>\n      <th>put_others_at_ease<\/th>\n      <th>exacting_work_standards<\/th>\n      <th>pursue_perfection<\/th>\n      <th>plan-oriented<\/th>\n      <th>half-way_effort<\/th>\n      <th>waste_time<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"indifferent_to_others","targets":1},{"name":"ask_about_well-being","targets":2},{"name":"comfort_others","targets":3},{"name":"love_children","targets":4},{"name":"put_others_at_ease","targets":5},{"name":"exacting_work_standards","targets":6},{"name":"pursue_perfection","targets":7},{"name":"plan-oriented","targets":8},{"name":"half-way_effort","targets":9},{"name":"waste_time","targets":10}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-9511916fc0dae372d106" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-9511916fc0dae372d106">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"indifferent":[2,2,5,4,2],"inquisitive":[4,4,4,4,3],"comforting":[3,5,5,6,3],"nurturing":[4,2,4,5,4],"reassuring":[4,5,4,5,5],"exacting":[2,5,4,4,4],"perfectionist":[3,4,5,4,4],"organized":[3,4,4,3,5],"careless":[4,3,2,5,3],"procrastinating":[4,4,5,5,2]},"columns":[{"id":"indifferent","name":"indifferent","type":"numeric"},{"id":"inquisitive","name":"inquisitive","type":"numeric"},{"id":"comforting","name":"comforting","type":"numeric"},{"id":"nurturing","name":"nurturing","type":"numeric"},{"id":"reassuring","name":"reassuring","type":"numeric"},{"id":"exacting","name":"exacting","type":"numeric"},{"id":"perfectionist","name":"perfectionist","type":"numeric"},{"id":"organized","name":"organized","type":"numeric"},{"id":"careless","name":"careless","type":"numeric"},{"id":"procrastinating","name":"procrastinating","type":"numeric"}],"highlight":true,"bordered":true,"striped":true,"compact":true,"dataKey":"5cbad554d83ac95105a0c1ebf309168e"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p>Now your data has readable variable names!</p>
@@ -496,7 +540,7 @@
 </h2>
 <p>For repeated labeling tasks, use configuration objects:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb20"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define your preferred formatting style</span></span>
 <span><span class="va">my_label_config</span> <span class="op">&lt;-</span> <span class="fu">labeling_args</span><span class="op">(</span></span>
 <span>  label_type <span class="op">=</span> <span class="st">"short"</span>,</span>
@@ -534,7 +578,7 @@
 </h2>
 <p>For efficiency when labeling multiple datasets:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create persistent chat session</span></span>
 <span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/chat_session.html">chat_session</a></span><span class="op">(</span></span>
 <span>  analysis_type <span class="op">=</span> <span class="st">"label"</span>,</span>
@@ -594,13 +638,13 @@
 <td><code>max_words</code></td>
 <td>Integer</td>
 <td>✓ Yes (in <code><a href="../reference/label_variables.html">label_variables()</a></code>)</td>
-<td>Tell LLM exact word count to generate</td>
+<td>Set upper limit for word count (overrides <code>label_type</code> EXCEPT “acronym”)</td>
 </tr>
 <tr class="odd">
 <td><code>max_chars</code></td>
 <td>Integer</td>
 <td>✓ Yes (in <code><a href="../reference/label_variables.html">label_variables()</a></code>)</td>
-<td>Tell LLM max character length</td>
+<td>Set upper limit for character length (works with ALL types including “acronym”)</td>
 </tr>
 <tr class="even">
 <td><code>style_hint</code></td>
@@ -649,19 +693,19 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Important:</strong> Parameters marked “LLM-Guided” influence what the model generates when used in <code><a href="../reference/label_variables.html">label_variables()</a></code>. All parameters can also be used in <code><a href="../reference/reformat_labels.html">reformat_labels()</a></code> for post-processing without calling the LLM again.</p>
+<p><strong>Important:</strong> - Parameters marked “LLM-Guided” influence what the model generates when used in <code><a href="../reference/label_variables.html">label_variables()</a></code>. All parameters can also be used in <code><a href="../reference/reformat_labels.html">reformat_labels()</a></code> for post-processing without calling the LLM again. - <strong>Exception:</strong> <code>max_words</code> is ignored when <code>label_type = "acronym"</code>. For acronyms, use <code>max_chars</code> to control the acronym length.</p>
 </section><section class="level2"><h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb22"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pander</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pander/man/pander.html" class="external-link">pander</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
 <p><strong>R version 4.5.2 (2025-10-31 ucrt)</strong></p>
 <p><strong>Platform:</strong> x86_64-w64-mingw32/x64</p>
 <p><strong>locale:</strong> <em>LC_COLLATE=German_Germany.utf8</em>, <em>LC_CTYPE=German_Germany.utf8</em>, <em>LC_MONETARY=German_Germany.utf8</em>, <em>LC_NUMERIC=C</em> and <em>LC_TIME=German_Germany.utf8</em></p>
 <p><strong>attached base packages:</strong> <em>stats</em>, <em>graphics</em>, <em>grDevices</em>, <em>utils</em>, <em>datasets</em>, <em>methods</em> and <em>base</em></p>
-<p><strong>other attached packages:</strong> <em>DT(v.0.34.0)</em>, <em>psych(v.2.5.6)</em>, <em>psychinterpreter(v.0.0.0.9000)</em> and <em>pacman(v.0.5.1)</em></p>
-<p><strong>loaded via a namespace (and not attached):</strong> <em>rappdirs(v.0.3.3)</em>, <em>sass(v.0.4.10)</em>, <em>generics(v.0.1.4)</em>, <em>tidyr(v.1.3.1)</em>, <em>lattice(v.0.22-7)</em>, <em>digest(v.0.6.37)</em>, <em>magrittr(v.2.0.3)</em>, <em>evaluate(v.1.0.5)</em>, <em>grid(v.4.5.2)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>fastmap(v.1.2.0)</em>, <em>jsonlite(v.2.0.0)</em>, <em>purrr(v.1.0.4)</em>, <em>pander(v.0.6.6)</em>, <em>crosstalk(v.1.2.2)</em>, <em>scales(v.1.4.0)</em>, <em>coro(v.1.1.0)</em>, <em>httr2(v.1.2.1)</em>, <em>jquerylib(v.0.1.4)</em>, <em>mnormt(v.2.1.1)</em>, <em>cli(v.3.6.5)</em>, <em>rlang(v.1.1.6)</em>, <em>withr(v.3.0.2)</em>, <em>cachem(v.1.1.0)</em>, <em>yaml(v.2.3.10)</em>, <em>tools(v.4.5.2)</em>, <em>parallel(v.4.5.2)</em>, <em>dplyr(v.1.1.4)</em>, <em>ggplot2(v.4.0.1)</em>, <em>curl(v.7.0.0)</em>, <em>vctrs(v.0.6.5)</em>, <em>R6(v.2.6.1)</em>, <em>lifecycle(v.1.0.4)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>pkgconfig(v.2.0.3)</em>, <em>pillar(v.1.11.1)</em>, <em>bslib(v.0.9.0)</em>, <em>gtable(v.0.3.6)</em>, <em>glue(v.1.8.0)</em>, <em>Rcpp(v.1.1.0)</em>, <em>xfun(v.0.53)</em>, <em>tibble(v.3.3.0)</em>, <em>tidyselect(v.1.2.1)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>knitr(v.1.50)</em>, <em>farver(v.2.1.2)</em>, <em>htmltools(v.0.5.8.1)</em>, <em>nlme(v.3.1-168)</em>, <em>rmarkdown(v.2.30)</em>, <em>ellmer(v.0.4.0)</em>, <em>compiler(v.4.5.2)</em> and <em>S7(v.0.2.0)</em></p>
+<p><strong>other attached packages:</strong> <em>reactable(v.0.4.4)</em>, <em>psych(v.2.5.6)</em>, <em>psychinterpreter(v.0.0.0.9000)</em> and <em>pacman(v.0.5.1)</em></p>
+<p><strong>loaded via a namespace (and not attached):</strong> <em>gtable(v.0.3.6)</em>, <em>jsonlite(v.2.0.0)</em>, <em>dplyr(v.1.1.4)</em>, <em>compiler(v.4.5.2)</em>, <em>Rcpp(v.1.1.0)</em>, <em>tidyselect(v.1.2.1)</em>, <em>parallel(v.4.5.2)</em>, <em>tidyr(v.1.3.1)</em>, <em>scales(v.1.4.0)</em>, <em>yaml(v.2.3.10)</em>, <em>fastmap(v.1.2.0)</em>, <em>lattice(v.0.22-7)</em>, <em>ggplot2(v.4.0.1)</em>, <em>R6(v.2.6.1)</em>, <em>generics(v.0.1.4)</em>, <em>curl(v.7.0.0)</em>, <em>httr2(v.1.2.1)</em>, <em>knitr(v.1.50)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>tibble(v.3.3.0)</em>, <em>pander(v.0.6.6)</em>, <em>ellmer(v.0.4.0)</em>, <em>pillar(v.1.11.1)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>rlang(v.1.1.6)</em>, <em>reactR(v.0.6.1)</em>, <em>xfun(v.0.53)</em>, <em>S7(v.0.2.0)</em>, <em>cli(v.3.6.5)</em>, <em>withr(v.3.0.2)</em>, <em>magrittr(v.2.0.3)</em>, <em>crosstalk(v.1.2.2)</em>, <em>digest(v.0.6.37)</em>, <em>grid(v.4.5.2)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>rappdirs(v.0.3.3)</em>, <em>lifecycle(v.1.0.4)</em>, <em>nlme(v.3.1-168)</em>, <em>coro(v.1.1.0)</em>, <em>vctrs(v.0.6.5)</em>, <em>mnormt(v.2.1.1)</em>, <em>evaluate(v.1.0.5)</em>, <em>glue(v.1.8.0)</em>, <em>farver(v.2.1.2)</em>, <em>rmarkdown(v.2.30)</em>, <em>purrr(v.1.0.4)</em>, <em>tools(v.4.5.2)</em>, <em>pkgconfig(v.2.0.3)</em> and <em>htmltools(v.0.5.8.1)</em></p>
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">

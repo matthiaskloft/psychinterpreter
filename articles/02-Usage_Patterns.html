@@ -76,7 +76,7 @@
 <code>interpret()</code> Usage Patterns</h1>
 
       <p class="author">Matthias Kloft</p>
-      <p class="date">2025-11-23</p>
+      <p class="date">2025-11-24</p>
 
       <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/vignettes/articles/02-Usage_Patterns.qmd"><code>vignettes/articles/02-Usage_Patterns.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -143,363 +143,41 @@
 <p>Automatically extracts model components from fitted objects.</p>
 <div class="cell">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="va">fa_model</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
 <span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
-<span>  word_limit <span class="op">=</span> <span class="fl">50</span></span>
+<span>  word_limit <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  silent <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-</details><div class="cell-output cell-output-stderr">
-<pre><code>ℹ Starting fa interpretation...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Creating temporary chat session...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Building prompt...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Querying LLM...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Parsing LLM response...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Creating fit summary...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Building report...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>✔ Interpretation complete!</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-FACTOR ANALYSIS INTERPRETATION
-────────────────────────────────────────────────────────────────────────────────
-
-Number of factors: 2
-Loading cutoff: 0.3
-LLM used: anthropic - claude-sonnet-4-5
-Tokens:
-  Input: 0
-  Output: 0
-Elapsed time: 6.31
-
-SUGGESTED FACTOR NAMES
-────────────────────────────────────────────────────────────────────────────────
-
-• Factor 1 (84.1%): Engine Power and Size
-• Factor 2 (1.7%): Power-to-Efficiency Residual (n.s.)
-
-Total variance explained: 85.8%
-
-FACTOR CORRELATIONS
-────────────────────────────────────────────────────────────────────────────────
-
-MR1: MR2 = .03
-MR2: MR1 = .03
-
-DETAILED FACTOR INTERPRETATIONS
-────────────────────────────────────────────────────────────────────────────────
-
-Factor 1 (MR1) - Engine Power and Size
-Number of significant loadings: 4
-Variance explained: 84.05%
-Factor Correlations: MR2 = .03
-
-Variables:
-  1. disp, Displacement (Positive, Very Strong, .955)
-  2. cyl, Cylinders (Positive, Very Strong, .953)
-  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
-  4. hp, Horsepower (Positive, Very Strong, .862)
-
-LLM Interpretation:
-This factor represents overall engine specifications and vehicle size, with strong positive loadings on cylinders,
-displacement, and horsepower, and strong negative loading on fuel efficiency. Larger engines with more cylinders and
-displacement produce greater horsepower but consume more fuel, capturing the fundamental trade-off between power and
-efficiency in automotive design.
-
-════════════════════════════════════════════════════════════════════════════════
-
-Factor 2 (MR2) - Power-to-Efficiency Residual (n.s.)
-Number of significant loadings: 0
-Variance explained: 1.72%
-Factor Correlations: MR1 = .03
-
-WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top 2 variable(s) below cutoff for
-interpretation.
-
-Variables:
-  1. hp, Horsepower (Positive, Weak, .195)
-  2. disp, Displacement (Negative, Weak, -.172)
-
-LLM Interpretation:
-This factor captures residual variance in horsepower after accounting for engine size, with minimal loadings across all
-variables and near-zero correlation with MR1. It represents subtle variations in engine performance optimization,
-possibly reflecting differences in engineering efficiency or tuning that affect horsepower independently of basic engine
-specifications.
-
-════════════════════════════════════════════════════════════════════════════════</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>FACTOR ANALYSIS INTERPRETATION
-────────────────────────────────────────────────────────────────────────────────
-
-Number of factors: 2
-Loading cutoff: 0.3
-LLM used: anthropic - claude-sonnet-4-5
-Tokens:
-  Input: 0
-  Output: 0
-Elapsed time: 6.31
-
-SUGGESTED FACTOR NAMES
-────────────────────────────────────────────────────────────────────────────────
-
-• Factor 1 (84.1%): Engine Power and Size
-• Factor 2 (1.7%): Power-to-Efficiency Residual (n.s.)
-
-Total variance explained: 85.8%
-
-FACTOR CORRELATIONS
-────────────────────────────────────────────────────────────────────────────────
-
-MR1: MR2 = .03
-MR2: MR1 = .03
-
-DETAILED FACTOR INTERPRETATIONS
-────────────────────────────────────────────────────────────────────────────────
-
-Factor 1 (MR1) - Engine Power and Size
-Number of significant loadings: 4
-Variance explained: 84.05%
-Factor Correlations: MR2 = .03
-
-Variables:
-  1. disp, Displacement (Positive, Very Strong, .955)
-  2. cyl, Cylinders (Positive, Very Strong, .953)
-  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
-  4. hp, Horsepower (Positive, Very Strong, .862)
-
-LLM Interpretation:
-This factor represents overall engine specifications and vehicle size, with
-strong positive loadings on cylinders, displacement, and horsepower, and strong
-negative loading on fuel efficiency. Larger engines with more cylinders and
-displacement produce greater horsepower but consume more fuel, capturing the
-fundamental trade-off between power and efficiency in automotive design.
-
-════════════════════════════════════════════════════════════════════════════════
-
-Factor 2 (MR2) - Power-to-Efficiency Residual (n.s.)
-Number of significant loadings: 0
-Variance explained: 1.72%
-Factor Correlations: MR1 = .03
-
-WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
-2 variable(s) below cutoff for interpretation.
-
-Variables:
-  1. hp, Horsepower (Positive, Weak, .195)
-  2. disp, Displacement (Negative, Weak, -.172)
-
-LLM Interpretation:
-This factor captures residual variance in horsepower after accounting for engine
-size, with minimal loadings across all variables and near-zero correlation with
-MR1. It represents subtle variations in engine performance optimization,
-possibly reflecting differences in engineering efficiency or tuning that affect
-horsepower independently of basic engine specifications.
-
-════════════════════════════════════════════════════════════════════════════════</code></pre>
-</div>
+</details>
 </div>
 </section><section class="level3"><h4 id="pattern-2-structured-list">Pattern 2: Structured List<a class="anchor" aria-label="anchor" href="#pattern-2-structured-list"></a>
 </h4>
 <p>For custom data structures or manual extraction.</p>
 <p>For FA, provide loadings (required) and optionally factor_cor_mat:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loadings_matrix</span> <span class="op">&lt;-</span> <span class="va">fa_model</span><span class="op">$</span><span class="va">loadings</span></span>
 <span><span class="va">factor_cor_mat</span> <span class="op">&lt;-</span> <span class="va">fa_model</span><span class="op">$</span><span class="va">Phi</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings_matrix</span>, factor_cor_mat <span class="op">=</span> <span class="va">factor_cor_mat</span><span class="op">)</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
 <span>  analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
 <span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
-<span>  word_limit <span class="op">=</span> <span class="fl">50</span></span>
+<span>  word_limit <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  silent <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-</details><div class="cell-output cell-output-stderr">
-<pre><code>ℹ Starting fa interpretation...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Creating temporary chat session...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Building prompt...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Querying LLM...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Parsing LLM response...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Creating fit summary...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>ℹ Building report...</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>✔ Interpretation complete!</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-FACTOR ANALYSIS INTERPRETATION
-────────────────────────────────────────────────────────────────────────────────
-
-Number of factors: 2
-Loading cutoff: 0.3
-LLM used: anthropic - claude-sonnet-4-5
-Tokens:
-  Input: 0
-  Output: 0
-Elapsed time: 6.66
-
-SUGGESTED FACTOR NAMES
-────────────────────────────────────────────────────────────────────────────────
-
-• Factor 1 (84%): Engine Power and Size
-• Factor 2 (1.7%): Horsepower-Displacement Balance (n.s.)
-
-Total variance explained: 85.7%
-
-FACTOR CORRELATIONS
-────────────────────────────────────────────────────────────────────────────────
-
-MR1: MR2 = .03
-MR2: MR1 = .03
-
-DETAILED FACTOR INTERPRETATIONS
-────────────────────────────────────────────────────────────────────────────────
-
-Factor 1 (MR1) - Engine Power and Size
-Number of significant loadings: 4
-Variance explained: 84.03%
-Factor Correlations: MR2 = .03
-
-Variables:
-  1. disp, Displacement (Positive, Very Strong, .955)
-  2. cyl, Cylinders (Positive, Very Strong, .953)
-  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
-  4. hp, Horsepower (Positive, Very Strong, .862)
-
-LLM Interpretation:
-This factor represents vehicle engine characteristics and performance capacity. Higher cylinders, displacement, and
-horsepower strongly load together while fuel efficiency (mpg) loads negatively, indicating that larger, more powerful
-engines consume more fuel. This factor captures 84% of variance, representing the primary dimension of engine capability
-versus economy.
-
-════════════════════════════════════════════════════════════════════════════════
-
-Factor 2 (MR2) - Horsepower-Displacement Balance (n.s.)
-Number of significant loadings: 0
-Variance explained: 1.7%
-Factor Correlations: MR1 = .03
-
-WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top 2 variable(s) below cutoff for
-interpretation.
-
-Variables:
-  1. hp, Horsepower (Positive, Weak, .195)
-  2. disp, Displacement (Negative, Weak, -.172)
-
-LLM Interpretation:
-This residual factor captures minor variance in the relationship between horsepower and displacement that isn't
-explained by overall engine size. The weak positive horsepower loading with slight negative displacement loading
-suggests subtle efficiency differences in how engines convert size to power. Near-zero correlation with MR1 confirms
-discriminant validity.
-
-════════════════════════════════════════════════════════════════════════════════</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>FACTOR ANALYSIS INTERPRETATION
-────────────────────────────────────────────────────────────────────────────────
-
-Number of factors: 2
-Loading cutoff: 0.3
-LLM used: anthropic - claude-sonnet-4-5
-Tokens:
-  Input: 0
-  Output: 0
-Elapsed time: 6.66
-
-SUGGESTED FACTOR NAMES
-────────────────────────────────────────────────────────────────────────────────
-
-• Factor 1 (84%): Engine Power and Size
-• Factor 2 (1.7%): Horsepower-Displacement Balance (n.s.)
-
-Total variance explained: 85.7%
-
-FACTOR CORRELATIONS
-────────────────────────────────────────────────────────────────────────────────
-
-MR1: MR2 = .03
-MR2: MR1 = .03
-
-DETAILED FACTOR INTERPRETATIONS
-────────────────────────────────────────────────────────────────────────────────
-
-Factor 1 (MR1) - Engine Power and Size
-Number of significant loadings: 4
-Variance explained: 84.03%
-Factor Correlations: MR2 = .03
-
-Variables:
-  1. disp, Displacement (Positive, Very Strong, .955)
-  2. cyl, Cylinders (Positive, Very Strong, .953)
-  3. mpg, Miles per gallon (Negative, Very Strong, -.893)
-  4. hp, Horsepower (Positive, Very Strong, .862)
-
-LLM Interpretation:
-This factor represents vehicle engine characteristics and performance capacity.
-Higher cylinders, displacement, and horsepower strongly load together while fuel
-efficiency (mpg) loads negatively, indicating that larger, more powerful engines
-consume more fuel. This factor captures 84% of variance, representing the
-primary dimension of engine capability versus economy.
-
-════════════════════════════════════════════════════════════════════════════════
-
-Factor 2 (MR2) - Horsepower-Displacement Balance (n.s.)
-Number of significant loadings: 0
-Variance explained: 1.7%
-Factor Correlations: MR1 = .03
-
-WARNING: No variables load above cutoff (0.3). Emergency rule applied: using top
-2 variable(s) below cutoff for interpretation.
-
-Variables:
-  1. hp, Horsepower (Positive, Weak, .195)
-  2. disp, Displacement (Negative, Weak, -.172)
-
-LLM Interpretation:
-This residual factor captures minor variance in the relationship between
-horsepower and displacement that isn't explained by overall engine size. The
-weak positive horsepower loading with slight negative displacement loading
-suggests subtle efficiency differences in how engines convert size to power.
-Near-zero correlation with MR1 confirms discriminant validity.
-
-════════════════════════════════════════════════════════════════════════════════</code></pre>
-</div>
+</details>
 </div>
 </section><section class="level3"><h4 id="pattern-3-chat-session-token-efficient">Pattern 3: Chat Session (Token-Efficient)<a class="anchor" aria-label="anchor" href="#pattern-3-chat-session-token-efficient"></a>
 </h4>
 <p>Reuse chat session across analyses to save tokens.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb28"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/chat_session.html">chat_session</a></span><span class="op">(</span>analysis_type <span class="op">=</span> <span class="st">"fa"</span>,</span>
 <span>                     llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>                     llm_model <span class="op">=</span> <span class="va">llm</span><span class="op">)</span></span>
@@ -531,7 +209,7 @@ Near-zero correlation with MR1 confirms discriminant validity.
 <div class="cell-output cell-output-stderr">
 <pre><code>✔ Interpretation complete!</code></pre>
 </div>
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb36"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  chat_session <span class="op">=</span> <span class="va">chat</span>,</span>
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings_matrix</span>, factor_cor_mat <span class="op">=</span> <span class="va">factor_cor_mat</span><span class="op">)</span>,</span>
@@ -563,21 +241,21 @@ Near-zero correlation with MR1 confirms discriminant validity.
 </div>
 <p>We can check the total global token usage:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb44"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>Factor Analysis Chat Session
 Provider: anthropic
 Model: claude-sonnet-4-5
-Created: 2025-11-23 23:44:46.158507
+Created: 2025-11-24 03:22:01.331406
 Interpretations run: 2
-Total tokens - Input: 0 , Output: 0 </code></pre>
+Total tokens - Input: 0, Output: 0</code></pre>
 </div>
 </div>
 </section></section><section class="section level2"><h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb46"><pre class="downlit sourceCode r">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pander</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pander/man/pander.html" class="external-link">pander</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output-display">
 <p><strong>R version 4.5.2 (2025-10-31 ucrt)</strong></p>
