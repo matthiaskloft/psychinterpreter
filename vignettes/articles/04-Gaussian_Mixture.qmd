@@ -36,6 +36,7 @@ packages <- c(
   "mclust",
   "dplyr",
   "here",
+  "reactable",
   "kableExtra",
   "pander",
   "patchwork"
@@ -60,12 +61,12 @@ bfi.dictionary <- bfi.dictionary[1:25, ]
 
 Show the first few rows of the BFI data:
 ```{r data-exploration}
-head(bfi,10) |> DT::datatable(options = list(scrollX = TRUE))
+head(bfi, 10) |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 Display the BFI dictionary showing item descriptions:
 ```{r}
-bfi.dictionary |> select(Item) |> as.data.frame()|> DT::datatable(options = list(scrollX = TRUE))
+bfi.dictionary |> select(Item) |> as.data.frame() |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 # Create Short Labels
@@ -77,7 +78,7 @@ variable_info <- data.frame(
   stringsAsFactors = FALSE
 )
 
-head(variable_info) |> DT::datatable(options = list(scrollX = TRUE))
+variable_info |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 ```{r}
@@ -86,14 +87,16 @@ llm <- ellmer::models_anthropic()[1,"id"]
 ```
 
 ```{r}
+#| output: false
 bfi_labels <- label_variables(
   variable_info = variable_info,
   llm_provider = provider,
   llm_model = llm,
-  llm_args  = list(params(temperature = 0, seed = 42)),#
+  llm_args  = list(params(temperature = 0, seed = 42)),
   max_words = 3,
   sep = "_",
-  case = "title"
+  case = "title",
+  silent = 0  # Suppress automatic print
 )
 ```
 

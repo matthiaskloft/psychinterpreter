@@ -8,7 +8,9 @@
 ^GEMINI.md$
 ^exports/
 ^vignettes/articles/
-^vignettes/\.quarto$
+^vignettes/\.quarto/
+^vignettes/\.gitignore$
+^vignettes/_quarto\.ya?ml$
 ^vignettes/.*\.rmarkdown$
 ^vignettes/.*_files/
 ^_pkgdown\.yml$

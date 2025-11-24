@@ -167,22 +167,18 @@ print.chat_session <- function(x, ...) {
   )
   analysis_type_name <- analysis_type_names[x$analysis_type] %||% x$analysis_type
 
-  cat(analysis_type_name, "Chat Session\n")
-  cat("Provider:", x$llm_provider, "\n")
-  cat("Model:", x$llm_model %||% "default", "\n")
-  cat("Created:", as.character(x$created_at), "\n")
-  cat("Interpretations run:", x$n_interpretations, "\n")
-
-  # Show cumulative token usage from tracked fields
-  # These are maintained separately to provide accurate cumulative counts
-  cat(
-    "Total tokens - Input:",
-    x$total_input_tokens,
-    ", Output:",
-    x$total_output_tokens,
-    "\n"
+  # Build output as single string
+  output <- paste0(
+    analysis_type_name, " Chat Session\n",
+    "Provider: ", x$llm_provider, "\n",
+    "Model: ", x$llm_model %||% "default", "\n",
+    "Created: ", as.character(x$created_at), "\n",
+    "Interpretations run: ", x$n_interpretations, "\n",
+    "Total tokens - Input: ", x$total_input_tokens,
+    ", Output: ", x$total_output_tokens, "\n"
   )
 
+  cat(output)
   invisible(x)
 }
 

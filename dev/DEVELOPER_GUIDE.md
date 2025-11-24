@@ -844,6 +844,89 @@ The silent parameter uses integer values for granular control:
 - **Pipe operator**: Base R `|>` (not magrittr `%>%`)
 - **Parameter validation**: Extensive validation with informative errors at function start
 
+### CLI Efficiency Best Practices
+
+**IMPORTANT**: For **reports and multi-line output**, collect ALL content first and output with a **single cat() call** to create one unified output block. For **status messages**, individual CLI calls are fine.
+
+**Problem** (Reports/Multi-line Output Only):
+- Calling CLI functions (even `cli::cli_bullets()`) creates separate console messages for each element
+- Multiple `message()` or `cat()` calls create separate output blocks
+- This fragments output in rendered documents and looks unprofessional
+
+**Solution**: Build complete output as a character vector, collapse to a single string, and output once with `cat()`.
+
+**Example - Report Functions (Multi-Section Output)**:
+
+```r
+# ❌ INCORRECT - Multiple output calls create separate blocks
+message(paste(section1_lines, collapse = "\n"))  # Block 1
+message(paste(section2_lines, collapse = "\n"))  # Block 2
+message(paste(section3_lines, collapse = "\n"))  # Block 3
+
+# ❌ ALSO INCORRECT - CLI functions create many separate messages
+cli::cli_h2("Section Header")
+for (item in items) {
+  cli::cli_bullets(c("*" = paste0(item$name, ": ", item$value)))
+}
+
+# ✅ CORRECT - Build ALL sections, then output once
+all_output <- character()
+
+# Section 1
+all_output <- c(all_output, "\n── Section 1 ──", "")
+for (item in section1_items) {
+  all_output <- c(all_output, paste0("  • ", item$name))
+  all_output <- c(all_output, paste0("    ", item$description))
+  all_output <- c(all_output, "")
+}
+
+# Section 2
+all_output <- c(all_output, "\n── Section 2 ──", "")
+for (item in section2_items) {
+  all_output <- c(all_output, paste0("  • ", item$name))
+  all_output <- c(all_output, paste0("    ", item$value))
+}
+
+# Output everything as ONE block
+cat(paste(all_output, collapse = "\n"), "\n")
+```
+
+**Example - Status Messages (Individual Calls OK)**:
+
+```r
+# ✅ CORRECT - Status messages can be individual calls
+cli::cli_alert_info("Starting {analysis_type} interpretation...")
+# ... do work ...
+cli::cli_alert_success("Analysis complete")
+cli::cli_alert_info("Tokens used: {tokens$total}")
+```
+
+**Key Principles**:
+1. **Reports/Print Methods**: Build helper functions that return text, collect all sections, single `cat()` call
+2. **Status Messages**: Individual CLI calls are fine and encouraged for clarity
+3. **Rule of thumb**: If output has multiple sections or will be rendered in docs, use single-call pattern
+4. Use `cat()` for stdout (like reports), `message()` for stderr (like warnings)
+
+**When to Apply Single-Call Pattern**:
+- Report generation functions (`build_report.{class}()`)
+- Parameter display functions (`show_interpret_args()`)
+- Print methods for S3 classes (`print.chat_session()`, `print.variable_labels()`)
+- Any function with multiple sections or many lines
+- Functions whose output will be rendered in vignettes or documentation
+
+**When Individual CLI Calls are OK**:
+- Status messages (`cli::cli_alert_info()`, `cli::cli_alert_success()`)
+- Progress updates during processing
+- Interactive prompts
+- Warnings (`cli::cli_warn()`)
+- Error messages (`cli::cli_abort()`)
+- Single informational messages
+
+**Reference Implementations**:
+- `show_interpret_args()` in `R/shared_utils.R` (lines 226-350) - Multi-section parameter display
+- `build_fa_report()` in `R/fa_report.R` - Multi-section report generation
+- `core_interpret.R` - Status messages using individual CLI calls
+
 ## 5.2 Naming Conventions
 
 ### File Naming Scheme

@@ -94,8 +94,9 @@ build_main_prompt.label <- function(analysis_type, analysis_data = NULL, word_li
   }
 
   # Determine word count instruction
-  word_instruction <- if (!is.null(max_words)) {
-    paste0(" (exactly ", max_words, " word", ifelse(max_words == 1, "", "s"), ")")
+  # Note: max_words is ignored for acronyms (they use max_chars instead)
+  word_instruction <- if (!is.null(max_words) && label_type != "acronym") {
+    paste0(" (up to ", max_words, " word", ifelse(max_words == 1, "", "s"), ")")
   } else {
     switch(label_type,
       "short" = " (1-3 words)",

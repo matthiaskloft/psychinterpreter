@@ -108,7 +108,7 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
   "psychinterpreter",  # This package
   "psych",             # For factor analysis
-  "DT",        # For nice tables
+  "reactable",         # For nice tables
   "dplyr",             # For data manipulation
   "pander"             # package for pretty printing
 )
@@ -133,7 +133,7 @@ Here's what the data looks like:
 ```{r show-data}
 head(bfi_items, 5) |>
   as.data.frame() |>
-   DT::datatable(options = list(scrollX = TRUE))
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 And here are the item descriptions:
@@ -142,7 +142,7 @@ And here are the item descriptions:
 bfi_dict |>
   select(Item) |>
   as.data.frame() |>
-  DT::datatable(options = list(scrollX = TRUE))
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 ### Prepare Variable Descriptions
@@ -157,7 +157,7 @@ variable_info <- data.frame(
 )
 
 head(variable_info, 10) |>
-  DT::datatable(options = list(scrollX = TRUE))
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 ### Generate Short Variable Labels (Optional)
@@ -197,7 +197,7 @@ variable_info$variable <- labels
 
 # Show updated variable info
 head(variable_info, 10) |>
-  DT::datatable(options = list(scrollX = TRUE))
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 ::: {.callout-tip}
@@ -234,7 +234,7 @@ loadings_matrix <- unclass(fa_result$loadings) |>
   as.data.frame()
 
 round(loadings_matrix, 2) |>
-  DT::datatable(options = list(scrollX = TRUE))
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 ### Get LLM Interpretation
@@ -242,11 +242,13 @@ round(loadings_matrix, 2) |>
 Now use `interpret()` to get automatic factor interpretations:
 
 ```{r interpret}
+#| output: false
 interpretation <- interpret(
   fit_results = fa_result,
   variable_info = variable_info,
   llm_provider = provider,
-  llm_model = llm
+  llm_model = llm,
+  silent = 1  # Will print explicitly below
 )
 ```
 
@@ -278,7 +280,7 @@ suggested_names <- interpretation$suggested_names |>
   unlist()
 
 data.frame(Suggested_Factor_Name = suggested_names) |>
-  DT::datatable(options = list(scrollX = TRUE), colnames = "Suggested Factor Name")
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 ### Visualize Factor Structure

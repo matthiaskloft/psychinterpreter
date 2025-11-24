@@ -458,7 +458,9 @@ print.interpretation_args <- function(x, ...) {
   # Get model type display name via dispatch
   model_name <- .get_analysis_type_display_name(x$analysis_type)
 
-  cli::cli_h2("{model_name} Interpretation Configuration")
+  # Build output lines
+  output_lines <- character()
+  output_lines <- c(output_lines, paste0("\n-- ", model_name, " Interpretation Configuration --\n"))
 
   # Get valid parameters for this analysis type
   valid_params <- .get_valid_interpretation_params(x$analysis_type)
@@ -466,36 +468,35 @@ print.interpretation_args <- function(x, ...) {
   # Print model-specific parameters
   if (length(valid_params) > 0) {
     # Analysis type with defined parameters - show them
-    cli::cli_ul()
     for (param in valid_params) {
       if (param %in% names(x)) {
         value <- x[[param]]
         # Format parameter display nicely
         if (param == "n_emergency") {
-          cli::cli_li("Emergency rule: Use top {.val {value}} loadings")
+          output_lines <- c(output_lines, paste0("  * Emergency rule: Use top ", value, " loadings"))
         } else if (param == "cutoff") {
-          cli::cli_li("Cutoff: {.val {value}}")
+          output_lines <- c(output_lines, paste0("  * Cutoff: ", value))
         } else if (param == "hide_low_loadings") {
-          cli::cli_li("Hide low loadings: {.val {value}}")
+          output_lines <- c(output_lines, paste0("  * Hide low loadings: ", value))
         } else if (param == "sort_loadings") {
-          cli::cli_li("Sort loadings: {.val {value}}")
+          output_lines <- c(output_lines, paste0("  * Sort loadings: ", value))
         } else {
           # Generic fallback for unknown parameters
-          cli::cli_li("{param}: {.val {value}}")
+          output_lines <- c(output_lines, paste0("  * ", param, ": ", value))
         }
       }
     }
-    cli::cli_end()
   } else {
     # Analysis type without defined parameters yet - show generic info
     config_params <- setdiff(names(x), "analysis_type")
     if (length(config_params) > 0) {
-      cli::cli_alert_info("Configuration parameters: {.val {config_params}}")
+      output_lines <- c(output_lines, paste0("  i Configuration parameters: ", paste(config_params, collapse = ", ")))
     } else {
-      cli::cli_alert_info("No configuration parameters defined yet")
+      output_lines <- c(output_lines, "  i No configuration parameters defined yet")
     }
   }
 
+  message(paste(output_lines, collapse = "\n"))
   invisible(x)
 }
 
@@ -503,14 +504,15 @@ print.interpretation_args <- function(x, ...) {
 #' @export
 #' @keywords internal
 print.llm_args <- function(x, ...) {
-  cli::cli_h2("LLM Configuration")
-  cli::cli_ul()
-  cli::cli_li("Provider: {.val {x$llm_provider}}")
-  cli::cli_li("Model: {.val {x$llm_model %||% '(provider default)'}}")
-  cli::cli_li("Word limit: {.val {x$word_limit}}")
-  cli::cli_li("System prompt: {.val {if(is.null(x$system_prompt)) '(default)' else 'custom'}}")
-  cli::cli_li("Echo: {.val {x$echo}}")
-  cli::cli_end()
+  output <- paste0(
+    "\n-- LLM Configuration --\n\n",
+    "  * Provider: ", x$llm_provider, "\n",
+    "  * Model: ", x$llm_model %||% "(provider default)", "\n",
+    "  * Word limit: ", x$word_limit, "\n",
+    "  * System prompt: ", if (is.null(x$system_prompt)) "(default)" else "custom", "\n",
+    "  * Echo: ", x$echo, "\n"
+  )
+  message(output)
   invisible(x)
 }
 
@@ -518,14 +520,15 @@ print.llm_args <- function(x, ...) {
 #' @export
 #' @keywords internal
 print.output_args <- function(x, ...) {
-  cli::cli_h2("Output Configuration")
-  cli::cli_ul()
-  cli::cli_li("Format: {.val {x$format}}")
-  cli::cli_li("Heading level: {.val {x$heading_level}}")
-  cli::cli_li("Suppress heading: {.val {x$suppress_heading}}")
-  cli::cli_li("Max line length: {.val {x$max_line_length}}")
-  cli::cli_li("Silent: {.val {x$silent}}")
-  cli::cli_end()
+  output <- paste0(
+    "\n-- Output Configuration --\n\n",
+    "  * Format: ", x$format, "\n",
+    "  * Heading level: ", x$heading_level, "\n",
+    "  * Suppress heading: ", x$suppress_heading, "\n",
+    "  * Max line length: ", x$max_line_length, "\n",
+    "  * Silent: ", x$silent, "\n"
+  )
+  message(output)
   invisible(x)
 }
 

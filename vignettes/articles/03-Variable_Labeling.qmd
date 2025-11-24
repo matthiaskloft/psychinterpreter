@@ -42,7 +42,7 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
   "psychinterpreter",  # This package
   "psych",             # For BFI data
-  "DT"                 # For nice tables
+  "reactable"          # For nice tables
 )
 ```
 
@@ -67,7 +67,7 @@ variable_info <- data.frame(
 )
 
 # Show the data
-DT::datatable(variable_info, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+reactable(variable_info, striped = TRUE, highlight = TRUE, bordered = TRUE, defaultPageSize = 10)
 ```
 
 These cryptic codes (`A1`, `A2`, etc.) are not very readable. Let's generate descriptive labels!
@@ -83,86 +83,131 @@ llm <- ellmer::models_anthropic()[1, "id"]
 ### Short Labels (1-3 words)
 
 ```{r basic-short}
+#| output: false
 labels_short <- label_variables(
   variable_info = variable_info,
   llm_provider = provider,
   llm_model = llm,
+  max_words = 1,
+  max_chars = 20,
   label_type = "short",  # 1-3 words
-  case = "title"         # Title Case
+  case = "title",        # Title Case
+  silent = 1             # Suppress automatic print
 )
+```
 
+```{r}
 # View results
 labels_short$labels_formatted |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 ### Phrase Labels (4-7 words)
 
 ```{r basic-phrase}
+#| output: false
 labels_phrase <- label_variables(
   variable_info = variable_info,
   llm_provider = provider,
   llm_model = llm,
   label_type = "phrase",  # 4-7 words
-  case = "sentence"       # Sentence case
+  case = "sentence",      # Sentence case
+  silent = 1              # Suppress automatic print
 )
+```
 
+```{r}
 labels_phrase$labels_formatted |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 ### Acronym Labels (3-5 characters)
 
 ```{r basic-acronym}
+#| output: false
 labels_acronym <- label_variables(
   variable_info = variable_info,
   llm_provider = provider,
   llm_model = llm,
   label_type = "acronym",  # 3-5 character acronyms
-  case = "upper"           # UPPERCASE
+  case = "upper",          # UPPERCASE
+  silent = 1               # Suppress automatic print
 )
+```
 
+```{r}
 labels_acronym$labels_formatted |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 ### Custom Word/Character Limits (LLM-Guided)
 
-When you specify `max_words` or `max_chars` in `label_variables()`, they **influence the LLM prompt** to generate labels within those constraints. This is more effective than post-processing truncation:
+When you specify `max_words` or `max_chars` in `label_variables()`, they **influence the LLM prompt** to generate labels within those constraints. This is more effective than post-processing truncation.
+
+**Important:** `max_words` and `max_chars` override the `label_type` presets **except for "acronym"**. For acronyms, only `max_chars` is used (controlling acronym length), while `max_words` is ignored.
 
 ```{r basic-custom-limits}
-# Tell the LLM to generate exactly 2-word labels
+#| output: false
+# max_words overrides "short" preset (1-3 words) to generate up to 2 words
 labels_two_words <- label_variables(
   variable_info = variable_info,
   llm_provider = provider,
   llm_model = llm,
-  label_type = "custom",  # custom allows max_words to override
-  max_words = 2,          # LLM will aim for exactly 2 words
-  case = "title"
+  label_type = "short",   # Would normally be 1-3 words
+  max_words = 2,          # But max_words limits to up to 2 words
+  case = "title",
+  silent = 1              # Suppress automatic print
 )
+```
 
+```{r}
 labels_two_words$labels_formatted |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 ```{r basic-custom-chars}
-# Tell the LLM to generate labels under 12 characters
+#| output: false
+# max_chars works with all label types, including acronyms
 labels_short_chars <- label_variables(
   variable_info = variable_info,
   llm_provider = provider,
   llm_model = llm,
-  label_type = "custom",
-  max_chars = 12,         # LLM will aim for ≤12 characters
-  case = "snake"
+  label_type = "short",   # Would normally be 1-3 words
+  max_chars = 12,         # Adds character limit constraint
+  case = "snake",
+  silent = 1              # Suppress automatic print
 )
-
-labels_short_chars$labels_formatted |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
 ```
 
-**Key difference:**
-- `max_words`/`max_chars` in `label_variables()`: Guides LLM to generate appropriate labels
+```{r}
+labels_short_chars$labels_formatted |>
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
+```
+
+```{r acronym-maxchars}
+#| output: false
+# For acronyms, max_chars controls the acronym length (max_words is ignored)
+labels_long_acronym <- label_variables(
+  variable_info = variable_info,
+  llm_provider = provider,
+  llm_model = llm,
+  label_type = "acronym",
+  max_chars = 8,          # Acronyms up to 8 characters (instead of default 3-5)
+  max_words = 2,          # This is IGNORED for acronyms
+  case = "upper",
+  silent = 1              # Suppress automatic print
+)
+```
+
+```{r}
+labels_long_acronym$labels_formatted |>
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
+```
+
+**Key differences:**
+- `max_words`/`max_chars` in `label_variables()`: Guides LLM to generate appropriate labels (upper limits)
 - `max_words`/`max_chars` in `reformat_labels()`: Truncates existing labels (less intelligent)
+- **Exception:** `max_words` is ignored when `label_type = "acronym"` (use `max_chars` instead)
 
 ## Case Transformations
 
@@ -177,7 +222,7 @@ labels_snake <- reformat_labels(
 )
 
 labels_snake$labels_formatted |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 ### Camel Case (for programming)
@@ -189,7 +234,7 @@ labels_camel <- reformat_labels(
 )
 
 labels_camel$labels_formatted |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 ### Constant Case (for constants)
@@ -201,7 +246,7 @@ labels_constant <- reformat_labels(
 )
 
 labels_constant$labels_formatted |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 ### Custom Separator
@@ -214,7 +259,7 @@ labels_custom_sep <- reformat_labels(
 )
 
 labels_custom_sep$labels_formatted |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 ## Post-Processing Options
@@ -236,7 +281,7 @@ comparison <- data.frame(
   simplified = labels_simplified$labels_formatted$label
 )
 
-DT::datatable(comparison, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+reactable::reactable(comparison, defaultPageSize = 10)
 ```
 
 ### Abbreviate Long Words
@@ -254,7 +299,7 @@ comparison_abbrev <- data.frame(
   abbreviated = labels_abbreviated$labels_formatted$label
 )
 
-DT::datatable(comparison_abbrev, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+reactable::reactable(comparison_abbrev, defaultPageSize = 10)
 ```
 
 ### Maximum Character Limit (Post-Processing)
@@ -274,7 +319,7 @@ comparison_max <- data.frame(
   truncated = labels_short_max$labels_formatted$label
 )
 
-DT::datatable(comparison_max, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+reactable::reactable(comparison_max, defaultPageSize = 10)
 ```
 
 ### Maximum Word Count (Post-Processing)
@@ -294,7 +339,7 @@ comparison_words <- data.frame(
   limited = labels_limited_words$labels_formatted$label
 )
 
-DT::datatable(comparison_words, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+reactable::reactable(comparison_words, defaultPageSize = 10)
 ```
 
 ## Combining Multiple Transformations
@@ -318,7 +363,7 @@ comparison_combined <- data.frame(
   processed = labels_kitchen_sink$labels_formatted$label
 )
 
-DT::datatable(comparison_combined, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+reactable::reactable(comparison_combined, defaultPageSize = 10)
 ```
 
 ## Export Labels
@@ -359,7 +404,7 @@ colnames(bfi_subset) <- label_vector[colnames(bfi_subset)]
 
 # Show result
 head(bfi_subset, 5) |>
-  DT::datatable(options = list(scrollX = TRUE))
+  reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 Now your data has readable variable names!
@@ -443,8 +488,8 @@ The `label_variables()` function provides:
 | Parameter | Options | LLM-Guided? | Purpose |
 |-----------|---------|-------------|---------|
 | `label_type` | `"short"`, `"phrase"`, `"acronym"`, `"custom"` | ✓ Yes | Control label length via prompt |
-| `max_words` | Integer | ✓ Yes (in `label_variables()`) | Tell LLM exact word count to generate |
-| `max_chars` | Integer | ✓ Yes (in `label_variables()`) | Tell LLM max character length |
+| `max_words` | Integer | ✓ Yes (in `label_variables()`) | Set upper limit for word count (overrides `label_type` EXCEPT "acronym") |
+| `max_chars` | Integer | ✓ Yes (in `label_variables()`) | Set upper limit for character length (works with ALL types including "acronym") |
 | `style_hint` | Character | ✓ Yes | Provide style guidance to LLM |
 | `case` | `"snake"`, `"camel"`, `"title"`, `"upper"`, etc. | Post-process | Case transformation |
 | `sep` | `" "`, `"_"`, `"-"`, `""` | Post-process | Word separator |
@@ -452,7 +497,9 @@ The `label_variables()` function provides:
 | `remove_prepositions` | `TRUE`/`FALSE` | Post-process | Remove of, in, at, etc. |
 | `abbreviate` | `TRUE`/`FALSE` | Post-process | Apply abbreviation rules |
 
-**Important:** Parameters marked "LLM-Guided" influence what the model generates when used in `label_variables()`. All parameters can also be used in `reformat_labels()` for post-processing without calling the LLM again.
+**Important:**
+- Parameters marked "LLM-Guided" influence what the model generates when used in `label_variables()`. All parameters can also be used in `reformat_labels()` for post-processing without calling the LLM again.
+- **Exception:** `max_words` is ignored when `label_type = "acronym"`. For acronyms, use `max_chars` to control the acronym length.
 
 ## Session Info
 

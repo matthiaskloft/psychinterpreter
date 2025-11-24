@@ -41,11 +41,13 @@ uses provider's default model}
 \item{label_type}{Character. Type of labels: "short" (1-3 words), "phrase" (4-7 words),
 "acronym" (3-5 chars), or "custom" (default = "short")}
 
-\item{max_words}{Integer or NULL. \strong{Influences LLM prompt} to generate labels with this
-exact word count (overrides label_type preset). Also applies post-processing truncation
-if needed. More effective than using \code{max_words} in \code{reformat_labels()}.}
+\item{max_words}{Integer or NULL. \strong{Sets upper limit for word count} (overrides label_type
+presets EXCEPT for "acronym"). Instructs the LLM to generate labels with up to this many
+words. Also applies post-processing truncation if needed. More effective than using
+\code{max_words} in \code{reformat_labels()}. Ignored when label_type = "acronym".}
 
-\item{style_hint}{Character or NULL. Style guidance for LLM (e.g., "technical", "simple")}
+\item{style_hint}{Character or NULL. Style guidance for LLM (e.g., "technical", "simple",
+"academic"). Influences the LLM's choice of terminology and phrasing.}
 
 \item{sep}{Character. Separator between words in final output (default = " ").
 Post-processing only - does not affect LLM generation.}
@@ -60,9 +62,10 @@ Post-processing only - does not affect LLM generation.}
 \item{remove_prepositions}{Logical. Remove prepositions (of, in, at, etc.) (default = FALSE).
 Post-processing only - does not affect LLM generation.}
 
-\item{max_chars}{Integer or NULL. \strong{Influences LLM prompt} to generate labels within this
-character limit. Also applies post-processing truncation if needed. More effective than
-using \code{max_chars} in \code{reformat_labels()}.}
+\item{max_chars}{Integer or NULL. \strong{Sets upper limit for character count}. Instructs the LLM
+to generate labels within this character limit. Works with ALL label types including
+"acronym" (where it controls the acronym length). Also applies post-processing truncation
+if needed. More effective than using \code{max_chars} in \code{reformat_labels()}.}
 
 \item{abbreviate}{Logical. Apply rule-based abbreviation to long words (default = FALSE).
 Post-processing only - does not affect LLM generation.}
@@ -108,6 +111,18 @@ Special case behaviors:
 \item \code{case = "constant"} automatically sets \code{sep = "_"} and uppercase
 }
 }
+\section{Parameter Organization}{
+
+Parameters are organized into groups:
+\itemize{
+\item \strong{Core}: variable_info, chat_session, llm_provider, llm_model
+\item \strong{Semantic Generation (LLM-facing)}: label_type, max_words, max_chars, style_hint
+\item \strong{Format Processing (post-processing)}: case, sep, remove_articles, remove_prepositions, abbreviate
+\item \strong{Configuration Objects}: labeling_args, llm_args, output_args
+\item \strong{Control}: echo, silent
+}
+}
+
 \examples{
 \dontrun{
 # Basic usage with explicit variable names

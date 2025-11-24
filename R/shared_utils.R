@@ -223,22 +223,25 @@ show_interpret_args <- function(analysis_type = NULL) {
     }
   }
 
-  # Helper function to print parameter section
-  print_param_group <- function(group_name, params_list, header_suffix = "") {
-    if (length(params_list) == 0) return()
+  # Helper function to build parameter section (returns text, doesn't print)
+  build_param_group <- function(group_name, params_list, header_suffix = "") {
+    if (length(params_list) == 0) return(character())
 
-    # Print section header
+    # Build complete output as text
+    output_lines <- character()
+
+    # Build section header
     header_text <- paste0(
       toupper(substring(group_name, 1, 1)),
       substring(group_name, 2)
     )
     header_text <- gsub("_", " ", header_text)
     if (nchar(header_suffix) > 0) {
-      cli::cli_h2("{header_text} ({group_name}) {header_suffix}")
+      header_line <- paste0("\n-- ", header_text, " (", group_name, ") ", header_suffix, " --")
     } else {
-      cli::cli_h2("{header_text} ({group_name})")
+      header_line <- paste0("\n-- ", header_text, " (", group_name, ") --")
     }
-    cli::cat_line()
+    output_lines <- c(output_lines, header_line, "")
 
     # Sort parameters by name for consistent display
     param_names <- sort(names(params_list))
@@ -246,44 +249,43 @@ show_interpret_args <- function(analysis_type = NULL) {
     for (param_name in param_names) {
       param_spec <- params_list[[param_name]]
 
-      # Build bullet points for this parameter
-      bullets <- c()
-
       # Parameter name with type and required indicator
       type_suffix <- if (param_spec$required) " (required)" else ""
-      bullets <- c(bullets, " " = paste0(
-        "{.strong {param_name}} {.emph ({param_spec$type}{type_suffix})}"
-      ))
+      output_lines <- c(output_lines, paste0("  * ", param_name, " (", param_spec$type, type_suffix, ")"))
 
       # Default value
       default_str <- format_default(param_spec$default)
-      bullets <- c(bullets, " " = paste0("Default: {.val {default_str}}"))
+      output_lines <- c(output_lines, paste0("    Default: ", default_str))
 
       # Range or allowed values
       range_str <- format_range_values(param_spec)
       if (range_str != "-") {
         if (!is.null(param_spec$allowed_values)) {
-          bullets <- c(bullets, " " = paste0("Allowed: {range_str}"))
+          output_lines <- c(output_lines, paste0("    Allowed: ", range_str))
         } else {
-          bullets <- c(bullets, " " = paste0("Range: {range_str}"))
+          output_lines <- c(output_lines, paste0("    Range: ", range_str))
         }
       }
 
       # Description
-      bullets <- c(bullets, " " = param_spec$description)
+      output_lines <- c(output_lines, paste0("    ", param_spec$description))
 
-      # Print with cli_bullets
-      cli::cli_bullets(bullets)
-      cli::cat_line()
+      # Add spacing between parameters
+      output_lines <- c(output_lines, "")
     }
+
+    return(output_lines)
   }
 
   # Get parameters for each group
   llm_params <- get_params_by_group("llm_args")
   output_params <- get_params_by_group("output_args")
 
-  # Print LLM Arguments
-  print_param_group("llm_args", llm_params)
+  # Build all output sections
+  all_output <- character()
+
+  # Build LLM Arguments section
+  all_output <- c(all_output, build_param_group("llm_args", llm_params))
 
   # Add to return dataframe
   for (param_name in names(llm_params)) {
@@ -299,8 +301,8 @@ show_interpret_args <- function(analysis_type = NULL) {
     ))
   }
 
-  # Print Output Arguments
-  print_param_group("output_args", output_params)
+  # Build Output Arguments section
+  all_output <- c(all_output, build_param_group("output_args", output_params))
 
   # Add to return dataframe
   for (param_name in names(output_params)) {
@@ -316,13 +318,13 @@ show_interpret_args <- function(analysis_type = NULL) {
     ))
   }
 
-  # Get and print interpretation_args if analysis_type specified
+  # Build interpretation_args section if analysis_type specified
   if (!is.null(analysis_type)) {
     interp_params <- get_params_by_group("interpretation_args", model_type = analysis_type)
 
     if (length(interp_params) > 0) {
       suffix <- paste0("- ", toupper(analysis_type), " specific")
-      print_param_group("interpretation_args", interp_params, header_suffix = suffix)
+      all_output <- c(all_output, build_param_group("interpretation_args", interp_params, header_suffix = suffix))
 
       # Add to return dataframe
       for (param_name in names(interp_params)) {
@@ -339,6 +341,9 @@ show_interpret_args <- function(analysis_type = NULL) {
       }
     }
   }
+
+  # Print all output as one single message
+  cat(paste(all_output, collapse = "\n"), "\n")
 
   # Return dataframe invisibly
   invisible(param_df)

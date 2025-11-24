@@ -290,61 +290,49 @@ print.variable_labels <- function(x, silent = 0, ...) {
     return(invisible(x))
   }
 
-  # CLI-formatted output
-  cli::cli_rule("Variable Labels Report")
-  cli::cli_text("")
+  # Build output as text lines
+  output_lines <- character()
+
+  # Header
+  output_lines <- c(output_lines, "\n-- Variable Labels Report --\n")
 
   # Metadata section
-  cli::cli_h2("Labeling Details")
+  output_lines <- c(output_lines, "\n-- Labeling Details --\n")
 
   if (!is.null(x$metadata$label_type)) {
-    cli::cli_bullets(c(
-      "*" = "Label type: {.field {x$metadata$label_type}}"
-    ))
+    output_lines <- c(output_lines, paste0("  * Label type: ", x$metadata$label_type))
   }
 
   # Show max_words if specified (LLM instruction)
   if (!is.null(x$metadata$formatting$max_words)) {
-    cli::cli_bullets(c(
-      "*" = "Max words: {.val {x$metadata$formatting$max_words}}"
-    ))
+    output_lines <- c(output_lines, paste0("  * Max words: ", x$metadata$formatting$max_words))
   }
 
   if (!is.null(x$metadata$n_variables)) {
-    cli::cli_bullets(c(
-      "*" = "Variables labeled: {.val {x$metadata$n_variables}}"
-    ))
+    output_lines <- c(output_lines, paste0("  * Variables labeled: ", x$metadata$n_variables))
   }
 
   if (!is.null(x$metadata$llm_provider)) {
-    cli::cli_bullets(c(
-      "*" = "LLM provider: {.field {x$metadata$llm_provider}}"
-    ))
+    output_lines <- c(output_lines, paste0("  * LLM provider: ", x$metadata$llm_provider))
   }
 
   if (!is.null(x$metadata$llm_model)) {
-    cli::cli_bullets(c(
-      "*" = "Model: {.field {x$metadata$llm_model}}"
-    ))
+    output_lines <- c(output_lines, paste0("  * Model: ", x$metadata$llm_model))
   }
 
   # Token usage (second section)
   if (!is.null(x$metadata$tokens_used)) {
     tokens <- x$metadata$tokens_used
-    cli::cli_text("")
-    cli::cli_h2("Token Usage")
-    cli::cli_bullets(c(
-      "*" = "Input: {.val {tokens$input}}",
-      "*" = "Output: {.val {tokens$output}}",
-      "*" = "Total: {.val {tokens$total}}"
-    ))
+    output_lines <- c(output_lines, "\n-- Token Usage --\n")
+    output_lines <- c(output_lines, paste0("  * Input: ", tokens$input))
+    output_lines <- c(output_lines, paste0("  * Output: ", tokens$output))
+    output_lines <- c(output_lines, paste0("  * Total: ", tokens$total))
   }
 
   # Formatting settings (third section)
   if (!is.null(x$metadata$formatting)) {
     fmt <- x$metadata$formatting
-    cli::cli_text("")
-    cli::cli_h2("Formatting Applied")
+    output_lines <- c(output_lines, "\n-- Formatting Applied --\n")
 
     format_details <- character()
 
@@ -377,44 +365,41 @@ print.variable_labels <- function(x, silent = 0, ...) {
 
     if (length(format_details) > 0) {
       for (detail in format_details) {
-        cli::cli_bullets(c("*" = detail))
+        output_lines <- c(output_lines, paste0("  * ", detail))
       }
     } else {
-      cli::cli_text("{.emph No special formatting applied}")
+      output_lines <- c(output_lines, "  No special formatting applied")
     }
   }
 
   # Generated labels
-  cli::cli_text("")
-  cli::cli_h2("Generated Labels")
-  cli::cli_text("")
+  output_lines <- c(output_lines, "\n-- Generated Labels --\n")
 
   # Format as aligned columns
   max_var_width <- max(nchar(x$labels_formatted$variable))
   max_label_width <- max(nchar(x$labels_formatted$label))
 
   # Header
-  cli::cli_text(
-    "{.strong {format('Variable', width = max_var_width)}}  {.strong Label}"
-  )
-  cli::cli_text(
-    "{strrep('-', max_var_width)}  {strrep('-', max_label_width)}"
-  )
+  var_header <- format("Variable", width = max_var_width)
+  output_lines <- c(output_lines, paste0(var_header, "  Label"))
+  output_lines <- c(output_lines, paste0(strrep("-", max_var_width), "  ", strrep("-", max_label_width)))
 
   # Labels
   for (i in seq_len(nrow(x$labels_formatted))) {
     var_padded <- format(x$labels_formatted$variable[i], width = max_var_width)
-    cli::cli_text("{.field {var_padded}}  {x$labels_formatted$label[i]}")
+    output_lines <- c(output_lines, paste0(var_padded, "  ", x$labels_formatted$label[i]))
   }
 
   # Footer
   if (!is.null(x$metadata$reformatted) && x$metadata$reformatted) {
-    cli::cli_text("")
-    cli::cli_alert_info("Labels were reformatted from original LLM output")
+    output_lines <- c(output_lines, "")
+    output_lines <- c(output_lines, "i Labels were reformatted from original LLM output")
   }
 
-  cli::cli_text("")
-  cli::cli_rule()
+  output_lines <- c(output_lines, "")
+
+  # Output everything at once
+  message(paste(output_lines, collapse = "\n"))
 
   invisible(x)
 }

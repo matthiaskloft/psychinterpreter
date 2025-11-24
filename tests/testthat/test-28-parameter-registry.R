@@ -597,7 +597,7 @@ test_that("show_interpret_args() with NULL shows common parameters only", {
 
 
 test_that("show_interpret_args() with NULL displays informative message", {
-  output <- capture.output(result <- show_interpret_args(), type = "message")
+  output <- capture.output(result <- show_interpret_args())
 
   # Check that output contains the expected informative messages
   output_text <- paste(output, collapse = "\n")
@@ -728,7 +728,7 @@ test_that("show_interpret_args() warns on unimplemented model types", {
 
 
 test_that("show_interpret_args() produces CLI-formatted output", {
-  output <- capture.output(result <- show_interpret_args("fa"), type = "message")
+  output <- capture.output(result <- show_interpret_args("fa"))
 
   output_text <- paste(output, collapse = "\n")
 

@@ -111,7 +111,11 @@
       "Bash(else echo \"Check still running or log not found\")",
       "Bash(do Rscript -e \"r <- tools::checkRd(''''$f''''); if(length(r) > 0) cat(''''$f\\n'''')\")",
       "Bash(if [ -f \"$file\" ])",
-      "Bash(RUN_LLM_TESTS=true Rscript:*)"
+      "Bash(RUN_LLM_TESTS=true Rscript:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(rsync:*)",
+      "Bash(_R_CHECK_FORCE_SUGGESTS_=false R CMD check:*)",
+      "Bash(export _R_CHECK_FORCE_SUGGESTS_=false)"
     ],
     "deny": [
       "Read(./.env*)",

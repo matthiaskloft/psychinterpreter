@@ -119,43 +119,45 @@ label_args <- function(label_type = "short",
 #'
 #' @export
 print.label_args <- function(x, ...) {
-  cli::cli_h2("Labeling Arguments Configuration")
+  output_lines <- character()
+  output_lines <- c(output_lines, "\n-- Labeling Arguments Configuration --\n")
 
   # Label type and word count
-  cli::cli_alert_info("Label type: {.val {x$label_type}}")
+  output_lines <- c(output_lines, paste0("  i Label type: ", x$label_type))
   if (!is.null(x$max_words)) {
-    cli::cli_alert_info("Max words: {.val {x$max_words}}")
+    output_lines <- c(output_lines, paste0("  i Max words: ", x$max_words))
   }
   if (!is.null(x$style_hint)) {
-    cli::cli_alert_info("Style hint: {.val {x$style_hint}}")
+    output_lines <- c(output_lines, paste0("  i Style hint: ", x$style_hint))
   }
 
   # Formatting
-  cli::cli_h3("Formatting")
-  cli::cli_alert_info("Separator: {.val {x$sep}}")
-  cli::cli_alert_info("Case: {.val {x$case}}")
+  output_lines <- c(output_lines, "\n  Formatting:")
+  output_lines <- c(output_lines, paste0("    i Separator: ", x$sep))
+  output_lines <- c(output_lines, paste0("    i Case: ", x$case))
 
   # Filters
   if (x$remove_articles || x$remove_prepositions) {
-    cli::cli_h3("Content Filters")
+    output_lines <- c(output_lines, "\n  Content Filters:")
     if (x$remove_articles) {
-      cli::cli_alert_info("Remove articles: {.val TRUE}")
+      output_lines <- c(output_lines, "    i Remove articles: TRUE")
     }
     if (x$remove_prepositions) {
-      cli::cli_alert_info("Remove prepositions: {.val TRUE}")
+      output_lines <- c(output_lines, "    i Remove prepositions: TRUE")
     }
   }
 
   # Length control
   if (!is.null(x$max_chars) || x$abbreviate) {
-    cli::cli_h3("Length Control")
+    output_lines <- c(output_lines, "\n  Length Control:")
     if (!is.null(x$max_chars)) {
-      cli::cli_alert_info("Max characters: {.val {x$max_chars}}")
+      output_lines <- c(output_lines, paste0("    i Max characters: ", x$max_chars))
     }
     if (x$abbreviate) {
-      cli::cli_alert_info("Abbreviate long words: {.val TRUE}")
+      output_lines <- c(output_lines, "    i Abbreviate long words: TRUE")
     }
   }
 
+  message(paste(output_lines, collapse = "\n"))
   invisible(x)
 }

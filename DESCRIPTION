@@ -32,5 +32,7 @@ Suggests:
     mclust,
     fmsb,
     patchwork,
-    openxlsx
+    openxlsx,
+    reactable,
+    pander
 Config/testthat/edition: 3

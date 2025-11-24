@@ -919,6 +919,6 @@ Update the developer guide when making **architectural or implementation changes
 **Maintainer**: Update when making significant user-facing changes
 **Latest Change**: Added `label_variables()` functionality for generating short, descriptive variable labels with LLMs. Includes two-phase architecture (Semantic Generation → Format Processing), multiple label types (short/phrase/acronym/custom), extensive formatting options (case transformations, separators, abbreviation, article/preposition removal), reformatting capability, and chat session support for token efficiency.
 - as long as the package is in version 0.0.0.9000, backwards-compatibility can be ignored in development since the package is not officially released
-- use DT::datatable() for .Qmd articles
+- use reactable() for .Qmd articles
 - when adding or editing functions, remember to update the references in the pkgdown.yml
 - whenever it is feasible and may save time, use subagents

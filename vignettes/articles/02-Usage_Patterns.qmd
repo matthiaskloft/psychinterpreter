@@ -69,12 +69,14 @@ llm <- "claude-sonnet-4-5"
 
 Automatically extracts model components from fitted objects.
 ```{r pattern-1}
-interpret(
+#| output: false
+result <- interpret(
   fit_results = fa_model,
   variable_info = var_info,
   llm_provider = provider,
   llm_model = llm,
-  word_limit = 50
+  word_limit = 50,
+  silent = 1
 )
 ```
 
@@ -86,16 +88,18 @@ For custom data structures or manual extraction.
 For FA, provide loadings (required) and optionally factor_cor_mat:
 
 ```{r pattern-2}
+#| output: false
 loadings_matrix <- fa_model$loadings
 factor_cor_mat <- fa_model$Phi
 
-interpret(
+result <- interpret(
   fit_results = list(loadings = loadings_matrix, factor_cor_mat = factor_cor_mat),
   variable_info = var_info,
   analysis_type = "fa",
   llm_provider = provider,
   llm_model = llm,
-  word_limit = 50
+  word_limit = 50,
+  silent = 1
 )
 ```
 

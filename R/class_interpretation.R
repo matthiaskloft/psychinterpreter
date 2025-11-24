@@ -55,9 +55,14 @@ print.interpretation <- function(x, ...) {
     )
     model_name <- analysis_type_names[x$analysis_type] %||% x$analysis_type
 
-    cat(model_name, "Interpretation\n")
-    cat("Components:", length(x$suggested_names), "\n")
-    cat("LLM:", x$llm_info$llm_provider %||% "unknown", "/", x$llm_info$llm_model %||% "unknown", "\n")
+    # Build output as single string
+    output <- paste0(
+      model_name, " Interpretation\n",
+      "Components: ", length(x$suggested_names), "\n",
+      "LLM: ", x$llm_info$llm_provider %||% "unknown", " / ",
+      x$llm_info$llm_model %||% "unknown", "\n"
+    )
+    cat(output)
   }
 
   invisible(x)

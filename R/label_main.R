@@ -4,6 +4,16 @@
 #' using Large Language Models. Supports various label formats and extensive
 #' post-processing options.
 #'
+#' @section Parameter Organization:
+#' Parameters are organized into groups:
+#' \itemize{
+#'   \item **Core**: variable_info, chat_session, llm_provider, llm_model
+#'   \item **Semantic Generation (LLM-facing)**: label_type, max_words, max_chars, style_hint
+#'   \item **Format Processing (post-processing)**: case, sep, remove_articles, remove_prepositions, abbreviate
+#'   \item **Configuration Objects**: labeling_args, llm_args, output_args
+#'   \item **Control**: echo, silent
+#' }
+#'
 #' @param variable_info Data frame with 'description' column (required) and optional
 #'   'variable' column. If 'variable' is not provided, names will be auto-generated
 #'   as V1, V2, V3, etc.
@@ -14,22 +24,25 @@
 #'   uses provider's default model
 #' @param label_type Character. Type of labels: "short" (1-3 words), "phrase" (4-7 words),
 #'   "acronym" (3-5 chars), or "custom" (default = "short")
-#' @param max_words Integer or NULL. **Influences LLM prompt** to generate labels with this
-#'   exact word count (overrides label_type preset). Also applies post-processing truncation
-#'   if needed. More effective than using \code{max_words} in \code{reformat_labels()}.
-#' @param style_hint Character or NULL. Style guidance for LLM (e.g., "technical", "simple")
-#' @param sep Character. Separator between words in final output (default = " ").
-#'   Post-processing only - does not affect LLM generation.
+#' @param max_words Integer or NULL. **Sets upper limit for word count** (overrides label_type
+#'   presets EXCEPT for "acronym"). Instructs the LLM to generate labels with up to this many
+#'   words. Also applies post-processing truncation if needed. More effective than using
+#'   \code{max_words} in \code{reformat_labels()}. Ignored when label_type = "acronym".
+#' @param max_chars Integer or NULL. **Sets upper limit for character count**. Instructs the LLM
+#'   to generate labels within this character limit. Works with ALL label types including
+#'   "acronym" (where it controls the acronym length). Also applies post-processing truncation
+#'   if needed. More effective than using \code{max_chars} in \code{reformat_labels()}.
+#' @param style_hint Character or NULL. Style guidance for LLM (e.g., "technical", "simple",
+#'   "academic"). Influences the LLM's choice of terminology and phrasing.
 #' @param case Character. Case transformation: "original", "lower", "upper", "title",
 #'   "sentence", "snake", "camel", "constant" (default = "original").
+#'   Post-processing only - does not affect LLM generation.
+#' @param sep Character. Separator between words in final output (default = " ").
 #'   Post-processing only - does not affect LLM generation.
 #' @param remove_articles Logical. Remove articles (a, an, the) from labels (default = FALSE).
 #'   Post-processing only - does not affect LLM generation.
 #' @param remove_prepositions Logical. Remove prepositions (of, in, at, etc.) (default = FALSE).
 #'   Post-processing only - does not affect LLM generation.
-#' @param max_chars Integer or NULL. **Influences LLM prompt** to generate labels within this
-#'   character limit. Also applies post-processing truncation if needed. More effective than
-#'   using \code{max_chars} in \code{reformat_labels()}.
 #' @param abbreviate Logical. Apply rule-based abbreviation to long words (default = FALSE).
 #'   Post-processing only - does not affect LLM generation.
 #' @param label_args List or label_args object. Labeling-specific configuration.
