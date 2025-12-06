@@ -145,7 +145,6 @@ build_main_prompt.gm <- function(analysis_type,
   if (!is.null(additional_info) && nchar(additional_info) > 0) {
     prompt <- paste0(prompt, "# ADDITIONAL CONTEXT\n", additional_info, "\n\n")
   }
-
   # ============================================================================
   # SECTION 3: MODEL INFORMATION
   # ============================================================================

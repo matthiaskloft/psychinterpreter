@@ -3,7 +3,7 @@
 # ==============================================================================
 
 test_that("interpret() works with Mclust objects (minimal LLM test)", {
-  skip_on_ci()
+  skip_if_no_llm()
   skip_if_not_installed("mclust")
 
   # Load minimal fixtures
@@ -65,7 +65,7 @@ test_that("interpret() works with GM structured lists", {
 })
 
 test_that("interpret() handles GM chat sessions", {
-  skip_on_ci()
+  skip_if_no_llm()
   skip_if_not_installed("mclust")
 
   # Load fixtures
@@ -770,7 +770,7 @@ test_that("markdown format has proper cluster sections", {
 })
 
 test_that("metadata display works with minimal LLM test", {
-  skip_on_ci()
+  skip_if_no_llm()
   skip_if_not_installed("mclust")
 
   # Load minimal fixtures

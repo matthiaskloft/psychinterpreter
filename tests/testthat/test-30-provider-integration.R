@@ -341,17 +341,7 @@ test_that("Anthropic handles prompt caching for repeated system prompts", {
 
 test_that("Ollama provider works without API keys", {
   skip_on_cran()
-  skip_on_ci()
-
-  # Ollama requires local installation, skip if not available
-  ollama_available <- tryCatch({
-    system("ollama --version", intern = TRUE, ignore.stderr = TRUE)
-    TRUE
-  }, error = function(e) FALSE)
-
-  if (!ollama_available) {
-    skip("Ollama not installed or not in PATH")
-  }
+  skip_if_no_llm()
 
   fixture <- create_minimal_fa_fixture()
 
@@ -373,17 +363,7 @@ test_that("Ollama provider works without API keys", {
 
 test_that("Ollama token tracking returns zero or NULL", {
   skip_on_cran()
-  skip_on_ci()
-
-  # Ollama requires local installation
-  ollama_available <- tryCatch({
-    system("ollama --version", intern = TRUE, ignore.stderr = TRUE)
-    TRUE
-  }, error = function(e) FALSE)
-
-  if (!ollama_available) {
-    skip("Ollama not installed or not in PATH")
-  }
+  skip_if_no_llm()
 
   fixture <- create_minimal_fa_fixture()
 
@@ -414,17 +394,7 @@ test_that("Ollama token tracking returns zero or NULL", {
 
 test_that("Cannot switch providers mid-session", {
   skip_on_cran()
-  skip_on_ci()
-
-  # Ollama requires local installation
-  ollama_available <- tryCatch({
-    system("ollama --version", intern = TRUE, ignore.stderr = TRUE)
-    TRUE
-  }, error = function(e) FALSE)
-
-  if (!ollama_available) {
-    skip("Ollama not installed or not in PATH")
-  }
+  skip_if_no_llm()
 
   fixture <- create_minimal_fa_fixture()
 
@@ -444,17 +414,7 @@ test_that("Cannot switch providers mid-session", {
 
 test_that("Different providers can be used in separate sessions", {
   skip_on_cran()
-  skip_on_ci()
-
-  # Ollama requires local installation
-  ollama_available <- tryCatch({
-    system("ollama --version", intern = TRUE, ignore.stderr = TRUE)
-    TRUE
-  }, error = function(e) FALSE)
-
-  if (!ollama_available) {
-    skip("Ollama not installed or not in PATH")
-  }
+  skip_if_no_llm()
 
   fixture <- create_minimal_fa_fixture()
 

@@ -238,7 +238,7 @@ test_that("build prompts for labeling", {
     label_type = "short"
   )
   expect_true(grepl("1-3 words", prompt))
-  expect_true(grepl("JSON array", prompt))
+  # Note: JSON array format is specified in main prompt, not system prompt
 
   # User prompt
   var_info <- data.frame(
@@ -254,6 +254,7 @@ test_that("build prompts for labeling", {
   expect_true(grepl("4-7 words", prompt))
   expect_true(grepl("x1", prompt))
   expect_true(grepl("Job satisfaction", prompt))
+  expect_true(grepl("JSON array", prompt))
 })
 
 test_that("variable_labels object prints correctly", {
