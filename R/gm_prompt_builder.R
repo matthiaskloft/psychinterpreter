@@ -23,24 +23,29 @@ NULL
 build_system_prompt.gm <- function(analysis_type, word_limit = 100, ...) {
   paste0(
     "# ROLE\n",
-    "You are an expert psychometrician spezialized in cluster analysis using ",
-    "Gaussian mixture models.\n\n",
+    "You are an expert in person-centered statistical methods, specifically ",
+    "Gaussian mixture models (GMM) and latent profile analysis (LPA). You identify ",
+    "meaningful subgroups within populations by interpreting cluster profiles.\n\n",
 
     "# TASK\n",
-    "Provide a comprehensive interpretation of a cluster analysis by: (1) naming each cluster with a ",
-    "short, descriptive label (2-4 words), (2) explaining the profile and characteristics ",
-    "of each cluster, and (3) identifying what distinguishes each cluster from others.\n\n",
+    "Interpret a GMM cluster analysis by:\n",
+    "1. Naming each cluster with a concise, descriptive label (2-4 words) based on its defining characteristics\n",
+    "2. Characterizing each cluster's profile pattern across all variables\n",
+    "3. Explaining what distinguishes each cluster from the others\n",
+    "4. Describing the practical or theoretical significance of each profile\n\n",
 
     "# KEY DEFINITIONS\n",
     "- **Cluster**: A group of observations with similar patterns across variables\n",
-    "- **Cluster mean**: Average value of a variable within a cluster (standardized)\n",
+    "- **Cluster mean**: Average value of a variable within a cluster. When standardized, values represent deviations from the overall mean. Larger absolute differences between cluster means indicate stronger distinguishing variables.\n",
     "- **Cluster profile**: The pattern of means across all variables that defines the cluster\n",
+    "- **Cluster variance**: Variability of observations within a cluster on each variable; smaller variance indicates more homogeneous cluster members\n",
+    "- **Cluster proportion**: Percentage of the sample assigned to each cluster; larger clusters represent more prevalent profiles\n",
     "- **Within-cluster correlation**: Correlation between variables within a specific cluster\n",
     "- **Positive correlation**: Variables that tend to increase/decrease together (0.3-0.5 = weak, 0.5-0.7 = moderate, >0.7 = strong)\n",
     "- **Negative correlation**: Variables that move in opposite directions (-0.3 to -0.5 = weak, -0.5 to -0.7 = moderate, <-0.7 = strong)\n",
     "- **Near-zero correlation**: Variables that vary independently (|r| < 0.3)\n",
     "- **Distinguishing variables**: Variables with the largest differences between clusters\n",
-    "- **Uncertainty**: Measure of ambiguity in cluster assignment (lower is better)\n",
+    "- **Classification uncertainty**: Average ambiguity in cluster assignment; lower values indicate more distinct, well-separated clusters with confident membership\n",
     "- **Cluster interpretation**: Identifying the psychological or behavioral profile that explains the pattern\n\n"
   )
 }
@@ -110,16 +115,19 @@ build_main_prompt.gm <- function(analysis_type,
       prompt,
       "# INTERPRETATION GUIDELINES\n\n",
       "## Cluster Naming\n",
-      "- **Profile identification**: Identify the behavioral or psychological profile each cluster represents\n",
+      "- **Profile-based naming**: Name clusters based on the overall profile pattern, not single variables\n",
       "- **Name creation**: Create 2-4 word names capturing the essence of each cluster\n",
-      "- **Theoretical grounding**: Base names on domain knowledge and additional context\n\n",
+      "- **Theoretical grounding**: Base names on domain knowledge and additional context\n",
+      "- **Names as shorthand**: Recognize that names are simplified labels for complex patterns; they do not fully define the cluster\n\n",
       "## Cluster Interpretation\n",
-      "- **Distinguishing characteristics**: Focus on what makes each cluster unique\n",
+      "- **Pattern recognition**: Focus on the overall configuration of variables together, not isolated means. Clusters represent holistic profiles.\n",
+      "- **Distinguishing characteristics**: Focus on what makes each cluster unique compared to others\n",
       "- **Variable patterns**: Examine both high and low means, especially for distinguishing variables\n",
-      "- **Within-cluster correlations**: Use correlations to understand trait co-occurrence patterns\n",
-      "- **Relative comparisons**: Describe clusters in relation to each other\n",
-      "- **Practical significance**: Consider meaningful differences, not just numerical values\n",
-      "- **Uncertainty awareness**: If provided, give more confidence to well-defined clusters\n\n",
+      "- **Within-cluster correlations**: Use correlations to understand variable co-occurrence patterns\n",
+      "- **Relative comparisons**: Describe clusters in relation to each other and the overall sample\n",
+      "- **Practical significance**: Consider meaningful differences, not just small numerical variations\n",
+      "- **Probabilistic membership**: Remember that cluster membership is probabilistic; profiles represent typical patterns, not rigid categories\n",
+      "- **Uncertainty awareness**: If provided, give more confidence to well-defined clusters with lower uncertainty\n\n",
       "## Output Requirements\n",
       "- **Word target (Interpretation)**: Aim for ",
       round(word_limit * 0.8),
@@ -268,11 +276,23 @@ build_cluster_section_gm <- function(analysis_data) {
       )
     }
 
-    # Add means for each variable
-    cluster_text <- paste0(cluster_text, "  Variable means:\n")
+    # Add means and variances for each variable
+    # Format: mean (variance) with optional interpretation hint for standardized data
+    has_variances <- !is.null(analysis_data$covariances)
+    if (has_variances) {
+      cluster_text <- paste0(cluster_text, "  Variable profiles (mean, variance):\n")
+    } else {
+      cluster_text <- paste0(cluster_text, "  Variable means:\n")
+    }
 
     # Get means for this cluster
     cluster_means <- analysis_data$means[, k]
+
+    # Get variances from covariance matrix diagonal if available
+    cluster_variances <- NULL
+    if (has_variances) {
+      cluster_variances <- diag(analysis_data$covariances[, , k])
+    }
 
     # Determine which variables to show
     if (!is.null(analysis_data$profile_variables)) {
@@ -282,7 +302,7 @@ build_cluster_section_gm <- function(analysis_data) {
       vars_to_show <- seq_along(cluster_means)
     }
 
-    # Format means
+    # Format means (and variances if available)
     for (v in vars_to_show) {
       var_name <- analysis_data$variable_names[v]
       mean_val <- cluster_means[v]
@@ -292,15 +312,20 @@ build_cluster_section_gm <- function(analysis_data) {
         "    ", var_name, ": ", round(mean_val, 3)
       )
 
-      # Add interpretation hint for extreme values
-      if (abs(mean_val) > 2) {
-        cluster_text <- paste0(cluster_text, " (high)")
-      } else if (abs(mean_val) > 1) {
-        cluster_text <- paste0(cluster_text, " (moderate)")
-      } else if (abs(mean_val) < -2) {
-        cluster_text <- paste0(cluster_text, " (very low)")
-      } else if (abs(mean_val) < -1) {
-        cluster_text <- paste0(cluster_text, " (low)")
+      # Add variance in parentheses if available
+      if (has_variances) {
+        cluster_text <- paste0(cluster_text, " (", round(cluster_variances[v], 3), ")")
+      }
+
+      # Add interpretation hint for extreme values (assumes standardized means)
+      if (mean_val > 2) {
+        cluster_text <- paste0(cluster_text, " very high")
+      } else if (mean_val > 1) {
+        cluster_text <- paste0(cluster_text, " high")
+      } else if (mean_val < -2) {
+        cluster_text <- paste0(cluster_text, " very low")
+      } else if (mean_val < -1) {
+        cluster_text <- paste0(cluster_text, " low")
       }
 
       cluster_text <- paste0(cluster_text, "\n")
@@ -345,8 +370,7 @@ build_cluster_section_gm <- function(analysis_data) {
   if (analysis_data$n_clusters > 1) {
     cluster_text <- paste0(
       cluster_text,
-      "**Note**: Values represent standardized means. ",
-      "Focus on variables with the largest differences between clusters.\n"
+      "**Note**: Focus on variables with the largest differences between clusters.\n"
     )
   }
 

@@ -115,7 +115,11 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(rsync:*)",
       "Bash(_R_CHECK_FORCE_SUGGESTS_=false R CMD check:*)",
-      "Bash(export _R_CHECK_FORCE_SUGGESTS_=false)"
+      "Bash(export _R_CHECK_FORCE_SUGGESTS_=false)",
+      "WebFetch(domain:www.lakera.ai)",
+      "WebFetch(domain:www.tandfonline.com)",
+      "WebFetch(domain:www.sciencedirect.com)",
+      "WebFetch(domain:cjvanlissa.github.io)"
     ],
     "deny": [
       "Read(./.env*)",
