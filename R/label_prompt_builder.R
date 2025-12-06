@@ -38,24 +38,56 @@ build_system_prompt.label <- function(analysis_type, word_limit = NULL, ...) {
 
   # Add style hint if provided
   style_guidance <- if (!is.null(style_hint)) {
-    paste0("\nStyle guidance: Use ", style_hint, " terminology and phrasing.")
+    paste0("\n- **Style**: Use ", style_hint, " terminology and phrasing")
   } else {
     ""
   }
 
+  # Add few-shot examples based on label_type (improves consistency)
+  examples_section <- switch(label_type,
+    "short" = paste0(
+      "# EXAMPLES\n",
+      "Description: \"How satisfied are you with your current job overall?\"\n",
+      "Label: \"Job Satisfaction\"\n\n",
+      "Description: \"Total number of years of formal education completed\"\n",
+      "Label: \"Education Years\"\n\n"
+    ),
+    "phrase" = paste0(
+      "# EXAMPLES\n",
+      "Description: \"How satisfied are you with your current job overall?\"\n",
+      "Label: \"Overall Job Satisfaction Rating\"\n\n",
+      "Description: \"Total number of years of formal education completed\"\n",
+      "Label: \"Years of Formal Education Completed\"\n\n"
+    ),
+    "acronym" = paste0(
+      "# EXAMPLES\n",
+      "Description: \"Body Mass Index calculated from height and weight\"\n",
+      "Label: \"BMI\"\n\n",
+      "Description: \"Socioeconomic Status composite score\"\n",
+      "Label: \"SES\"\n\n"
+    ),
+    ""
+  )
+
   # Build complete system prompt
   prompt <- paste0(
-    "You are an expert at creating clear, concise variable labels from descriptions. ",
-    "Your task is to generate appropriate labels that will be used in data analysis and reporting.\n\n",
-    "Instructions:\n",
-    "- ", label_instructions, "\n",
-    "- Ensure labels are clear and unambiguous\n",
-    "- Maintain consistency in style across all labels\n",
-    "- Use standard terminology when applicable\n",
-    "- Avoid special characters unless necessary",
+    "# ROLE\n",
+    "You are a research data analyst specializing in variable labeling for statistical ",
+    "analysis and reporting. You create clear, consistent labels that follow research ",
+    "data management conventions.\n\n",
+
+    "# TASK\n",
+    label_instructions, "\n\n",
+
+    "# KEY PRINCIPLES\n",
+    "- **Consistency**: Use identical formatting style across all labels\n",
+    "- **Clarity**: Labels should be unambiguous and self-explanatory\n",
+    "- **Conciseness**: Capture essential meaning with minimal words\n",
+    "- **Standard terminology**: Use established terms from the domain when applicable\n",
+    "- **No special characters**: Avoid punctuation except hyphens or underscores if needed",
     style_guidance, "\n\n",
-    "Return your response as a JSON array with the following format:\n",
-    '[{"variable": "variable_name", "label": "Generated Label"}, ...]'
+
+    examples_section
   )
 
   return(prompt)
@@ -118,12 +150,23 @@ build_main_prompt.label <- function(analysis_type, analysis_data = NULL, word_li
     collapse = "\n"
   )
 
-  # Build prompt
+  # Build prompt with structured sections
   prompt <- paste0(
-    "Please create ", label_type, " labels", word_instruction, " for the following variables:\n\n",
+    "# VARIABLES TO LABEL\n",
+    "Create ", label_type, " labels", word_instruction, " for:\n\n",
     variable_list, "\n\n",
-    "Remember to return the results as a JSON array with the format:\n",
-    '[{"variable": "variable_name", "label": "Generated Label"}, ...]'
+
+    "# OUTPUT FORMAT\n",
+    "Return a JSON array:\n",
+    "```json\n",
+    '[{"variable": "var_name", "label": "Your Label"}]\n',
+    "```\n\n",
+
+    "# REQUIREMENTS\n",
+    "- Include ALL ", nrow(variable_info), " variables\n",
+    "- Use exact variable names from the list above\n",
+    "- Valid JSON syntax (no trailing commas)\n",
+    "- No additional text outside the JSON array\n"
   )
 
   return(prompt)
