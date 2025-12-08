@@ -82,7 +82,7 @@ post-processing options.</p>
 <span>  llm_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  echo <span class="op">=</span> <span class="st">"none"</span>,</span>
-<span>  silent <span class="op">=</span> <span class="fl">0</span></span>
+<span>  verbosity <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -179,8 +179,11 @@ Created with <code><a href="output_args.html">output_args</a></code>. Direct par
 <dd><p>Character. Echo level: "none", "output", "all" (default = "none")</p></dd>
 
 
-<dt id="arg-silent">silent<a class="anchor" aria-label="anchor" href="#arg-silent"></a></dt>
-<dd><p>Integer or logical. Controls output verbosity (default = 0)</p></dd>
+<dt id="arg-verbosity">verbosity<a class="anchor" aria-label="anchor" href="#arg-verbosity"></a></dt>
+<dd><p>Integer. Controls output verbosity:</p><ul><li><p>0: Completely silent</p></li>
+<li><p>1: Show messages only</p></li>
+<li><p>2: Show messages and print results (default)</p></li>
+</ul></dd>
 
 </dl></div>
     <div class="section level2">
@@ -221,7 +224,7 @@ Created with <code><a href="output_args.html">output_args</a></code>. Direct par
 <li><p><strong>Semantic Generation (LLM-facing)</strong>: label_type, max_words, max_chars, style_hint</p></li>
 <li><p><strong>Format Processing (post-processing)</strong>: case, sep, remove_articles, remove_prepositions, abbreviate</p></li>
 <li><p><strong>Configuration Objects</strong>: labeling_args, llm_args, output_args</p></li>
-<li><p><strong>Control</strong>: echo, silent</p></li>
+<li><p><strong>Control</strong>: echo, verbosity</p></li>
 </ul></div>
 
     <div class="section level2">

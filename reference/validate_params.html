@@ -87,7 +87,7 @@ If throw_error = TRUE, returns normalized parameter list or throws error</p></li
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Valid parameters</span></span></span>
-<span class="r-in"><span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>word_limit <span class="op">=</span> <span class="fl">150</span>, cutoff <span class="op">=</span> <span class="fl">0.3</span>, silent <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>word_limit <span class="op">=</span> <span class="fl">150</span>, cutoff <span class="op">=</span> <span class="fl">0.3</span>, verbosity <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">validate_params</span><span class="op">(</span><span class="va">params</span>, throw_error <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $valid</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
@@ -109,15 +109,15 @@ If throw_error = TRUE, returns normalized parameter list or throws error</p></li
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $results$silent</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $results$silent$valid</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $results$verbosity</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $results$verbosity$valid</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $results$silent$message</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $results$verbosity$message</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $results$silent$normalized</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $results$verbosity$normalized</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -131,8 +131,8 @@ If throw_error = TRUE, returns normalized parameter list or throws error</p></li
 <span class="r-out co"><span class="r-pr">#&gt;</span> $normalized$cutoff</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $normalized$silent</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $normalized$verbosity</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>

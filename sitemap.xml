@@ -13,6 +13,7 @@
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/LICENSE-text.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/LICENSE.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/news/index.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/PLAN-print-consolidation.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/abbreviate_word.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/add_emergency_suffix.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/analysis_data.html</loc></url>
@@ -151,6 +152,10 @@
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.llm_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.output_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print.variable_labels.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print_header.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print_item.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print_kv.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/print_section.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/process_export_file_path.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/prompt_builder.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/psychinterpreter_colors.html</loc></url>
@@ -159,6 +164,7 @@
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/remove_label_prepositions.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/reset.chat_session.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/restore_case_pattern.html</loc></url>
+<url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/shared_print.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/show_interpret_args.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/simplify_description.html</loc></url>
 <url><loc>https://github.com/matthiaskloft/psychinterpreter/reference/theme_psychinterpreter.html</loc></url>

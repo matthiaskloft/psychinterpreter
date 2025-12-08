@@ -76,7 +76,7 @@
 <code>interpret()</code> Usage Patterns</h1>
 
       <p class="author">Matthias Kloft</p>
-      <p class="date">2025-11-24</p>
+      <p class="date">2025-12-08</p>
 
       <small class="dont-index">Source: <a href="https://github.com/matthiaskloft/psychinterpreter/blob/HEAD/vignettes/articles/02-Usage_Patterns.qmd"><code>vignettes/articles/02-Usage_Patterns.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -149,7 +149,7 @@
 <span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  silent <span class="op">=</span> <span class="fl">1</span></span>
+<span>  verbosity <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details>
 </div>
@@ -169,7 +169,7 @@
 <span>  llm_provider <span class="op">=</span> <span class="va">provider</span>,</span>
 <span>  llm_model <span class="op">=</span> <span class="va">llm</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  silent <span class="op">=</span> <span class="fl">1</span></span>
+<span>  verbosity <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details>
 </div>
@@ -186,7 +186,7 @@
 <span>  fit_results <span class="op">=</span> <span class="va">fa_model</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  silent <span class="op">=</span> <span class="fl">1</span></span>
+<span>  verbosity <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stderr">
 <pre><code>ℹ Starting fa interpretation...</code></pre>
@@ -215,7 +215,7 @@
 <span>  fit_results <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>loadings <span class="op">=</span> <span class="va">loadings_matrix</span>, factor_cor_mat <span class="op">=</span> <span class="va">factor_cor_mat</span><span class="op">)</span>,</span>
 <span>  variable_info <span class="op">=</span> <span class="va">var_info</span>,</span>
 <span>  word_limit <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  silent <span class="op">=</span> <span class="fl">1</span></span>
+<span>  verbosity <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stderr">
 <pre><code>ℹ Starting fa interpretation...</code></pre>
@@ -245,11 +245,12 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">chat</span><span class="op">)</span></span></code></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>Factor Analysis Chat Session
-Provider: anthropic
-Model: claude-sonnet-4-5
-Created: 2025-11-24 03:22:01.331406
-Interpretations run: 2
-Total tokens - Input: 0, Output: 0</code></pre>
+────────────────────────────────────────
+  Provider: anthropic
+  Model: claude-sonnet-4-5
+  Created: 2025-12-08 12:33
+  Interpretations: 2
+  Tokens: 0 in, 0 out</code></pre>
 </div>
 </div>
 </section></section><section class="section level2"><h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
@@ -263,7 +264,7 @@ Total tokens - Input: 0, Output: 0</code></pre>
 <p><strong>locale:</strong> <em>LC_COLLATE=German_Germany.utf8</em>, <em>LC_CTYPE=German_Germany.utf8</em>, <em>LC_MONETARY=German_Germany.utf8</em>, <em>LC_NUMERIC=C</em> and <em>LC_TIME=German_Germany.utf8</em></p>
 <p><strong>attached base packages:</strong> <em>stats4</em>, <em>stats</em>, <em>graphics</em>, <em>grDevices</em>, <em>utils</em>, <em>datasets</em>, <em>methods</em> and <em>base</em></p>
 <p><strong>other attached packages:</strong> <em>pander(v.0.6.6)</em>, <em>DT(v.0.34.0)</em>, <em>here(v.1.0.2)</em>, <em>dplyr(v.1.1.4)</em>, <em>mirt(v.1.45.1)</em>, <em>lattice(v.0.22-7)</em>, <em>lavaan(v.0.6-20)</em>, <em>psych(v.2.5.6)</em>, <em>ollamar(v.1.2.2)</em>, <em>ellmer(v.0.4.0)</em>, <em>psychinterpreter(v.0.0.0.9000)</em> and <em>pacman(v.0.5.1)</em></p>
-<p><strong>loaded via a namespace (and not attached):</strong> <em>gtable(v.0.3.6)</em>, <em>xfun(v.0.53)</em>, <em>ggplot2(v.4.0.1)</em>, <em>httr2(v.1.2.1)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>quadprog(v.1.5-8)</em>, <em>vctrs(v.0.6.5)</em>, <em>tools(v.4.5.2)</em>, <em>generics(v.0.1.4)</em>, <em>curl(v.7.0.0)</em>, <em>parallel(v.4.5.2)</em>, <em>tibble(v.3.3.0)</em>, <em>cluster(v.2.1.8.1)</em>, <em>pkgconfig(v.2.0.3)</em>, <em>R.oo(v.1.27.1)</em>, <em>Matrix(v.1.7-4)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>S7(v.0.2.0)</em>, <em>lifecycle(v.1.0.4)</em>, <em>compiler(v.4.5.2)</em>, <em>farver(v.2.1.2)</em>, <em>GPArotation(v.2025.3-1)</em>, <em>brio(v.1.1.5)</em>, <em>mnormt(v.2.1.1)</em>, <em>codetools(v.0.2-20)</em>, <em>permute(v.0.9-8)</em>, <em>dcurver(v.0.9.3)</em>, <em>htmltools(v.0.5.8.1)</em>, <em>yaml(v.2.3.10)</em>, <em>pillar(v.1.11.1)</em>, <em>crayon(v.1.5.3)</em>, <em>tidyr(v.1.3.1)</em>, <em>MASS(v.7.3-65)</em>, <em>R.utils(v.2.13.0)</em>, <em>vegan(v.2.7-2)</em>, <em>sessioninfo(v.1.2.3)</em>, <em>parallelly(v.1.45.1)</em>, <em>nlme(v.3.1-168)</em>, <em>Deriv(v.4.2.0)</em>, <em>tidyselect(v.1.2.1)</em>, <em>digest(v.0.6.37)</em>, <em>future(v.1.67.0)</em>, <em>listenv(v.0.9.1)</em>, <em>purrr(v.1.0.4)</em>, <em>splines(v.4.5.2)</em>, <em>rprojroot(v.2.1.1)</em>, <em>fastmap(v.1.2.0)</em>, <em>grid(v.4.5.2)</em>, <em>cli(v.3.6.5)</em>, <em>beepr(v.2.0)</em>, <em>magrittr(v.2.0.3)</em>, <em>future.apply(v.1.20.0)</em>, <em>pbivnorm(v.0.6.0)</em>, <em>withr(v.3.0.2)</em>, <em>clipr(v.0.8.0)</em>, <em>SimDesign(v.2.21)</em>, <em>scales(v.1.4.0)</em>, <em>rappdirs(v.0.3.3)</em>, <em>rmarkdown(v.2.30)</em>, <em>globals(v.0.18.0)</em>, <em>audio(v.0.1-11)</em>, <em>gridExtra(v.2.3)</em>, <em>progressr(v.0.17.0)</em>, <em>R.methodsS3(v.1.8.2)</em>, <em>pbapply(v.1.7-4)</em>, <em>evaluate(v.1.0.5)</em>, <em>knitr(v.1.50)</em>, <em>testthat(v.3.2.3)</em>, <em>mgcv(v.1.9-3)</em>, <em>rlang(v.1.1.6)</em>, <em>Rcpp(v.1.1.0)</em>, <em>glue(v.1.8.0)</em>, <em>coro(v.1.1.0)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>jsonlite(v.2.0.0)</em> and <em>R6(v.2.6.1)</em></p>
+<p><strong>loaded via a namespace (and not attached):</strong> <em>gtable(v.0.3.6)</em>, <em>xfun(v.0.53)</em>, <em>ggplot2(v.4.0.1)</em>, <em>httr2(v.1.2.1)</em>, <em>htmlwidgets(v.1.6.4)</em>, <em>quadprog(v.1.5-8)</em>, <em>vctrs(v.0.6.5)</em>, <em>tools(v.4.5.2)</em>, <em>generics(v.0.1.4)</em>, <em>curl(v.7.0.0)</em>, <em>parallel(v.4.5.2)</em>, <em>tibble(v.3.3.0)</em>, <em>cluster(v.2.1.8.1)</em>, <em>pkgconfig(v.2.0.3)</em>, <em>R.oo(v.1.27.1)</em>, <em>Matrix(v.1.7-4)</em>, <em>RColorBrewer(v.1.1-3)</em>, <em>S7(v.0.2.0)</em>, <em>lifecycle(v.1.0.4)</em>, <em>compiler(v.4.5.2)</em>, <em>farver(v.2.1.2)</em>, <em>GPArotation(v.2025.3-1)</em>, <em>brio(v.1.1.5)</em>, <em>mnormt(v.2.1.1)</em>, <em>codetools(v.0.2-20)</em>, <em>permute(v.0.9-8)</em>, <em>dcurver(v.0.9.3)</em>, <em>htmltools(v.0.5.8.1)</em>, <em>yaml(v.2.3.10)</em>, <em>pillar(v.1.11.1)</em>, <em>crayon(v.1.5.3)</em>, <em>tidyr(v.1.3.1)</em>, <em>MASS(v.7.3-65)</em>, <em>R.utils(v.2.13.0)</em>, <em>vegan(v.2.7-2)</em>, <em>sessioninfo(v.1.2.3)</em>, <em>parallelly(v.1.45.1)</em>, <em>nlme(v.3.1-168)</em>, <em>Deriv(v.4.2.0)</em>, <em>tidyselect(v.1.2.1)</em>, <em>digest(v.0.6.37)</em>, <em>future(v.1.67.0)</em>, <em>listenv(v.0.9.1)</em>, <em>purrr(v.1.0.4)</em>, <em>splines(v.4.5.2)</em>, <em>rprojroot(v.2.1.1)</em>, <em>fastmap(v.1.2.0)</em>, <em>grid(v.4.5.2)</em>, <em>cli(v.3.6.5)</em>, <em>beepr(v.2.0)</em>, <em>magrittr(v.2.0.3)</em>, <em>future.apply(v.1.20.0)</em>, <em>pbivnorm(v.0.6.0)</em>, <em>withr(v.3.0.2)</em>, <em>clipr(v.0.8.0)</em>, <em>SimDesign(v.2.21)</em>, <em>scales(v.1.4.0)</em>, <em>rappdirs(v.0.3.3)</em>, <em>rmarkdown(v.2.30)</em>, <em>globals(v.0.18.0)</em>, <em>audio(v.0.1-11)</em>, <em>gridExtra(v.2.3)</em>, <em>progressr(v.0.17.0)</em>, <em>R.methodsS3(v.1.8.2)</em>, <em>pbapply(v.1.7-4)</em>, <em>evaluate(v.1.0.5)</em>, <em>knitr(v.1.50)</em>, <em>testthat(v.3.3.0)</em>, <em>mgcv(v.1.9-3)</em>, <em>rlang(v.1.1.6)</em>, <em>Rcpp(v.1.1.0)</em>, <em>glue(v.1.8.0)</em>, <em>coro(v.1.1.0)</em>, <em>rstudioapi(v.0.17.1)</em>, <em>jsonlite(v.2.0.0)</em> and <em>R6(v.2.6.1)</em></p>
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">
