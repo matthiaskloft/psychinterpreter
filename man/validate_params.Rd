@@ -26,7 +26,7 @@ Useful for batch validation in config object constructors.
 }
 \examples{
 # Valid parameters
-params <- list(word_limit = 150, cutoff = 0.3, silent = 0)
+params <- list(word_limit = 150, cutoff = 0.3, verbosity = 2)
 validate_params(params, throw_error = FALSE)
 
 # Invalid parameters

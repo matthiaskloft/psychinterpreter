@@ -8,7 +8,7 @@
   interpretation_results,
   format = "txt",
   file = "interpretation",
-  silent = 0
+  verbosity = 2
 )
 }
 \arguments{
@@ -18,7 +18,7 @@
 
 \item{file}{Character. File path with or without extension}
 
-\item{silent}{Integer or logical. Output verbosity control}
+\item{verbosity}{Integer. Output verbosity control}
 }
 \value{
 Does not return (throws error)

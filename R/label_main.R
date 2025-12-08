@@ -11,7 +11,7 @@
 #'   \item **Semantic Generation (LLM-facing)**: label_type, max_words, max_chars, style_hint
 #'   \item **Format Processing (post-processing)**: case, sep, remove_articles, remove_prepositions, abbreviate
 #'   \item **Configuration Objects**: labeling_args, llm_args, output_args
-#'   \item **Control**: echo, silent
+#'   \item **Control**: echo, verbosity
 #' }
 #'
 #' @param variable_info Data frame with 'description' column (required) and optional
@@ -52,7 +52,10 @@
 #' @param output_args List or output_args object. Output configuration settings.
 #'   Created with \code{\link{output_args}}. Direct parameters take precedence.
 #' @param echo Character. Echo level: "none", "output", "all" (default = "none")
-#' @param silent Integer or logical. Controls output verbosity (default = 0)
+#' @param verbosity Integer. Controls output verbosity:
+#'   - 0: Completely silent
+#'   - 1: Show messages only
+#'   - 2: Show messages and print results (default)
 #'
 #' @return A variable_labels object containing:
 #'   \item{labels_formatted}{Data frame with formatted 'variable' and 'label' columns}
@@ -157,7 +160,7 @@ label_variables <- function(variable_info,
                            llm_args = NULL,
                            output_args = NULL,
                            echo = "none",
-                           silent = 0) {
+                           verbosity = 2) {
 
   # Capture start time
   start_time <- Sys.time()
@@ -187,19 +190,11 @@ label_variables <- function(variable_info,
 
   # Auto-generate variable names if not provided
   if (!"variable" %in% names(variable_info)) {
-    if (silent < 2) {
-      cli::cli_alert_info("No 'variable' column provided, auto-generating names (V1, V2, ...)")
-    }
     variable_info$variable <- paste0("V", seq_len(nrow(variable_info)))
   }
 
   # Reorder columns to ensure variable comes first
   variable_info <- variable_info[, c("variable", "description")]
-
-  # Handle backward compatibility: Convert logical silent to integer
-  if (is.logical(silent)) {
-    silent <- ifelse(silent, 2, 0)
-  }
 
   # ==========================================================================
   # EXTRACT PARAMETERS FROM CONFIG OBJECTS (DUAL-TIER ARCHITECTURE)
@@ -250,12 +245,8 @@ label_variables <- function(variable_info,
   # Extract output_args if provided
   if (!is.null(output_args)) {
     # Only use config values if direct parameter is at default
-    if (silent == 0 && !is.null(output_args$silent)) {
-      silent <- output_args$silent
-    }
-    # Handle logical silent from output_args
-    if (is.logical(silent)) {
-      silent <- ifelse(silent, 2, 0)
+    if (verbosity == 2 && !is.null(output_args$verbosity)) {
+      verbosity <- output_args$verbosity
     }
   }
 
@@ -268,6 +259,10 @@ label_variables <- function(variable_info,
         "x" = "You supplied: {.val {label_type}}"
       )
     )
+  }
+
+  if (verbosity > 0) {
+    cli::cli_alert_info("Starting variable labeling ({nrow(variable_info)} variables)...")
   }
 
   # ==========================================================================
@@ -288,8 +283,8 @@ label_variables <- function(variable_info,
       )
     }
 
-    if (silent < 2) {
-      cli::cli_alert_info("Creating temporary chat session for labeling...")
+    if (verbosity > 0) {
+      cli::cli_alert_info("Creating temporary chat session...")
     }
 
     # Build system prompt for labeling
@@ -325,8 +320,8 @@ label_variables <- function(variable_info,
   # STEP 3: BUILD AND SEND PROMPT
   # ==========================================================================
 
-  if (silent < 2) {
-    cli::cli_alert_info("Generating labels for {nrow(variable_info)} variables...")
+  if (verbosity > 0) {
+    cli::cli_alert_info("Building prompt...")
   }
 
   # Build user prompt
@@ -337,6 +332,10 @@ label_variables <- function(variable_info,
     max_words = max_words,
     max_chars = max_chars
   )
+
+  if (verbosity > 0) {
+    cli::cli_alert_info("Querying LLM...")
+  }
 
   # Send to LLM
   response <- tryCatch({
@@ -349,7 +348,7 @@ label_variables <- function(variable_info,
   # STEP 4: PARSE RESPONSE
   # ==========================================================================
 
-  if (silent < 2) {
+  if (verbosity > 0) {
     cli::cli_alert_info("Parsing LLM response...")
   }
 
@@ -359,8 +358,8 @@ label_variables <- function(variable_info,
   # STEP 5: APPLY FORMATTING
   # ==========================================================================
 
-  if (silent < 2) {
-    cli::cli_alert_info("Applying formatting transformations...")
+  if (verbosity > 0) {
+    cli::cli_alert_info("Applying formatting...")
   }
 
   # Convert parsed labels (list of lists) to data frame
@@ -448,15 +447,13 @@ label_variables <- function(variable_info,
   # STEP 8: OUTPUT RESULTS (IF NOT SILENT)
   # ==========================================================================
 
-  if (silent < 2) {
-    cli::cli_alert_success(
-      "Generated labels for {nrow(variable_info)} variables in {round(metadata$duration, 1)}s"
-    )
+  if (verbosity > 0) {
+    cli::cli_alert_success("Labeling complete!")
+  }
 
-    if (silent == 0) {
-      # Show the result
-      print(result)
-    }
+  if (verbosity == 2) {
+    cat("\n")
+    print(result)
   }
 
   return(result)

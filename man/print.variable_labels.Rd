@@ -4,12 +4,17 @@
 \alias{print.variable_labels}
 \title{Print Variable Labels Object}
 \usage{
-\method{print}{variable_labels}(x, silent = 0, ...)
+\method{print}{variable_labels}(x, verbosity = 2, ...)
 }
 \arguments{
 \item{x}{variable_labels object}
 
-\item{silent}{Integer. Controls output verbosity (0, 1, 2). Default = 0}
+\item{verbosity}{Integer. Controls output verbosity:
+\itemize{
+\item 0: Completely silent
+\item 1: Messages only (not used for print)
+\item 2: Full output (default)
+}}
 
 \item{...}{Additional arguments}
 }

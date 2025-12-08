@@ -42,7 +42,7 @@ packages <- c(
   "mirt",
   "dplyr",
   "here",
-  "DT",
+  "reactable",
   "pander"
 )
 # Load required packages using pacman
@@ -65,12 +65,12 @@ bfi.dictionary <- bfi.dictionary[1:25, ]
 
 Show the first few rows of the BFI data:
 ```{r data-exploration}
-head(bfi,10) |> DT::datatable(options = list(scrollX = TRUE))
+head(bfi, 10) |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 Display the BFI dictionary showing item descriptions:
 ```{r}
-bfi.dictionary |> select(Item) |> as.data.frame()|> DT::datatable(options = list(scrollX = TRUE))
+bfi.dictionary |> select(Item) |> as.data.frame() |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
 ```
 
 
@@ -106,14 +106,14 @@ Loadings:
 ```{r}
 # Extract loading matrix for interpretation
 loadings_matrix <- unclass(fa_result$loadings) |> as.data.frame()
-round(loadings_matrix, 2) |> DT::datatable(options = list(scrollX = TRUE))
+round(loadings_matrix, 2) |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 Factor Correlation Matrix
 ```{r}
 # Extract factor correlation matrix
 factor_cor_mat <- fa_result$Phi |> as.data.frame()
-round(factor_cor_mat, 2) |> DT::datatable(options = list(scrollX = TRUE))
+round(factor_cor_mat, 2) |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 
@@ -127,10 +127,10 @@ Set up persistent chat session. If you use Ollama, make sure to start the server
 # optionally pull the model from ollama
 #ollamar::pull("gpt-oss:20b-cloud")
 
-chat <- chat_session(model_type = "fa",
-  provider = "ollama",
-  model = "qwen3-vl:235b-instruct-cloud",
-  #model = "gpt-oss:20b-cloud",
+chat <- chat_session(analysis_type = "fa",
+  llm_provider = "ollama",
+  llm_model = "qwen3-vl:235b-instruct-cloud",
+  #llm_model = "gpt-oss:20b-cloud",
   # set temperature and seed for reproducibility
   params = params(temperature = 0, seed = 42)
 )
@@ -148,7 +148,7 @@ variable_info <- data.frame(
   stringsAsFactors = FALSE
 )
 
-head(variable_info, 10) |> DT::datatable(options = list(scrollX = TRUE))
+head(variable_info, 10) |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
 ```
 
 We now generate factor interpretations using the specified LLM:
@@ -166,7 +166,7 @@ result <- interpret(
   sort_loadings = TRUE,
   word_limit =  word_limit,
   max_line_length = 80,
-  silent = FALSE,
+  verbosity = 2,
   echo = "none",
   output_format = "cli"
 )
@@ -205,5 +205,4 @@ print(chat)
 ```{r}
 pander::pander(sessionInfo())
 ```
-
 

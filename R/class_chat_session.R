@@ -158,24 +158,23 @@ chat_session <- function(analysis_type = "fa",
 #'
 #' @export
 print.chat_session <- function(x, ...) {
-  # Get nice analysis type name
   analysis_type_names <- c(
     fa = "Factor Analysis",
     gm = "Gaussian Mixture",
     irt = "Item Response Theory",
     cdm = "Cognitive Diagnosis"
   )
-  analysis_type_name <- analysis_type_names[x$analysis_type] %||% x$analysis_type
+  title <- paste(analysis_type_names[x$analysis_type] %||% x$analysis_type,
+                 "Chat Session")
 
-  # Build output as single string
   output <- paste0(
-    analysis_type_name, " Chat Session\n",
-    "Provider: ", x$llm_provider, "\n",
-    "Model: ", x$llm_model %||% "default", "\n",
-    "Created: ", as.character(x$created_at), "\n",
-    "Interpretations run: ", x$n_interpretations, "\n",
-    "Total tokens - Input: ", x$total_input_tokens,
-    ", Output: ", x$total_output_tokens, "\n"
+    print_header(title),
+    print_kv("Provider", x$llm_provider),
+    print_kv("Model", x$llm_model %||% "(default)"),
+    print_kv("Created", format(x$created_at, "%Y-%m-%d %H:%M")),
+    print_kv("Interpretations", x$n_interpretations),
+    print_kv("Tokens", paste0(x$total_input_tokens, " in, ",
+                               x$total_output_tokens, " out"))
   )
 
   cat(output)

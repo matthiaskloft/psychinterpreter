@@ -22,7 +22,7 @@ label_variables(
   llm_args = NULL,
   output_args = NULL,
   echo = "none",
-  silent = 0
+  verbosity = 2
 )
 }
 \arguments{
@@ -81,7 +81,12 @@ Created with \code{\link{output_args}}. Direct parameters take precedence.}
 
 \item{echo}{Character. Echo level: "none", "output", "all" (default = "none")}
 
-\item{silent}{Integer or logical. Controls output verbosity (default = 0)}
+\item{verbosity}{Integer. Controls output verbosity:
+\itemize{
+\item 0: Completely silent
+\item 1: Show messages only
+\item 2: Show messages and print results (default)
+}}
 }
 \value{
 A variable_labels object containing:
@@ -119,7 +124,7 @@ Parameters are organized into groups:
 \item \strong{Semantic Generation (LLM-facing)}: label_type, max_words, max_chars, style_hint
 \item \strong{Format Processing (post-processing)}: case, sep, remove_articles, remove_prepositions, abbreviate
 \item \strong{Configuration Objects}: labeling_args, llm_args, output_args
-\item \strong{Control}: echo, silent
+\item \strong{Control}: echo, verbosity
 }
 }
 

@@ -41,26 +41,26 @@ test_that("export_interpretation handles file extensions correctly", {
 
   # Test txt format without extension
   temp_file <- tempfile(pattern = "test_report", fileext = "")
-  export_interpretation(results, format = "txt", file = temp_file, silent = TRUE)
+  export_interpretation(results, format = "txt", file = temp_file, verbosity = 0)
   expect_true(file.exists(paste0(temp_file, ".txt")))
   unlink(paste0(temp_file, ".txt"))
 
   # Test txt format with .txt extension
   temp_file <- tempfile(pattern = "test_report", fileext = ".txt")
-  export_interpretation(results, format = "txt", file = temp_file, silent = TRUE)
+  export_interpretation(results, format = "txt", file = temp_file, verbosity = 0)
   expect_true(file.exists(temp_file))
   expect_false(file.exists(paste0(temp_file, ".txt")))  # Should not double-add
   unlink(temp_file)
 
   # Test md format without extension
   temp_file <- tempfile(pattern = "test_report", fileext = "")
-  export_interpretation(results, format = "md", file = temp_file, silent = TRUE)
+  export_interpretation(results, format = "md", file = temp_file, verbosity = 0)
   expect_true(file.exists(paste0(temp_file, ".md")))
   unlink(paste0(temp_file, ".md"))
 
   # Test md format with .md extension
   temp_file <- tempfile(pattern = "test_report", fileext = ".md")
-  export_interpretation(results, format = "md", file = temp_file, silent = TRUE)
+  export_interpretation(results, format = "md", file = temp_file, verbosity = 0)
   expect_true(file.exists(temp_file))
   expect_false(file.exists(paste0(temp_file, ".md")))  # Should not double-add
   unlink(temp_file)
@@ -73,7 +73,7 @@ test_that("export_interpretation replaces wrong extension with correct one", {
   temp_file <- tempfile(pattern = "test_report", fileext = ".md")
   base_name <- tools::file_path_sans_ext(temp_file)
 
-  export_interpretation(results, format = "txt", file = temp_file, silent = TRUE)
+  export_interpretation(results, format = "txt", file = temp_file, verbosity = 0)
   expect_true(file.exists(paste0(base_name, ".txt")))
   expect_false(file.exists(temp_file))  # Original .md shouldn't exist
   unlink(paste0(base_name, ".txt"))
@@ -82,7 +82,7 @@ test_that("export_interpretation replaces wrong extension with correct one", {
   temp_file <- tempfile(pattern = "test_report", fileext = ".txt")
   base_name <- tools::file_path_sans_ext(temp_file)
 
-  export_interpretation(results, format = "md", file = temp_file, silent = TRUE)
+  export_interpretation(results, format = "md", file = temp_file, verbosity = 0)
   expect_true(file.exists(paste0(base_name, ".md")))
   expect_false(file.exists(temp_file))  # Original .txt shouldn't exist
   unlink(paste0(base_name, ".md"))
@@ -95,7 +95,7 @@ test_that("export_interpretation checks directory existence", {
   expect_error(
     export_interpretation(results, format = "txt",
                         file = "/nonexistent/directory/file.txt",
-                        silent = TRUE),
+                        verbosity = 0),
     "Directory does not exist"
   )
 })
@@ -104,7 +104,7 @@ test_that("export_interpretation creates valid text files", {
   results <- sample_interpretation()
 
   temp_file <- tempfile(pattern = "test_report", fileext = ".txt")
-  export_interpretation(results, format = "txt", file = temp_file, silent = TRUE)
+  export_interpretation(results, format = "txt", file = temp_file, verbosity = 0)
 
   # Check file exists and has content
   expect_true(file.exists(temp_file))
@@ -122,7 +122,7 @@ test_that("export_interpretation creates valid markdown files", {
   results <- sample_interpretation()
 
   temp_file <- tempfile(pattern = "test_report", fileext = ".md")
-  export_interpretation(results, format = "md", file = temp_file, silent = TRUE)
+  export_interpretation(results, format = "md", file = temp_file, verbosity = 0)
 
   # Check file exists and has content
   expect_true(file.exists(temp_file))
@@ -142,28 +142,28 @@ test_that("export_interpretation returns invisible TRUE", {
   temp_file <- tempfile(pattern = "test_report", fileext = ".txt")
 
   # Check return value
-  result <- export_interpretation(results, format = "txt", file = temp_file, silent = TRUE)
+  result <- export_interpretation(results, format = "txt", file = temp_file, verbosity = 0)
   expect_true(result)
   expect_invisible(
-    export_interpretation(results, format = "txt", file = temp_file, silent = TRUE)
+    export_interpretation(results, format = "txt", file = temp_file, verbosity = 0)
   )
 
   unlink(temp_file)
 })
 
-test_that("export_interpretation silent parameter works", {
+test_that("export_interpretation verbosity parameter works", {
   results <- sample_interpretation()
 
   temp_file <- tempfile(pattern = "test_report", fileext = ".txt")
 
-  # With silent = TRUE, should not produce message
+  # With verbosity = 0, should not produce message
   expect_silent(
-    export_interpretation(results, format = "txt", file = temp_file, silent = TRUE)
+    export_interpretation(results, format = "txt", file = temp_file, verbosity = 0)
   )
 
-  # With silent = FALSE, should produce success message
+  # With verbosity = 2, should produce success message
   expect_message(
-    export_interpretation(results, format = "txt", file = temp_file, silent = FALSE),
+    export_interpretation(results, format = "txt", file = temp_file, verbosity = 2),
     "Report exported"
   )
 
@@ -177,7 +177,7 @@ test_that("export_interpretation works with tempdir paths", {
   temp_dir <- tempdir()
   file_path <- file.path(temp_dir, "test_report")
 
-  export_interpretation(results, format = "txt", file = file_path, silent = TRUE)
+  export_interpretation(results, format = "txt", file = file_path, verbosity = 0)
   expect_true(file.exists(paste0(file_path, ".txt")))
 
   unlink(paste0(file_path, ".txt"))

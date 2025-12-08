@@ -159,13 +159,13 @@ test_that("llm_args() accepts edge case values", {
 test_that("output_args() creates valid config object", {
   config <- output_args(
     format = "markdown",
-    silent = 2
+    verbosity = 0
   )
 
   expect_s3_class(config, "output_args")
   expect_type(config, "list")
   expect_equal(config$format, "markdown")
-  expect_equal(config$silent, 2L)
+  expect_equal(config$verbosity, 0L)
 })
 
 test_that("output_args() validates format parameter", {
@@ -175,14 +175,14 @@ test_that("output_args() validates format parameter", {
   )
 })
 
-test_that("output_args() validates silent parameter", {
+test_that("output_args() validates verbosity parameter", {
   expect_error(
-    output_args(silent = -1),
+    output_args(verbosity = -1),
     "must be 0, 1, or 2"
   )
 
   expect_error(
-    output_args(silent = 5),
+    output_args(verbosity = 5),
     "must be 0, 1, or 2"
   )
 })
@@ -191,7 +191,7 @@ test_that("output_args() uses default values when not specified", {
   config <- output_args()
 
   expect_equal(config$format, "cli")
-  expect_equal(config$silent, 0L)
+  expect_equal(config$verbosity, 2L)
   expect_equal(config$heading_level, 1L)
   expect_equal(config$max_line_length, 80L)
 })
@@ -204,23 +204,15 @@ test_that("output_args() accepts all valid formats", {
   expect_equal(config_md$format, "markdown")
 })
 
-test_that("output_args() accepts all valid silent values", {
-  config_0 <- output_args(silent = 0)
-  expect_equal(config_0$silent, 0L)
+test_that("output_args() accepts all valid verbosity values", {
+  config_0 <- output_args(verbosity = 0)
+  expect_equal(config_0$verbosity, 0L)
 
-  config_1 <- output_args(silent = 1)
-  expect_equal(config_1$silent, 1L)
+  config_1 <- output_args(verbosity = 1)
+  expect_equal(config_1$verbosity, 1L)
 
-  config_2 <- output_args(silent = 2)
-  expect_equal(config_2$silent, 2L)
-})
-
-test_that("output_args() accepts logical silent values", {
-  config_false <- output_args(silent = FALSE)
-  expect_equal(config_false$silent, 0L)
-
-  config_true <- output_args(silent = TRUE)
-  expect_equal(config_true$silent, 2L)
+  config_2 <- output_args(verbosity = 2)
+  expect_equal(config_2$verbosity, 2L)
 })
 
 # =============================================================================
@@ -268,14 +260,14 @@ test_that("output_args config object has correct structure for interpret()", {
   # Non-LLM test: verifies config object structure without calling LLM
   out_config <- output_args(
     format = "markdown",
-    silent = 2
+    verbosity = 0
   )
 
   # Verify the config object is properly structured
   expect_s3_class(out_config, "output_args")
-  expect_true(all(c("format", "silent") %in% names(out_config)))
+  expect_true(all(c("format", "verbosity") %in% names(out_config)))
   expect_equal(out_config$format, "markdown")
-  expect_equal(out_config$silent, 2L)
+  expect_equal(out_config$verbosity, 0L)
 })
 
 test_that("interpret() works with all three config objects together", {
@@ -287,7 +279,7 @@ test_that("interpret() works with all three config objects together", {
 
   interp_config <- interpretation_args(analysis_type = "fa", cutoff = 0.35)
   llm_config <- llm_args(llm_provider = "ollama", llm_model = "gpt-oss:20b-cloud", word_limit = 20)
-  out_config <- output_args(format = "cli", silent = 1)
+  out_config <- output_args(format = "cli", verbosity = 1)
 
   result <- interpret(
     fit_results = list(loadings = loadings),

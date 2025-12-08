@@ -92,14 +92,14 @@ test_that("default_output_args returns correct defaults", {
   expect_true("heading_level" %in% names(defaults))
   expect_true("suppress_heading" %in% names(defaults))
   expect_true("max_line_length" %in% names(defaults))
-  expect_true("silent" %in% names(defaults))
+  expect_true("verbosity" %in% names(defaults))
 
   # Check default values
   expect_equal(defaults$format, "cli")
   expect_equal(defaults$heading_level, 1)  # Default is 1, not 2
   expect_false(defaults$suppress_heading)
   expect_equal(defaults$max_line_length, 80)
-  expect_equal(defaults$silent, 0)
+  expect_equal(defaults$verbosity, 2)
 
   # Check class
   expect_s3_class(defaults, "output_args")

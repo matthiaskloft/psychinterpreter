@@ -274,133 +274,120 @@ create_variable_labels <- function(labels_df, variable_info,
 #' Print Variable Labels Object
 #'
 #' @param x variable_labels object
-#' @param silent Integer. Controls output verbosity (0, 1, 2). Default = 0
+#' @param verbosity Integer. Controls output verbosity:
+#'   - 0: Completely silent
+#'   - 1: Messages only (not used for print)
+#'   - 2: Full output (default)
 #' @param ... Additional arguments
 #'
 #' @export
-print.variable_labels <- function(x, silent = 0, ...) {
-
-  # Handle backward compatibility
-  if (is.logical(silent)) {
-    silent <- ifelse(silent, 2, 0)
-  }
+print.variable_labels <- function(x, verbosity = 2, ...) {
 
   # Completely silent - return nothing
-  if (silent == 2) {
+  if (verbosity == 0) {
     return(invisible(x))
   }
 
-  # Build output as text lines
-  output_lines <- character()
+  # Build output
+  output <- print_header("Variable Labels")
 
-  # Header
-  output_lines <- c(output_lines, "\n-- Variable Labels Report --\n")
-
-  # Metadata section
-  output_lines <- c(output_lines, "\n-- Labeling Details --\n")
-
+  # Core metadata
   if (!is.null(x$metadata$label_type)) {
-    output_lines <- c(output_lines, paste0("  * Label type: ", x$metadata$label_type))
+    output <- paste0(output, print_kv("Label type", x$metadata$label_type))
   }
 
-  # Show max_words if specified (LLM instruction)
   if (!is.null(x$metadata$formatting$max_words)) {
-    output_lines <- c(output_lines, paste0("  * Max words: ", x$metadata$formatting$max_words))
+    output <- paste0(output, print_kv("Max words", x$metadata$formatting$max_words))
   }
 
   if (!is.null(x$metadata$n_variables)) {
-    output_lines <- c(output_lines, paste0("  * Variables labeled: ", x$metadata$n_variables))
+    output <- paste0(output, print_kv("Variables", x$metadata$n_variables))
   }
 
+  # Duration
+  if (!is.null(x$metadata$duration)) {
+    output <- paste0(output, print_kv("Duration", paste0(round(x$metadata$duration, 1), "s")))
+  }
+
+  # LLM info (combined on one line)
   if (!is.null(x$metadata$llm_provider)) {
-    output_lines <- c(output_lines, paste0("  * LLM provider: ", x$metadata$llm_provider))
+    llm_display <- x$metadata$llm_provider
+    if (!is.null(x$metadata$llm_model)) {
+      llm_display <- paste0(llm_display, " / ", x$metadata$llm_model)
+    }
+    output <- paste0(output, print_kv("LLM", llm_display))
   }
 
-  if (!is.null(x$metadata$llm_model)) {
-    output_lines <- c(output_lines, paste0("  * Model: ", x$metadata$llm_model))
-  }
-
-  # Token usage (second section)
+  # Token usage (compact format)
   if (!is.null(x$metadata$tokens_used)) {
     tokens <- x$metadata$tokens_used
-    output_lines <- c(output_lines, "\n-- Token Usage --\n")
-    output_lines <- c(output_lines, paste0("  * Input: ", tokens$input))
-    output_lines <- c(output_lines, paste0("  * Output: ", tokens$output))
-    output_lines <- c(output_lines, paste0("  * Total: ", tokens$total))
+    output <- paste0(output, print_section("Tokens"))
+    token_line <- paste0(tokens$input, " in, ", tokens$output, " out, ", tokens$total, " total")
+    output <- paste0(output, print_item(token_line))
   }
 
-  # Formatting settings (third section)
+  # Formatting settings (only if non-default)
   if (!is.null(x$metadata$formatting)) {
     fmt <- x$metadata$formatting
-    output_lines <- c(output_lines, "\n-- Formatting Applied --\n")
-
     format_details <- character()
 
     if (!is.null(fmt$case) && fmt$case != "original") {
-      format_details <- c(format_details, paste0("Case: ", fmt$case))
+      format_details <- c(format_details, paste0("case: ", fmt$case))
     }
 
     if (!is.null(fmt$sep) && fmt$sep != " ") {
-      sep_display <- if (fmt$sep == "") "none" else fmt$sep
-      format_details <- c(format_details, paste0("Separator: '", sep_display, "'"))
+      sep_display <- if (fmt$sep == "") "none" else paste0("'", fmt$sep, "'")
+      format_details <- c(format_details, paste0("sep: ", sep_display))
     }
 
     if (!is.null(fmt$remove_articles) && fmt$remove_articles) {
-      format_details <- c(format_details, "Articles removed")
+      format_details <- c(format_details, "articles removed")
     }
 
     if (!is.null(fmt$remove_prepositions) && fmt$remove_prepositions) {
-      format_details <- c(format_details, "Prepositions removed")
+      format_details <- c(format_details, "prepositions removed")
     }
 
     if (!is.null(fmt$abbreviate) && fmt$abbreviate) {
-      format_details <- c(format_details, "Abbreviation enabled")
+      format_details <- c(format_details, "abbreviated")
     }
 
-    # max_words moved to Labeling Details section (it's an LLM instruction, not formatting)
-
     if (!is.null(fmt$max_chars)) {
-      format_details <- c(format_details, paste0("Max chars: ", fmt$max_chars))
+      format_details <- c(format_details, paste0("max ", fmt$max_chars, " chars"))
     }
 
     if (length(format_details) > 0) {
-      for (detail in format_details) {
-        output_lines <- c(output_lines, paste0("  * ", detail))
-      }
-    } else {
-      output_lines <- c(output_lines, "  No special formatting applied")
+      output <- paste0(output, print_section("Formatting"))
+      output <- paste0(output, print_item(paste(format_details, collapse = ", ")))
     }
   }
 
-  # Generated labels
-  output_lines <- c(output_lines, "\n-- Generated Labels --\n")
+  # Generated labels table
+  output <- paste0(output, print_section("Labels"))
 
-  # Format as aligned columns
-  max_var_width <- max(nchar(x$labels_formatted$variable))
-  max_label_width <- max(nchar(x$labels_formatted$label))
+  max_var_width <- max(nchar(x$labels_formatted$variable), nchar("Variable"))
+  max_label_width <- max(nchar(x$labels_formatted$label), nchar("Label"))
 
-  # Header
+  # Table header
   var_header <- format("Variable", width = max_var_width)
-  output_lines <- c(output_lines, paste0(var_header, "  Label"))
-  output_lines <- c(output_lines, paste0(strrep("-", max_var_width), "  ", strrep("-", max_label_width)))
+  spaces <- strrep(" ", .PRINT_INDENT)
+  output <- paste0(output, spaces, var_header, "  Label\n")
+  output <- paste0(output, spaces, strrep("\u2500", max_var_width), "  ",
+                   strrep("\u2500", max_label_width), "\n")
 
-  # Labels
+  # Table rows
   for (i in seq_len(nrow(x$labels_formatted))) {
     var_padded <- format(x$labels_formatted$variable[i], width = max_var_width)
-    output_lines <- c(output_lines, paste0(var_padded, "  ", x$labels_formatted$label[i]))
+    output <- paste0(output, spaces, var_padded, "  ", x$labels_formatted$label[i], "\n")
   }
 
-  # Footer
+  # Footer note
   if (!is.null(x$metadata$reformatted) && x$metadata$reformatted) {
-    output_lines <- c(output_lines, "")
-    output_lines <- c(output_lines, "i Labels were reformatted from original LLM output")
+    output <- paste0(output, "\n", spaces, cli::col_grey(cli::symbol$info),
+                     " ", cli::col_grey("Labels were reformatted from original LLM output"), "\n")
   }
 
-  output_lines <- c(output_lines, "")
-
-  # Output everything at once
-  message(paste(output_lines, collapse = "\n"))
-
+  cat(output)
   invisible(x)
 }
 

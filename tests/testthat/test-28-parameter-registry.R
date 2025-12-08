@@ -19,7 +19,7 @@ test_that("PARAMETER_REGISTRY is complete with all required fields", {
     "llm_provider", "llm_model", "system_prompt", "params",
     "word_limit", "interpretation_guidelines", "additional_info", "echo",
     # output_args (5)
-    "format", "heading_level", "suppress_heading", "max_line_length", "silent",
+    "format", "heading_level", "suppress_heading", "max_line_length", "verbosity",
     # interpretation_args FA (4)
     "cutoff", "n_emergency", "hide_low_loadings", "sort_loadings",
     # interpretation_args GM (7)
@@ -74,7 +74,7 @@ test_that("PARAMETER_REGISTRY has correct config group assignments", {
 
   # output_args (5 parameters)
   output_params <- c("format", "heading_level", "suppress_heading",
-                     "max_line_length", "silent")
+                     "max_line_length", "verbosity")
   for (param in output_params) {
     expect_equal(PARAMETER_REGISTRY[[param]]$config_group, "output_args",
                  info = paste(param, "should be in output_args"))
@@ -115,7 +115,7 @@ test_that("PARAMETER_REGISTRY has correct default values", {
   expect_equal(PARAMETER_REGISTRY$format$default, "cli")
   expect_equal(PARAMETER_REGISTRY$heading_level$default, 1L)
   expect_equal(PARAMETER_REGISTRY$suppress_heading$default, FALSE)
-  expect_equal(PARAMETER_REGISTRY$silent$default, 0L)
+  expect_equal(PARAMETER_REGISTRY$verbosity$default, 2L)
   expect_equal(PARAMETER_REGISTRY$echo$default, "none")
 
   # NULL defaults
@@ -164,7 +164,7 @@ test_that("get_params_by_group() filters by config group correctly", {
   # output_args
   output_params <- get_params_by_group("output_args")
   expect_length(output_params, 5)
-  expect_true(all(c("format", "heading_level", "silent", "max_line_length") %in% names(output_params)))
+  expect_true(all(c("format", "heading_level", "verbosity", "max_line_length") %in% names(output_params)))
 
   # interpretation_args (all models: 4 FA + 7 GM = 11)
   interp_params <- get_params_by_group("interpretation_args")
@@ -256,12 +256,10 @@ test_that("validate_param() accepts valid logical values", {
 })
 
 
-test_that("validate_param() accepts valid silent values", {
-  expect_equal(validate_param("silent", 0), 0L)
-  expect_equal(validate_param("silent", 1), 1L)
-  expect_equal(validate_param("silent", 2), 2L)
-  expect_equal(validate_param("silent", TRUE), 2L)  # Normalized
-  expect_equal(validate_param("silent", FALSE), 0L)  # Normalized
+test_that("validate_param() accepts valid verbosity values", {
+  expect_equal(validate_param("verbosity", 0), 0L)
+  expect_equal(validate_param("verbosity", 1), 1L)
+  expect_equal(validate_param("verbosity", 2), 2L)
 })
 
 
@@ -317,9 +315,9 @@ test_that("validate_param() rejects invalid max_line_length values", {
 })
 
 
-test_that("validate_param() rejects invalid silent values", {
-  expect_error(validate_param("silent", 3), "must be 0, 1, or 2")
-  expect_error(validate_param("silent", -1), "must be 0, 1, or 2")
+test_that("validate_param() rejects invalid verbosity values", {
+  expect_error(validate_param("verbosity", 3), "must be 0, 1, or 2")
+  expect_error(validate_param("verbosity", -1), "must be 0, 1, or 2")
 })
 
 
@@ -363,14 +361,13 @@ test_that("validate_param() returns result list when throw_error = FALSE", {
 })
 
 
-test_that("validate_param() returns normalized value for silent conversion", {
-  result <- validate_param("silent", TRUE, throw_error = FALSE)
-  expect_true(result$valid)
-  expect_equal(result$normalized, 2L)
+test_that("validate_param() rejects logical values for verbosity", {
+  # verbosity only accepts integers 0, 1, 2 - not logical values
+  result <- validate_param("verbosity", TRUE, throw_error = FALSE)
+  expect_false(result$valid)
 
-  result <- validate_param("silent", FALSE, throw_error = FALSE)
-  expect_true(result$valid)
-  expect_equal(result$normalized, 0L)
+  result <- validate_param("verbosity", FALSE, throw_error = FALSE)
+  expect_false(result$valid)
 })
 
 
@@ -383,7 +380,7 @@ test_that("validate_params() accepts valid parameter list", {
     word_limit = 150,
     cutoff = 0.3,
     format = "cli",
-    silent = 0
+    verbosity = 2
   )
 
   validated <- validate_params(params, throw_error = TRUE)
@@ -391,18 +388,18 @@ test_that("validate_params() accepts valid parameter list", {
   expect_equal(validated$word_limit, 150)
   expect_equal(validated$cutoff, 0.3)
   expect_equal(validated$format, "cli")
-  expect_equal(validated$silent, 0L)
+  expect_equal(validated$verbosity, 2L)
 })
 
 
-test_that("validate_params() normalizes silent in batch validation", {
+test_that("validate_params() validates verbosity in batch validation", {
   params <- list(
     word_limit = 150,
-    silent = TRUE  # Should be normalized to 2L
+    verbosity = 1
   )
 
   validated <- validate_params(params, throw_error = TRUE)
-  expect_equal(validated$silent, 2L)
+  expect_equal(validated$verbosity, 1L)
 })
 
 
@@ -478,7 +475,7 @@ test_that("get_registry_param_names() filters by config group", {
 
   output_names <- get_registry_param_names("output_args")
   expect_length(output_names, 5)
-  expect_true(all(c("format", "silent", "max_line_length") %in% output_names))
+  expect_true(all(c("format", "verbosity", "max_line_length") %in% output_names))
 
   interp_names <- get_registry_param_names("interpretation_args")
   expect_length(interp_names, 11)  # 4 FA + 7 GM
@@ -549,7 +546,7 @@ test_that("Registry handles all output_args parameters", {
     heading_level = 2,
     suppress_heading = TRUE,
     max_line_length = 100,
-    silent = 1
+    verbosity = 1
   )
 
   validated <- validate_params(output_params, throw_error = TRUE)
@@ -558,7 +555,7 @@ test_that("Registry handles all output_args parameters", {
   expect_equal(validated$heading_level, 2L)
   expect_equal(validated$suppress_heading, TRUE)
   expect_equal(validated$max_line_length, 100)
-  expect_equal(validated$silent, 1L)
+  expect_equal(validated$verbosity, 1L)
 })
 
 
@@ -588,7 +585,7 @@ test_that("show_interpret_args() with NULL shows common parameters only", {
   # Should include key parameters
   expect_true("word_limit" %in% result$parameter)
   expect_true("format" %in% result$parameter)
-  expect_true("silent" %in% result$parameter)
+  expect_true("verbosity" %in% result$parameter)
 
   # Should NOT include interpretation_args
   expect_false("cutoff" %in% result$parameter)

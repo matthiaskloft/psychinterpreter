@@ -26,7 +26,7 @@ test_that("interpret_fa comprehensive integration test", {
                         llm_provider = llm_provider,
                         llm_model = llm_model,
                         word_limit = 20,  # Minimum for token efficiency
-                        silent = TRUE)
+                        verbosity = 0)
 
   # Check main structure
   expect_s3_class(result, "fa_interpretation")
@@ -76,7 +76,7 @@ test_that("emergency rule behavior with n_emergency = 0", {
                         llm_provider = llm_provider,
                         llm_model = llm_model,
                         word_limit = 20,  # Minimum for token efficiency
-                        silent = TRUE)
+                        verbosity = 0)
 
   # Check that F2 is marked as undefined
   expect_equal(result$suggested_names$F2, "undefined")

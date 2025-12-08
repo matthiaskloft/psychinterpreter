@@ -20,7 +20,7 @@ test_that("single interpretation performance benchmark", {
       llm_provider = "ollama",
       llm_model = "gpt-oss:20b-cloud",
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
   })
 
@@ -65,21 +65,21 @@ test_that("chat session reuse performance benchmark", {
       fit_results = list(loadings = loadings),
       variable_info = var_info,
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
     result2 <- interpret(
       chat_session = chat,
       fit_results = list(loadings = loadings),
       variable_info = var_info,
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
     result3 <- interpret(
       chat_session = chat,
       fit_results = list(loadings = loadings),
       variable_info = var_info,
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
   })
 
@@ -92,7 +92,7 @@ test_that("chat session reuse performance benchmark", {
       llm_provider = "ollama",
       llm_model = "gpt-oss:20b-cloud",
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
     result2 <- interpret(
       fit_results = list(loadings = loadings),
@@ -101,7 +101,7 @@ test_that("chat session reuse performance benchmark", {
       llm_provider = "ollama",
       llm_model = "gpt-oss:20b-cloud",
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
     result3 <- interpret(
       fit_results = list(loadings = loadings),
@@ -110,7 +110,7 @@ test_that("chat session reuse performance benchmark", {
       llm_provider = "ollama",
       llm_model = "gpt-oss:20b-cloud",
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
   })
 

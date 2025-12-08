@@ -135,14 +135,14 @@ result1 <- interpret(
   fit_results = fa_model,
   variable_info = var_info,
   word_limit = 50,
-  silent = 1
+  verbosity = 1
 )
 result2 <- interpret(
   chat_session = chat,
   fit_results = list(loadings = loadings_matrix, factor_cor_mat = factor_cor_mat),
   variable_info = var_info,
   word_limit = 50,
-  silent = 1
+  verbosity = 1
 )
 ```
 

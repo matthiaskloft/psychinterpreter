@@ -92,7 +92,7 @@ labels_short <- label_variables(
   max_chars = 20,
   label_type = "short",  # 1-3 words
   case = "title",        # Title Case
-  silent = 1             # Suppress automatic print
+  verbosity = 1             # Suppress automatic print
 )
 ```
 
@@ -112,7 +112,7 @@ labels_phrase <- label_variables(
   llm_model = llm,
   label_type = "phrase",  # 4-7 words
   case = "sentence",      # Sentence case
-  silent = 1              # Suppress automatic print
+  verbosity = 1              # Suppress automatic print
 )
 ```
 
@@ -131,7 +131,7 @@ labels_acronym <- label_variables(
   llm_model = llm,
   label_type = "acronym",  # 3-5 character acronyms
   case = "upper",          # UPPERCASE
-  silent = 1               # Suppress automatic print
+  verbosity = 1               # Suppress automatic print
 )
 ```
 
@@ -156,7 +156,7 @@ labels_two_words <- label_variables(
   label_type = "short",   # Would normally be 1-3 words
   max_words = 2,          # But max_words limits to up to 2 words
   case = "title",
-  silent = 1              # Suppress automatic print
+  verbosity = 1              # Suppress automatic print
 )
 ```
 
@@ -175,7 +175,7 @@ labels_short_chars <- label_variables(
   label_type = "short",   # Would normally be 1-3 words
   max_chars = 12,         # Adds character limit constraint
   case = "snake",
-  silent = 1              # Suppress automatic print
+  verbosity = 1              # Suppress automatic print
 )
 ```
 
@@ -195,7 +195,7 @@ labels_long_acronym <- label_variables(
   max_chars = 8,          # Acronyms up to 8 characters (instead of default 3-5)
   max_words = 2,          # This is IGNORED for acronyms
   case = "upper",
-  silent = 1              # Suppress automatic print
+  verbosity = 1              # Suppress automatic print
 )
 ```
 

@@ -175,7 +175,7 @@ test_that("interpret.fa end-to-end integration with psych::fa", {
       llm_provider = llm_provider,
       llm_model = llm_model,
       word_limit = 20,  # Minimal for speed
-      silent = TRUE
+      verbosity = 0
     )
   })
 

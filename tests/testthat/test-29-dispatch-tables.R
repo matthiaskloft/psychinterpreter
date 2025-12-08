@@ -133,11 +133,11 @@ test_that("interpretation_args dispatch table errors gracefully for unimplemente
 test_that("print.interpretation_args uses dispatch table for display names", {
   config <- interpretation_args(analysis_type = "fa")
 
-  # Capture print output (cli uses messages, not regular output)
-  output <- capture.output(print(config), type = "message")
+  # Capture print output (uses cat(), so capture stdout)
+  output <- capture.output(print(config))
 
   # Should contain the display name from dispatch table
-  # Output format: "── Factor Analysis Interpretation Configuration ──"
+  # Output format: "Factor Analysis Interpretation Configuration"
   expect_true(any(grepl("Factor Analysis", output)))
 })
 
@@ -148,13 +148,13 @@ test_that("print.interpretation_args uses dispatch table for valid params", {
     n_emergency = 3
   )
 
-  # Capture print output (cli uses messages, not regular output)
-  output <- capture.output(print(config), type = "message")
+  # Capture print output (uses cat(), so capture stdout)
+  output <- capture.output(print(config))
 
   # Should show the valid params that were set
-  # Output format: "• Cutoff: 0.35" and "• Emergency rule: Use top 3 loadings"
+  # Output format: "Cutoff: 0.35" and "Emergency rule: top 3 loadings"
   expect_true(any(grepl("Cutoff: 0.35", output, fixed = TRUE)))
-  expect_true(any(grepl("Use top 3 loadings", output, fixed = TRUE)))
+  expect_true(any(grepl("top 3 loadings", output, fixed = TRUE)))
 })
 
 test_that("build_interpretation_args uses dispatch table for valid params filtering", {

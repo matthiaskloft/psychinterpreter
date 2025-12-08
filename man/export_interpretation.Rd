@@ -8,7 +8,7 @@ export_interpretation(
   interpretation_results,
   format = "txt",
   file = "interpretation",
-  silent = 0
+  verbosity = 2
 )
 }
 \arguments{
@@ -21,11 +21,11 @@ export_interpretation(
 (.txt or .md) will be added automatically if missing. Can include directory path.
 Default is "interpretation"}
 
-\item{silent}{Integer or logical. Controls output verbosity:
+\item{verbosity}{Integer. Controls output verbosity:
 \itemize{
-\item 0 or FALSE: Show success message (default)
-\item 1: Suppress success message (same as 2 for this function)
-\item 2 or TRUE: Suppress success message
+\item 0: Suppress success message
+\item 1: Suppress success message (same as 0 for this function)
+\item 2: Show success message (default)
 }}
 }
 \value{

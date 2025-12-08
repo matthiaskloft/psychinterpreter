@@ -61,12 +61,24 @@ bfi.dictionary <- bfi.dictionary[1:25, ]
 
 Show the first few rows of the BFI data:
 ```{r data-exploration}
-head(bfi, 10) |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
+head(bfi, 10) |> reactable(
+  striped = TRUE,
+  highlight = TRUE,
+  bordered = TRUE,
+  compact = TRUE,
+  defaultPageSize = 10
+)
 ```
 
 Display the BFI dictionary showing item descriptions:
 ```{r}
-bfi.dictionary |> select(Item) |> as.data.frame() |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE, defaultPageSize = 10)
+bfi.dictionary |> select(Item) |> as.data.frame() |> reactable(
+  striped = TRUE,
+  highlight = TRUE,
+  bordered = TRUE,
+  compact = TRUE,
+  defaultPageSize = 10
+)
 ```
 
 # Create Short Labels
@@ -78,7 +90,12 @@ variable_info <- data.frame(
   stringsAsFactors = FALSE
 )
 
-variable_info |> reactable(striped = TRUE, highlight = TRUE, bordered = TRUE, compact = TRUE)
+variable_info |> reactable(
+  striped = TRUE,
+  highlight = TRUE,
+  bordered = TRUE,
+  compact = TRUE
+)
 ```
 
 ```{r}
@@ -96,13 +113,15 @@ bfi_labels <- label_variables(
   max_words = 3,
   sep = "_",
   case = "title",
-  silent = 0  # Suppress automatic print
+  verbosity = 2  # Show output
 )
 ```
 
 Replace variable names with short labels and update variable_info for later use
 ```{r}
-labels <- paste(bfi_labels$labels_formatted$variable, bfi_labels$labels_formatted$label, sep = "-")
+labels <- paste(bfi_labels$labels_formatted$variable,
+                bfi_labels$labels_formatted$label,
+                sep = "-")
 colnames(bfi) <- labels
 variable_info$variable <- labels
 ```
@@ -147,6 +166,10 @@ result <- interpret(
   weight_by_uncertainty = TRUE,
   word_limit = 50
 )
+```
+
+```{r}
+print(result)
 ```
 
 

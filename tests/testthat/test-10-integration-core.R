@@ -160,7 +160,7 @@ test_that("interpret_core complete workflow integration", {
     word_limit = 20,
     additional_info = "Test study context",
     variable_info = var_info,
-    silent = 2
+    verbosity = 0
   )
 
   # Check class structure
@@ -223,7 +223,7 @@ test_that("interpret_core works with all configuration objects", {
 
   output_config <- output_args(
     format = "markdown",
-    silent = 2
+    verbosity = 0
   )
 
   # Test all three config objects together
@@ -275,7 +275,7 @@ test_that("interpret_core reuses existing chat_session correctly", {
     chat_session = chat,
     word_limit = 20,
     variable_info = var_info,
-    silent = 2
+    verbosity = 0
   )
 
   expect_s3_class(result1, "fa_interpretation")
@@ -291,7 +291,7 @@ test_that("interpret_core reuses existing chat_session correctly", {
     chat_session = chat,
     word_limit = 20,
     variable_info = var_info,
-    silent = 2
+    verbosity = 0
   )
 
   expect_s3_class(result2, "fa_interpretation")
@@ -319,45 +319,45 @@ test_that("interpret_core output formats work correctly with cached fixtures", {
 })
 
 # ==============================================================================
-# SECTION 7: SILENT PARAMETER TEST (WITH LLM)
+# SECTION 7: VERBOSITY PARAMETER TEST (WITH LLM)
 # ==============================================================================
 
-test_that("interpret_core respects silent parameter behavior", {
+test_that("interpret_core respects verbosity parameter behavior", {
   skip_if_not_installed("psych")
   skip_if_no_llm()
 
   fa_model <- minimal_fa_model()
   var_info <- minimal_variable_info()
 
-  # silent = 0 (show everything) - capture output
+  # verbosity = 2 (show everything) - capture output
   expect_output({
-    result0 <- psychinterpreter:::interpret_core(
-      fit_results = fa_model,
-      analysis_type = "fa",
-      llm_provider = "ollama",
-      llm_model = "gpt-oss:20b-cloud",
-      word_limit = 20,
-      silent = 0,
-      variable_info = var_info
-    )
-  })
-
-  # silent = 2 (completely silent) - no output
-  expect_silent({
     result2 <- psychinterpreter:::interpret_core(
       fit_results = fa_model,
       analysis_type = "fa",
       llm_provider = "ollama",
       llm_model = "gpt-oss:20b-cloud",
       word_limit = 20,
-      silent = 2,
+      verbosity = 2,
+      variable_info = var_info
+    )
+  })
+
+  # verbosity = 0 (completely silent) - no output
+  expect_silent({
+    result0 <- psychinterpreter:::interpret_core(
+      fit_results = fa_model,
+      analysis_type = "fa",
+      llm_provider = "ollama",
+      llm_model = "gpt-oss:20b-cloud",
+      word_limit = 20,
+      verbosity = 0,
       variable_info = var_info
     )
   })
 
   # Both should return valid results
-  expect_s3_class(result0, "fa_interpretation")
   expect_s3_class(result2, "fa_interpretation")
+  expect_s3_class(result0, "fa_interpretation")
 })
 
 # ==============================================================================
@@ -381,7 +381,7 @@ test_that("interpret_core completes in reasonable time", {
     llm_model = "gpt-oss:20b-cloud",
     word_limit = 20,
     variable_info = var_info,
-    silent = 2
+    verbosity = 0
   )
   elapsed <- as.numeric(difftime(Sys.time(), start, units = "secs"))
 
@@ -411,7 +411,7 @@ test_that("interpret_core handles malformed JSON gracefully with mock", {
       fit_results = fa_model,
       chat_session = mock_chat,
       variable_info = var_info,
-      silent = 2
+      verbosity = 0
     )
   }, error = function(e) NULL))
 
@@ -442,7 +442,7 @@ test_that("interpret_core handles empty response with mock", {
       fit_results = fa_model,
       chat_session = mock_chat,
       variable_info = var_info,
-      silent = 2
+      verbosity = 0
     )
   )
 
@@ -468,7 +468,7 @@ test_that("interpret_core handles partial response with mock", {
       fit_results = fa_model,
       chat_session = mock_chat,
       variable_info = var_info,
-      silent = 2
+      verbosity = 0
     )
   )
 
@@ -493,7 +493,7 @@ test_that("interpret_core handles timeout error with mock", {
       fit_results = fa_model,
       chat_session = mock_chat,
       variable_info = var_info,
-      silent = 2
+      verbosity = 0
     ),
     "timeout"
   )
@@ -514,7 +514,7 @@ test_that("interpret_core handles rate limit error with mock", {
       fit_results = fa_model,
       chat_session = mock_chat,
       variable_info = var_info,
-      silent = 2
+      verbosity = 0
     ),
     "429|rate.?limit"
   )
@@ -535,7 +535,7 @@ test_that("interpret_core handles generic API error with mock", {
       fit_results = fa_model,
       chat_session = mock_chat,
       variable_info = var_info,
-      silent = 2
+      verbosity = 0
     ),
     "API Error|500"
   )

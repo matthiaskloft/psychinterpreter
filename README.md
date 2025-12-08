@@ -109,7 +109,7 @@ result1 <- interpret(
   chat_session = chat,
   fit_results = fa_result1,
   variable_info = var_info1,
-  silent = 2
+  verbosity = 0
 )
 result2 <- interpret(
   chat_session = chat,

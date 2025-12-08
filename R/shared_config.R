@@ -293,10 +293,10 @@ llm_args <- function(llm_provider = NULL,
 #' @param heading_level Integer. Markdown heading level, 1-6 (default = 1)
 #' @param suppress_heading Logical. Suppress main heading in output (default = FALSE)
 #' @param max_line_length Integer. Maximum line length for text wrapping, 40-300 (default = 80)
-#' @param silent Integer or logical. Verbosity level:
-#'   - 0 or FALSE: Show report and messages (default)
+#' @param verbosity Integer. Verbosity level:
+#'   - 0: Completely silent
 #'   - 1: Show messages only, suppress report
-#'   - 2 or TRUE: Completely silent
+#'   - 2: Show report and messages (default)
 #'
 #' @return A list with class "output_args" containing validated output settings
 #'
@@ -310,13 +310,13 @@ llm_args <- function(llm_provider = NULL,
 #' cfg <- output_args(
 #'   format = "markdown",
 #'   heading_level = 2,
-#'   silent = TRUE
+#'   verbosity = 0
 #' )
 output_args <- function(format = NULL,
                           heading_level = NULL,
                           suppress_heading = NULL,
                           max_line_length = NULL,
-                          silent = NULL) {
+                          verbosity = NULL) {
 
   # Build parameter list with defaults from registry
   param_list <- list(
@@ -324,7 +324,7 @@ output_args <- function(format = NULL,
     heading_level = heading_level %||% get_param_default("heading_level"),
     suppress_heading = suppress_heading %||% get_param_default("suppress_heading"),
     max_line_length = max_line_length %||% get_param_default("max_line_length"),
-    silent = silent %||% get_param_default("silent")
+    verbosity = verbosity %||% get_param_default("verbosity")
   )
 
   # Validate all parameters using registry
@@ -457,46 +457,46 @@ default_output_args <- function() {
 print.interpretation_args <- function(x, ...) {
   # Get model type display name via dispatch
   model_name <- .get_analysis_type_display_name(x$analysis_type)
+  title <- paste(model_name, "Interpretation Configuration")
 
-  # Build output lines
-  output_lines <- character()
-  output_lines <- c(output_lines, paste0("\n-- ", model_name, " Interpretation Configuration --\n"))
+  # Start with header
+  output <- print_header(title)
 
   # Get valid parameters for this analysis type
   valid_params <- .get_valid_interpretation_params(x$analysis_type)
 
   # Print model-specific parameters
   if (length(valid_params) > 0) {
-    # Analysis type with defined parameters - show them
     for (param in valid_params) {
       if (param %in% names(x)) {
         value <- x[[param]]
         # Format parameter display nicely
-        if (param == "n_emergency") {
-          output_lines <- c(output_lines, paste0("  * Emergency rule: Use top ", value, " loadings"))
-        } else if (param == "cutoff") {
-          output_lines <- c(output_lines, paste0("  * Cutoff: ", value))
-        } else if (param == "hide_low_loadings") {
-          output_lines <- c(output_lines, paste0("  * Hide low loadings: ", value))
-        } else if (param == "sort_loadings") {
-          output_lines <- c(output_lines, paste0("  * Sort loadings: ", value))
+        label <- switch(param,
+          n_emergency = "Emergency rule",
+          cutoff = "Cutoff",
+          hide_low_loadings = "Hide low loadings",
+          sort_loadings = "Sort loadings",
+          param  # fallback to param name
+        )
+        display_value <- if (param == "n_emergency") {
+          paste("top", value, "loadings")
         } else {
-          # Generic fallback for unknown parameters
-          output_lines <- c(output_lines, paste0("  * ", param, ": ", value))
+          as.character(value)
         }
+        output <- paste0(output, print_kv(label, display_value))
       }
     }
   } else {
-    # Analysis type without defined parameters yet - show generic info
+    # Analysis type without defined parameters yet
     config_params <- setdiff(names(x), "analysis_type")
     if (length(config_params) > 0) {
-      output_lines <- c(output_lines, paste0("  i Configuration parameters: ", paste(config_params, collapse = ", ")))
+      output <- paste0(output, print_kv("Parameters", paste(config_params, collapse = ", ")))
     } else {
-      output_lines <- c(output_lines, "  i No configuration parameters defined yet")
+      output <- paste0(output, print_item("No parameters defined yet"))
     }
   }
 
-  message(paste(output_lines, collapse = "\n"))
+  cat(output)
   invisible(x)
 }
 
@@ -505,14 +505,14 @@ print.interpretation_args <- function(x, ...) {
 #' @keywords internal
 print.llm_args <- function(x, ...) {
   output <- paste0(
-    "\n-- LLM Configuration --\n\n",
-    "  * Provider: ", x$llm_provider, "\n",
-    "  * Model: ", x$llm_model %||% "(provider default)", "\n",
-    "  * Word limit: ", x$word_limit, "\n",
-    "  * System prompt: ", if (is.null(x$system_prompt)) "(default)" else "custom", "\n",
-    "  * Echo: ", x$echo, "\n"
+    print_header("LLM Configuration"),
+    print_kv("Provider", x$llm_provider),
+    print_kv("Model", x$llm_model %||% "(provider default)"),
+    print_kv("Word limit", x$word_limit),
+    print_kv("System prompt", if (is.null(x$system_prompt)) "(default)" else "custom"),
+    print_kv("Echo", x$echo)
   )
-  message(output)
+  cat(output)
   invisible(x)
 }
 
@@ -521,14 +521,14 @@ print.llm_args <- function(x, ...) {
 #' @keywords internal
 print.output_args <- function(x, ...) {
   output <- paste0(
-    "\n-- Output Configuration --\n\n",
-    "  * Format: ", x$format, "\n",
-    "  * Heading level: ", x$heading_level, "\n",
-    "  * Suppress heading: ", x$suppress_heading, "\n",
-    "  * Max line length: ", x$max_line_length, "\n",
-    "  * Silent: ", x$silent, "\n"
+    print_header("Output Configuration"),
+    print_kv("Format", x$format),
+    print_kv("Heading level", x$heading_level),
+    print_kv("Suppress heading", x$suppress_heading),
+    print_kv("Max line length", x$max_line_length),
+    print_kv("Verbosity", x$verbosity)
   )
-  message(output)
+  cat(output)
   invisible(x)
 }
 
@@ -652,7 +652,7 @@ build_output_args <- function(output_args = NULL, ...) {
   # Check if any valid output parameters in ...
   dots <- list(...)
   valid_output_params <- c("format", "heading_level", "suppress_heading",
-                           "max_line_length", "silent")
+                           "max_line_length", "verbosity")
   output_dots <- dots[names(dots) %in% valid_output_params]
 
   # If we have output parameters, build output_args

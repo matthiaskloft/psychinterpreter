@@ -48,11 +48,11 @@
     italic = function(x) cli::col_cyan(x),
     section_header = function(level, title) {
       paste0("\n", cli::col_cyan(cli::style_bold(title)), "\n",
-             cli::rule(line = 1, line_col = "cyan"), "\n\n")
+             cli::rule(line = 1, line_col = "cyan", width = 80), "\n\n")
     },
     main_header = function(title, level) {
       paste0(cli::col_cyan(cli::style_bold(title)), "\n",
-             cli::rule(line = 1, line_col = "cyan"), "\n\n")
+             cli::rule(line = 1, line_col = "cyan", width = 80), "\n\n")
     },
     line_break = "\n",
     list_item = paste0(cli::symbol$bullet, " "),
@@ -66,11 +66,11 @@
     # Colored section headers
     warning_header = function(level, title) {
       paste0("\n", cli::col_yellow(cli::style_bold(title)), "\n",
-             cli::rule(line = 1, line_col = "yellow"), "\n\n")
+             cli::rule(line = 1, line_col = "yellow", width = 80), "\n\n")
     },
     error_header = function(level, title) {
       paste0("\n", cli::col_red(cli::style_bold(title)), "\n",
-             cli::rule(line = 1, line_col = "red"), "\n\n")
+             cli::rule(line = 1, line_col = "red", width = 80), "\n\n")
     }
   )
 )
@@ -127,7 +127,7 @@
     var_display_with_desc = function(var, desc) paste0(var, ", ", desc),
     var_display_no_desc = function(var) var,
     # Factor separator
-    factor_separator = paste0(cli::rule(line = 2, line_col = "grey"), "\n\n")
+    factor_separator = paste0(cli::rule(line = 2, line_col = "grey", width = 80), "\n\n")
   )
 )
 
@@ -207,7 +207,7 @@
              " vs ", round(overall_mean, 2), ")\n")
     },
     # Cluster separator
-    cluster_separator = paste0(cli::rule(line = 2, line_col = "grey"), "\n\n")
+    cluster_separator = paste0(cli::rule(line = 2, line_col = "grey", width = 80), "\n\n")
   )
 )
 

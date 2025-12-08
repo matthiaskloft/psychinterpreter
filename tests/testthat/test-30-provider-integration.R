@@ -85,7 +85,7 @@ test_that("OpenAI provider creates successful interpretation", {
     llm_provider = "openai",
     llm_model = "gpt-4o-mini",
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   expect_s3_class(result, "fa_interpretation")
@@ -107,7 +107,7 @@ test_that("OpenAI provider tracks tokens correctly", {
     llm_provider = "openai",
     llm_model = "gpt-4o-mini",
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   # OpenAI should provide token counts
@@ -147,7 +147,7 @@ test_that("OpenAI chat session works across multiple requests", {
     fit_results = list(loadings = fixture$loadings),
     variable_info = fixture$variable_info,
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   expect_s3_class(result1, "fa_interpretation")
@@ -158,7 +158,7 @@ test_that("OpenAI chat session works across multiple requests", {
     fit_results = list(loadings = fixture$loadings),
     variable_info = fixture$variable_info,
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   expect_s3_class(result2, "fa_interpretation")
@@ -188,7 +188,7 @@ test_that("OpenAI handles rate limit errors gracefully", {
       llm_provider = "openai",
       llm_model = "gpt-4o-mini",
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
   )
 })
@@ -211,7 +211,7 @@ test_that("Anthropic provider creates successful interpretation", {
     llm_provider = "anthropic",
     llm_model = "claude-3-5-haiku-20241022",
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   expect_s3_class(result, "fa_interpretation")
@@ -233,7 +233,7 @@ test_that("Anthropic provider tracks tokens correctly", {
     llm_provider = "anthropic",
     llm_model = "claude-3-5-haiku-20241022",
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   # Anthropic should provide token counts
@@ -273,7 +273,7 @@ test_that("Anthropic chat session works across multiple requests", {
     fit_results = list(loadings = fixture$loadings),
     variable_info = fixture$variable_info,
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   expect_s3_class(result1, "fa_interpretation")
@@ -284,7 +284,7 @@ test_that("Anthropic chat session works across multiple requests", {
     fit_results = list(loadings = fixture$loadings),
     variable_info = fixture$variable_info,
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   expect_s3_class(result2, "fa_interpretation")
@@ -315,7 +315,7 @@ test_that("Anthropic handles prompt caching for repeated system prompts", {
     fit_results = list(loadings = fixture$loadings),
     variable_info = fixture$variable_info,
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   # Second call (should benefit from cache)
@@ -324,7 +324,7 @@ test_that("Anthropic handles prompt caching for repeated system prompts", {
     fit_results = list(loadings = fixture$loadings),
     variable_info = fixture$variable_info,
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   # Both should succeed
@@ -355,7 +355,7 @@ test_that("Ollama provider works without API keys", {
         llm_provider = "ollama",
         llm_model = "gpt-oss:20b-cloud",
         word_limit = 20,
-        silent = 2
+        verbosity = 0
       )
     })
   )
@@ -376,7 +376,7 @@ test_that("Ollama token tracking returns zero or NULL", {
       llm_provider = "ollama",
       llm_model = "gpt-oss:20b-cloud",
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
   })
 
@@ -457,7 +457,7 @@ test_that("Invalid API key produces informative error", {
       llm_provider = "openai",
       llm_model = "gpt-4o-mini",
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     ),
     "authentication|API key|401"
   )

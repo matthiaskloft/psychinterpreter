@@ -303,8 +303,8 @@ PARAMETER_REGISTRY <- list(
     description = "Maximum line length for text wrapping (40-300)"
   ),
 
-  silent = list(
-    default = 0L,
+  verbosity = list(
+    default = 2L,
     type = "integer",
     range = c(0, 2),
     allowed_values = NULL,
@@ -312,26 +312,22 @@ PARAMETER_REGISTRY <- list(
     model_specific = NULL,
     required = FALSE,
     validation_fn = function(value) {
-      # Accept logical and convert
-      if (is.logical(value)) {
-        value <- ifelse(value, 2L, 0L)
-      }
       if (!is.numeric(value) || length(value) != 1) {
         return(
-          list(valid = FALSE, message = "{.arg silent} must be logical (TRUE/FALSE) or integer (0/1/2)")
+          list(valid = FALSE, message = "{.arg verbosity} must be an integer (0, 1, or 2)")
         )
       }
       if (!value %in% c(0, 1, 2)) {
         return(list(
           valid = FALSE,
-          message = paste0("{.arg silent} must be 0, 1, or 2 (got ", value, ")")
+          message = paste0("{.arg verbosity} must be 0, 1, or 2 (got ", value, ")")
         ))
       }
       list(valid = TRUE,
            message = NULL,
            normalized = as.integer(value))
     },
-    description = "Verbosity level: 0 (report+messages), 1 (messages only), 2 (silent)"
+    description = "Verbosity level: 0 (silent), 1 (messages only), 2 (report+messages)"
   ),
 
   # ==========================================================================
@@ -756,7 +752,7 @@ validate_param <- function(param_name, value, throw_error = TRUE) {
 #'
 #' @examples
 #' # Valid parameters
-#' params <- list(word_limit = 150, cutoff = 0.3, silent = 0)
+#' params <- list(word_limit = 150, cutoff = 0.3, verbosity = 2)
 #' validate_params(params, throw_error = FALSE)
 #'
 #' # Invalid parameters

@@ -31,3 +31,4 @@
 ^Rplots\.pdf$
 ^test_.*\.png$
 ^\.gitignore$
+^PLAN-.*\.md$

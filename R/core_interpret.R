@@ -19,11 +19,10 @@
 #' @param heading_level Integer. Markdown heading level (default = 1)
 #' @param suppress_heading Logical. Suppress report heading (default = FALSE)
 #' @param max_line_length Integer. Maximum line length for text wrapping (default = 120)
-#' @param silent Integer or logical. Controls output verbosity:
-#'   - 0 or FALSE: Show report and all messages (default)
+#' @param verbosity Integer. Controls output verbosity:
+#'   - 0: Completely silent, suppress all output
 #'   - 1: Show messages only, suppress report
-#'   - 2 or TRUE: Completely silent, suppress all output
-#'   For backward compatibility, logical values are accepted and converted to integers.
+#'   - 2: Show report and all messages (default)
 #' @param echo Character. Echo level: "none", "output", "all" (default = "none")
 #' @param params ellmer params object or NULL. Advanced ellmer configuration. Most users
 #'   should use llm_args() instead. Note: Some providers may not support all parameters
@@ -71,7 +70,7 @@ interpret_core <- function(analysis_data = NULL,
                           heading_level = 1,
                           suppress_heading = FALSE,
                           max_line_length = 120,
-                          silent = 0,
+                          verbosity = 2,
                           echo = "none",
                           params = NULL,
                           interpretation_args = NULL,
@@ -91,11 +90,6 @@ interpret_core <- function(analysis_data = NULL,
   # ==========================================================================
   # Do this before building analysis_data so we have analysis_type validated early
 
-  # Handle backward compatibility: Convert logical to integer
-  if (is.logical(silent)) {
-    silent <- ifelse(silent, 2, 0)  # FALSE -> 0, TRUE -> 2
-  }
-
   # Extract parameters from config objects if provided
   if (!is.null(llm_args)) {
     if (is.null(llm_provider)) llm_provider <- llm_args$llm_provider
@@ -106,7 +100,7 @@ interpret_core <- function(analysis_data = NULL,
     if (is.null(heading_level)) heading_level <- output_args$heading_level
     if (is.null(suppress_heading)) suppress_heading <- output_args$suppress_heading
     if (is.null(max_line_length)) max_line_length <- output_args$max_line_length
-    if (is.null(silent)) silent <- output_args$silent
+    if (verbosity == 2 && !is.null(output_args$verbosity)) verbosity <- output_args$verbosity
   }
 
   # Extract analysis_type from interpretation_args if not provided directly
@@ -185,7 +179,7 @@ interpret_core <- function(analysis_data = NULL,
     )
   }
 
-  if (silent < 2) {
+  if (verbosity > 0) {
     cli::cli_alert_info("Starting {analysis_type} interpretation...")
   }
 
@@ -347,7 +341,7 @@ interpret_core <- function(analysis_data = NULL,
 
   if (is.null(chat_session)) {
     # Create temporary chat session
-    if (silent < 2) {
+    if (verbosity > 0) {
       cli::cli_alert_info("Creating temporary chat session...")
     }
 
@@ -373,7 +367,7 @@ interpret_core <- function(analysis_data = NULL,
   # ==========================================================================
   # STEP 4: BUILD USER PROMPT
   # ==========================================================================
-  if (silent < 2) {
+  if (verbosity > 0) {
     cli::cli_alert_info("Building prompt...")
   }
 
@@ -394,7 +388,7 @@ interpret_core <- function(analysis_data = NULL,
   # ==========================================================================
   # STEP 5: SEND TO LLM AND GET RESPONSE
   # ==========================================================================
-  if (silent < 2) {
+  if (verbosity > 0) {
     cli::cli_alert_info("Querying LLM...")
   }
 
@@ -407,7 +401,7 @@ interpret_core <- function(analysis_data = NULL,
   # ==========================================================================
   # STEP 6: PARSE JSON RESPONSE
   # ==========================================================================
-  if (silent < 2) {
+  if (verbosity > 0) {
     cli::cli_alert_info("Parsing LLM response...")
   }
 
@@ -463,7 +457,7 @@ interpret_core <- function(analysis_data = NULL,
   # ==========================================================================
   # STEP 8: CREATE DIAGNOSTICS
   # ==========================================================================
-  if (silent < 2) {
+  if (verbosity > 0) {
     cli::cli_alert_info("Creating fit summary...")
   }
 
@@ -538,7 +532,7 @@ interpret_core <- function(analysis_data = NULL,
   # ==========================================================================
   # STEP 10: BUILD REPORT
   # ==========================================================================
-  if (silent < 2) {
+  if (verbosity > 0) {
     cli::cli_alert_info("Building report...")
   }
 
@@ -555,11 +549,11 @@ interpret_core <- function(analysis_data = NULL,
   # ==========================================================================
   # STEP 11: PRINT REPORT (UNLESS SILENT)
   # ==========================================================================
-  if (silent < 2) {
+  if (verbosity > 0) {
     cli::cli_alert_success("Interpretation complete!")
   }
 
-  if (silent == 0) {
+  if (verbosity == 2) {
     cat("\n")
     print(interpretation, max_line_length = max_line_length)
   }

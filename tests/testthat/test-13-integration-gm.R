@@ -18,7 +18,7 @@ test_that("interpret() works with Mclust objects (minimal LLM test)", {
       llm_provider = "ollama",
       llm_model = "gpt-oss:20b-cloud",
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
   })
 
@@ -88,7 +88,7 @@ test_that("interpret() handles GM chat sessions", {
       fit_results = gm_model,
       variable_info = gm_var_info,
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
   })
 
@@ -235,7 +235,7 @@ test_that("print() method works for GM interpretations", {
         Cluster_2 = "Low",
         Cluster_3 = "Medium"
       ),
-      output_args = output_args(format = "cli", silent = 0)
+      output_args = output_args(format = "cli", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -272,7 +272,7 @@ test_that("export works for GM interpretations", {
         Cluster_2 = "C2",
         Cluster_3 = "C3"
       ),
-      output_args = output_args(format = "cli", silent = 2)
+      output_args = output_args(format = "cli", verbosity = 0)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -331,7 +331,7 @@ test_that("LLM metadata is displayed in reports (CLI format)", {
         Cluster_3 = "Average"
       ),
       chat = mock_chat,
-      output_args = output_args(format = "cli", silent = 0)
+      output_args = output_args(format = "cli", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -376,7 +376,7 @@ test_that("LLM metadata is displayed in reports (markdown format)", {
         Cluster_2 = "Name2"
       ),
       chat = mock_chat,
-      output_args = output_args(format = "markdown", silent = 0)
+      output_args = output_args(format = "markdown", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -417,7 +417,7 @@ test_that("token counts are displayed when available (CLI format)", {
       chat = mock_chat,
       input_tokens = 1523,
       output_tokens = 487,
-      output_args = output_args(format = "cli", silent = 0)
+      output_args = output_args(format = "cli", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -459,7 +459,7 @@ test_that("token counts are displayed when available (markdown format)", {
       chat = mock_chat,
       input_tokens = 2341,
       output_tokens = 612,
-      output_args = output_args(format = "markdown", silent = 0)
+      output_args = output_args(format = "markdown", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -500,7 +500,7 @@ test_that("elapsed time is displayed when available (CLI format)", {
       suggested_names = list(Cluster_1 = "Test"),
       chat = mock_chat,
       elapsed_time = 3.456,
-      output_args = output_args(format = "cli", silent = 0)
+      output_args = output_args(format = "cli", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -540,7 +540,7 @@ test_that("elapsed time is displayed when available (markdown format)", {
       suggested_names = list(Cluster_1 = "Test"),
       chat = mock_chat,
       elapsed_time = 2.789,
-      output_args = output_args(format = "markdown", silent = 0)
+      output_args = output_args(format = "markdown", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -582,7 +582,7 @@ test_that("elapsed time appears after tokens when both are present", {
       input_tokens = 1000,
       output_tokens = 500,
       elapsed_time = 4.321,
-      output_args = output_args(format = "cli", silent = 0)
+      output_args = output_args(format = "cli", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -627,7 +627,7 @@ test_that("cluster statistics are displayed in detailed interpretations (CLI)", 
         Cluster_2 = "Average",
         Cluster_3 = "Low"
       ),
-      output_args = output_args(format = "cli", silent = 0)
+      output_args = output_args(format = "cli", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -672,7 +672,7 @@ test_that("cluster uncertainty is displayed when available", {
         Cluster_2 = "Low",
         Cluster_3 = "Medium"
       ),
-      output_args = output_args(format = "cli", silent = 0)
+      output_args = output_args(format = "cli", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -711,7 +711,7 @@ test_that("cluster separators appear in CLI format", {
         Cluster_2 = "C2",
         Cluster_3 = "C3"
       ),
-      output_args = output_args(format = "cli", silent = 0)
+      output_args = output_args(format = "cli", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -749,7 +749,7 @@ test_that("markdown format has proper cluster sections", {
         Cluster_2 = "C2",
         Cluster_3 = "C3"
       ),
-      output_args = output_args(format = "markdown", silent = 0)
+      output_args = output_args(format = "markdown", verbosity = 2)
     ),
     class = c("gm_interpretation", "interpretation", "list")
   )
@@ -785,7 +785,7 @@ test_that("metadata display works with minimal LLM test", {
       llm_provider = "ollama",
       llm_model = "gpt-oss:20b-cloud",
       word_limit = 20,
-      silent = 2
+      verbosity = 0
     )
   })
 
@@ -861,7 +861,7 @@ test_that("GM interpretation handles malformed JSON with mock", {
       analysis_data = analysis_data,
       chat_session = mock_session,
       variable_info = gm_var_info,
-      silent = 2
+      verbosity = 0
     )
   }, error = function(e) NULL)
 
@@ -927,7 +927,7 @@ test_that("GM interpretation handles partial response (missing clusters) with mo
       analysis_data = analysis_data,
       chat_session = mock_session,
       variable_info = gm_var_info,
-      silent = 2
+      verbosity = 0
     )
   }, error = function(e) NULL)
 
@@ -997,7 +997,7 @@ test_that("GM interpretation handles wrong cluster count with mock", {
       analysis_data = analysis_data,
       chat_session = mock_session,
       variable_info = gm_var_info,
-      silent = 2
+      verbosity = 0
     )
   }, error = function(e) NULL)
 
@@ -1076,7 +1076,7 @@ test_that("GM interpretation handles unicode in cluster names with mock", {
       analysis_data = analysis_data,
       chat_session = mock_session,
       variable_info = gm_var_info,
-      silent = 2
+      verbosity = 0
     )
   }, error = function(e) NULL)
 

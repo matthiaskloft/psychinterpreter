@@ -35,7 +35,7 @@ test_that("chat_session complete lifecycle (create, use, reset)", {
     fit_results = list(loadings = loadings),
     variable_info = var_info,
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   # Check that result is valid
@@ -163,7 +163,7 @@ test_that("chat_session saves tokens across multiple interpretations", {
     fit_results = list(loadings = loadings),
     variable_info = var_info,
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   tokens_after_first <- chat$total_input_tokens + chat$total_output_tokens
@@ -174,7 +174,7 @@ test_that("chat_session saves tokens across multiple interpretations", {
     fit_results = list(loadings = loadings),
     variable_info = var_info,
     word_limit = 20,
-    silent = 2
+    verbosity = 0
   )
 
   tokens_after_second <- chat$total_input_tokens + chat$total_output_tokens

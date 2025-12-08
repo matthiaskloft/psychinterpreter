@@ -24,7 +24,7 @@ test_that("direct interpretation parameters override interpretation_args config"
     llm_provider = "ollama",
     llm_model = "gpt-oss:20b-cloud",
     word_limit = 20,
-    silent = TRUE
+    verbosity = 0
   )
 
   # Verify direct parameter took precedence
@@ -52,7 +52,7 @@ test_that("direct llm parameters override llm_args config", {
     variable_info = minimal_variable_info(),
     llm_args = llm_config,
     word_limit = 20,  # Should override 100 from config
-    silent = TRUE
+    verbosity = 0
   )
 
   # Verify result is valid (word_limit was respected)
@@ -66,7 +66,7 @@ test_that("direct output parameters override output_args config", {
   # Create output config
   output_config <- output_args(
     format = "markdown",
-    silent = 0
+    verbosity = 2
   )
 
   # Use direct parameter to override
@@ -74,7 +74,7 @@ test_that("direct output parameters override output_args config", {
     fit_results = minimal_fa_model(),
     variable_info = minimal_variable_info(),
     output_args = output_config,
-    silent = 2,  # Should override 0 from config (completely silent)
+    verbosity = 0,  # Should override 0 from config (completely silent)
     llm_provider = "ollama",
     llm_model = "gpt-oss:20b-cloud",
     word_limit = 20
@@ -103,7 +103,7 @@ test_that("config objects work when no direct parameters provided", {
 
   output_config <- output_args(
     format = "cli",
-    silent = 1
+    verbosity = 1
   )
 
   # Use only config objects, no direct overrides
@@ -136,7 +136,7 @@ test_that("mixed config and direct parameters work together", {
     word_limit = 20,  # Direct parameter for LLM
     llm_provider = "ollama",
     llm_model = "gpt-oss:20b-cloud",
-    silent = TRUE
+    verbosity = 0
   )
 
   # Verify both were applied
@@ -158,7 +158,7 @@ test_that("NULL config objects use package defaults", {
     llm_provider = "ollama",
     llm_model = "gpt-oss:20b-cloud",
     word_limit = 20,
-    silent = TRUE
+    verbosity = 0
   )
 
   # Verify defaults were used

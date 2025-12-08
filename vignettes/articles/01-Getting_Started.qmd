@@ -248,7 +248,7 @@ interpretation <- interpret(
   variable_info = variable_info,
   llm_provider = provider,
   llm_model = llm,
-  silent = 1  # Will print explicitly below
+  verbosity = 1  # Will print explicitly below
 )
 ```
 

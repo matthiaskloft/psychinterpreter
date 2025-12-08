@@ -46,7 +46,7 @@ print.interpretation <- function(x, ...) {
   if (!is.null(x$report) && nchar(x$report) > 0) {
     cat(x$report, "\n")
   } else {
-    # Fallback if no report
+    # Styled fallback
     analysis_type_names <- c(
       fa = "Factor Analysis",
       gm = "Gaussian Mixture",
@@ -54,14 +54,17 @@ print.interpretation <- function(x, ...) {
       cdm = "Cognitive Diagnosis"
     )
     model_name <- analysis_type_names[x$analysis_type] %||% x$analysis_type
+    title <- paste(model_name, "Interpretation")
 
-    # Build output as single string
-    output <- paste0(
-      model_name, " Interpretation\n",
-      "Components: ", length(x$suggested_names), "\n",
-      "LLM: ", x$llm_info$llm_provider %||% "unknown", " / ",
-      x$llm_info$llm_model %||% "unknown", "\n"
-    )
+    output <- print_header(title)
+    output <- paste0(output, print_kv("Components", length(x$suggested_names)))
+
+    llm_display <- x$llm_info$llm_provider %||% "unknown"
+    if (!is.null(x$llm_info$llm_model)) {
+      llm_display <- paste0(llm_display, " / ", x$llm_info$llm_model)
+    }
+    output <- paste0(output, print_kv("LLM", llm_display))
+
     cat(output)
   }
 

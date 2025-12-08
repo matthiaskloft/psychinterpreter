@@ -9,10 +9,10 @@
 #' @param file Character. File path with or without extension. The appropriate extension
 #'   (.txt or .md) will be added automatically if missing. Can include directory path.
 #'   Default is "interpretation"
-#' @param silent Integer or logical. Controls output verbosity:
-#'   - 0 or FALSE: Show success message (default)
-#'   - 1: Suppress success message (same as 2 for this function)
-#'   - 2 or TRUE: Suppress success message
+#' @param verbosity Integer. Controls output verbosity:
+#'   - 0: Suppress success message
+#'   - 1: Suppress success message (same as 0 for this function)
+#'   - 2: Show success message (default)
 #'
 #' @return Invisible TRUE on success
 #'
@@ -47,7 +47,7 @@
 export_interpretation <- function(interpretation_results,
                                  format = "txt",
                                  file = "interpretation",
-                                 silent = 0) {
+                                 verbosity = 2) {
   UseMethod("export_interpretation")
 }
 
@@ -59,7 +59,7 @@ export_interpretation <- function(interpretation_results,
 #' @param interpretation_results Interpretation results object
 #' @param format Character. Export format ("txt" or "md")
 #' @param file Character. File path with or without extension
-#' @param silent Integer or logical. Output verbosity control
+#' @param verbosity Integer. Output verbosity control
 #'
 #' @return Does not return (throws error)
 #' @export
@@ -67,7 +67,7 @@ export_interpretation <- function(interpretation_results,
 export_interpretation.default <- function(interpretation_results,
                                          format = "txt",
                                          file = "interpretation",
-                                         silent = 0) {
+                                         verbosity = 2) {
   # Validate input is a list first
   if (!is.list(interpretation_results)) {
     cli::cli_abort(

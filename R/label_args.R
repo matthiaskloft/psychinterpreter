@@ -119,45 +119,44 @@ label_args <- function(label_type = "short",
 #'
 #' @export
 print.label_args <- function(x, ...) {
-  output_lines <- character()
-  output_lines <- c(output_lines, "\n-- Labeling Arguments Configuration --\n")
+  output <- print_header("Label Configuration")
 
-  # Label type and word count
-  output_lines <- c(output_lines, paste0("  i Label type: ", x$label_type))
+  # Core settings
+  output <- paste0(output, print_kv("Label type", x$label_type))
   if (!is.null(x$max_words)) {
-    output_lines <- c(output_lines, paste0("  i Max words: ", x$max_words))
+    output <- paste0(output, print_kv("Max words", x$max_words))
   }
   if (!is.null(x$style_hint)) {
-    output_lines <- c(output_lines, paste0("  i Style hint: ", x$style_hint))
+    output <- paste0(output, print_kv("Style hint", x$style_hint))
   }
 
-  # Formatting
-  output_lines <- c(output_lines, "\n  Formatting:")
-  output_lines <- c(output_lines, paste0("    i Separator: ", x$sep))
-  output_lines <- c(output_lines, paste0("    i Case: ", x$case))
+  # Formatting section
+  output <- paste0(output, print_section("Formatting"))
+  output <- paste0(output, print_kv("Separator", x$sep))
+  output <- paste0(output, print_kv("Case", x$case))
 
-  # Filters
+  # Filters section (only if any active)
   if (x$remove_articles || x$remove_prepositions) {
-    output_lines <- c(output_lines, "\n  Content Filters:")
+    output <- paste0(output, print_section("Filters"))
     if (x$remove_articles) {
-      output_lines <- c(output_lines, "    i Remove articles: TRUE")
+      output <- paste0(output, print_item("Remove articles"))
     }
     if (x$remove_prepositions) {
-      output_lines <- c(output_lines, "    i Remove prepositions: TRUE")
+      output <- paste0(output, print_item("Remove prepositions"))
     }
   }
 
-  # Length control
+  # Length control section (only if any set)
   if (!is.null(x$max_chars) || x$abbreviate) {
-    output_lines <- c(output_lines, "\n  Length Control:")
+    output <- paste0(output, print_section("Length Control"))
     if (!is.null(x$max_chars)) {
-      output_lines <- c(output_lines, paste0("    i Max characters: ", x$max_chars))
+      output <- paste0(output, print_kv("Max characters", x$max_chars))
     }
     if (x$abbreviate) {
-      output_lines <- c(output_lines, "    i Abbreviate long words: TRUE")
+      output <- paste0(output, print_item("Abbreviate long words"))
     }
   }
 
-  message(paste(output_lines, collapse = "\n"))
+  cat(output)
   invisible(x)
 }

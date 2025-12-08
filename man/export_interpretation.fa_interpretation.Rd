@@ -8,7 +8,7 @@
   interpretation_results,
   format = "txt",
   file = "fa_interpretation",
-  silent = 0
+  verbosity = 2
 )
 }
 \arguments{
@@ -22,12 +22,11 @@ factor analysis interpretation results with a 'report' element}
 (.txt or .md) will be added automatically if missing. Can include directory path.
 Default is "fa_interpretation"}
 
-\item{silent}{Integer or logical. Controls output verbosity:
+\item{verbosity}{Integer. Controls output verbosity:
 \itemize{
-\item 0 or FALSE: Show success message (default)
-\item 1: Suppress success message (same as 2 for this function)
-\item 2 or TRUE: Suppress success message
-For backward compatibility, logical values are accepted and converted to integers.
+\item 0: Suppress success message
+\item 1: Suppress success message (same as 0 for this function)
+\item 2: Show success message (default)
 }}
 }
 \value{
@@ -62,7 +61,7 @@ The function intelligently handles file extensions:
 # Get interpretation results in cli format
 results_txt <- interpret(fit_results, variable_info,
                          output_format = "cli",
-                         silent = TRUE)
+                         verbosity = 0)
 
 # Export as plain text
 export_interpretation(results_txt, "txt", "my_analysis")
@@ -71,7 +70,7 @@ export_interpretation(results_txt, "txt", "my_analysis")
 # Get interpretation results in markdown format
 results_md <- interpret(fit_results, variable_info,
                         output_format = "markdown",
-                        silent = TRUE)
+                        verbosity = 0)
 
 # Export as markdown
 export_interpretation(results_md, "md", "my_analysis")

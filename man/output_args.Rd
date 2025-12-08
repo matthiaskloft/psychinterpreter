@@ -9,7 +9,7 @@ output_args(
   heading_level = NULL,
   suppress_heading = NULL,
   max_line_length = NULL,
-  silent = NULL
+  verbosity = NULL
 )
 }
 \arguments{
@@ -21,11 +21,11 @@ output_args(
 
 \item{max_line_length}{Integer. Maximum line length for text wrapping, 40-300 (default = 80)}
 
-\item{silent}{Integer or logical. Verbosity level:
+\item{verbosity}{Integer. Verbosity level:
 \itemize{
-\item 0 or FALSE: Show report and messages (default)
+\item 0: Completely silent
 \item 1: Show messages only, suppress report
-\item 2 or TRUE: Completely silent
+\item 2: Show report and messages (default)
 }}
 }
 \value{
@@ -43,6 +43,6 @@ cfg <- output_args()
 cfg <- output_args(
   format = "markdown",
   heading_level = 2,
-  silent = TRUE
+  verbosity = 0
 )
 }

@@ -119,7 +119,8 @@
       "WebFetch(domain:www.lakera.ai)",
       "WebFetch(domain:www.tandfonline.com)",
       "WebFetch(domain:www.sciencedirect.com)",
-      "WebFetch(domain:cjvanlissa.github.io)"
+      "WebFetch(domain:cjvanlissa.github.io)",
+      "Bash(quarto render:*)"
     ],
     "deny": [
       "Read(./.env*)",

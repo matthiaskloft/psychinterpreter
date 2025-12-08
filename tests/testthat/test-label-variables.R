@@ -280,6 +280,6 @@ test_that("variable_labels object prints correctly", {
 
   # Test printing (CLI output can't be captured with capture.output)
   # Just verify print() doesn't error
-  expect_silent(print(result, silent = 2))  # silent = 2 suppresses all output
-  expect_no_error(print(result, silent = 0))  # silent = 0 should print normally
+  expect_silent(print(result, verbosity = 0))  # verbosity = 0 suppresses all output
+  expect_no_error(print(result, verbosity = 2))  # verbosity = 2 should print normally
 })

@@ -125,7 +125,7 @@ validate_chat_session_for_analysis_type <- function(chat_session, expected_type)
 #' Parameters are organized by configuration group:
 #' \itemize{
 #'   \item \strong{LLM Arguments (llm_args)}: Control LLM behavior (provider, model, word_limit, etc.)
-#'   \item \strong{Output Arguments (output_args)}: Control output formatting (format, silent, etc.)
+#'   \item \strong{Output Arguments (output_args)}: Control output formatting (format, verbosity, etc.)
 #'   \item \strong{Interpretation Arguments (interpretation_args)}: Model-specific settings (cutoff for FA, min_cluster_size for GM, etc.)
 #' }
 #'

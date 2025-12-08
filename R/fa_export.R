@@ -10,11 +10,10 @@
 #' @param file Character. File path with or without extension. The appropriate extension
 #'   (.txt or .md) will be added automatically if missing. Can include directory path.
 #'   Default is "fa_interpretation"
-#' @param silent Integer or logical. Controls output verbosity:
-#'   - 0 or FALSE: Show success message (default)
-#'   - 1: Suppress success message (same as 2 for this function)
-#'   - 2 or TRUE: Suppress success message
-#'   For backward compatibility, logical values are accepted and converted to integers.
+#' @param verbosity Integer. Controls output verbosity:
+#'   - 0: Suppress success message
+#'   - 1: Suppress success message (same as 0 for this function)
+#'   - 2: Show success message (default)
 #'
 #' @details
 #' **Supported Export Formats:**
@@ -41,7 +40,7 @@
 #' # Get interpretation results in cli format
 #' results_txt <- interpret(fit_results, variable_info,
 #'                          output_format = "cli",
-#'                          silent = TRUE)
+#'                          verbosity = 0)
 #'
 #' # Export as plain text
 #' export_interpretation(results_txt, "txt", "my_analysis")
@@ -50,7 +49,7 @@
 #' # Get interpretation results in markdown format
 #' results_md <- interpret(fit_results, variable_info,
 #'                         output_format = "markdown",
-#'                         silent = TRUE)
+#'                         verbosity = 0)
 #'
 #' # Export as markdown
 #' export_interpretation(results_md, "md", "my_analysis")
@@ -61,13 +60,7 @@
 export_interpretation.fa_interpretation <- function(interpretation_results,
                                                    format = "txt",
                                                    file = "fa_interpretation",
-                                                   silent = 0) {
-
-  # Handle backward compatibility: Convert logical to integer
-  if (is.logical(silent)) {
-    silent <- ifelse(silent, 2, 0)  # FALSE -> 0, TRUE -> 2
-  }
-
+                                                   verbosity = 2) {
   # Validate inputs
   if (!is.list(interpretation_results)) {
     cli::cli_abort("interpretation_results must be a list (output from interpret())")
@@ -106,7 +99,7 @@ export_interpretation.fa_interpretation <- function(interpretation_results,
   # Use cat() to properly interpret escape sequences like \n
   cat(report, file = output_file, sep = "")
 
-  if (silent == 0) {
+  if (verbosity == 2) {
     cli::cli_alert_success("Report exported to: {.file {output_file}}")
   }
 

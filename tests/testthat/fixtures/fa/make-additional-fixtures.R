@@ -38,7 +38,7 @@ sample_interpretation_emergency <- interpret(
   llm_provider = "ollama",
   llm_model = "gpt-oss:20b-cloud",
   word_limit = 20,
-  silent = 2
+  verbosity = 0
 )
 
 saveRDS(
@@ -61,7 +61,7 @@ sample_interpretation_undefined <- interpret(
   llm_provider = "ollama",
   llm_model = "gpt-oss:20b-cloud",
   word_limit = 20,
-  silent = 2
+  verbosity = 0
 )
 
 saveRDS(
@@ -87,7 +87,7 @@ sample_interpretation_markdown <- interpret(
   llm_model = "gpt-oss:20b-cloud",
   word_limit = 20,
   output_format = "markdown",
-  silent = 2
+  verbosity = 0
 )
 
 saveRDS(
@@ -120,7 +120,7 @@ sample_interpretation_cross_loading <- interpret(
   llm_provider = "ollama",
   llm_model = "gpt-oss:20b-cloud",
   word_limit = 20,
-  silent = 2
+  verbosity = 0
 )
 
 saveRDS(

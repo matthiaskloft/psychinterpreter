@@ -38,7 +38,7 @@
 #'   For FA: cutoff, n_emergency, hide_low_loadings, sort_loadings (default = NULL).
 #' @param output_args List or output_args object. Output configuration settings. Can be created with
 #'   \code{\link{output_args}} or passed as a plain list. Contains: format, heading_level,
-#'   suppress_heading, max_line_length, silent (default = NULL).
+#'   suppress_heading, max_line_length, verbosity (default = NULL).
 #'
 #' @param ... Additional arguments passed to model-specific methods. Model-specific methods may require:
 #'   - \code{variable_info}: Data frame with 'variable' and 'description' columns (required for FA)
@@ -103,7 +103,7 @@
 #' # Create configuration objects
 #' interp_config <- interpretation_args(analysis_type = "fa", cutoff = 0.4, n_emergency = 2)
 #' llm_config <- llm_args(word_limit = 100, additional_info = "Study context")
-#' output_config <- output_args(format = "markdown", silent = 1)
+#' output_config <- output_args(format = "markdown", verbosity = 1)
 #'
 #' # Use in interpret() call
 #' interpret(

@@ -545,8 +545,11 @@ build_interpretations_section_gm <- function(
       }
     }
 
-    # Get interpretation
+    # Get interpretation and normalize whitespace
+    # Remove embedded line breaks so wrap_text can handle wrapping consistently
     interpretation_text <- cluster_interpretations[[cluster_name]]
+    interpretation_text <- gsub("\\s+", " ", interpretation_text)
+    interpretation_text <- trimws(interpretation_text)
 
     # Add interpretation text
     if (format == "markdown") {

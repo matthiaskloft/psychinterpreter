@@ -314,7 +314,7 @@ sample_gm_interpretation <- function() {
         llm_provider = "ollama",
         llm_model = "gpt-oss:20b-cloud",
         word_limit = 20,
-        silent = 2
+        verbosity = 0
       )
 
       # Cache it
