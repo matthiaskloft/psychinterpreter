@@ -76,6 +76,7 @@ fake_chat <- function(response = '{"factor_summaries": {}, "suggested_names": {}
                       token_schema = "modern",
                       input_tokens = 100,
                       output_tokens = 50,
+                      cached_input_tokens = 0,
                       log = NULL) {
   if (is.null(log)) log <- new.env(parent = emptyenv())
   if (is.null(log$prompts)) log$prompts <- character(0)
@@ -105,7 +106,7 @@ fake_chat <- function(response = '{"factor_summaries": {}, "suggested_names": {}
       get_tokens = function(...) {
         # One row per completed assistant turn, as real ellmer does.
         fake_tokens(token_schema, input = input_tokens, output = output_tokens,
-                    n_turns = state$n_turns)
+                    cached_input = cached_input_tokens, n_turns = state$n_turns)
       },
       get_provider = function() new("FakeProvider", name = "fake"),
       get_model = function() "fake-model"
@@ -141,6 +142,7 @@ fake_chat_session <- function(analysis_type = "fa",
                               token_schema = "modern",
                               input_tokens = 100,
                               output_tokens = 50,
+                              cached_input_tokens = 0,
                               system_prompt = "FAKE SYSTEM PROMPT") {
   log <- new.env(parent = emptyenv())
   log$prompts <- character(0)
@@ -150,7 +152,8 @@ fake_chat_session <- function(analysis_type = "fa",
   session$analysis_type <- analysis_type
   session$chat <- fake_chat(
     response = response, token_schema = token_schema,
-    input_tokens = input_tokens, output_tokens = output_tokens, log = log
+    input_tokens = input_tokens, output_tokens = output_tokens,
+    cached_input_tokens = cached_input_tokens, log = log
   )
   session$llm_provider <- "fake"
   session$llm_model <- "fake-model"

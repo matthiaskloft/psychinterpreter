@@ -391,7 +391,8 @@ label_variables <- function(variable_info,
   # ==========================================================================
 
   tokens_df <- chat_local$get_tokens()
-  token_counts <- extract_token_counts(tokens_df)
+  # See the note in interpret_core(): verbosity 0 means completely silent.
+  token_counts <- extract_token_counts(tokens_df, warn = verbosity > 0)
   input_tokens <- token_counts$input_tokens
   output_tokens <- token_counts$output_tokens
 

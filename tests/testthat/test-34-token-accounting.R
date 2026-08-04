@@ -165,6 +165,52 @@ test_that("an unknown schema surfaces as NA rather than a plausible zero", {
   reset_token_schema_warning()
 })
 
+test_that("verbosity 0 suppresses the unknown-schema warning but not the NA", {
+  # verbosity 0 is documented as "completely silent, suppress all output".
+  # The NA must still reach the result, or silencing the message would restore
+  # exactly the plausible-looking zero this design set out to remove.
+  model <- fixture_fa_model()
+  response <- fake_fa_response(colnames(model$loadings))
+
+  run <- function(verbosity) {
+    reset_token_schema_warning()
+    session <- fake_chat_session("fa", response = response, token_schema = "unknown")
+    interpret(
+      fit_results = model, chat_session = session,
+      variable_info = fixture_var_info(), analysis_type = "fa",
+      output_args = list(verbosity = verbosity)
+    )
+  }
+
+  expect_no_warning(result <- run(0))
+  expect_true(is.na(result$total_tokens))
+
+  expect_warning(run(1), "token")
+  reset_token_schema_warning()
+})
+
+test_that("cached input reaches the reported total and stays inspectable", {
+  # Cached tokens are folded into input_tokens (they are real input the provider
+  # charged for); reporting them separately is what makes the "cached prompts
+  # are no longer undercounted" claim checkable by a user.
+  model <- fixture_fa_model()
+  session <- fake_chat_session(
+    "fa", response = fake_fa_response(colnames(model$loadings)),
+    input_tokens = 100, output_tokens = 50, cached_input_tokens = 30
+  )
+
+  result <- interpret(
+    fit_results = model, chat_session = session,
+    variable_info = fixture_var_info(), analysis_type = "fa",
+    output_args = list(verbosity = 0)
+  )
+
+  expect_equal(result$input_tokens, 130)
+  expect_equal(result$total_tokens, 180)
+  expect_equal(result$token_usage$cached_input_tokens, 30)
+  expect_equal(session$total_input_tokens, 130)
+})
+
 test_that("printing a session with unknown token counts does not error", {
   # NA totals must survive the print path, or the honest-NA choice trades a
   # silent wrong number for a crash.

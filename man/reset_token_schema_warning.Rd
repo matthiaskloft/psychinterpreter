@@ -10,7 +10,8 @@ reset_token_schema_warning()
 Invisibly \code{NULL}, called for its side effect.
 }
 \description{
-Exposed so tests can assert the warning fires, and so a long-running session
-can opt back into being told again.
+The warning is suppressed for the remainder of the R session once shown.
+Exposed so tests can assert it fires, and so a long-running session can opt
+back into being told again.
 }
 \keyword{internal}

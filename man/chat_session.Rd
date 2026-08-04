@@ -65,8 +65,9 @@ no longer undercounted.
 
 Some providers do not report token usage at all (Ollama typically reports
 zero). If \code{get_tokens()} ever returns a shape this package does not
-recognise, counts are recorded as \code{NA} and a warning is issued once per
-session, rather than being silently reported as zero.
+recognise, counts are recorded as \code{NA} rather than being silently reported as
+zero, and a warning is issued once per R session (suppressed entirely at
+\code{verbosity = 0}).
 }
 \examples{
 \dontrun{

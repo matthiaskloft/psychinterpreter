@@ -13,15 +13,18 @@
 # real one. Anything we cannot parse now reports NA instead.
 # ==============================================================================
 
-# Warn-once state. Token accounting runs once per interpretation and
-# label_variables() loops over variables, so a per-call warning would bury the
-# console in duplicates.
+# Warn-once state. An unrecognised schema is a property of the installed ellmer
+# and the provider, not of any one call, so it does not change between
+# interpretations - repeating the warning for every interpretation in a loop
+# would be noise. This environment is package-global and lives for the whole R
+# session, not per chat_session.
 .token_schema_state <- new.env(parent = emptyenv())
 
 #' Reset the one-time unknown-token-schema warning
 #'
-#' Exposed so tests can assert the warning fires, and so a long-running session
-#' can opt back into being told again.
+#' The warning is suppressed for the remainder of the R session once shown.
+#' Exposed so tests can assert it fires, and so a long-running session can opt
+#' back into being told again.
 #'
 #' @return Invisibly `NULL`, called for its side effect.
 #' @keywords internal

@@ -470,7 +470,10 @@ interpret_core <- function(analysis_data = NULL,
   #
   # Anthropic's prompt caching no longer undercounts: extract_token_counts()
   # adds `cached_input` to the input total.
-  token_counts <- extract_token_counts(tokens_df)
+  # `verbosity = 0` is documented as completely silent, so the unknown-schema
+  # warning is gated on it. The NA counts are emitted either way, so the signal
+  # survives in the returned object even when the message is suppressed.
+  token_counts <- extract_token_counts(tokens_df, warn = verbosity > 0)
   input_tokens <- token_counts$input_tokens
   output_tokens <- token_counts$output_tokens
 
@@ -516,7 +519,10 @@ interpret_core <- function(analysis_data = NULL,
     token_usage = list(
       input_tokens = input_tokens,
       output_tokens = output_tokens,
-      total_tokens = input_tokens + output_tokens
+      total_tokens = input_tokens + output_tokens,
+      # Reported separately so that the cached share of `input_tokens` stays
+      # inspectable; it is already included in the input total above.
+      cached_input_tokens = token_counts$cached_input_tokens
     ),
     llm_info = list(
       llm_provider = chat_local$get_provider()@name,

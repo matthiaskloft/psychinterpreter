@@ -19,7 +19,7 @@ output_args(
 
 \item{suppress_heading}{Logical. Suppress main heading in output (default = FALSE)}
 
-\item{max_line_length}{Integer. Maximum line length for text wrapping, 40-300 (default = 80)}
+\item{max_line_length}{Integer. Maximum line length for text wrapping, 40-300 (default = 120)}
 
 \item{verbosity}{Integer. Verbosity level:
 \itemize{

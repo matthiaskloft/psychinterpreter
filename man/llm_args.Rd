@@ -27,7 +27,7 @@ Note: Some providers may not support all parameters (e.g., Ollama doesn't suppor
 Unsupported parameters will generate warnings from ellmer but won't affect functionality.
 (default = NULL)}
 
-\item{word_limit}{Integer. Maximum words for LLM interpretations (default = 150)}
+\item{word_limit}{Integer. Maximum words for LLM interpretations (default = 100)}
 
 \item{interpretation_guidelines}{Character or NULL. Custom interpretation guidelines (default = NULL)}
 

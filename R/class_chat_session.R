@@ -40,8 +40,9 @@
 #'
 #' Some providers do not report token usage at all (Ollama typically reports
 #' zero). If `get_tokens()` ever returns a shape this package does not
-#' recognise, counts are recorded as `NA` and a warning is issued once per
-#' session, rather than being silently reported as zero.
+#' recognise, counts are recorded as `NA` rather than being silently reported as
+#' zero, and a warning is issued once per R session (suppressed entirely at
+#' `verbosity = 0`).
 #'
 #' @examples
 #' \dontrun{

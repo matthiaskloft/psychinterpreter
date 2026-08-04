@@ -338,7 +338,7 @@ interpretation <- interpret(
 
   cutoff = 0.4,              # Threshold for including results (default: 0.3)
   hide_low_loadings = TRUE,  # hide low loadings below cutoff from the LLM
-  word_limit = 30,          # Max words per interpretation (default: 150)
+  word_limit = 30,          # Max words per interpretation (default: 100)
   output_format = "markdown",# Output format: "text" or "markdown"
   heading_level = 3,         # set heading level for markdown output
 )
