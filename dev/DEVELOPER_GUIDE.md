@@ -1,6 +1,6 @@
 # psychinterpreter Developer Guide
 
-**Last Updated**: 2025-11-22
+**Last Updated**: 2026-07-25
 **Version**: 0.0.0.9000
 **Purpose**: Technical reference for package maintainers and contributors
 **Status**: Production-ready. GM and Label implementations completed. Documentation enhanced.
@@ -133,6 +133,64 @@
 3. Check package: `devtools::check()`
 4. Update relevant docs in `dev/`
 5. Update `OPEN_ISSUES.md` if completing an issue
+
+### Documentation Toolchain (roxygen2 >= 8.0.0 required)
+
+The package is documented with **roxygen2 8.0.0 or newer**. The generating
+version is recorded in `DESCRIPTION` as `Config/roxygen2/version`.
+
+```r
+install.packages("roxygen2")   # must resolve to >= 8.0.0
+```
+
+Running `devtools::document()` with roxygen2 7.x reverts the 8.x output and
+replaces `Config/roxygen2/version` with the old `RoxygenNote` field, producing
+churn on every pull request. **If you see `RoxygenNote` reappear in a diff,
+someone documented with roxygen 7.**
+
+CI is unaffected: neither workflow runs roxygen. `R CMD check` consumes the
+committed `man/` directory rather than regenerating it.
+
+#### Documenting datasets
+
+roxygen2 8.0.0 changed how values are documented. A roxygen block above an
+**assignment** no longer produces `\docType{data}`, `\keyword{datasets}`, or an
+implicit `\format{}` section ([roxygen2 #1666](https://github.com/r-lib/roxygen2/issues/1666)).
+
+This is correct for objects like `PARAMETER_REGISTRY`, which is an exported
+value defined in R code rather than a dataset shipped in `data/` -- roxygen 7
+mislabelled it. But it means that if the package ever gains a **real** dataset
+under `data/`, the old idiom silently produces the wrong help page.
+
+Use a roxygen block above a **bare string naming the dataset**:
+
+```r
+#' Big Five Inventory responses
+#'
+#' @format A data frame with 2,800 rows and 28 columns.
+#' @source <https://example.org/bfi>
+"bfi_responses"          # <- correct: string, not an assignment
+```
+
+Not this:
+
+```r
+#' Big Five Inventory responses
+#'
+#' @format A data frame with 2,800 rows and 28 columns.
+bfi_responses <- read.csv("...")   # <- WRONG for a data/ dataset
+```
+
+The two forms produce materially different `.Rd` output:
+
+| | Block above a string | Block above an assignment |
+|---|---|---|
+| `\docType{data}` | present | **absent** |
+| `\keyword{datasets}` | present | **absent** |
+| `\usage{}` | `data(bfi_responses)` | `bfi_responses` |
+
+Both forms honour an explicit `@format` tag, so the mistake is easy to miss --
+the help page renders, it is just not registered as a dataset.
 
 ### Adding New Model Types
 
