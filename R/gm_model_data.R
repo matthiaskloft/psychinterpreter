@@ -92,10 +92,13 @@ build_analysis_data.Mclust <- function(fit_results, analysis_type = NULL, interp
   covariances <- fit_results$parameters$variance$sigma
   if (is.null(covariances)) {
     # For spherical models, create diagonal covariance matrices
-    sigma_val <- fit_results$parameters$variance$sigmasq
+    sigma_val <- rep(fit_results$parameters$variance$sigmasq, length.out = n_clusters)
     covariances <- array(0, dim = c(n_variables, n_variables, n_clusters))
-    for (k in 1:n_clusters) {
-      diag(covariances[,,k]) <- sigma_val[k]
+    for (k in seq_len(n_clusters)) {
+      slice <- covariances[, , k, drop = FALSE]
+      dim(slice) <- c(n_variables, n_variables)
+      diag(slice) <- sigma_val[k]
+      covariances[, , k] <- slice
     }
   }
 
@@ -115,11 +118,40 @@ build_analysis_data.Mclust <- function(fit_results, analysis_type = NULL, interp
     variable_names <- paste0("V", seq_len(n_variables))
   }
 
+  # For a single variable, mclust records the deparsed CALL as the column name:
+  # Mclust(df$score) yields "df$score", and Mclust(df[["score"]]) yields
+  # 'df[["score"]]'. Neither can match a variable_info entry, so the most
+  # natural way to fit a one-variable mixture failed. When the derived name is
+  # not a syntactic name and cannot match, defer to the single supplied label.
+  if (n_variables == 1 &&
+      !is.null(variable_info) &&
+      is.data.frame(variable_info) &&
+      nrow(variable_info) == 1 &&
+      !identical(variable_names, make.names(variable_names)) &&
+      !variable_names %in% as.character(variable_info$variable)) {
+    variable_names <- as.character(variable_info$variable)[1]
+  }
+
+  # Set cluster names early so they can be attached during normalization
+  cluster_names <- paste0("Cluster_", seq_len(n_clusters))
+
+  # mclust does not use a uniform representation: for a one-variable mixture
+  # `mean` is a bare vector and `variance$sigma` a scalar or per-cluster vector.
+  # Everything downstream indexes means[, k] and covariances[, , k], so coerce
+  # to the canonical shapes before going any further.
+  .shapes <- normalize_gm_shapes(
+    means = means,
+    covariances = covariances,
+    n_variables = n_variables,
+    n_clusters = n_clusters,
+    variable_names = variable_names,
+    cluster_names = cluster_names
+  )
+  means <- .shapes$means
+  covariances <- .shapes$covariances
+
   # Validate variable matching with variable_info
   validate_variable_matching(variable_names, variable_info, "GM")
-
-  # Set cluster names
-  cluster_names <- paste0("Cluster_", seq_len(n_clusters))
 
   # Build standardized analysis_data
   analysis_data <- list(
@@ -295,10 +327,24 @@ validate_list_structure_gm_impl <- function(fit_results, interpretation_args = N
   if (is.null(covariances)) {
     # Create identity covariances if not provided
     covariances <- array(0, dim = c(n_variables, n_variables, n_clusters))
-    for (k in 1:n_clusters) {
-      diag(covariances[,,k]) <- 1
+    for (k in seq_len(n_clusters)) {
+      slice <- covariances[, , k, drop = FALSE]
+      dim(slice) <- c(n_variables, n_variables)
+      diag(slice) <- 1
+      covariances[, , k] <- slice
     }
   }
+
+  # Accept the same shorthand shapes here as from a fitted model (a scalar or
+  # per-cluster variance for a single variable, a shared p x p matrix, etc).
+  .shapes <- normalize_gm_shapes(
+    means = means,
+    covariances = covariances,
+    n_variables = n_variables,
+    n_clusters = n_clusters
+  )
+  means <- .shapes$means
+  covariances <- .shapes$covariances
 
   # Extract or create proportions
   proportions <- fit_results$proportions
