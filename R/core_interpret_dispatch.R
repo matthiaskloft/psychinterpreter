@@ -384,7 +384,7 @@ interpret <- function(fit_results = NULL,
       extracted <- validate_list_structure(
         model_type = effective_analysis_type,
         fit_results_list = fit_results,
-        variable_info = dots$variable_info,
+        variable_info = dots[["variable_info"]],
         interpretation_args = interpretation_cfg
       )
     }
@@ -798,7 +798,7 @@ interpret_model.efaList <- function(model, ...) {
   validate_model_structure(model)
 
   # Extract loadings using stats::loadings() which works on efaList
-  loadings_obj <- loadings(model)
+  loadings_obj <- stats::loadings(model)
 
   # Convert to data frame
   loadings <- as.data.frame(unclass(loadings_obj))

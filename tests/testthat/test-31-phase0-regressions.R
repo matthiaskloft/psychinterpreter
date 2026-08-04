@@ -1,8 +1,11 @@
 # ==============================================================================
 # TEST: Phase 0 regression tests
 # ==============================================================================
-# Purpose: Lock in the six defects fixed in PR #1. Every test in this file
-#          fails on 55759e0 and passes after the fix.
+# Purpose: Lock in the six defects fixed in PR #1.
+#
+#          Most tests here are regression tests that fail on 55759e0. Three are
+#          guard tests that pass on both revisions and exist to pin behaviour
+#          that must NOT change; they are marked "guard:" in their name.
 # Ref:     dev/CODE_REVIEW_CONSOLIDATED_2026-07-25.md (F-02, F-03, F-04,
 #          F-09, F-19, F-20)
 # Note:    All tests here are offline. None require an LLM provider.
@@ -47,7 +50,7 @@ test_that("singular covariance does not silently report separation of 0", {
   expect_true(is.na(sep[2, 1]))
 })
 
-test_that("non-singular covariance still yields the Mahalanobis distance", {
+test_that("guard: non-singular covariance still yields the Mahalanobis distance", {
   sep <- calculate_cluster_separation_gm(gm_two_cluster_data(diag(2)))
 
   # With an identity covariance the Mahalanobis distance is Euclidean.
@@ -56,7 +59,7 @@ test_that("non-singular covariance still yields the Mahalanobis distance", {
   expect_equal(sep[1, 1], 0)
 })
 
-test_that("separation matrix is symmetric and zero on the diagonal", {
+test_that("guard: separation matrix is symmetric and zero on the diagonal", {
   sep <- calculate_cluster_separation_gm(gm_two_cluster_data(diag(2)))
   expect_equal(sep, t(sep))
   expect_equal(diag(sep), c(0, 0))
@@ -79,6 +82,34 @@ test_that("all-unavailable separation does not produce Inf or a warning", {
   min_sep <- fit_summary$statistics$min_separation
   # min(numeric(0)) would give Inf with a warning; NA is the correct answer.
   expect_false(isTRUE(is.finite(min_sep)))
+})
+
+test_that("unavailable separation is omitted from the report, not rendered as NA", {
+  # min_separation is NA_real_, which is not NULL - a bare !is.null() guard in
+  # the report builder would print "Minimum cluster separation: NA".
+  singular <- matrix(c(1, 1, 1, 1), 2, 2)
+  ad <- gm_two_cluster_data(singular)
+  fit_summary <- create_fit_summary("gm", ad)
+
+  interpretation <- structure(
+    list(
+      analysis_type = "gm",
+      analysis_data = ad,
+      fit_summary = fit_summary,
+      component_summaries = list(),
+      suggested_names = list(),
+      cluster_names = ad$cluster_names
+    ),
+    class = c("gm_interpretation", "interpretation", "list")
+  )
+
+  report <- build_report(interpretation, output_format = "markdown")
+  report_text <- paste(report, collapse = "\n")
+
+  expect_false(grepl("separation:\\s*NA", report_text))
+  expect_false(grepl("separation.{0,4}NA", report_text))
+  # The note explaining the omission must still be present.
+  expect_true(any(grepl("Separation unavailable", fit_summary$notes)))
 })
 
 
@@ -162,8 +193,39 @@ test_that("structured-list GM route does not capture a global variable_info", {
 # ------------------------------------------------------------------------------
 # F-20: stats::loadings() was called unqualified and was not imported
 # ------------------------------------------------------------------------------
+# Note: the unqualified call still RESOLVED at runtime, because stats is on the
+# search path and namespace lookup falls through to it. The defect was an
+# R CMD check NOTE ("no visible global function definition"), which no runtime
+# expectation can observe. The NAMESPACE assertion below is the discriminator;
+# the functional test that follows is only a guard.
 
-test_that("efaList loadings extraction resolves stats::loadings", {
+test_that("stats::loadings is imported so no check NOTE is emitted", {
+  ns <- readLines(system.file("NAMESPACE", package = "psychinterpreter"))
+  expect_true(any(grepl("importFrom(stats,loadings)", ns, fixed = TRUE)))
+})
+
+test_that("every loadings() call site is namespace-qualified", {
+  # Consistency: the NAMESPACE import silences the NOTE package-wide, which can
+  # mask an unqualified call that would regress if the import were ever moved.
+  r_files <- list.files(
+    system.file("R", package = "psychinterpreter"), full.names = TRUE
+  )
+  skip_if(length(r_files) == 0, "installed package has no parseable R sources")
+
+  src <- unlist(lapply(
+    list.files(test_path("..", ".."), pattern = "\\.R$",
+               recursive = TRUE, full.names = TRUE),
+    function(f) if (grepl("[/\\\\]R[/\\\\]", f)) readLines(f, warn = FALSE) else character(0)
+  ))
+  skip_if(length(src) == 0, "package R/ sources not reachable from test dir")
+
+  bare <- grep("(^|[^:a-zA-Z._])loadings\\(", src, value = TRUE)
+  bare <- bare[!grepl("stats::loadings\\(", bare)]
+  bare <- bare[!grepl("^\\s*#", bare)]
+  expect_equal(bare, character(0))
+})
+
+test_that("guard: efaList loadings extraction still works end to end", {
   skip_if_not_installed("lavaan")
 
   set.seed(42)
