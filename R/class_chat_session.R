@@ -32,17 +32,16 @@
 #' resending the system prompt each time.
 #'
 #' **Token Tracking Note:**
-#' The package tracks per-interpretation token counts using roles returned by
-#' `ellmer::chat$get_tokens()` (user/assistant). Some providers or the `ellmer`
-#' wrapper do not consistently expose `system`/`system_prompt` token counts (this
-#' appears to be an upstream limitation/bug). To avoid incorrect cumulative
-#' accounting (double-counting or negative accumulation), `chat_session` intentionally
-#' does NOT include `system_prompt` tokens in the package-level cumulative
-#' counters (`total_input_tokens` / `total_output_tokens`).
+#' Per-interpretation token counts come from `ellmer::chat$get_tokens()`, which
+#' since ellmer 0.4.0 returns one row per assistant turn with `input`, `output`
+#' and `cached_input` columns. Cached input tokens are counted towards
+#' `total_input_tokens`, so providers that cache prompts (such as Anthropic) are
+#' no longer undercounted.
 #'
-#' If you require a provider-specific view that includes system prompt tokens,
-#' call `chat$chat$get_tokens(include_system_prompt = TRUE)` directly - but note
-#' that results may vary across providers.
+#' Some providers do not report token usage at all (Ollama typically reports
+#' zero). If `get_tokens()` ever returns a shape this package does not
+#' recognise, counts are recorded as `NA` and a warning is issued once per
+#' session, rather than being silently reported as zero.
 #'
 #' @examples
 #' \dontrun{

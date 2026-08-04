@@ -81,32 +81,50 @@ fake_chat <- function(response = '{"factor_summaries": {}, "suggested_names": {}
   if (is.null(log$prompts)) log$prompts <- character(0)
   if (is.null(log$n_calls)) log$n_calls <- 0L
 
-  self <- list(
-    .log = log,
-    chat = function(prompt, echo = "none", ...) {
-      log$prompts <- c(log$prompts, prompt)
-      log$n_calls <- log$n_calls + 1L
-      if (is.function(response)) response(prompt) else response
-    },
-    get_turns = function() list(),
-    set_turns = function(value) self,
-    extract_data = function(...) list(),
-    get_tokens = function(...) {
-      # Row count tracks completed turns, as real ellmer does.
-      fake_tokens(token_schema, input = input_tokens, output = output_tokens,
-                  n_turns = log$n_calls)
-    },
-    get_provider = function() new("FakeProvider", name = "fake"),
-    get_model = function() "fake-model"
-  )
-  # clone() must return an object that still records into the SAME log, so
-  # tests can inspect prompts even though interpret_core() clones the chat.
-  self$clone <- function() {
-    cloned <- self
-    cloned$set_turns <- function(value) cloned
-    cloned
+  # Turn state is PER CHAT OBJECT, while the prompt log is shared across
+  # clones. Real ellmer derives get_tokens() from get_turns(), so
+  # clone()$set_turns(list()) genuinely resets the token frame to zero rows -
+  # which is exactly what interpret_core() relies on to get per-interpretation
+  # counts. A fixture with one shared cumulative counter would hide a token
+  # fix that double-counts across interpretations.
+  state <- new.env(parent = emptyenv())
+  state$n_turns <- 0L
+
+  build <- function(state) {
+    self <- list(
+      .log = log,
+      .state = state,
+      chat = function(prompt, echo = "none", ...) {
+        log$prompts <- c(log$prompts, prompt)
+        log$n_calls <- log$n_calls + 1L
+        state$n_turns <- state$n_turns + 1L
+        if (is.function(response)) response(prompt) else response
+      },
+      get_turns = function() vector("list", state$n_turns),
+      extract_data = function(...) list(),
+      get_tokens = function(...) {
+        # One row per completed assistant turn, as real ellmer does.
+        fake_tokens(token_schema, input = input_tokens, output = output_tokens,
+                    n_turns = state$n_turns)
+      },
+      get_provider = function() new("FakeProvider", name = "fake"),
+      get_model = function() "fake-model"
+    )
+    self$set_turns <- function(value) {
+      state$n_turns <- length(value)
+      self
+    }
+    # clone() gets its own turn state, seeded from this one, but keeps writing
+    # prompts to the SAME log so tests can inspect what was actually sent.
+    self$clone <- function() {
+      cloned_state <- new.env(parent = emptyenv())
+      cloned_state$n_turns <- state$n_turns
+      build(cloned_state)
+    }
+    self
   }
-  self
+
+  build(state)
 }
 
 #' Create a fake chat_session with correct reference semantics

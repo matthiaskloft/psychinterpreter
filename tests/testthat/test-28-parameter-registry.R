@@ -104,8 +104,8 @@ test_that("PARAMETER_REGISTRY has correct config group assignments", {
 
 test_that("PARAMETER_REGISTRY has correct default values", {
   # Critical defaults from plan
-  expect_equal(PARAMETER_REGISTRY$word_limit$default, 150)
-  expect_equal(PARAMETER_REGISTRY$max_line_length$default, 80L)
+  expect_equal(PARAMETER_REGISTRY$word_limit$default, 100)
+  expect_equal(PARAMETER_REGISTRY$max_line_length$default, 120L)
 
   # Other key defaults
   expect_equal(PARAMETER_REGISTRY$cutoff$default, 0.3)
@@ -133,9 +133,9 @@ test_that("PARAMETER_REGISTRY has correct default values", {
 # ==============================================================================
 
 test_that("get_param_default() retrieves correct defaults", {
-  expect_equal(get_param_default("word_limit"), 150)
+  expect_equal(get_param_default("word_limit"), 100)
   expect_equal(get_param_default("cutoff"), 0.3)
-  expect_equal(get_param_default("max_line_length"), 80L)
+  expect_equal(get_param_default("max_line_length"), 120L)
   expect_equal(get_param_default("n_emergency"), 2L)
   expect_equal(get_param_default("format"), "cli")
   expect_equal(get_param_default("echo"), "none")
@@ -654,7 +654,7 @@ test_that("show_interpret_args() formats defaults correctly", {
 
   # Check default formatting for different types
   word_limit_row <- result[result$parameter == "word_limit", ]
-  expect_equal(word_limit_row$default, "150")
+  expect_equal(word_limit_row$default, "100")
 
   format_row <- result[result$parameter == "format", ]
   expect_equal(format_row$default, "\"cli\"")

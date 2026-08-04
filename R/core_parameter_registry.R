@@ -125,7 +125,10 @@ PARAMETER_REGISTRY <- list(
   ),
 
   word_limit = list(
-    default = 150,
+    # Must match the `word_limit` formal of interpret_core(). These disagreed
+    # (150 here, 100 there) which was invisible only because the config path
+    # never actually read the registry value.
+    default = 100,
     type = "integer",
     range = c(20, 500),
     allowed_values = NULL,
@@ -282,7 +285,9 @@ PARAMETER_REGISTRY <- list(
   ),
 
   max_line_length = list(
-    default = 80L,
+    # Must match the `max_line_length` formal of interpret_core() (see the
+    # note on word_limit above).
+    default = 120L,
     type = "integer",
     range = c(40, 300),
     allowed_values = NULL,

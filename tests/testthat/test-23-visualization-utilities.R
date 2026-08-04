@@ -98,7 +98,7 @@ test_that("default_output_args returns correct defaults", {
   expect_equal(defaults$format, "cli")
   expect_equal(defaults$heading_level, 1)  # Default is 1, not 2
   expect_false(defaults$suppress_heading)
-  expect_equal(defaults$max_line_length, 80)
+  expect_equal(defaults$max_line_length, 120)
   expect_equal(defaults$verbosity, 2)
 
   # Check class

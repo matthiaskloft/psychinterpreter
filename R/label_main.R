@@ -391,19 +391,13 @@ label_variables <- function(variable_info,
   # ==========================================================================
 
   tokens_df <- chat_local$get_tokens()
-  input_tokens <- 0
-  output_tokens <- 0
-
-  if (!is.null(tokens_df) && nrow(tokens_df) > 0 &&
-      "tokens" %in% names(tokens_df) && "role" %in% names(tokens_df)) {
-    input_tokens <- sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
-    output_tokens <- sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
-  }
+  token_counts <- extract_token_counts(tokens_df)
+  input_tokens <- token_counts$input_tokens
+  output_tokens <- token_counts$output_tokens
 
   # Update session token counts if not temporary
   if (!created_temp_session) {
-    chat_session$total_input_tokens <- chat_session$total_input_tokens + input_tokens
-    chat_session$total_output_tokens <- chat_session$total_output_tokens + output_tokens
+    update_session_tokens(chat_session, token_counts)
     chat_session$n_interpretations <- chat_session$n_interpretations + 1
   }
 
