@@ -92,12 +92,28 @@ build_analysis_data.Mclust <- function(fit_results, analysis_type = NULL, interp
   covariances <- fit_results$parameters$variance$sigma
   if (is.null(covariances)) {
     # For spherical models, create diagonal covariance matrices
-    sigma_val <- fit_results$parameters$variance$sigmasq
+    sigma_val <- rep(fit_results$parameters$variance$sigmasq, length.out = n_clusters)
     covariances <- array(0, dim = c(n_variables, n_variables, n_clusters))
-    for (k in 1:n_clusters) {
-      diag(covariances[,,k]) <- sigma_val[k]
+    for (k in seq_len(n_clusters)) {
+      slice <- covariances[, , k, drop = FALSE]
+      dim(slice) <- c(n_variables, n_variables)
+      diag(slice) <- sigma_val[k]
+      covariances[, , k] <- slice
     }
   }
+
+  # mclust does not use a uniform representation: for a one-variable mixture
+  # `mean` is a bare vector and `variance$sigma` a scalar or per-cluster vector.
+  # Everything downstream indexes means[, k] and covariances[, , k], so coerce
+  # to the canonical shapes before going any further.
+  .shapes <- normalize_gm_shapes(
+    means = means,
+    covariances = covariances,
+    n_variables = n_variables,
+    n_clusters = n_clusters
+  )
+  means <- .shapes$means
+  covariances <- .shapes$covariances
 
   # Extract other components
   proportions <- fit_results$parameters$pro
@@ -295,10 +311,24 @@ validate_list_structure_gm_impl <- function(fit_results, interpretation_args = N
   if (is.null(covariances)) {
     # Create identity covariances if not provided
     covariances <- array(0, dim = c(n_variables, n_variables, n_clusters))
-    for (k in 1:n_clusters) {
-      diag(covariances[,,k]) <- 1
+    for (k in seq_len(n_clusters)) {
+      slice <- covariances[, , k, drop = FALSE]
+      dim(slice) <- c(n_variables, n_variables)
+      diag(slice) <- 1
+      covariances[, , k] <- slice
     }
   }
+
+  # Accept the same shorthand shapes here as from a fitted model (a scalar or
+  # per-cluster variance for a single variable, a shared p x p matrix, etc).
+  .shapes <- normalize_gm_shapes(
+    means = means,
+    covariances = covariances,
+    n_variables = n_variables,
+    n_clusters = n_clusters
+  )
+  means <- .shapes$means
+  covariances <- .shapes$covariances
 
   # Extract or create proportions
   proportions <- fit_results$proportions

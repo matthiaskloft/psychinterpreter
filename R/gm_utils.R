@@ -2,6 +2,92 @@
 # UTILITY FUNCTIONS FOR GAUSSIAN MIXTURE MODEL ANALYSIS
 # ==============================================================================
 
+#' Normalize GM Parameter Shapes to a Canonical Form
+#'
+#' Coerces cluster means and covariances to the canonical shapes every
+#' downstream consumer (diagnostics, prompt building, visualization) assumes:
+#' \code{means[n_variables, n_clusters]} and
+#' \code{covariances[n_variables, n_variables, n_clusters]}.
+#'
+#' This is required because \code{mclust} does not use a uniform representation.
+#' For a one-variable mixture it supplies \code{parameters$mean} as a bare vector
+#' of length \code{n_clusters} and \code{parameters$variance$sigma} as a scalar
+#' (equal-variance models) or a vector of length \code{n_clusters} (varying
+#' variance) - neither of which carries the dimensions the rest of the package
+#' indexes into.
+#'
+#' @param means Numeric matrix, data frame, or vector of cluster means
+#' @param covariances Numeric 3-d array, matrix, vector, or scalar of covariances
+#' @param n_variables Integer. Number of variables (p)
+#' @param n_clusters Integer. Number of clusters (G)
+#' @param variable_names Character or NULL. Row names to apply
+#' @param cluster_names Character or NULL. Column names to apply
+#'
+#' @return List with canonical \code{means} and \code{covariances}
+#' @keywords internal
+normalize_gm_shapes <- function(means,
+                                covariances,
+                                n_variables,
+                                n_clusters,
+                                variable_names = NULL,
+                                cluster_names = NULL) {
+
+  # ---- means -> [n_variables, n_clusters] ----------------------------------
+  if (is.data.frame(means)) means <- as.matrix(means)
+
+  if (is.null(dim(means))) {
+    if (length(means) != n_variables * n_clusters) {
+      cli::cli_abort(c(
+        "Cannot reshape cluster means to {n_variables} x {n_clusters}",
+        "x" = "Received {length(means)} value{?s}, expected {n_variables * n_clusters}"
+      ))
+    }
+    means <- matrix(means, nrow = n_variables, ncol = n_clusters)
+  }
+
+  # ---- covariances -> [n_variables, n_variables, n_clusters] ---------------
+  cov_dim <- dim(covariances)
+
+  if (is.null(cov_dim) || length(cov_dim) != 3L) {
+    values <- as.numeric(covariances)
+
+    if (!is.null(cov_dim) && length(cov_dim) == 2L &&
+        all(cov_dim == c(n_variables, n_variables))) {
+      # A single p x p matrix shared across clusters: replicate it.
+      shared <- matrix(values, nrow = n_variables, ncol = n_variables)
+      normalized <- array(0, dim = c(n_variables, n_variables, n_clusters))
+      for (k in seq_len(n_clusters)) normalized[, , k] <- shared
+
+    } else if (n_variables == 1L && length(values) %in% c(1L, n_clusters)) {
+      # Univariate: scalar (equal variance) or one value per cluster.
+      values <- rep(values, length.out = n_clusters)
+      normalized <- array(values, dim = c(1L, 1L, n_clusters))
+
+    } else if (length(values) == n_variables * n_variables * n_clusters) {
+      normalized <- array(values, dim = c(n_variables, n_variables, n_clusters))
+
+    } else {
+      cli::cli_abort(c(
+        "Cannot reshape covariances to {n_variables} x {n_variables} x {n_clusters}",
+        "x" = "Received {length(values)} value{?s}",
+        "i" = "Expected a scalar, one value per cluster, a {n_variables} x {n_variables} matrix, or a 3-d array"
+      ))
+    }
+    covariances <- normalized
+  }
+
+  # ---- dimnames ------------------------------------------------------------
+  if (!is.null(variable_names) && length(variable_names) == n_variables) {
+    rownames(means) <- variable_names
+    dimnames(covariances) <- list(variable_names, variable_names, NULL)
+  }
+  if (!is.null(cluster_names) && length(cluster_names) == n_clusters) {
+    colnames(means) <- cluster_names
+  }
+
+  list(means = means, covariances = covariances)
+}
+
 #' Convert Covariance Matrix to Correlation Matrix (Safe)
 #'
 #' Safely converts a covariance matrix to correlation matrix with protection
