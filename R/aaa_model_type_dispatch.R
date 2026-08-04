@@ -392,11 +392,12 @@ extract_lavaan_loadings <- function(model) {
 #'
 #' @param model A lavaan::efa() model (efaList class)
 #' @return List with loadings and factor_cor_mat components
+#' @importFrom stats loadings
 #' @keywords internal
 #' @noRd
 extract_efalist_loadings <- function(model) {
   # Extract loadings using stats::loadings() which works on efaList
-  loadings_obj <- loadings(model)
+  loadings_obj <- stats::loadings(model)
 
   # Convert to data frame
   loadings <- as.data.frame(unclass(loadings_obj))

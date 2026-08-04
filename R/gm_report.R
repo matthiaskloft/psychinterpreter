@@ -133,8 +133,12 @@ build_report_header_gm <- function(interpretation,
       )
     }
 
-    # Clustering quality
-    if (!is.null(fit_summary$statistics$min_separation)) {
+    # Clustering quality.
+    # min_separation is NA when every pair has a singular averaged covariance;
+    # omit the line rather than rendering "NA". The accompanying note
+    # ("Separation unavailable for N cluster pairs") explains the omission.
+    if (!is.null(fit_summary$statistics$min_separation) &&
+        !is.na(fit_summary$statistics$min_separation)) {
       sep_value <- format(round(fit_summary$statistics$min_separation, 3), nsmall = 3)
       report <- paste0(
         report,

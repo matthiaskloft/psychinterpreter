@@ -21,8 +21,11 @@ clean_json_response <- function(response) {
 
   cleaned <- response
 
-  # Try to extract JSON block if response contains extra text
-  json_match <- regexpr('\\{[\\s\\S]*\\}', response)
+  # Try to extract JSON block if response contains extra text.
+  # perl = TRUE is required: (?s) is an inline mode modifier, a PCRE feature
+  # absent from R's default TRE engine, which would treat it as literal text.
+  # (?s) makes . span newlines so multi-line JSON is matched.
+  json_match <- regexpr("(?s)\\{.*\\}", response, perl = TRUE)
   if (json_match > 0) {
     cleaned <- regmatches(response, json_match)
   }
