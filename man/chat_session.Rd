@@ -57,17 +57,17 @@ This allows for efficient reuse across multiple interpretations without
 resending the system prompt each time.
 
 \strong{Token Tracking Note:}
-The package tracks per-interpretation token counts using roles returned by
-\code{ellmer::chat$get_tokens()} (user/assistant). Some providers or the \code{ellmer}
-wrapper do not consistently expose \code{system}/\code{system_prompt} token counts (this
-appears to be an upstream limitation/bug). To avoid incorrect cumulative
-accounting (double-counting or negative accumulation), \code{chat_session} intentionally
-does NOT include \code{system_prompt} tokens in the package-level cumulative
-counters (\code{total_input_tokens} / \code{total_output_tokens}).
+Per-interpretation token counts come from \code{ellmer::chat$get_tokens()}, which
+since ellmer 0.4.0 returns one row per assistant turn with \code{input}, \code{output}
+and \code{cached_input} columns. Cached input tokens are counted towards
+\code{total_input_tokens}, so providers that cache prompts (such as Anthropic) are
+no longer undercounted.
 
-If you require a provider-specific view that includes system prompt tokens,
-call \code{chat$chat$get_tokens(include_system_prompt = TRUE)} directly - but note
-that results may vary across providers.
+Some providers do not report token usage at all (Ollama typically reports
+zero). If \code{get_tokens()} ever returns a shape this package does not
+recognise, counts are recorded as \code{NA} rather than being silently reported as
+zero, and a warning is issued once per R session (suppressed entirely at
+\code{verbosity = 0}).
 }
 \examples{
 \dontrun{

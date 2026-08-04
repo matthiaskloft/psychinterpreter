@@ -233,7 +233,7 @@ interpretation_args_fa <- function(cutoff = NULL,
 #'   Note: Some providers may not support all parameters (e.g., Ollama doesn't support 'seed').
 #'   Unsupported parameters will generate warnings from ellmer but won't affect functionality.
 #'   (default = NULL)
-#' @param word_limit Integer. Maximum words for LLM interpretations (default = 150)
+#' @param word_limit Integer. Maximum words for LLM interpretations (default = 100)
 #' @param interpretation_guidelines Character or NULL. Custom interpretation guidelines (default = NULL)
 #' @param additional_info Character or NULL. Additional context for LLM (default = NULL)
 #' @param echo Character. Echo level: "none", "output", "all" (default = "none")
@@ -292,7 +292,7 @@ llm_args <- function(llm_provider = NULL,
 #' @param format Character. Output format: "cli" or "markdown" (default = "cli")
 #' @param heading_level Integer. Markdown heading level, 1-6 (default = 1)
 #' @param suppress_heading Logical. Suppress main heading in output (default = FALSE)
-#' @param max_line_length Integer. Maximum line length for text wrapping, 40-300 (default = 80)
+#' @param max_line_length Integer. Maximum line length for text wrapping, 40-300 (default = 120)
 #' @param verbosity Integer. Verbosity level:
 #'   - 0: Completely silent
 #'   - 1: Show messages only, suppress report

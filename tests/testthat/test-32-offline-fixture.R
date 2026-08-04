@@ -104,10 +104,9 @@ test_that("fake session can emit each ellmer token schema", {
 })
 
 test_that("token schema choice changes what the package records", {
-  # Documents F-01 rather than asserting the (broken) values: the package reads
-  # role/tokens, which ellmer >= 0.4 no longer emits, so the modern schema
-  # yields 0. This test must be updated when F-01 is fixed - at which point
-  # modern should report 150 and legacy is the one that stops mattering.
+  # F-01 is fixed: extract_token_counts() understands both schemas, so both
+  # report 150. Before the fix the modern schema - the only one ellmer >= 0.4
+  # emits, and the one this package now depends on - reported 0.
   model <- fixture_fa_model()
   response <- fake_fa_response(colnames(model$loadings))
   run <- function(schema) {
@@ -121,7 +120,7 @@ test_that("token schema choice changes what the package records", {
 
   expect_equal(run("legacy"), 150)
   # The schema the declared ellmer dependency actually returns:
-  expect_equal(run("modern"), 0)
+  expect_equal(run("modern"), 150)
 })
 
 test_that("token frame grows one row per turn, like real ellmer", {

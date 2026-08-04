@@ -126,7 +126,7 @@ test_that("llm_args() validates additional_info parameter", {
 test_that("llm_args() uses default values when not specified", {
   config <- llm_args(llm_provider = "ollama")
 
-  expect_equal(config$word_limit, 150L)
+  expect_equal(config$word_limit, 100L)
   expect_null(config$additional_info)
   expect_null(config$llm_model)
 })
@@ -193,7 +193,7 @@ test_that("output_args() uses default values when not specified", {
   expect_equal(config$format, "cli")
   expect_equal(config$verbosity, 2L)
   expect_equal(config$heading_level, 1L)
-  expect_equal(config$max_line_length, 80L)
+  expect_equal(config$max_line_length, 120L)
 })
 
 test_that("output_args() accepts all valid formats", {

@@ -86,21 +86,60 @@ interpret_core <- function(analysis_data = NULL,
   variable_info <- dots$variable_info  # May be NULL for models that don't need it
 
   # ==========================================================================
-  # STEP 0A: EXTRACT PARAMETERS FROM CONFIG OBJECTS (EARLY)
+  # STEP 0A: RESOLVE PARAMETERS ACROSS DIRECT ARGS AND CONFIG OBJECTS (EARLY)
   # ==========================================================================
-  # Do this before building analysis_data so we have analysis_type validated early
+  # Do this before building analysis_data so we have analysis_type validated
+  # early, and before any parameter is reassigned - the defaults below are read
+  # straight off the formals, so they cannot drift from the signature the way a
+  # restated copy would.
+  #
+  # Precedence: direct argument > config object > formal default. See
+  # R/core_params.R for why `is.null()` cannot decide "was this supplied?".
+  supplied_names <- names(match.call(expand.dots = TRUE))
 
-  # Extract parameters from config objects if provided
-  if (!is.null(llm_args)) {
-    if (is.null(llm_provider)) llm_provider <- llm_args$llm_provider
-    if (is.null(llm_model)) llm_model <- llm_args$llm_model
-  }
-  if (!is.null(output_args)) {
-    if (is.null(output_format)) output_format <- output_args$format
-    if (is.null(heading_level)) heading_level <- output_args$heading_level
-    if (is.null(suppress_heading)) suppress_heading <- output_args$suppress_heading
-    if (is.null(max_line_length)) max_line_length <- output_args$max_line_length
-    if (verbosity == 2 && !is.null(output_args$verbosity)) verbosity <- output_args$verbosity
+  llm_params <- c("llm_provider", "llm_model", "system_prompt", "params",
+                  "word_limit", "additional_info", "echo")
+  llm_resolved <- resolve_call_params(
+    supplied = collect_supplied(llm_params, supplied_names),
+    config = llm_args,
+    defaults = mget(llm_params)
+  )
+  llm_provider <- llm_resolved$llm_provider
+  llm_model <- llm_resolved$llm_model
+  system_prompt <- llm_resolved$system_prompt
+  params <- llm_resolved$params
+  word_limit <- llm_resolved$word_limit
+  additional_info <- llm_resolved$additional_info
+  echo <- llm_resolved$echo
+
+  # output_args() calls its format field `format`; the argument here is
+  # `output_format`, so the two names have to be mapped.
+  output_map <- c(output_format = "format",
+                  heading_level = "heading_level",
+                  suppress_heading = "suppress_heading",
+                  max_line_length = "max_line_length",
+                  verbosity = "verbosity")
+  output_defaults <- stats::setNames(mget(names(output_map)), unname(output_map))
+  output_supplied <- collect_supplied(names(output_map), supplied_names)
+  names(output_supplied) <- unname(output_map[names(output_supplied)])
+  output_resolved <- resolve_call_params(
+    supplied = output_supplied,
+    config = output_args,
+    defaults = output_defaults
+  )
+  output_format <- output_resolved$format
+  heading_level <- output_resolved$heading_level
+  suppress_heading <- output_resolved$suppress_heading
+  max_line_length <- output_resolved$max_line_length
+  verbosity <- output_resolved$verbosity
+
+  # `interpretation_guidelines` has no formal here - the prompt builders read it
+  # out of `dots`. Route the llm_args value into dots so that supplying it via
+  # the config object behaves the same as passing it directly.
+  if (!is.null(llm_args) &&
+      !("interpretation_guidelines" %in% names(dots)) &&
+      !is.null(llm_args$interpretation_guidelines)) {
+    dots$interpretation_guidelines <- llm_args$interpretation_guidelines
   }
 
   # Extract analysis_type from interpretation_args if not provided directly
@@ -421,37 +460,26 @@ interpret_core <- function(analysis_data = NULL,
   tokens_df <- chat_local$get_tokens()
 
   # Note: Token tracking reliability varies by provider:
-  # - Some providers/ellmer wrapper do not reliably report `system` role token counts
   # - Ollama often returns 0 tokens (no tracking support)
-  # - Anthropic caches system prompts; cumulative input tokens may undercount
   # - OpenAI generally has accurate token reporting
   #
-  # We intentionally only sum user/assistant tokens here and do NOT include
-  # `system`/`system_prompt` tokens in package-level counters to avoid
-  # inconsistent or double-counted totals.
-  # Extract token counts from the tokens dataframe
-  # Use normalize_token_count() to ensure we always get valid numeric values
-  if (!is.null(tokens_df) && nrow(tokens_df) > 0 &&
-      "tokens" %in% names(tokens_df) && "role" %in% names(tokens_df)) {
-    input_tokens <- normalize_token_count(
-      sum(tokens_df$tokens[tokens_df$role == "user"], na.rm = TRUE)
-    )
-    output_tokens <- normalize_token_count(
-      sum(tokens_df$tokens[tokens_df$role == "assistant"], na.rm = TRUE)
-    )
-  } else {
-    # No token data available (some providers don't support token tracking)
-    input_tokens <- 0
-    output_tokens <- 0
-  }
+  # `chat_local` is a clone with its turns cleared (see STEP 3), and
+  # get_tokens() is derived from the turn list, so this frame covers only the
+  # current interpretation. The session-level counters below are what
+  # accumulate across interpretations.
+  #
+  # Anthropic's prompt caching no longer undercounts: extract_token_counts()
+  # adds `cached_input` to the input total.
+  # `verbosity = 0` is documented as completely silent, so the unknown-schema
+  # warning is gated on it. The NA counts are emitted either way, so the signal
+  # survives in the returned object even when the message is suppressed.
+  token_counts <- extract_token_counts(tokens_df, warn = verbosity > 0)
+  input_tokens <- token_counts$input_tokens
+  output_tokens <- token_counts$output_tokens
 
-  # Update session cumulative totals
-  # Note: These may remain 0 for providers without token tracking support (e.g., Ollama)
-  chat_session$total_input_tokens <- chat_session$total_input_tokens + input_tokens
-  chat_session$total_output_tokens <- chat_session$total_output_tokens + output_tokens
-  chat_session$cumulative_tokens$input_tokens <- chat_session$total_input_tokens
-  chat_session$cumulative_tokens$output_tokens <- chat_session$total_output_tokens
-  chat_session$cumulative_tokens$total_tokens <- chat_session$total_input_tokens + chat_session$total_output_tokens
+  # Update session cumulative totals. NA propagates when the token schema was
+  # not recognised, so an unknown total is never presented as a known one.
+  update_session_tokens(chat_session, token_counts)
   chat_session$n_interpretations <- chat_session$n_interpretations + 1L
 
   # ==========================================================================
@@ -491,7 +519,10 @@ interpret_core <- function(analysis_data = NULL,
     token_usage = list(
       input_tokens = input_tokens,
       output_tokens = output_tokens,
-      total_tokens = input_tokens + output_tokens
+      total_tokens = input_tokens + output_tokens,
+      # Reported separately so that the cached share of `input_tokens` stays
+      # inspectable; it is already included in the input total above.
+      cached_input_tokens = token_counts$cached_input_tokens
     ),
     llm_info = list(
       llm_provider = chat_local$get_provider()@name,
