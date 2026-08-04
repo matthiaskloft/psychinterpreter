@@ -1239,7 +1239,7 @@ extract_variance_matrix <- function(analysis_data) {
   )
 
   for (k in seq_len(analysis_data$n_clusters)) {
-    sds_matrix[, k] <- sqrt(diag(analysis_data$covariances[, , k]))
+    sds_matrix[, k] <- sqrt(diag(gm_cluster_cov(analysis_data$covariances, k)))
   }
 
   # Set row names to match variable names

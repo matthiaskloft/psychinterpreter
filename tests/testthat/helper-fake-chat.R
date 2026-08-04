@@ -37,8 +37,11 @@ fake_tokens <- function(schema = c("modern", "legacy", "unknown", "empty"),
                         input = 100, output = 50, cached_input = 0) {
   schema <- match.arg(schema)
   switch(schema,
+    # Mirrors ellmer 0.4.2 exactly, including the columns the package does not
+    # read - a fixture that omits them is not a faithful stand-in.
     modern = data.frame(
       input = input, output = output, cached_input = cached_input,
+      cost = NA_real_, input_preview = NA_character_,
       stringsAsFactors = FALSE
     ),
     legacy = data.frame(

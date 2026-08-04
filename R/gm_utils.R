@@ -2,6 +2,31 @@
 # UTILITY FUNCTIONS FOR GAUSSIAN MIXTURE MODEL ANALYSIS
 # ==============================================================================
 
+#' Extract One Cluster's Covariance Matrix
+#'
+#' Returns cluster \code{k}'s covariance as a \code{p x p} matrix, never a bare
+#' scalar. \code{covariances[, , k]} drops dimensions when \code{p == 1}, which
+#' silently breaks every consumer that calls \code{diag()}, \code{rownames()} or
+#' \code{cov2cor()} on the result - \code{diag(0.77)} returns a 0 x 0 matrix
+#' rather than erroring, so a one-variable model produced \code{NA} variances in
+#' the LLM prompt instead of failing loudly.
+#'
+#' @param covariances Numeric array \code{[p, p, G]}
+#' @param k Integer. Cluster index
+#'
+#' @return Numeric \code{p x p} matrix, with dimnames preserved where present
+#' @keywords internal
+gm_cluster_cov <- function(covariances, k) {
+  p <- dim(covariances)[1]
+  slice <- covariances[, , k, drop = FALSE]
+  dim(slice) <- c(p, p)
+  dn <- dimnames(covariances)
+  if (!is.null(dn) && !is.null(dn[[1]])) {
+    dimnames(slice) <- list(dn[[1]], dn[[2]])
+  }
+  slice
+}
+
 #' Normalize GM Parameter Shapes to a Canonical Form
 #'
 #' Coerces cluster means and covariances to the canonical shapes every
@@ -43,6 +68,14 @@ normalize_gm_shapes <- function(means,
       ))
     }
     means <- matrix(means, nrow = n_variables, ncol = n_clusters)
+  } else if (!all(dim(means) == c(n_variables, n_clusters))) {
+    # Already dimensioned but not canonical. Do not silently accept it - a
+    # transposed [G, p] matrix would otherwise flow straight through.
+    cli::cli_abort(c(
+      "Cluster means have the wrong dimensions",
+      "x" = "Got {paste(dim(means), collapse = ' x ')}, expected {n_variables} x {n_clusters}",
+      "i" = "Rows must be variables and columns must be clusters"
+    ))
   }
 
   # ---- covariances -> [n_variables, n_variables, n_clusters] ---------------
@@ -74,6 +107,12 @@ normalize_gm_shapes <- function(means,
       ))
     }
     covariances <- normalized
+
+  } else if (!all(cov_dim == c(n_variables, n_variables, n_clusters))) {
+    cli::cli_abort(c(
+      "Covariances have the wrong dimensions",
+      "x" = "Got {paste(cov_dim, collapse = ' x ')}, expected {n_variables} x {n_variables} x {n_clusters}"
+    ))
   }
 
   # ---- dimnames ------------------------------------------------------------

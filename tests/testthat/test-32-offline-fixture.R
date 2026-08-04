@@ -96,13 +96,32 @@ test_that("fake session exposes every field the package reads", {
 })
 
 test_that("fake session can emit each ellmer token schema", {
-  expect_named(fake_tokens("modern"), c("input", "output", "cached_input"))
+  # The modern frame must mirror what ellmer >= 0.4 actually returns.
+  expect_true(all(c("input", "output", "cached_input") %in% names(fake_tokens("modern"))))
   expect_named(fake_tokens("legacy"), c("role", "tokens"))
   expect_equal(nrow(fake_tokens("empty")), 0)
-  # The legacy schema is what the package currently expects; the modern one is
-  # what ellmer >= 0.4 actually returns. Both must be reproducible so F-01 can
-  # be given a failing test.
-  expect_false(identical(names(fake_tokens("modern")), names(fake_tokens("legacy"))))
+  expect_false(any(c("role", "tokens") %in% names(fake_tokens("modern"))))
+})
+
+test_that("token schema choice changes what the package records", {
+  # Documents F-01 rather than asserting the (broken) values: the package reads
+  # role/tokens, which ellmer >= 0.4 no longer emits, so the modern schema
+  # yields 0. This test must be updated when F-01 is fixed - at which point
+  # modern should report 150 and legacy is the one that stops mattering.
+  model <- fixture_fa_model()
+  response <- fake_fa_response(colnames(model$loadings))
+  run <- function(schema) {
+    session <- fake_chat_session("fa", response = response, token_schema = schema,
+                                 input_tokens = 100, output_tokens = 50)
+    interpret_core(
+      fit_results = model, chat_session = session,
+      variable_info = fixture_var_info(), analysis_type = "fa", verbosity = 0
+    )$total_tokens
+  }
+
+  expect_equal(run("legacy"), 150)
+  # The schema the declared ellmer dependency actually returns:
+  expect_equal(run("modern"), 0)
 })
 
 test_that("print.chat_session works on the fake session", {

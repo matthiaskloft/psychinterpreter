@@ -102,19 +102,6 @@ build_analysis_data.Mclust <- function(fit_results, analysis_type = NULL, interp
     }
   }
 
-  # mclust does not use a uniform representation: for a one-variable mixture
-  # `mean` is a bare vector and `variance$sigma` a scalar or per-cluster vector.
-  # Everything downstream indexes means[, k] and covariances[, , k], so coerce
-  # to the canonical shapes before going any further.
-  .shapes <- normalize_gm_shapes(
-    means = means,
-    covariances = covariances,
-    n_variables = n_variables,
-    n_clusters = n_clusters
-  )
-  means <- .shapes$means
-  covariances <- .shapes$covariances
-
   # Extract other components
   proportions <- fit_results$parameters$pro
   memberships <- fit_results$z
@@ -131,11 +118,26 @@ build_analysis_data.Mclust <- function(fit_results, analysis_type = NULL, interp
     variable_names <- paste0("V", seq_len(n_variables))
   }
 
+  # Set cluster names early so they can be attached during normalization
+  cluster_names <- paste0("Cluster_", seq_len(n_clusters))
+
+  # mclust does not use a uniform representation: for a one-variable mixture
+  # `mean` is a bare vector and `variance$sigma` a scalar or per-cluster vector.
+  # Everything downstream indexes means[, k] and covariances[, , k], so coerce
+  # to the canonical shapes before going any further.
+  .shapes <- normalize_gm_shapes(
+    means = means,
+    covariances = covariances,
+    n_variables = n_variables,
+    n_clusters = n_clusters,
+    variable_names = variable_names,
+    cluster_names = cluster_names
+  )
+  means <- .shapes$means
+  covariances <- .shapes$covariances
+
   # Validate variable matching with variable_info
   validate_variable_matching(variable_names, variable_info, "GM")
-
-  # Set cluster names
-  cluster_names <- paste0("Cluster_", seq_len(n_clusters))
 
   # Build standardized analysis_data
   analysis_data <- list(

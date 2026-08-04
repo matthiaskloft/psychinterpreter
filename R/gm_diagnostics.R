@@ -277,8 +277,8 @@ calculate_cluster_separation_gm <- function(analysis_data) {
       mean_j <- analysis_data$means[, j]
 
       # Average covariance for the pair
-      cov_i <- analysis_data$covariances[, , i]
-      cov_j <- analysis_data$covariances[, , j]
+      cov_i <- gm_cluster_cov(analysis_data$covariances, i)
+      cov_j <- gm_cluster_cov(analysis_data$covariances, j)
       avg_cov <- (cov_i + cov_j) / 2
 
       # Calculate Mahalanobis distance.

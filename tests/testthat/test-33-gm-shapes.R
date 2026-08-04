@@ -149,6 +149,110 @@ test_that("guard: multivariate mclust models are unaffected", {
   expect_no_error(create_fit_summary("gm", ad))
 })
 
+# ------------------------------------------------------------------------------
+# End-to-end through the FULL interpretation path
+# ------------------------------------------------------------------------------
+# Normalizing the stored array is not sufficient: `covariances[, , k]` drops
+# dimensions when p == 1, so consumers re-broke what the producer fixed.
+# create_fit_summary() happens to survive that; the prompt builder does not.
+# These tests go all the way through, which is what the user actually does.
+
+univariate_gm_data <- function() {
+  skip_if_not_installed("mclust")
+  library(mclust)  # Mclust() calls mclustBIC() unqualified; needs attaching
+  set.seed(1)
+  x <- c(rnorm(60, 0, 1), rnorm(60, 6, 1))
+  model <- mclust::Mclust(x, G = 2, verbose = FALSE)
+  build_analysis_data(
+    model, analysis_type = "gm",
+    variable_info = data.frame(
+      variable = "x", description = "a single measured variable",
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+test_that("univariate GM builds a prompt without erroring", {
+  ad <- univariate_gm_data()
+
+  # Aborted with "attempt to set 'rownames' on an object with no dimensions".
+  prompt <- build_main_prompt(
+    structure(list(), class = "gm"), analysis_data = ad,
+    variable_info = data.frame(variable = "x", description = "a single measured variable",
+                               stringsAsFactors = FALSE),
+    word_limit = 50, additional_info = NULL
+  )
+  expect_type(prompt, "character")
+  expect_true(nchar(prompt) > 0)
+})
+
+test_that("univariate GM prompt reports the real variance, not NA", {
+  ad <- univariate_gm_data()
+
+  # diag() on a dimension-dropped slice returns a 0 x 0 matrix, so the variance
+  # silently became NA and that NA was sent to the LLM.
+  expect_equal(
+    diag(gm_cluster_cov(ad$covariances, 1)),
+    ad$covariances[1, 1, 1],
+    ignore_attr = TRUE
+  )
+
+  prompt <- build_main_prompt(
+    structure(list(), class = "gm"), analysis_data = ad,
+    variable_info = data.frame(variable = "x", description = "a single measured variable",
+                               stringsAsFactors = FALSE),
+    word_limit = 50, additional_info = NULL
+  )
+  expect_false(grepl("(NA)", prompt, fixed = TRUE))
+})
+
+test_that("univariate GM completes a full interpretation offline", {
+  ad <- univariate_gm_data()
+  session <- fake_chat_session("gm", response = fake_gm_response(ad$cluster_names))
+
+  result <- interpret_core(
+    analysis_data = ad, analysis_type = "gm", chat_session = session,
+    variable_info = data.frame(variable = "x", description = "a single measured variable",
+                               stringsAsFactors = FALSE),
+    verbosity = 0
+  )
+
+  expect_s3_class(result, "gm_interpretation")
+  expect_true(nchar(result$report) > 0)
+})
+
+test_that("univariate GM variance extraction for plotting works", {
+  ad <- univariate_gm_data()
+  # Errored with "replacement has length zero".
+  v <- extract_variance_matrix(ad)
+  expect_equal(dim(v), c(1L, 2L))
+})
+
+test_that("gm_cluster_cov never drops dimensions", {
+  covs <- array(c(2, 5), dim = c(1, 1, 2))
+  expect_equal(dim(gm_cluster_cov(covs, 1)), c(1L, 1L))
+  expect_equal(as.numeric(gm_cluster_cov(covs, 2)), 5)
+
+  covs2 <- array(0, dim = c(3, 3, 2))
+  covs2[, , 1] <- diag(3)
+  expect_equal(dim(gm_cluster_cov(covs2, 1)), c(3L, 3L))
+})
+
+test_that("non-canonical dimensioned input is rejected, not silently accepted", {
+  # A transposed [G, p] means matrix must not flow through untouched.
+  expect_error(
+    normalize_gm_shapes(means = matrix(0, 3, 2), covariances = array(0, dim = c(2, 2, 3)),
+                        n_variables = 2, n_clusters = 3),
+    "wrong dimensions"
+  )
+  expect_error(
+    normalize_gm_shapes(means = matrix(0, 2, 2), covariances = array(0, dim = c(5, 5, 9)),
+                        n_variables = 2, n_clusters = 2),
+    "wrong dimensions"
+  )
+})
+
+
 test_that("univariate structured list is accepted", {
   ad <- validate_list_structure(
     model_type = "gm",

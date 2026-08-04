@@ -290,7 +290,7 @@ build_cluster_section_gm <- function(analysis_data) {
     # Get variances from covariance matrix diagonal if available
     cluster_variances <- NULL
     if (has_variances) {
-      cluster_variances <- diag(analysis_data$covariances[, , k])
+      cluster_variances <- diag(gm_cluster_cov(analysis_data$covariances, k))
     }
 
     # Determine which variables to show
@@ -335,7 +335,7 @@ build_cluster_section_gm <- function(analysis_data) {
       cluster_text <- paste0(cluster_text, "  Within-cluster correlations:\n")
 
       # Get covariance matrix for this cluster
-      cov_matrix <- analysis_data$covariances[, , k]
+      cov_matrix <- gm_cluster_cov(analysis_data$covariances, k)
 
       # Set variable names if available
       if (!is.null(analysis_data$variable_names)) {
