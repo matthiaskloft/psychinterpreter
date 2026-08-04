@@ -124,6 +124,21 @@ test_that("token schema choice changes what the package records", {
   expect_equal(run("modern"), 0)
 })
 
+test_that("token frame grows one row per turn, like real ellmer", {
+  # Real ellmer returns 0 rows before the first call and one row per assistant
+  # turn. A fixture returning a constant single row would let a token fix that
+  # ignores multi-turn accumulation pass untested.
+  session <- fake_chat_session("fa")
+  expect_equal(nrow(session$chat$get_tokens()), 0)
+
+  session$chat$chat("first")
+  expect_equal(nrow(session$chat$get_tokens()), 1)
+
+  session$chat$chat("second")
+  session$chat$chat("third")
+  expect_equal(nrow(session$chat$get_tokens()), 3)
+})
+
 test_that("print.chat_session works on the fake session", {
   # Guards against the fixture drifting from the fields print() reads.
   session <- fake_chat_session("fa")

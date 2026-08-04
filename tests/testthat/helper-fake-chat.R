@@ -33,23 +33,33 @@ setClass("FakeProvider", slots = c(name = "character"))
 #' @param schema "modern" (ellmer >= 0.4), "legacy" (pre-0.4), "unknown", or "empty"
 #' @param input,output Token counts to report
 #' @noRd
+#' @param n_turns Assistant turns completed so far. Real ellmer returns one row
+#'   PER TURN and zero rows before the first call; a fixture that always returns
+#'   a single constant row would let a token fix that ignores multi-turn
+#'   accumulation pass untested.
 fake_tokens <- function(schema = c("modern", "legacy", "unknown", "empty"),
-                        input = 100, output = 50, cached_input = 0) {
+                        input = 100, output = 50, cached_input = 0,
+                        n_turns = 1) {
   schema <- match.arg(schema)
+  n <- max(0L, as.integer(n_turns))
+
   switch(schema,
-    # Mirrors ellmer 0.4.2 exactly, including the columns the package does not
-    # read - a fixture that omits them is not a faithful stand-in.
+    # Mirrors ellmer 0.4.2: one row per assistant turn, including the columns
+    # the package does not read - a fixture that omits them is not a faithful
+    # stand-in.
     modern = data.frame(
-      input = input, output = output, cached_input = cached_input,
-      cost = NA_real_, input_preview = NA_character_,
+      input = rep(input, n), output = rep(output, n),
+      cached_input = rep(cached_input, n),
+      cost = rep(NA_real_, n), input_preview = rep(NA_character_, n),
       stringsAsFactors = FALSE
     ),
     legacy = data.frame(
-      role = c("user", "assistant"), tokens = c(input, output),
+      role = rep(c("user", "assistant"), times = n),
+      tokens = rep(c(input, output), times = n),
       stringsAsFactors = FALSE
     ),
     unknown = data.frame(
-      prompt_units = input, completion_units = output,
+      prompt_units = rep(input, n), completion_units = rep(output, n),
       stringsAsFactors = FALSE
     ),
     empty = data.frame()
@@ -79,10 +89,12 @@ fake_chat <- function(response = '{"factor_summaries": {}, "suggested_names": {}
       if (is.function(response)) response(prompt) else response
     },
     get_turns = function() list(),
-    set_turns = function(turns) self,
+    set_turns = function(value) self,
     extract_data = function(...) list(),
-    get_tokens = function() {
-      fake_tokens(token_schema, input = input_tokens, output = output_tokens)
+    get_tokens = function(...) {
+      # Row count tracks completed turns, as real ellmer does.
+      fake_tokens(token_schema, input = input_tokens, output = output_tokens,
+                  n_turns = log$n_calls)
     },
     get_provider = function() new("FakeProvider", name = "fake"),
     get_model = function() "fake-model"
@@ -91,7 +103,7 @@ fake_chat <- function(response = '{"factor_summaries": {}, "suggested_names": {}
   # tests can inspect prompts even though interpret_core() clones the chat.
   self$clone <- function() {
     cloned <- self
-    cloned$set_turns <- function(turns) cloned
+    cloned$set_turns <- function(value) cloned
     cloned
   }
   self

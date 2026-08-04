@@ -118,6 +118,20 @@ build_analysis_data.Mclust <- function(fit_results, analysis_type = NULL, interp
     variable_names <- paste0("V", seq_len(n_variables))
   }
 
+  # For a single variable, mclust records the deparsed CALL as the column name:
+  # Mclust(df$score) yields "df$score", and Mclust(df[["score"]]) yields
+  # 'df[["score"]]'. Neither can match a variable_info entry, so the most
+  # natural way to fit a one-variable mixture failed. When the derived name is
+  # not a syntactic name and cannot match, defer to the single supplied label.
+  if (n_variables == 1 &&
+      !is.null(variable_info) &&
+      is.data.frame(variable_info) &&
+      nrow(variable_info) == 1 &&
+      !identical(variable_names, make.names(variable_names)) &&
+      !variable_names %in% as.character(variable_info$variable)) {
+    variable_names <- as.character(variable_info$variable)[1]
+  }
+
   # Set cluster names early so they can be attached during normalization
   cluster_names <- paste0("Cluster_", seq_len(n_clusters))
 

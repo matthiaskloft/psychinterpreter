@@ -253,6 +253,69 @@ test_that("non-canonical dimensioned input is rejected, not silently accepted", 
 })
 
 
+test_that("univariate GM does not auto-select an undrawable radar plot", {
+  ad <- univariate_gm_data()
+  # fmsb::radarchart refuses to draw with fewer than 3 axes but returns without
+  # error, so auto-selecting radar produced a blank device and no warning.
+  interp <- structure(
+    list(analysis_type = "gm", analysis_data = ad,
+         fit_summary = create_fit_summary("gm", ad),
+         component_summaries = list(), suggested_names = list(),
+         cluster_names = ad$cluster_names),
+    class = c("gm_interpretation", "interpretation", "list")
+  )
+
+  pdf(tempfile())
+  on.exit(dev.off(), add = TRUE)
+  p <- plot(interp, plot_type = "auto")
+  # parallel/heatmap are ggplot objects; radar is a recordedplot.
+  expect_s3_class(p, "ggplot")
+})
+
+test_that("explicitly requesting radar with < 3 variables errors clearly", {
+  ad <- univariate_gm_data()
+  expect_error(
+    create_radar_plot_gm(ad, what = "means"),
+    "at least 3 variables"
+  )
+})
+
+test_that("Mclust(df$col) names the variable usably", {
+  skip_if_not_installed("mclust")
+  library(mclust)  # Mclust() calls mclustBIC() unqualified; needs attaching
+
+  set.seed(1)
+  df <- data.frame(score = c(rnorm(60, 0, 1), rnorm(60, 6, 1)))
+  # mclust records the deparsed call ("df$score") as the column name here.
+  model <- mclust::Mclust(df$score, G = 2, verbose = FALSE)
+  expect_equal(colnames(model$data), "df$score")
+
+  ad <- build_analysis_data(
+    model, analysis_type = "gm",
+    variable_info = data.frame(variable = "score", description = "a score",
+                               stringsAsFactors = FALSE)
+  )
+  expect_equal(ad$variable_names, "score")
+})
+
+test_that("guard: a real column name is never overridden", {
+  skip_if_not_installed("mclust")
+  library(mclust)
+
+  set.seed(1)
+  df <- data.frame(score = c(rnorm(60, 0, 1), rnorm(60, 6, 1)))
+  model <- mclust::Mclust(df, G = 2, verbose = FALSE)
+  expect_equal(colnames(model$data), "score")
+
+  ad <- build_analysis_data(
+    model, analysis_type = "gm",
+    variable_info = data.frame(variable = "score", description = "a score",
+                               stringsAsFactors = FALSE)
+  )
+  expect_equal(ad$variable_names, "score")
+})
+
+
 test_that("univariate structured list is accepted", {
   ad <- validate_list_structure(
     model_type = "gm",

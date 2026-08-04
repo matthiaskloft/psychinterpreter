@@ -138,9 +138,14 @@ plot.gm_interpretation <- function(
     )
   }
 
-  # Auto-select plot type based on data characteristics
+  # Auto-select plot type based on data characteristics.
+  # Radar requires at least 3 axes: fmsb::radarchart refuses to draw with fewer
+  # ("The number of variables must be 3 or more.") and returns without error, so
+  # auto-selecting it for 1-2 variables produced a blank plot and no warning.
   if (plot_type == "auto") {
-    if (analysis_data$n_clusters <= 4 && analysis_data$n_variables <= 10) {
+    if (analysis_data$n_clusters <= 4 &&
+        analysis_data$n_variables >= 3 &&
+        analysis_data$n_variables <= 10) {
       plot_type <- "radar"
     } else if (analysis_data$n_variables > 20) {
       plot_type <- "heatmap"
@@ -685,6 +690,16 @@ create_radar_plot_gm <- function(analysis_data, what = "means", cutoff = 0.3, va
   # Validate what parameter (must be single value for this internal function)
   if (length(what) != 1 || !what %in% c("means", "variances", "ratio")) {
     cli::cli_abort("{.arg what} must be a single value: 'means', 'variances', or 'ratio', not {.val {what}}")
+  }
+
+  # fmsb::radarchart needs at least 3 axes. It declines to draw with fewer but
+  # returns normally, so without this the caller gets a blank plot and no error.
+  if (analysis_data$n_variables < 3) {
+    cli::cli_abort(c(
+      "Radar plots require at least 3 variables",
+      "x" = "This model has {analysis_data$n_variables} variable{?s}",
+      "i" = "Use {.code plot_type = \"heatmap\"} or {.code plot_type = \"parallel\"} instead"
+    ))
   }
 
   # Extract appropriate data matrix based on what parameter
