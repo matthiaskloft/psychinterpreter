@@ -224,6 +224,11 @@ interpret <- function(fit_results = NULL,
   # ARGUMENT VALIDATION AND CONFIG BUILDING
   # ============================================================================
 
+  # Capture ... once. Model-specific arguments (notably variable_info) are only
+  # ever present here; referencing them as bare symbols would resolve through the
+  # namespace to the global environment and silently capture unrelated objects.
+  dots <- list(...)
+
   # Check if all key arguments are missing
   if (is.null(chat_session) && is.null(fit_results)) {
     cli::cli_abort(
@@ -379,7 +384,7 @@ interpret <- function(fit_results = NULL,
       extracted <- validate_list_structure(
         model_type = effective_analysis_type,
         fit_results_list = fit_results,
-        variable_info = variable_info,
+        variable_info = dots$variable_info,
         interpretation_args = interpretation_cfg
       )
     }

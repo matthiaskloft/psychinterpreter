@@ -10,7 +10,10 @@ calculate_cluster_separation_gm(analysis_data)
 \item{analysis_data}{Standardized GM analysis data}
 }
 \value{
-Matrix of pairwise distances or NULL if not computable
+Matrix of pairwise Mahalanobis distances, or NULL if not computable.
+Pairs whose averaged covariance is singular are returned as \code{NA} rather
+than substituted with a distance on another scale: a Euclidean fallback is
+not comparable with the Mahalanobis threshold used downstream.
 }
 \description{
 Computes pairwise Mahalanobis distances between cluster centers.

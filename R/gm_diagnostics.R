@@ -165,10 +165,25 @@ create_fit_summary.gm <- function(analysis_type, analysis_data, ...) {
     separation_matrix <- calculate_cluster_separation_gm(analysis_data)
 
     if (!is.null(separation_matrix)) {
-      min_separation <- min(separation_matrix[upper.tri(separation_matrix)])
+      pairwise <- separation_matrix[upper.tri(separation_matrix)]
+      n_unavailable <- sum(is.na(pairwise))
+
+      if (n_unavailable > 0) {
+        fit_summary$notes <- c(
+          fit_summary$notes,
+          paste0(
+            "Separation unavailable for ", n_unavailable, " cluster pair",
+            if (n_unavailable > 1) "s" else "",
+            " (singular averaged covariance)"
+          )
+        )
+      }
+
+      # All pairs unavailable: min() of an empty vector would give Inf.
+      min_separation <- if (all(is.na(pairwise))) NA_real_ else min(pairwise, na.rm = TRUE)
       fit_summary$statistics$min_separation <- round(min_separation, 2)
 
-      if (min_separation < 2) {
+      if (!is.na(min_separation) && min_separation < 2) {
         fit_summary$warnings <- c(
           fit_summary$warnings,
           paste0(
@@ -177,9 +192,11 @@ create_fit_summary.gm <- function(analysis_type, analysis_data, ...) {
           )
         )
 
-        # Find which clusters are overlapping
+        # Find which clusters are overlapping. NA distances are not evidence of
+        # overlap, so they are excluded rather than coerced.
         overlap_pairs <- which(
-          separation_matrix < 2 & upper.tri(separation_matrix),
+          !is.na(separation_matrix) &
+            separation_matrix < 2 & upper.tri(separation_matrix),
           arr.ind = TRUE
         )
 
@@ -234,7 +251,10 @@ create_fit_summary.gm <- function(analysis_type, analysis_data, ...) {
 #' Computes pairwise Mahalanobis distances between cluster centers.
 #'
 #' @param analysis_data Standardized GM analysis data
-#' @return Matrix of pairwise distances or NULL if not computable
+#' @return Matrix of pairwise Mahalanobis distances, or NULL if not computable.
+#'   Pairs whose averaged covariance is singular are returned as \code{NA} rather
+#'   than substituted with a distance on another scale: a Euclidean fallback is
+#'   not comparable with the Mahalanobis threshold used downstream.
 #' @keywords internal
 calculate_cluster_separation_gm <- function(analysis_data) {
   if (is.null(analysis_data$means) || is.null(analysis_data$covariances)) {
@@ -261,19 +281,16 @@ calculate_cluster_separation_gm <- function(analysis_data) {
       cov_j <- analysis_data$covariances[, , j]
       avg_cov <- (cov_i + cov_j) / 2
 
-      # Calculate Mahalanobis distance
-      tryCatch({
-        inv_cov <- solve(avg_cov)
-        diff_means <- mean_i - mean_j
-        distance <- sqrt(t(diff_means) %*% inv_cov %*% diff_means)
-        separation_matrix[i, j] <- distance
-        separation_matrix[j, i] <- distance
-      }, error = function(e) {
-        # If covariance is singular, use Euclidean distance as fallback
-        distance <- sqrt(sum((mean_i - mean_j)^2))
-        separation_matrix[i, j] <- distance
-        separation_matrix[j, i] <- distance
-      })
+      # Calculate Mahalanobis distance.
+      # The result must be RETURNED by tryCatch(): assigning inside an error
+      # handler writes to the handler's own frame and is silently discarded.
+      diff_means <- mean_i - mean_j
+      distance <- tryCatch(
+        as.numeric(sqrt(t(diff_means) %*% solve(avg_cov) %*% diff_means)),
+        error = function(e) NA_real_
+      )
+      separation_matrix[i, j] <- distance
+      separation_matrix[j, i] <- distance
     }
   }
 
@@ -331,10 +348,13 @@ find_overlapping_clusters <- function(analysis_data) {
     return(NULL)
   }
 
-  # Find pairs below threshold (default Mahalanobis distance of 2)
+  # Find pairs below threshold (default Mahalanobis distance of 2).
+  # Pairs with an uncomputable distance are NA and are not reported as
+  # overlapping - absence of a measurement is not evidence of overlap.
   threshold <- 2
   overlap_pairs <- which(
-    separation_matrix < threshold & upper.tri(separation_matrix),
+    !is.na(separation_matrix) &
+      separation_matrix < threshold & upper.tri(separation_matrix),
     arr.ind = TRUE
   )
 
