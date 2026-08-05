@@ -49,6 +49,9 @@
 #'   Created with \code{\link{label_args}}. Direct parameters take precedence.
 #' @param llm_args List or llm_args object. LLM configuration settings.
 #'   Created with \code{\link{llm_args}}. Direct parameters take precedence.
+#'   Supplies \code{llm_provider}, \code{llm_model} and \code{echo}, plus
+#'   \code{system_prompt} and \code{params}, which have no direct equivalent
+#'   here and are used only when a temporary chat session is created.
 #' @param output_args List or output_args object. Output configuration settings.
 #'   Created with \code{\link{output_args}}. Direct parameters take precedence.
 #' @param echo Character. Echo level: "none", "output", "all" (default = "none")
@@ -197,58 +200,61 @@ label_variables <- function(variable_info,
   variable_info <- variable_info[, c("variable", "description")]
 
   # ==========================================================================
-  # EXTRACT PARAMETERS FROM CONFIG OBJECTS (DUAL-TIER ARCHITECTURE)
-  # Direct parameters always take precedence over config objects
+  # RESOLVE PARAMETERS ACROSS DIRECT ARGS AND CONFIG OBJECTS
   # ==========================================================================
+  # Precedence: direct argument > config object > formal default.
+  #
+  # The previous implementation compared each parameter against its own default
+  # to decide whether the caller had supplied it (`label_type == "short"`,
+  # `echo == "none"`, `verbosity == 2`, `!remove_articles`). That inverts
+  # precedence rather than merely ignoring the config: a caller who explicitly
+  # asked for the default value was overridden by the config object, which is
+  # the opposite of the documented "Direct parameters take precedence".
+  #
+  # See R/core_params.R; this is the same resolution interpret_core() uses.
+  supplied_names <- names(match.call())
 
-  # Extract label_args if provided
-  if (!is.null(label_args)) {
-    # Only use config values if direct parameter is at default
-    if (label_type == "short" && !is.null(label_args$label_type)) {
-      label_type <- label_args$label_type
-    }
-    if (is.null(max_words) && !is.null(label_args$max_words)) {
-      max_words <- label_args$max_words
-    }
-    if (is.null(style_hint) && !is.null(label_args$style_hint)) {
-      style_hint <- label_args$style_hint
-    }
-    if (sep == " " && !is.null(label_args$sep)) {
-      sep <- label_args$sep
-    }
-    if (case == "original" && !is.null(label_args$case)) {
-      case <- label_args$case
-    }
-    if (!remove_articles && !is.null(label_args$remove_articles)) {
-      remove_articles <- label_args$remove_articles
-    }
-    if (!remove_prepositions && !is.null(label_args$remove_prepositions)) {
-      remove_prepositions <- label_args$remove_prepositions
-    }
-    if (is.null(max_chars) && !is.null(label_args$max_chars)) {
-      max_chars <- label_args$max_chars
-    }
-    if (!abbreviate && !is.null(label_args$abbreviate)) {
-      abbreviate <- label_args$abbreviate
-    }
-  }
+  label_params <- c("label_type", "max_words", "style_hint", "sep", "case",
+                    "remove_articles", "remove_prepositions", "max_chars",
+                    "abbreviate")
+  label_resolved <- resolve_call_params(
+    supplied = collect_supplied(label_params, supplied_names),
+    config = label_args,
+    defaults = mget(label_params)
+  )
+  label_type <- label_resolved$label_type
+  max_words <- label_resolved$max_words
+  style_hint <- label_resolved$style_hint
+  sep <- label_resolved$sep
+  case <- label_resolved$case
+  remove_articles <- label_resolved$remove_articles
+  remove_prepositions <- label_resolved$remove_prepositions
+  max_chars <- label_resolved$max_chars
+  abbreviate <- label_resolved$abbreviate
 
-  # Extract llm_args if provided
-  if (!is.null(llm_args)) {
-    # Only use config values if direct parameter is at default
-    if (echo == "none" && !is.null(llm_args$echo)) {
-      echo <- llm_args$echo
-    }
-    # Could add other llm_args parameters here as needed
-  }
+  # llm_args previously reached `echo` alone; llm_provider and llm_model were
+  # dropped even though llm_args() exists to carry them.
+  llm_params <- c("llm_provider", "llm_model", "echo")
+  llm_resolved <- resolve_call_params(
+    supplied = collect_supplied(llm_params, supplied_names),
+    config = llm_args,
+    defaults = mget(llm_params)
+  )
+  llm_provider <- llm_resolved$llm_provider
+  llm_model <- llm_resolved$llm_model
+  echo <- llm_resolved$echo
 
-  # Extract output_args if provided
-  if (!is.null(output_args)) {
-    # Only use config values if direct parameter is at default
-    if (verbosity == 2 && !is.null(output_args$verbosity)) {
-      verbosity <- output_args$verbosity
-    }
-  }
+  # These two have no formal here, so they can only come from llm_args. Both
+  # are advertised llm_args() fields that this function used to discard.
+  configured_system_prompt <- llm_args$system_prompt
+  configured_params <- llm_args$params
+
+  output_resolved <- resolve_call_params(
+    supplied = collect_supplied("verbosity", supplied_names),
+    config = output_args,
+    defaults = mget("verbosity")
+  )
+  verbosity <- output_resolved$verbosity
 
   # Validate label_type
   valid_label_types <- c("short", "phrase", "acronym", "custom")
@@ -287,8 +293,8 @@ label_variables <- function(variable_info,
       cli::cli_alert_info("Creating temporary chat session...")
     }
 
-    # Build system prompt for labeling
-    system_prompt <- build_system_prompt.label(
+    # Build system prompt for labeling, unless llm_args supplied one
+    system_prompt <- configured_system_prompt %||% build_system_prompt.label(
       structure(list(), class = "label"),
       label_type = label_type,
       style_hint = style_hint,
@@ -301,6 +307,7 @@ label_variables <- function(variable_info,
       llm_provider = llm_provider,
       llm_model = llm_model,
       system_prompt = system_prompt,
+      params = configured_params,
       echo = echo
     )
 

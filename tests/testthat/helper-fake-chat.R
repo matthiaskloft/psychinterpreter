@@ -80,6 +80,7 @@ fake_chat <- function(response = '{"factor_summaries": {}, "suggested_names": {}
                       log = NULL) {
   if (is.null(log)) log <- new.env(parent = emptyenv())
   if (is.null(log$prompts)) log$prompts <- character(0)
+  if (is.null(log$echos)) log$echos <- character(0)
   if (is.null(log$n_calls)) log$n_calls <- 0L
 
   # Turn state is PER CHAT OBJECT, while the prompt log is shared across
@@ -97,6 +98,9 @@ fake_chat <- function(response = '{"factor_summaries": {}, "suggested_names": {}
       .state = state,
       chat = function(prompt, echo = "none", ...) {
         log$prompts <- c(log$prompts, prompt)
+        # Recorded so tests can assert which echo level actually reached the
+        # LLM call; it is not stored anywhere in the returned objects.
+        log$echos <- c(log$echos, echo)
         log$n_calls <- log$n_calls + 1L
         state$n_turns <- state$n_turns + 1L
         if (is.function(response)) response(prompt) else response
@@ -146,6 +150,7 @@ fake_chat_session <- function(analysis_type = "fa",
                               system_prompt = "FAKE SYSTEM PROMPT") {
   log <- new.env(parent = emptyenv())
   log$prompts <- character(0)
+  log$echos <- character(0)
   log$n_calls <- 0L
 
   session <- new.env(parent = emptyenv())
@@ -181,6 +186,10 @@ fake_prompts <- function(session) session$.log$prompts
 #' @noRd
 fake_call_count <- function(session) session$.log$n_calls
 
+#' Echo levels the package actually passed to $chat()
+#' @noRd
+fake_echos <- function(session) session$.log$echos
+
 #' A well-formed FA response matching the package's expected JSON shape
 #'
 #' validate_parsed_result.fa() expects top-level keys named after the factors,
@@ -198,6 +207,26 @@ fake_fa_response <- function(factors = c("MR1", "MR2")) {
     character(1)
   )
   paste0("{", paste(entries, collapse = ", "), "}")
+}
+
+#' A well-formed label response
+#'
+#' validate_label_structure() expects a JSON ARRAY of objects, each carrying
+#' `variable` and `label` (see R/label_json.R:50-74). Anything else silently
+#' falls back to pattern extraction and then to variable names, which would make
+#' a formatting test pass against unformatted input.
+#'
+#' @param variables Variable names to label
+#' @param labels Labels to return; defaults to "Fake Label <i>"
+#' @noRd
+fake_label_response <- function(variables, labels = NULL) {
+  if (is.null(labels)) labels <- paste("Fake Label", seq_along(variables))
+  entries <- vapply(
+    seq_along(variables),
+    function(i) sprintf('{"variable": "%s", "label": "%s"}', variables[i], labels[i]),
+    character(1)
+  )
+  paste0("[", paste(entries, collapse = ", "), "]")
 }
 
 #' A well-formed GM response
