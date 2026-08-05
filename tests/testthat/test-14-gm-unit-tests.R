@@ -662,7 +662,20 @@ test_that("GM dispatch table is registered correctly", {
 
   # Check interpretation args dispatch
   expect_true("gm" %in% names(psychinterpreter:::.INTERPRETATION_ARGS_DISPATCH))
-  expect_equal(psychinterpreter:::.INTERPRETATION_ARGS_DISPATCH$gm, interpretation_args_gm)
+
+  # Compare behaviour, not object identity. The dispatch list captures the
+  # closure at build time, so any tool that rewrites function bodies in the
+  # namespace - covr instrumentation, trace(), debug() - leaves the list
+  # holding the ORIGINAL body while the exported binding gets an instrumented
+  # one. expect_equal() on two functions compares their bodies, so it fails
+  # under coverage even though the registration is correct.
+  registered <- psychinterpreter:::.INTERPRETATION_ARGS_DISPATCH$gm
+  expect_true(is.function(registered))
+  expect_equal(names(formals(registered)), names(formals(interpretation_args_gm)))
+  expect_equal(
+    registered(analysis_type = "gm", n_clusters = 3),
+    interpretation_args_gm(analysis_type = "gm", n_clusters = 3)
+  )
 })
 
 test_that("Mclust model type dispatch is registered", {

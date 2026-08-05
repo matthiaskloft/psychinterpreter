@@ -117,6 +117,73 @@ test_that("llm_args supplies llm_provider when no chat_session is given", {
   )
 })
 
+test_that("llm_args settings all reach the temporary chat session", {
+  # llm_model, system_prompt and params only take effect when a temporary
+  # session is created, which needs a live provider. Mocking the factory
+  # captures what it was actually handed, so these are covered offline rather
+  # than merely reviewed.
+  captured <- NULL
+  info <- fixture_label_info()
+
+  local_mocked_bindings(
+    chat_session = function(analysis_type, llm_provider = NULL, llm_model = NULL,
+                            system_prompt = NULL, params = NULL, echo = "none",
+                            ...) {
+      captured <<- list(
+        analysis_type = analysis_type, llm_provider = llm_provider,
+        llm_model = llm_model, system_prompt = system_prompt,
+        params = params, echo = echo
+      )
+      fake_chat_session(
+        "label", response = fake_label_response(info$variable)
+      )
+    }
+  )
+
+  label_variables(
+    variable_info = info,
+    llm_args = list(
+      llm_provider = "ollama", llm_model = "some-model",
+      system_prompt = "ZZSYSTEMZZ", params = list(temperature = 0.1),
+      echo = "all"
+    ),
+    verbosity = 0
+  )
+
+  expect_equal(captured$analysis_type, "label")
+  expect_equal(captured$llm_provider, "ollama")
+  expect_equal(captured$llm_model, "some-model")
+  # All four of these were silently discarded before this change.
+  expect_equal(captured$system_prompt, "ZZSYSTEMZZ")
+  expect_equal(captured$params, list(temperature = 0.1))
+  expect_equal(captured$echo, "all")
+})
+
+test_that("the built system prompt is used when llm_args supplies none", {
+  captured <- NULL
+  info <- fixture_label_info()
+
+  local_mocked_bindings(
+    chat_session = function(analysis_type, llm_provider = NULL, llm_model = NULL,
+                            system_prompt = NULL, params = NULL, echo = "none",
+                            ...) {
+      captured <<- system_prompt
+      fake_chat_session("label", response = fake_label_response(info$variable))
+    }
+  )
+
+  label_variables(
+    variable_info = info,
+    llm_args = list(llm_provider = "ollama"),
+    label_type = "acronym", verbosity = 0
+  )
+
+  expect_false(is.null(captured))
+  expect_true(nchar(captured) > 0)
+  # The default prompt is built from label_type, so it must reflect it.
+  expect_match(captured, "acronym", ignore.case = TRUE)
+})
+
 # -------------------------------------------------------------- output_args
 
 test_that("an explicit verbosity beats output_args", {
