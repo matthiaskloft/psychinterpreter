@@ -14,7 +14,9 @@ parse_label_response(response, variable_info, ...)
 \item{...}{Additional arguments}
 }
 \value{
-List with parsed labels
+List with parsed labels, carrying two attributes: \code{parse_status},
+one of \code{"parsed"}, \code{"pattern_extracted"} or \code{"default_fallback"}, and
+\code{parse_error}, the reason the strict parse failed (NULL when it succeeded).
 }
 \description{
 Parse Label Response from LLM

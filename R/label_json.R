@@ -12,32 +12,65 @@ NULL
 #' @param variable_info Data frame. Original variable information
 #' @param ... Additional arguments
 #'
-#' @return List with parsed labels
+#' @return List with parsed labels, carrying two attributes: `parse_status`,
+#'   one of `"parsed"`, `"pattern_extracted"` or `"default_fallback"`, and
+#'   `parse_error`, the reason the strict parse failed (NULL when it succeeded).
 #' @export
 #' @keywords internal
 parse_label_response <- function(response, variable_info, ...) {
 
-  # Try JSON parsing first
+  # Tier 1: strict JSON.
   cleaned <- clean_json_response(response)
-  parsed <- try_parse_json(cleaned)
+  attempt <- try_parse_json_with_error(cleaned)
+  parsed <- attempt$value
 
-  if (!is.null(parsed) && is.list(parsed)) {
-    # Validate structure
-    if (validate_label_structure(parsed, variable_info)) {
-      return(parsed)
-    }
+  if (!is.null(parsed) && is.list(parsed) &&
+      validate_label_structure(parsed, variable_info)) {
+    # The LLM chooses the order; downstream code pairs records positionally
+    # with variable_info, so restore the caller's order before returning.
+    return(label_parse_result(
+      order_labels(parsed, variable_info), "parsed", NULL
+    ))
   }
 
-  # Fallback: Pattern-based extraction
+  parse_error <- attempt$error %||%
+    "response did not match the expected label schema"
+
+  # Tier 2: pattern-based extraction.
   labels <- extract_labels_fallback(response, variable_info)
-
-  if (!is.null(labels)) {
-    return(labels)
+  if (!is.null(labels) && isTRUE(attr(labels, "any_matched"))) {
+    return(label_parse_result(labels, "pattern_extracted", parse_error))
   }
 
-  # Last resort: Create default labels
+  # Tier 3: derive labels from the descriptions we already hold.
   cli::cli_warn("Could not parse LLM response, using variable names as labels")
-  return(create_default_labels(variable_info))
+  label_parse_result(create_default_labels(variable_info),
+                     "default_fallback", parse_error)
+}
+
+#' Tag a Parsed Label List With the Tier That Produced It
+#'
+#' @param labels List of label records
+#' @param status Character. Parse tier that produced `labels`
+#' @param error Character or NULL. Why the strict parse failed
+#' @return `labels` with `parse_status` and `parse_error` attributes
+#' @keywords internal
+label_parse_result <- function(labels, status, error) {
+  attr(labels, "any_matched") <- NULL
+  attr(labels, "parse_status") <- status
+  attr(labels, "parse_error") <- error
+  labels
+}
+
+#' Reorder Label Records to Match variable_info
+#'
+#' @param parsed List of validated label records
+#' @param variable_info Data frame. Original variables
+#' @return List of records in `variable_info$variable` order
+#' @keywords internal
+order_labels <- function(parsed, variable_info) {
+  parsed_vars <- vapply(parsed, function(x) as.character(x$variable), character(1))
+  parsed[match(variable_info$variable, parsed_vars)]
 }
 
 #' Validate Label Structure
@@ -49,28 +82,46 @@ parse_label_response <- function(response, variable_info, ...) {
 #' @keywords internal
 validate_label_structure <- function(parsed, variable_info) {
 
-  # Check if it's a list/array
-  if (!is.list(parsed)) {
+  expected_vars <- as.character(variable_info$variable)
+
+  # Must be an array of records, exactly one per expected variable. A subset
+  # check would let duplicates, extras and blanks through, and the result was
+  # then assembled in LLM-provided order.
+  if (!is.list(parsed) || length(parsed) != length(expected_vars)) {
     return(FALSE)
   }
 
-  # Check each element has required fields
   for (item in parsed) {
     if (!is.list(item) || !all(c("variable", "label") %in% names(item))) {
       return(FALSE)
     }
+    if (!is_nonempty_string(item$variable) || !is_nonempty_string(item$label)) {
+      return(FALSE)
+    }
   }
 
-  # Check all variables are present
-  parsed_vars <- sapply(parsed, function(x) x$variable)
-  expected_vars <- variable_info$variable
+  parsed_vars <- vapply(parsed, function(x) as.character(x$variable), character(1))
 
-  if (!all(expected_vars %in% parsed_vars)) {
-    cli::cli_warn("Not all variables found in LLM response")
+  if (anyDuplicated(parsed_vars) > 0) {
+    cli::cli_warn("Duplicate variables in LLM response")
+    return(FALSE)
+  }
+
+  if (!setequal(parsed_vars, expected_vars)) {
+    cli::cli_warn("LLM response does not label exactly the requested variables")
     return(FALSE)
   }
 
   return(TRUE)
+}
+
+#' Is x a Single Non-Blank Character Value?
+#'
+#' @param x Value to test
+#' @return Logical scalar
+#' @keywords internal
+is_nonempty_string <- function(x) {
+  is.character(x) && length(x) == 1L && !is.na(x) && nzchar(trimws(x))
 }
 
 #' Extract Labels Using Fallback Pattern Matching
@@ -83,16 +134,20 @@ validate_label_structure <- function(parsed, variable_info) {
 extract_labels_fallback <- function(response, variable_info) {
 
   labels <- list()
+  any_matched <- FALSE
 
   for (i in seq_len(nrow(variable_info))) {
     var <- variable_info$variable[i]
+    # Identifiers are literal text, not patterns: `a.b` would otherwise match
+    # `axb`, and `x[1` is not a compilable pattern at all.
+    var_pattern <- escape_regex(var)
 
     # Try multiple patterns
     patterns <- c(
-      paste0('"', var, '"\\s*:\\s*"([^"]+)"'),  # JSON-like
-      paste0(var, '\\s*[=:]\\s*"([^"]+)"'),      # Assignment-like
-      paste0(var, '\\s*[=:]\\s*([^,\\n]+)'),     # Without quotes
-      paste0('\\b', var, '\\b.*?label.*?["\']([^"\']+)["\']')  # Natural language
+      paste0('"', var_pattern, '"\\s*:\\s*"([^"]+)"'),  # JSON-like
+      paste0(var_pattern, '\\s*[=:]\\s*"([^"]+)"'),      # Assignment-like
+      paste0(var_pattern, '\\s*[=:]\\s*([^,\\n]+)'),     # Without quotes
+      paste0('\\b', var_pattern, '\\b.*?label.*?["\']([^"\']+)["\']')  # Natural language
     )
 
     label_found <- FALSE
@@ -104,6 +159,7 @@ extract_labels_fallback <- function(response, variable_info) {
           label = trimws(matches[[1]][2])
         )
         label_found <- TRUE
+        any_matched <- TRUE
         break
       }
     }
@@ -117,6 +173,10 @@ extract_labels_fallback <- function(response, variable_info) {
     }
   }
 
+  # Whether any label came from the response at all, rather than every one
+  # being derived from the description we already had. This is what separates
+  # the "pattern_extracted" tier from "default_fallback".
+  attr(labels, "any_matched") <- any_matched
   return(labels)
 }
 

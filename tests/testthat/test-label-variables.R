@@ -196,15 +196,24 @@ test_that("parse_label_response handles various response formats", {
   expect_equal(result[[1]]$variable, "x1")
   expect_equal(result[[1]]$label, "Label 1")
 
+  expect_equal(attr(result, "parse_status"), "parsed")
+
   # Malformed JSON (should use fallback)
   malformed <- 'x1: "Label 1", x2: "Label 2"'
   result <- parse_label_response(malformed, var_info)
   expect_equal(length(result), 2)
+  expect_equal(attr(result, "parse_status"), "pattern_extracted")
 
-  # Complete garbage (should create defaults)
+  # Complete garbage (should create defaults). Before the tier fix this warning
+  # never fired: extract_labels_fallback() always returned a full record set,
+  # so garbage was reported as a successful pattern extraction.
   garbage <- "This is not parseable at all"
-  result <- parse_label_response(garbage, var_info)
+  expect_warning(
+    result <- parse_label_response(garbage, var_info),
+    "Could not parse LLM response"
+  )
   expect_equal(length(result), 2)
+  expect_equal(attr(result, "parse_status"), "default_fallback")
   # Should have some label for each variable
   expect_true(all(sapply(result, function(x) nchar(x$label) > 0)))
 })

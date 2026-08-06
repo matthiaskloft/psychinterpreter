@@ -314,10 +314,10 @@ label_variables <- function(variable_info,
     created_temp_session <- TRUE
     chat_local <- chat_session$chat
   } else {
-    # Validate chat_session
-    if (!inherits(chat_session, "chat_session")) {
-      cli::cli_abort("{.var chat_session} must be a chat_session object")
-    }
+    # Validate chat_session. A bare inherits() check accepted an "fa" or "gm"
+    # session, which would send labelling prompts through a factor-analysis
+    # system prompt. This must run before anything reaches the provider.
+    validate_chat_session_for_analysis_type(chat_session, "label")
 
     # Clone to avoid side effects
     chat_local <- chat_session$chat$clone()$set_turns(list())
@@ -360,6 +360,8 @@ label_variables <- function(variable_info,
   }
 
   parsed_labels <- parse_label_response(response, variable_info)
+  parse_status <- attr(parsed_labels, "parse_status")
+  parse_error <- attr(parsed_labels, "parse_error")
 
   # ==========================================================================
   # STEP 5: APPLY FORMATTING
@@ -369,12 +371,38 @@ label_variables <- function(variable_info,
     cli::cli_alert_info("Applying formatting...")
   }
 
-  # Convert parsed labels (list of lists) to data frame
+  # Convert parsed labels (list of lists) to data frame. vapply, not sapply:
+  # a record missing `label` made sapply() return a list, silently producing a
+  # list-column instead of failing.
+  record_field <- function(records, field) {
+    vapply(
+      records,
+      function(x) {
+        value <- x[[field]]
+        if (is_nonempty_string(value)) as.character(value) else NA_character_
+      },
+      character(1)
+    )
+  }
+
   parsed_labels_df <- data.frame(
-    variable = sapply(parsed_labels, function(x) x$variable),
-    label = sapply(parsed_labels, function(x) x$label),
+    variable = record_field(parsed_labels, "variable"),
+    label = record_field(parsed_labels, "label"),
     stringsAsFactors = FALSE
   )
+
+  # A degraded tier can leave a record without a usable label; fall back to the
+  # description we already hold rather than carrying NA into formatting.
+  missing_label <- is.na(parsed_labels_df$label)
+  if (any(missing_label)) {
+    parsed_labels_df$variable[is.na(parsed_labels_df$variable)] <-
+      variable_info$variable[is.na(parsed_labels_df$variable)]
+    parsed_labels_df$label[missing_label] <- vapply(
+      which(missing_label),
+      function(i) simplify_description(variable_info$description[i]),
+      character(1)
+    )
+  }
 
   # Create formatted labels data frame
   labels_df <- parsed_labels_df
@@ -416,6 +444,11 @@ label_variables <- function(variable_info,
   metadata <- list(
     label_type = label_type,
     n_variables = nrow(variable_info),
+    # Which parsing tier produced these labels, and why the strict parse
+    # failed if it did. Without this a fabricated result is indistinguishable
+    # from a real one.
+    parse_status = parse_status,
+    parse_error = parse_error,
     timestamp = Sys.time(),
     duration = as.numeric(difftime(Sys.time(), start_time, units = "secs")),
     llm_provider = chat_session$llm_provider,

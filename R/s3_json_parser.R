@@ -7,9 +7,91 @@
 #' @keywords internal
 NULL
 
+#' Escape a Literal String for Use Inside a Regular Expression
+#'
+#' Variable identifiers are interpolated into the pattern-matching fallbacks.
+#' Ordinary R names contain regex metacharacters - `.` is the common case, and
+#' `a.b` would otherwise match the unrelated text `axb` - while names such as
+#' `x[1` are not valid patterns at all and abort `regcomp()`.
+#'
+#' @param x Character. Literal text to be matched
+#' @return Character. `x` with every regex metacharacter backslash-escaped
+#' @keywords internal
+escape_regex <- function(x) {
+  # `]` must come first inside the bracket expression, `-` last.
+  gsub("([]\\^$.|?*+(){}[-])", "\\\\\\1", x)
+}
+
+#' Extract the First Balanced JSON Value From Text
+#'
+#' Locates the first `{` or `[` and scans forward for its matching close,
+#' tracking nesting depth and string-literal state so that delimiters appearing
+#' inside string values (or escaped by a backslash) are ignored.
+#'
+#' A regular expression cannot do this: balanced delimiters at arbitrary depth
+#' are not a regular language. The previous greedy `\\{.*\\}` also assumed the
+#' value was an object, which silently stripped the enclosing brackets from the
+#' top-level array that the labelling prompt actually asks for.
+#'
+#' @param text Character. Text possibly containing a JSON value
+#' @return Character scalar containing the JSON value, or NULL if none is found
+#' @keywords internal
+extract_json_block <- function(text) {
+  chars <- strsplit(text, "", fixed = TRUE)[[1]]
+  start <- which(chars %in% c("{", "["))
+  if (length(start) == 0) {
+    return(NULL)
+  }
+  start <- start[1]
+
+  open <- chars[start]
+  close <- if (open == "{") "}" else "]"
+
+  depth <- 0L
+  in_string <- FALSE
+  escaped <- FALSE
+
+  for (i in seq(start, length(chars))) {
+    ch <- chars[i]
+
+    if (in_string) {
+      if (escaped) {
+        escaped <- FALSE
+      } else if (ch == "\\") {
+        escaped <- TRUE
+      } else if (ch == "\"") {
+        in_string <- FALSE
+      }
+      next
+    }
+
+    if (ch == "\"") {
+      in_string <- TRUE
+    } else if (ch == open) {
+      depth <- depth + 1L
+    } else if (ch == close) {
+      depth <- depth - 1L
+      if (depth == 0L) {
+        return(paste(chars[start:i], collapse = ""))
+      }
+    }
+  }
+
+  # Unbalanced: hand back everything from the opening delimiter to the last
+  # closing one so the repair pass below still has something to work with.
+  closes <- which(chars[start:length(chars)] == close)
+  if (length(closes) == 0) {
+    return(paste(chars[start:length(chars)], collapse = ""))
+  }
+  paste(chars[start:(start + max(closes) - 1L)], collapse = "")
+}
+
 #' Clean JSON Response
 #'
-#' Removes common prefixes, suffixes, and formatting issues that LLMs add.
+#' Extracts the JSON value from an LLM response, and repairs common formatting
+#' faults *only* if the extracted value does not already parse. The repairs are
+#' lossy - collapsing whitespace mangles runs of spaces inside string values -
+#' so they must never run against input that was valid to begin with.
 #'
 #' @param response Character. Raw LLM response text
 #' @return Character. Cleaned JSON string
@@ -19,20 +101,17 @@ clean_json_response <- function(response) {
     return(NULL)
   }
 
-  cleaned <- response
+  # Drop markdown code fences, which are not part of the JSON value.
+  cleaned <- gsub("```[[:alnum:]]*", "", response)
 
-  # Try to extract JSON block if response contains extra text.
-  # perl = TRUE is required: (?s) is an inline mode modifier, a PCRE feature
-  # absent from R's default TRE engine, which would treat it as literal text.
-  # (?s) makes . span newlines so multi-line JSON is matched.
-  json_match <- regexpr("(?s)\\{.*\\}", response, perl = TRUE)
-  if (json_match > 0) {
-    cleaned <- regmatches(response, json_match)
+  block <- extract_json_block(cleaned)
+  if (!is.null(block)) {
+    cleaned <- block
   }
 
-  # Remove common prefixes/suffixes that LLMs might add
-  cleaned <- gsub("^[^{]*", "", cleaned)  # Remove text before first {
-  cleaned <- gsub("[^}]*$", "", cleaned)  # Remove text after last }
+  if (!is.null(try_parse_json(cleaned))) {
+    return(trimws(cleaned))
+  }
 
   # Fix common JSON formatting issues specific to small models
   cleaned <- gsub("\\n\\s*", " ", cleaned)  # Remove newlines and extra spaces
@@ -43,6 +122,23 @@ clean_json_response <- function(response) {
   return(trimws(cleaned))
 }
 
+#' Try Parsing JSON, Retaining the Failure Reason
+#'
+#' @param json_string Character. JSON string to parse
+#' @return List with `value` (parsed JSON or NULL) and `error` (the `jsonlite`
+#'   message or NULL)
+#' @keywords internal
+try_parse_json_with_error <- function(json_string) {
+  if (is.null(json_string) || !is.character(json_string) || nchar(json_string) == 0) {
+    return(list(value = NULL, error = "empty response"))
+  }
+
+  tryCatch(
+    list(value = jsonlite::fromJSON(json_string, simplifyVector = FALSE), error = NULL),
+    error = function(e) list(value = NULL, error = conditionMessage(e))
+  )
+}
+
 #' Try Parsing JSON
 #'
 #' Attempt to parse JSON string with error handling.
@@ -51,18 +147,7 @@ clean_json_response <- function(response) {
 #' @return List or NULL. Parsed JSON object or NULL if parsing failed
 #' @keywords internal
 try_parse_json <- function(json_string) {
-  if (is.null(json_string) || !is.character(json_string) || nchar(json_string) == 0) {
-    return(NULL)
-  }
-
-  tryCatch(
-    {
-      jsonlite::fromJSON(json_string, simplifyVector = FALSE)
-    },
-    error = function(e) {
-      NULL
-    }
-  )
+  try_parse_json_with_error(json_string)$value
 }
 
 #' Parse LLM JSON Response with Multi-Tier Fallback
