@@ -74,7 +74,10 @@ Post-processing only - does not affect LLM generation.}
 Created with \code{\link{label_args}}. Direct parameters take precedence.}
 
 \item{llm_args}{List or llm_args object. LLM configuration settings.
-Created with \code{\link{llm_args}}. Direct parameters take precedence.}
+Created with \code{\link{llm_args}}. Direct parameters take precedence.
+Supplies \code{llm_provider}, \code{llm_model} and \code{echo}, plus
+\code{system_prompt} and \code{params}, which have no direct equivalent
+here and are used only when a temporary chat session is created.}
 
 \item{output_args}{List or output_args object. Output configuration settings.
 Created with \code{\link{output_args}}. Direct parameters take precedence.}
