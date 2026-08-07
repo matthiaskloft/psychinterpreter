@@ -198,9 +198,13 @@ test_that("parse_label_response handles various response formats", {
 
   expect_equal(attr(result, "parse_status"), "parsed")
 
-  # Malformed JSON (should use fallback)
+  # Malformed JSON (should use fallback). The tier now announces itself, so a
+  # user handed regex-scraped labels is not left guessing.
   malformed <- 'x1: "Label 1", x2: "Label 2"'
-  result <- parse_label_response(malformed, var_info)
+  expect_warning(
+    result <- parse_label_response(malformed, var_info),
+    "pattern matching"
+  )
   expect_equal(length(result), 2)
   expect_equal(attr(result, "parse_status"), "pattern_extracted")
 

@@ -19,33 +19,110 @@ NULL
 #' @keywords internal
 parse_label_response <- function(response, variable_info, ...) {
 
-  # Tier 1: strict JSON.
+  # Tier 1: strict JSON, plus structural recovery of near-miss shapes.
   cleaned <- clean_json_response(response)
   attempt <- try_parse_json_with_error(cleaned)
   parsed <- attempt$value
 
-  if (!is.null(parsed) && is.list(parsed) &&
-      validate_label_structure(parsed, variable_info)) {
-    # The LLM chooses the order; downstream code pairs records positionally
-    # with variable_info, so restore the caller's order before returning.
-    return(label_parse_result(
-      order_labels(parsed, variable_info), "parsed", NULL
-    ))
+  if (!is.null(parsed) && is.list(parsed)) {
+    records <- coerce_label_records(parsed, variable_info)
+    if (!is.null(records) && validate_label_structure(records, variable_info)) {
+      # The LLM chooses the order; downstream code pairs records positionally
+      # with variable_info, so restore the caller's order before returning.
+      return(label_parse_result(
+        order_labels(records, variable_info), "parsed", NULL
+      ))
+    }
   }
 
   parse_error <- attempt$error %||%
     "response did not match the expected label schema"
 
-  # Tier 2: pattern-based extraction.
-  labels <- extract_labels_fallback(response, variable_info)
-  if (!is.null(labels) && isTRUE(attr(labels, "any_matched"))) {
-    return(label_parse_result(labels, "pattern_extracted", parse_error))
+  # Tier 2: pattern-based extraction. This tier scrapes *prose*, so it must
+  # never see text that already parsed as JSON: matching structural syntax
+  # returns key names and punctuation as labels. A response that parsed but
+  # could not be recovered above goes straight to defaults instead.
+  if (is.null(parsed)) {
+    labels <- extract_labels_fallback(response, variable_info)
+    if (!is.null(labels) && isTRUE(attr(labels, "any_matched"))) {
+      cli::cli_warn(c(
+        "Could not parse the LLM response as JSON; labels were recovered by pattern matching.",
+        "i" = "Check {.code x$labels_formatted}; see {.code x$metadata$parse_error}."
+      ))
+      return(label_parse_result(labels, "pattern_extracted", parse_error))
+    }
   }
 
   # Tier 3: derive labels from the descriptions we already hold.
   cli::cli_warn("Could not parse LLM response, using variable names as labels")
   label_parse_result(create_default_labels(variable_info),
                      "default_fallback", parse_error)
+}
+
+#' Recover Label Records From Near-Miss JSON Shapes
+#'
+#' The prompt asks for an array of `variable`/`label` objects, but models
+#' deviate in a small number of predictable ways. Recovering these structurally
+#' is safe; handing them to the prose scraper is not.
+#'
+#' Handles: the requested array; an array wrapped in a single container key
+#' (`{"labels": [...]}`); an object keyed by variable name
+#' (`{"v1": "Tiredness"}`); and records whose `label` is a scalar number or
+#' boolean rather than a string.
+#'
+#' @param parsed List. Parsed JSON
+#' @param variable_info Data frame. Original variables
+#' @return List of records, or NULL if no known shape matches
+#' @keywords internal
+coerce_label_records <- function(parsed, variable_info) {
+  expected <- as.character(variable_info$variable)
+
+  # {"labels": [...]} - unwrap a single container key holding a list.
+  if (!is.null(names(parsed)) && length(parsed) == 1L && is.list(parsed[[1]]) &&
+      is.null(names(parsed[[1]]))) {
+    parsed <- parsed[[1]]
+  }
+
+  # {"v1": "Tiredness", "v2": "Alertness"} - an object keyed by variable name.
+  if (!is.null(names(parsed)) && setequal(names(parsed), expected) &&
+      all(vapply(parsed, function(x) is.atomic(x) && length(x) == 1L, logical(1)))) {
+    return(lapply(names(parsed), function(nm) {
+      list(variable = nm, label = as_label_string(parsed[[nm]]))
+    }))
+  }
+
+  if (!is.list(parsed) || !is.null(names(parsed))) {
+    return(NULL)
+  }
+
+  # The requested shape, with scalar labels coerced to character.
+  lapply(parsed, function(item) {
+    if (!is.list(item)) {
+      return(item)
+    }
+    if (!is.null(item$label)) {
+      item$label <- as_label_string(item$label)
+    }
+    if (!is.null(item$variable)) {
+      item$variable <- as_label_string(item$variable)
+    }
+    item
+  })
+}
+
+#' Coerce a Scalar JSON Value to a Label String
+#'
+#' @param x Value from parsed JSON
+#' @return Character scalar, or `x` unchanged if it is not a usable scalar
+#' @keywords internal
+as_label_string <- function(x) {
+  if (is.character(x) && length(x) == 1L) {
+    return(x)
+  }
+  if (is.atomic(x) && length(x) == 1L && !is.na(x)) {
+    return(as.character(x))
+  }
+  x
 }
 
 #' Tag a Parsed Label List With the Tier That Produced It

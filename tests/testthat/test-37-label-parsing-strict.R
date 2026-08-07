@@ -180,6 +180,81 @@ test_that("a reordered response labels each variable correctly end to end", {
   expect_equal(res$metadata$parse_status, "parsed")
 })
 
+# ------------------------- valid JSON is recovered structurally, never scraped
+
+test_that("a scalar non-string label is coerced rather than scraped", {
+  # Regression: tier 1 rejected label = 5 as "not a string", the response then
+  # went to the prose scraper, and pattern 4 matched across the record boundary
+  # and returned the KEY name -- so v1's label became the literal "variable".
+  info <- label_info_2()
+  parsed <- parse_label_response(
+    '[{"variable":"v1","label":5},{"variable":"v2","label":"B"}]', info)
+  expect_equal(attr(parsed, "parse_status"), "parsed")
+  expect_equal(vapply(parsed, function(x) x$label, character(1)), c("5", "B"))
+})
+
+test_that("an object keyed by variable name is recovered", {
+  info <- label_info_2()
+  parsed <- parse_label_response('{"v1":"Tiredness","v2":"Alertness"}', info)
+  expect_equal(attr(parsed, "parse_status"), "parsed")
+  expect_equal(vapply(parsed, function(x) x$label, character(1)),
+               c("Tiredness", "Alertness"))
+})
+
+test_that("an array wrapped in a single key is recovered", {
+  info <- label_info_2()
+  parsed <- parse_label_response(
+    '{"labels":[{"variable":"v1","label":"Tiredness"},
+                {"variable":"v2","label":"Alertness"}]}', info)
+  expect_equal(attr(parsed, "parse_status"), "parsed")
+  expect_equal(vapply(parsed, function(x) x$variable, character(1)), c("v1", "v2"))
+})
+
+test_that("unrecoverable JSON goes to defaults, never to the prose scraper", {
+  # Scraping structural JSON text yields key names and punctuation as labels.
+  info <- label_info_2()
+  parsed <- suppressWarnings(
+    parse_label_response('{"unexpected":{"totally":"different"}}', info))
+  expect_equal(attr(parsed, "parse_status"), "default_fallback")
+  labels <- vapply(parsed, function(x) x$label, character(1))
+  expect_false(any(labels %in% c("variable", "label", "unexpected", "totally")))
+})
+
+test_that("prose is still scraped, because it never parsed as JSON", {
+  info <- label_info_2()
+  parsed <- suppressWarnings(
+    parse_label_response('v1 = "Tiredness"\nv2 = "Alertness"', info))
+  expect_equal(attr(parsed, "parse_status"), "pattern_extracted")
+  expect_equal(vapply(parsed, function(x) x$label, character(1)),
+               c("Tiredness", "Alertness"))
+})
+
+# --------------------------------------- F-11: degraded results are announced
+
+test_that("pattern extraction warns", {
+  # Previously silent: a user given regex-scraped labels saw nothing at all.
+  info <- label_info_2()
+  expect_warning(
+    parse_label_response('v1 = "Tiredness"\nv2 = "Alertness"', info),
+    "pattern"
+  )
+})
+
+test_that("print() reports a degraded parse and stays quiet on a clean one", {
+  info <- label_info_2()
+
+  clean <- fake_chat_session("label", response = fake_label_response(info$variable))
+  res_clean <- label_variables(variable_info = info, chat_session = clean, verbosity = 0)
+  expect_no_match(paste(capture.output(print(res_clean)), collapse = "\n"),
+                  "Parsing")
+
+  degraded <- fake_chat_session("label", response = 'v1 = "A"\nv2 = "B"')
+  res_degraded <- suppressWarnings(
+    label_variables(variable_info = info, chat_session = degraded, verbosity = 0))
+  expect_match(paste(capture.output(print(res_degraded)), collapse = "\n"),
+               "pattern_extracted")
+})
+
 # ------------------------------------------------------ F-08: session typing
 
 test_that("a chat session for the wrong analysis type is rejected", {
@@ -220,7 +295,8 @@ test_that("a response needing pattern extraction is reported as such", {
     "label",
     response = 'v1 = "Tiredness"\nv2 = "Alertness"'
   )
-  res <- label_variables(variable_info = info, chat_session = session, verbosity = 0)
+  res <- suppressWarnings(
+    label_variables(variable_info = info, chat_session = session, verbosity = 0))
   expect_equal(res$metadata$parse_status, "pattern_extracted")
 })
 
