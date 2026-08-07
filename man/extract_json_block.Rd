@@ -2,7 +2,7 @@
 % Please edit documentation in R/s3_json_parser.R
 \name{extract_json_block}
 \alias{extract_json_block}
-\title{Extract the First Balanced JSON Value From Text}
+\title{Extract the JSON Value From Text}
 \usage{
 extract_json_block(text)
 }
@@ -13,11 +13,19 @@ extract_json_block(text)
 Character scalar containing the JSON value, or NULL if none is found
 }
 \description{
-Locates the first \verb{\{} or \code{[} and scans forward for its matching close,
-tracking nesting depth and string-literal state so that delimiters appearing
-inside string values (or escaped by a backslash) are ignored.
+Considers every top-level brace or bracket in the text as a candidate
+opening delimiter and returns the \strong{longest} balanced extent that parses as
+JSON.
 }
 \details{
+Anchoring on the first bracket is not safe: LLM prose routinely contains
+brackets before the JSON value - markdown citations, bracketed item
+references, or set notation. Nor is "first candidate that parses"
+sufficient, because a bracketed integer is itself valid JSON and would be
+accepted in place of the object that follows it. The payload an LLM was
+asked to produce is always larger than an incidental bracket in prose, so
+among the candidates that parse, the longest is taken.
+
 A regular expression cannot do this: balanced delimiters at arbitrary depth
 are not a regular language. The previous greedy \verb{\\\\\{.*\\\\\}} also assumed the
 value was an object, which silently stripped the enclosing brackets from the

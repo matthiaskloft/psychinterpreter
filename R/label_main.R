@@ -371,38 +371,7 @@ label_variables <- function(variable_info,
     cli::cli_alert_info("Applying formatting...")
   }
 
-  # Convert parsed labels (list of lists) to data frame. vapply, not sapply:
-  # a record missing `label` made sapply() return a list, silently producing a
-  # list-column instead of failing.
-  record_field <- function(records, field) {
-    vapply(
-      records,
-      function(x) {
-        value <- x[[field]]
-        if (is_nonempty_string(value)) as.character(value) else NA_character_
-      },
-      character(1)
-    )
-  }
-
-  parsed_labels_df <- data.frame(
-    variable = record_field(parsed_labels, "variable"),
-    label = record_field(parsed_labels, "label"),
-    stringsAsFactors = FALSE
-  )
-
-  # A degraded tier can leave a record without a usable label; fall back to the
-  # description we already hold rather than carrying NA into formatting.
-  missing_label <- is.na(parsed_labels_df$label)
-  if (any(missing_label)) {
-    parsed_labels_df$variable[is.na(parsed_labels_df$variable)] <-
-      variable_info$variable[is.na(parsed_labels_df$variable)]
-    parsed_labels_df$label[missing_label] <- vapply(
-      which(missing_label),
-      function(i) simplify_description(variable_info$description[i]),
-      character(1)
-    )
-  }
+  parsed_labels_df <- label_records_to_df(parsed_labels, variable_info)
 
   # Create formatted labels data frame
   labels_df <- parsed_labels_df

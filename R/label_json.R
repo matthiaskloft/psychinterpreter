@@ -62,6 +62,57 @@ label_parse_result <- function(labels, status, error) {
   labels
 }
 
+#' Flatten Label Records Into a Two-Column Data Frame
+#'
+#' Defence in depth rather than a fix for an observed failure: the tiers above
+#' currently guarantee well-formed records, so no LLM response is known to
+#' reach here with a field missing. `vapply()` is used anyway because the
+#' previous `sapply()` would have degraded silently - returning a list, and so
+#' a list-column - if that guarantee were ever weakened.
+#'
+#' Any record that still lacks a usable label falls back to the description
+#' already held in `variable_info`, rather than carrying NA into formatting.
+#'
+#' @param records List of label records
+#' @param variable_info Data frame. Original variables
+#' @return Data frame with character columns `variable` and `label`
+#' @keywords internal
+label_records_to_df <- function(records, variable_info) {
+  record_field <- function(field) {
+    vapply(
+      records,
+      function(x) {
+        value <- x[[field]]
+        if (is_nonempty_string(value)) as.character(value) else NA_character_
+      },
+      character(1)
+    )
+  }
+
+  out <- data.frame(
+    variable = record_field("variable"),
+    label = record_field("label"),
+    stringsAsFactors = FALSE
+  )
+
+  missing_variable <- is.na(out$variable)
+  if (any(missing_variable)) {
+    out$variable[missing_variable] <-
+      as.character(variable_info$variable[missing_variable])
+  }
+
+  missing_label <- is.na(out$label)
+  if (any(missing_label)) {
+    out$label[missing_label] <- vapply(
+      which(missing_label),
+      function(i) simplify_description(variable_info$description[i]),
+      character(1)
+    )
+  }
+
+  out
+}
+
 #' Reorder Label Records to Match variable_info
 #'
 #' @param parsed List of validated label records

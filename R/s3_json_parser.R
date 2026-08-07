@@ -22,28 +22,18 @@ escape_regex <- function(x) {
   gsub("([]\\^$.|?*+(){}[-])", "\\\\\\1", x)
 }
 
-#' Extract the First Balanced JSON Value From Text
+#' Scan a Balanced JSON Value From a Given Offset
 #'
-#' Locates the first `{` or `[` and scans forward for its matching close,
+#' Scans forward from `start` for the delimiter matching `chars[start]`,
 #' tracking nesting depth and string-literal state so that delimiters appearing
 #' inside string values (or escaped by a backslash) are ignored.
 #'
-#' A regular expression cannot do this: balanced delimiters at arbitrary depth
-#' are not a regular language. The previous greedy `\\{.*\\}` also assumed the
-#' value was an object, which silently stripped the enclosing brackets from the
-#' top-level array that the labelling prompt actually asks for.
-#'
-#' @param text Character. Text possibly containing a JSON value
-#' @return Character scalar containing the JSON value, or NULL if none is found
+#' @param chars Character vector of single characters
+#' @param start Integer. Index of the opening brace or bracket
+#' @return List with `text` and `end` (the index of the closing delimiter), or
+#'   NULL if the value never balances
 #' @keywords internal
-extract_json_block <- function(text) {
-  chars <- strsplit(text, "", fixed = TRUE)[[1]]
-  start <- which(chars %in% c("{", "["))
-  if (length(start) == 0) {
-    return(NULL)
-  }
-  start <- start[1]
-
+scan_balanced_from <- function(chars, start) {
   open <- chars[start]
   close <- if (open == "{") "}" else "]"
 
@@ -72,13 +62,85 @@ extract_json_block <- function(text) {
     } else if (ch == close) {
       depth <- depth - 1L
       if (depth == 0L) {
-        return(paste(chars[start:i], collapse = ""))
+        return(list(text = paste(chars[start:i], collapse = ""), end = i))
       }
     }
   }
 
-  # Unbalanced: hand back everything from the opening delimiter to the last
-  # closing one so the repair pass below still has something to work with.
+  NULL
+}
+
+#' Extract the JSON Value From Text
+#'
+#' Considers every top-level brace or bracket in the text as a candidate
+#' opening delimiter and returns the **longest** balanced extent that parses as
+#' JSON.
+#'
+#' Anchoring on the first bracket is not safe: LLM prose routinely contains
+#' brackets before the JSON value - markdown citations, bracketed item
+#' references, or set notation. Nor is "first candidate that parses"
+#' sufficient, because a bracketed integer is itself valid JSON and would be
+#' accepted in place of the object that follows it. The payload an LLM was
+#' asked to produce is always larger than an incidental bracket in prose, so
+#' among the candidates that parse, the longest is taken.
+#'
+#' A regular expression cannot do this: balanced delimiters at arbitrary depth
+#' are not a regular language. The previous greedy `\\{.*\\}` also assumed the
+#' value was an object, which silently stripped the enclosing brackets from the
+#' top-level array that the labelling prompt actually asks for.
+#'
+#' @param text Character. Text possibly containing a JSON value
+#' @return Character scalar containing the JSON value, or NULL if none is found
+#' @keywords internal
+extract_json_block <- function(text) {
+  chars <- strsplit(text, "", fixed = TRUE)[[1]]
+  starts <- which(chars %in% c("{", "["))
+  if (length(starts) == 0) {
+    return(NULL)
+  }
+
+  best <- NULL
+  first_balanced <- NULL
+  skip_until <- 0L
+
+  for (start in starts) {
+    # Candidates nested inside an already-scanned value can never be the
+    # top-level payload, and re-scanning them is what would make this
+    # quadratic on a large response.
+    if (start <= skip_until) {
+      next
+    }
+
+    scanned <- scan_balanced_from(chars, start)
+    if (is.null(scanned)) {
+      next
+    }
+    skip_until <- scanned$end
+
+    if (is.null(first_balanced)) {
+      # The repair pass in clean_json_response() may still rescue a balanced
+      # but unparseable candidate.
+      first_balanced <- scanned$text
+    }
+
+    if (!is.null(try_parse_json(scanned$text)) &&
+        (is.null(best) || nchar(scanned$text) > nchar(best))) {
+      best <- scanned$text
+    }
+  }
+
+  if (!is.null(best)) {
+    return(best)
+  }
+  if (!is.null(first_balanced)) {
+    return(first_balanced)
+  }
+
+  # Nothing balanced. Hand back from the first opening delimiter to the last
+  # closing one of the matching kind, so the repair pass has something to work
+  # with.
+  start <- starts[1]
+  close <- if (chars[start] == "{") "}" else "]"
   closes <- which(chars[start:length(chars)] == close)
   if (length(closes) == 0) {
     return(paste(chars[start:length(chars)], collapse = ""))
@@ -99,6 +161,12 @@ extract_json_block <- function(text) {
 clean_json_response <- function(response) {
   if (is.null(response) || !is.character(response) || length(response) == 0) {
     return(NULL)
+  }
+
+  # The scanner works on one string; joining is lossless, whereas indexing the
+  # first element would discard the rest silently.
+  if (length(response) > 1) {
+    response <- paste(response, collapse = "\n")
   }
 
   # Drop markdown code fences, which are not part of the JSON value.

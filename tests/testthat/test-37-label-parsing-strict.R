@@ -50,6 +50,29 @@ test_that("JSON embedded in prose is still located", {
   expect_equal(parsed[[1]]$label, "Tiredness")
 })
 
+test_that("a bracket in prose before the JSON does not hijack extraction", {
+  # The scanner must not simply anchor on the first "{" or "[": LLM prose
+  # routinely contains brackets, and "[3]" is itself valid JSON, so a parse
+  # check alone would accept it in place of the real payload.
+  resp <- paste0("Here is my interpretation. Note that item [3] loads ",
+                 'negatively.\n{"MR1":{"name":"Anxiety","interpretation":"High."}}')
+  parsed <- try_parse_json(clean_json_response(resp))
+  expect_equal(parsed$MR1$name, "Anxiety")
+})
+
+test_that("set notation in prose before an array does not hijack extraction", {
+  resp <- 'The item set {Q1, Q2} is key.\n[{"variable":"v1","label":"Tiredness"}]'
+  parsed <- try_parse_json(clean_json_response(resp))
+  expect_equal(parsed[[1]]$label, "Tiredness")
+})
+
+test_that("a multi-element character response is joined, not truncated", {
+  parsed <- try_parse_json(
+    clean_json_response(c('[{"variable":"v1",', '"label":"Tiredness"}]'))
+  )
+  expect_equal(parsed[[1]]$label, "Tiredness")
+})
+
 test_that("a fenced code block is unwrapped", {
   fenced <- '```json\n[{"variable":"v1","label":"Tiredness"}]\n```'
   parsed <- try_parse_json(clean_json_response(fenced))
@@ -126,9 +149,23 @@ test_that("an exact, well-formed set is accepted", {
   expect_true(validate_label_structure(parsed, label_info_2()))
 })
 
-test_that("labels are returned in variable_info order, not LLM order", {
-  # Output was assembled in whatever order the LLM chose, so a reordered
-  # response silently attached each label to the wrong variable downstream.
+test_that("parsed records are reordered to variable_info order", {
+  # Records were returned in whatever order the LLM chose. This must be
+  # asserted on the parser: label_variables() masks it, because when tier 1
+  # rejects a response the fallback rebuilds records by iterating
+  # variable_info, which restores the order by accident.
+  info <- label_info_2()
+  parsed <- parse_label_response(
+    '[{"variable":"v2","label":"Alertness"},{"variable":"v1","label":"Tiredness"}]',
+    info
+  )
+  expect_equal(attr(parsed, "parse_status"), "parsed")
+  expect_equal(vapply(parsed, function(x) x$variable, character(1)), c("v1", "v2"))
+  expect_equal(vapply(parsed, function(x) x$label, character(1)),
+               c("Tiredness", "Alertness"))
+})
+
+test_that("a reordered response labels each variable correctly end to end", {
   info <- label_info_2()
   session <- fake_chat_session(
     "label",
@@ -139,6 +176,8 @@ test_that("labels are returned in variable_info order, not LLM order", {
                          case = "original", verbosity = 0)
   expect_equal(res$labels_formatted$variable, c("v1", "v2"))
   expect_equal(res$labels_formatted$label, c("Tiredness", "Alertness"))
+  # It must get there by parsing, not by degrading into the fallback.
+  expect_equal(res$metadata$parse_status, "parsed")
 })
 
 # ------------------------------------------------------ F-08: session typing
@@ -199,18 +238,42 @@ test_that("an unparseable response is reported as a fallback, with the reason", 
 })
 
 # ------------------------------------------------------- F-18: type stability
+#
+# Defence in depth, not a reproduced bug: no LLM response is currently known to
+# reach label_records_to_df() with a field missing, because the parse tiers
+# above guarantee complete records. These assert the guarantee is not silently
+# lost if that ever changes, so they exercise the helper directly.
 
-test_that("a malformed record does not produce a list-column", {
-  # sapply() over records missing `label` returned a list, silently making
-  # labels_df$label a list-column instead of failing.
+test_that("a record missing its label yields a character column, not a list", {
   info <- label_info_2()
-  session <- fake_chat_session(
-    "label",
-    response = '[{"variable":"v1","label":"Tiredness"},{"variable":"v2"}]'
+  df <- label_records_to_df(
+    list(list(variable = "v1", label = "Tiredness"), list(variable = "v2")),
+    info
   )
-  res <- suppressWarnings(
-    label_variables(variable_info = info, chat_session = session, verbosity = 0)
+  expect_type(df$label, "character")
+  expect_equal(df$variable, c("v1", "v2"))
+  # The gap is filled from the description we already hold.
+  expect_true(nzchar(df$label[2]))
+  expect_false(is.na(df$label[2]))
+})
+
+test_that("a record with a non-scalar label does not become a list-column", {
+  info <- label_info_2()
+  df <- label_records_to_df(
+    list(list(variable = "v1", label = c("A", "B")),
+         list(variable = "v2", label = "Alertness")),
+    info
   )
-  expect_type(res$labels_formatted$label, "character")
-  expect_length(res$labels_formatted$label, 2)
+  expect_type(df$label, "character")
+  expect_length(df$label, 2)
+})
+
+test_that("well-formed records are passed through unchanged", {
+  info <- label_info_2()
+  df <- label_records_to_df(
+    list(list(variable = "v1", label = "Tiredness"),
+         list(variable = "v2", label = "Alertness")),
+    info
+  )
+  expect_equal(df$label, c("Tiredness", "Alertness"))
 })
