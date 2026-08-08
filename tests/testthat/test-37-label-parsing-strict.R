@@ -83,7 +83,11 @@ test_that("a fenced code block is unwrapped", {
 
 test_that("whitespace inside JSON string values is preserved", {
   # gsub("\\s+", " ", cleaned) ran unconditionally, collapsing runs of spaces
-  # *inside* valid string values - corrupting the label before it was parsed.
+  # *inside* valid string values - corrupting the text before it was parsed.
+  # This asserts the parser contract only. It is NOT observable through
+  # label_variables(), because format_label() word-splits and rejoins every
+  # label; see test-32-offline-fixture.R for the end-to-end case on the
+  # interpretation path, where prose is passed through unmodified.
   obj <- '[{"variable":"v1","label":"Self  Reported   Tiredness"}]'
   parsed <- try_parse_json(clean_json_response(obj))
   expect_equal(parsed[[1]]$label, "Self  Reported   Tiredness")
@@ -253,6 +257,41 @@ test_that("print() reports a degraded parse and stays quiet on a clean one", {
     label_variables(variable_info = info, chat_session = degraded, verbosity = 0))
   expect_match(paste(capture.output(print(res_degraded)), collapse = "\n"),
                "pattern_extracted")
+})
+
+# ------------------------------ duplicate variable names are rejected up front
+
+test_that("duplicate variable names are rejected before any LLM call", {
+  # With duplicates, no response can satisfy validate_label_structure() at
+  # once: anyDuplicated() rejects a record per row, and setequal() rejects one
+  # record for both. Tier 1 was therefore unreachable, and the fallback then
+  # assigned the SAME label to every duplicated row. Failing up front is
+  # honest; silently mislabelling is not.
+  info <- data.frame(
+    variable = c("v1", "v1"),
+    description = c("how often the respondent feels tired",
+                    "how often the respondent feels alert"),
+    stringsAsFactors = FALSE
+  )
+  session <- fake_chat_session("label", response = fake_label_response(c("v1", "v1")))
+  expect_error(
+    label_variables(variable_info = info, chat_session = session, verbosity = 0),
+    "duplicate"
+  )
+  expect_equal(fake_call_count(session), 0L)
+})
+
+test_that("auto-generated variable names are never duplicated", {
+  # The V1..Vn fallback path must not trip the new check.
+  info <- data.frame(
+    description = c("how often the respondent feels tired",
+                    "how often the respondent feels alert"),
+    stringsAsFactors = FALSE
+  )
+  session <- fake_chat_session("label", response = fake_label_response(c("V1", "V2")))
+  expect_no_error(
+    label_variables(variable_info = info, chat_session = session, verbosity = 0)
+  )
 })
 
 # ------------------------------------------------------ F-08: session typing

@@ -199,6 +199,20 @@ label_variables <- function(variable_info,
   # Reorder columns to ensure variable comes first
   variable_info <- variable_info[, c("variable", "description")]
 
+  # Variable names must be unique. With duplicates no response can validate:
+  # one record per row trips the duplicate check, one record for both trips the
+  # completeness check. Parsing would therefore always degrade to the fallback,
+  # which assigns the SAME label to every duplicated row. Failing here is
+  # honest; silently mislabelling is not.
+  duplicated_names <- unique(variable_info$variable[duplicated(variable_info$variable)])
+  if (length(duplicated_names) > 0) {
+    cli::cli_abort(c(
+      "{.var variable_info} contains duplicate variable names",
+      "x" = "Duplicated: {.val {duplicated_names}}",
+      "i" = "Variable names identify each label, so they must be unique."
+    ))
+  }
+
   # ==========================================================================
   # RESOLVE PARAMETERS ACROSS DIRECT ARGS AND CONFIG OBJECTS
   # ==========================================================================

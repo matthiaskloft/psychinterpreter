@@ -45,6 +45,39 @@ test_that("fake session drives a full interpretation with no network", {
   expect_true(nchar(result$report) > 0)
 })
 
+test_that("whitespace inside LLM string values survives into the result", {
+  # clean_json_response() used to run gsub("\\s+", " ") unconditionally, which
+  # collapsed runs of spaces *inside* valid string values before parsing.
+  # Asserted here rather than on the labelling path: format_label() re-splits
+  # and rejoins words, so for labels the difference is not observable, whereas
+  # interpretation prose is passed through unmodified.
+  model <- fixture_fa_model()
+  factors <- colnames(model$loadings)
+  spaced_name <- "Self  Reported  Anxiety"
+  spaced_text <- "High scores indicate  marked  distress."
+
+  response <- paste0(
+    "{",
+    sprintf('"%s": {"name": "%s", "interpretation": "%s"}',
+            factors[1], spaced_name, spaced_text),
+    ", ",
+    sprintf('"%s": {"name": "Second Factor", "interpretation": "Ordinary text."}',
+            factors[2]),
+    "}"
+  )
+
+  session <- fake_chat_session("fa", response = response)
+  result <- interpret_core(
+    fit_results = model, chat_session = session,
+    variable_info = fixture_var_info(), analysis_type = "fa", verbosity = 0
+  )
+
+  expect_true(spaced_name %in% unname(unlist(result$suggested_names)))
+  expect_true(any(grepl(spaced_text, unlist(result$component_summaries), fixed = TRUE)))
+  # The user-visible surface: the rendered report carries the prose verbatim.
+  expect_true(grepl(spaced_text, result$report, fixed = TRUE))
+})
+
 test_that("fake session records the prompt actually sent", {
   model <- fixture_fa_model()
   session <- fake_chat_session("fa", response = fake_fa_response(colnames(model$loadings)))
