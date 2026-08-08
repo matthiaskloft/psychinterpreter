@@ -54,7 +54,12 @@ parse_label_response <- function(response, variable_info, ...) {
   }
 
   # Tier 3: derive labels from the descriptions we already hold.
-  cli::cli_warn("Could not parse LLM response, using variable names as labels")
+  # create_default_labels() derives labels from variable_info$description via
+  # simplify_description(), not from the variable names.
+  cli::cli_warn(c(
+    "Could not parse the LLM response; labels were derived from the variable descriptions.",
+    "i" = "See {.code x$metadata$parse_error} for why parsing failed."
+  ))
   label_parse_result(create_default_labels(variable_info),
                      "default_fallback", parse_error)
 }

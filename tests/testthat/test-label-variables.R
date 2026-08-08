@@ -214,7 +214,7 @@ test_that("parse_label_response handles various response formats", {
   garbage <- "This is not parseable at all"
   expect_warning(
     result <- parse_label_response(garbage, var_info),
-    "Could not parse LLM response"
+    "derived from the variable descriptions"
   )
   expect_equal(length(result), 2)
   expect_equal(attr(result, "parse_status"), "default_fallback")
