@@ -13,6 +13,9 @@ clean_json_response(response)
 Character. Cleaned JSON string
 }
 \description{
-Removes common prefixes, suffixes, and formatting issues that LLMs add.
+Extracts the JSON value from an LLM response, and repairs common formatting
+faults \emph{only} if the extracted value does not already parse. The repairs are
+lossy - collapsing whitespace mangles runs of spaces inside string values -
+so they must never run against input that was valid to begin with.
 }
 \keyword{internal}

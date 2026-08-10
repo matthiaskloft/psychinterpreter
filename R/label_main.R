@@ -199,6 +199,20 @@ label_variables <- function(variable_info,
   # Reorder columns to ensure variable comes first
   variable_info <- variable_info[, c("variable", "description")]
 
+  # Variable names must be unique. With duplicates no response can validate:
+  # one record per row trips the duplicate check, one record for both trips the
+  # completeness check. Parsing would therefore always degrade to the fallback,
+  # which assigns the SAME label to every duplicated row. Failing here is
+  # honest; silently mislabelling is not.
+  duplicated_names <- unique(variable_info$variable[duplicated(variable_info$variable)])
+  if (length(duplicated_names) > 0) {
+    cli::cli_abort(c(
+      "{.var variable_info} contains duplicate variable names",
+      "x" = "Duplicated: {.val {duplicated_names}}",
+      "i" = "Variable names identify each label, so they must be unique."
+    ))
+  }
+
   # ==========================================================================
   # RESOLVE PARAMETERS ACROSS DIRECT ARGS AND CONFIG OBJECTS
   # ==========================================================================
@@ -314,10 +328,10 @@ label_variables <- function(variable_info,
     created_temp_session <- TRUE
     chat_local <- chat_session$chat
   } else {
-    # Validate chat_session
-    if (!inherits(chat_session, "chat_session")) {
-      cli::cli_abort("{.var chat_session} must be a chat_session object")
-    }
+    # Validate chat_session. A bare inherits() check accepted an "fa" or "gm"
+    # session, which would send labelling prompts through a factor-analysis
+    # system prompt. This must run before anything reaches the provider.
+    validate_chat_session_for_analysis_type(chat_session, "label")
 
     # Clone to avoid side effects
     chat_local <- chat_session$chat$clone()$set_turns(list())
@@ -360,6 +374,8 @@ label_variables <- function(variable_info,
   }
 
   parsed_labels <- parse_label_response(response, variable_info)
+  parse_status <- attr(parsed_labels, "parse_status")
+  parse_error <- attr(parsed_labels, "parse_error")
 
   # ==========================================================================
   # STEP 5: APPLY FORMATTING
@@ -369,12 +385,7 @@ label_variables <- function(variable_info,
     cli::cli_alert_info("Applying formatting...")
   }
 
-  # Convert parsed labels (list of lists) to data frame
-  parsed_labels_df <- data.frame(
-    variable = sapply(parsed_labels, function(x) x$variable),
-    label = sapply(parsed_labels, function(x) x$label),
-    stringsAsFactors = FALSE
-  )
+  parsed_labels_df <- label_records_to_df(parsed_labels, variable_info)
 
   # Create formatted labels data frame
   labels_df <- parsed_labels_df
@@ -416,6 +427,11 @@ label_variables <- function(variable_info,
   metadata <- list(
     label_type = label_type,
     n_variables = nrow(variable_info),
+    # Which parsing tier produced these labels, and why the strict parse
+    # failed if it did. Without this a fabricated result is indistinguishable
+    # from a real one.
+    parse_status = parse_status,
+    parse_error = parse_error,
     timestamp = Sys.time(),
     duration = as.numeric(difftime(Sys.time(), start_time, units = "secs")),
     llm_provider = chat_session$llm_provider,

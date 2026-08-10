@@ -318,6 +318,14 @@ print.variable_labels <- function(x, verbosity = 2, ...) {
     output <- paste0(output, print_kv("LLM", llm_display))
   }
 
+  # Parsing tier, reported only when the labels did NOT come from a clean
+  # parse. A degraded result would otherwise be indistinguishable from a real
+  # one without inspecting metadata by hand.
+  parse_status <- x$metadata$parse_status
+  if (!is.null(parse_status) && !identical(parse_status, "parsed")) {
+    output <- paste0(output, print_kv("Parsing", parse_status))
+  }
+
   # Token usage (compact format)
   if (!is.null(x$metadata$tokens_used)) {
     tokens <- x$metadata$tokens_used
